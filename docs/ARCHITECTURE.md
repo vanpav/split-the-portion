@@ -27,7 +27,7 @@
 | `idb-keyval` | prod | Хранилище `persist` в IndexedDB (≈ 600 Б): браузер может пометить его постоянным (`navigator.storage.persist`), места больше, чем в `localStorage`. Согласовано 2026-10-06 |
 | `nanoid` | prod | Генерация id; в отличие от `crypto.randomUUID` работает и без secure context (телефон по http с LAN-адреса) |
 | `tailwindcss`, `@tailwindcss/vite` | dev | Без Tailwind shadcn/ui не работает; стили пишем утилитарными классами |
-| shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы |
+| shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы; `tw-animate-css` — анимации shadcn и переходы между экранами (`app/ScreenTransition.tsx`, без отдельной библиотеки анимаций) |
 | `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
 | `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
@@ -299,8 +299,9 @@ src/
   main.tsx
   index.css             — Tailwind + тема shadcn (CSS-переменные цветов, радиусы); свои токены — тоже здесь
   app/
-    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider, <ScrollRestoration /> (прокрутка при «назад»); нижнего меню нет (этап 15)
+    RootLayout.tsx      — оболочка: баннер ошибки чтения, <ScreenTransition> вокруг <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider, <ScrollRestoration /> (прокрутка при «назад»); нижнего меню нет (этап 15)
     useBack.ts          — «←» и «Отмена» (docs/UX.md «Назад»): шаг назад по истории (`navigate(-1)`); без предыдущего экрана в приложении (`location.key === 'default'`) — запасной адрес с `replace`
+    ScreenTransition.tsx — анимация входа экрана (docs/UX.md «Переходы между экранами»): внутренняя обёртка с `key` = путь, направление по `useNavigationType()` — PUSH вглубь, POP назад (в т. ч. `navigate(-1)` из useBack и системный «назад»), REPLACE и первый экран — без анимации; классы `tw-animate-css` под `motion-safe:`, `overflow-x-clip` на внешней обёртке против горизонтальной прокрутки. Работает для всех маршрутов `router.tsx`, новые экраны получают её сами
     LocalDataDialog.tsx — «Перенести данные этого устройства?» при первом входе (этап 13)
     UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов
