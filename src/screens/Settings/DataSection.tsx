@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { backupFile, readBackupFile } from '@/store/backupFile'
 import { storedData } from '@/store/createAppStore'
 import type { PersistedState } from '@/store/migrations'
+import { useAccountStore } from '@/store/account'
 import { useAppStore } from '@/store/store'
 
 /**
@@ -23,6 +24,8 @@ import { useAppStore } from '@/store/store'
  */
 export function DataSection() {
   const replaceData = useAppStore((s) => s.replaceData)
+  // Signed in, the data is a group's: loading a file replaces it for everyone in the group.
+  const groupName = useAccountStore((s) => s.me?.groups.find((g) => g.id === s.me?.defaultGroupId)?.name)
   const inputRef = useRef<HTMLInputElement>(null)
   // A file read and migrated, waiting for «Заменить».
   const [pending, setPending] = useState<PersistedState | null>(null)
@@ -64,11 +67,13 @@ export function DataSection() {
         <p className="text-sm text-muted-foreground">
           Всё хранится в этом браузере. Копия в файле выручит, если браузер очистит данные или вы смените телефон.
         </p>
-        {/* Until sync (stage 13) a file is the only way across: an installed app does not share Safari's storage. */}
-        <p className="text-sm text-muted-foreground">
-          У приложения на экране «Домой» iPhone своё хранилище, не общее с Safari. Чтобы перенести данные, скачайте
-          копию в Safari и загрузите её в приложении.
-        </p>
+        {/* Without an account a file is the only way across: an installed app does not share Safari's storage. */}
+        {!groupName && (
+          <p className="text-sm text-muted-foreground">
+            У приложения на экране «Домой» iPhone своё хранилище, не общее с Safari. Проще всего войти в аккаунт и там, и
+            там. Без аккаунта — скачайте копию в Safari и загрузите её в приложении.
+          </p>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" aria-label="Скачать копию данных" onClick={download}>
@@ -88,7 +93,7 @@ export function DataSection() {
             <AlertDialogTitle>Заменить данные из файла?</AlertDialogTitle>
             <AlertDialogDescription>
               {pending &&
-                `В файле — блюда: ${pending.dishes.length}, готовки: ${pending.cookings.length}, тара: ${pending.tares.length}, компании: ${pending.companies.length}. Они заменят то, что сейчас в приложении.`}
+                `В файле — блюда: ${pending.dishes.length}, готовки: ${pending.cookings.length}, тара: ${pending.tares.length}, компании: ${pending.companies.length}. ${groupName ? `Они заменят данные группы «${groupName}» у всех её участников.` : 'Они заменят то, что сейчас в приложении.'}`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

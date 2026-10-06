@@ -6,6 +6,8 @@ export interface Tare {
   id: Id
   name: string
   grams: number
+  /** Order in lists, the same on every device of a group (since v10). */
+  createdAt: string
 }
 
 export interface Ingredient {
@@ -66,6 +68,8 @@ export interface Company {
   id: Id
   name: string
   members: CompanyMember[]
+  /** Order in lists, the same on every device of a group: the first company is a dish's default lineup (since v10). */
+  createdAt: string
 }
 
 /**

@@ -26,13 +26,16 @@ const v1 = {
 const v4 = { dishes: [], cookings: [], tares: [tare], companies: [] }
 const v5 = { ...v4, lineup: null }
 const v8 = { ...v5, holdMs: 1500 }
-const v9: PersistedState = { ...v4, lineups: {}, holdMs: 1500 }
+const v9 = { ...v4, lineups: {}, holdMs: 1500 }
+/** v10: tares and companies ordered by createdAt; old ones 1 ms apart from the epoch. */
+const at = (i: number) => new Date(i).toISOString()
+const v10: PersistedState = { ...v9, tares: [{ ...tare, createdAt: at(0) }] }
 
 const backups = (data: Map<string, string>) => [...data.keys()].filter((k) => k.startsWith(`${STORAGE_KEY}:backup:`))
 
 describe('migrate', () => {
   it('accepts the current version', () => {
-    expect(migrate(v9, CURRENT_VERSION)).toEqual(v9)
+    expect(migrate(v10, CURRENT_VERSION)).toEqual(v10)
   })
 
   it.each([0, CURRENT_VERSION + 1, 1.5])('rejects version %s', (version) => {
@@ -54,7 +57,7 @@ describe('migrate', () => {
     const old = { id: 'c', dishId: 'd', portions: [], weighings: [] }
     const migrated = migrate({ ...v5, cookings: [old] }, 6)
     expect(migrated.cookings).toEqual([{ ...old, keepPercent: null }])
-    expect(migrated.tares).toEqual([tare])
+    expect(migrated.tares).toEqual(v10.tares)
   })
 
   it('v7 → v8: removing a person takes a 1,5 s hold, the rest kept', () => {
@@ -67,7 +70,22 @@ describe('migrate', () => {
     const migrated = migrate({ ...v8, dishes: [dish('a'), dish('b')], lineup }, 8)
     expect(migrated.lineups).toEqual({ a: { companyId: null, members: lineup }, b: { companyId: null, members: lineup } })
     expect(migrated).not.toHaveProperty('lineup')
-    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v9, dishes: [dish('a')] })
+    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v10, dishes: [dish('a')] })
+  })
+
+  it('v9 → v10: tares and companies keep their order through createdAt, the rest kept', () => {
+    const company = (id: string) => ({ id, name: id, members: [] })
+    const pan = { id: 't2', name: 'Сковорода', grams: 900 }
+    const migrated = migrate({ ...v9, tares: [tare, pan], companies: [company('us'), company('mom')] }, 9)
+    expect(migrated.tares).toEqual([
+      { ...tare, createdAt: at(0) },
+      { ...pan, createdAt: at(1) },
+    ])
+    expect(migrated.companies.map((c) => [c.id, c.createdAt])).toEqual([
+      ['us', at(0)],
+      ['mom', at(1)],
+    ])
+    expect(migrated.lineups).toEqual({})
   })
 
   it('v1 → v2: empty portions follow the dish, filled ones are kept', () => {
@@ -121,6 +139,7 @@ describe('migrate', () => {
           { id: 'm0', name: 'Аня', weight: 1 },
           { id: 'm1', name: 'Борис', weight: 1 },
         ],
+        createdAt: at(0),
       },
     ])
     expect(migrate({ ...v1, settings: { defaultPeople: [] } }, 1).companies).toEqual([])
@@ -204,9 +223,9 @@ describe('store hydration', () => {
   it('replaceData swaps in a backup and persists it', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    store.getState().replaceData({ ...v9, holdMs: 0 })
-    expect(store.getState()).toMatchObject({ tares: [tare], holdMs: 0 })
-    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual([tare])
+    store.getState().replaceData({ ...v10, holdMs: 0 })
+    expect(store.getState()).toMatchObject({ tares: v10.tares, holdMs: 0 })
+    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v10.tares)
   })
 
   it('persists only user input', () => {

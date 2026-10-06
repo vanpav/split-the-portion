@@ -1,9 +1,11 @@
 import { Navigate, useNavigate } from 'react-router'
 import { refreshAccount } from '@/account/refreshAccount'
+import { enterAccount } from '@/sync/session'
 import { settingsPath } from '@/app/paths'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAccountStore } from '@/store/account'
+import { useSyncStore } from '@/store/sync'
 import { SignInForm } from './SignInForm'
 import { SignUpForm } from './SignUpForm'
 
@@ -11,12 +13,17 @@ const BACK = settingsPath('account')
 
 /** `#/account` (docs/UX.md «Вход»): sign in or create an account, then back to the settings. */
 export function AccountScreen() {
-  const signedIn = useAccountStore((s) => s.me !== null)
+  // Signed in, unless the session ran out: then this is «Войти снова».
+  const hasAccount = useAccountStore((s) => s.me !== null)
+  const sessionGone = useSyncStore((s) => s.status.kind === 'needsLogin')
+  const signedIn = hasAccount && !sessionGone
   const navigate = useNavigate()
   if (signedIn) return <Navigate to={BACK} replace />
 
   const done = async () => {
     await refreshAccount()
+    // The data on the device moves into the group and sync starts (docs/SPEC.md §13.2).
+    await enterAccount()
     navigate(BACK, { replace: true })
   }
 

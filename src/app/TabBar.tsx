@@ -1,12 +1,13 @@
 import { CookingPotIcon, HistoryIcon, PlusIcon, SettingsIcon, SoupIcon, type LucideIcon } from 'lucide-react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { cn } from '@/lib/utils'
+import { needsAttention, useSyncStore } from '@/store/sync'
 import { dishListPath, HISTORY_PATH, isSettingsPath, LIST_TAB_PARAM, newDishPath, SETTINGS_PATH } from './paths'
 
 const ITEM =
   'group/tab flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-xs outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:flex-none lg:py-2'
 
-const tabLink = (to: string, label: string, Icon: LucideIcon, active: boolean) => {
+const tabLink = (to: string, label: string, Icon: LucideIcon, active: boolean, alert?: string) => {
   return (
     <Link
       to={to}
@@ -21,6 +22,11 @@ const tabLink = (to: string, label: string, Icon: LucideIcon, active: boolean) =
         )}
       >
         <Icon className={cn('size-6', active ? 'stroke-[2.25]' : 'stroke-2')} />
+        {alert && (
+          <span className="relative -mt-4 -ml-1.5 size-2.5 rounded-full bg-warning ring-2 ring-background">
+            <span className="sr-only">{alert}</span>
+          </span>
+        )}
       </span>
       {label}
     </Link>
@@ -38,6 +44,8 @@ export function TabBar() {
   const [params] = useSearchParams()
   const list = pathname === '/'
   const composite = params.get(LIST_TAB_PARAM) === 'composite'
+  // The user has to act (sign in again, update the app): a dot on «Настройки», where the status is.
+  const attention = useSyncStore((s) => needsAttention(s.status))
 
   return (
     <nav
@@ -54,7 +62,7 @@ export function TabBar() {
           Добавить
         </Link>
         {tabLink(HISTORY_PATH, 'История', HistoryIcon, pathname === HISTORY_PATH)}
-        {tabLink(SETTINGS_PATH, 'Настройки', SettingsIcon, isSettingsPath(pathname))}
+        {tabLink(SETTINGS_PATH, 'Настройки', SettingsIcon, isSettingsPath(pathname), attention ? 'нужно внимание' : undefined)}
       </div>
     </nav>
   )

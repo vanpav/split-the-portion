@@ -5,6 +5,7 @@ import type { Company, Lineup } from '../types'
 const us: Company = {
   id: 'us',
   name: 'Ваня и Ксюша',
+  createdAt: '2026-10-01T08:00:00.000Z',
   members: [
     { id: 'v', name: 'Ваня', weight: 70 },
     { id: 'k', name: 'Ксюша', weight: 60 },
@@ -13,6 +14,7 @@ const us: Company = {
 const withMom: Company = {
   id: 'mom',
   name: 'С тёщей',
+  createdAt: '2026-10-01T09:00:00.000Z',
   members: [...us.members, { id: 't', name: 'Тёща', weight: 60 }],
 }
 

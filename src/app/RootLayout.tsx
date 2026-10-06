@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
+import { LocalDataDialog } from './LocalDataDialog'
 import { HISTORY_PATH, isSettingsPath } from './paths'
 import { TabBar } from './TabBar'
 import { UpdatePrompt } from './UpdatePrompt'
@@ -37,6 +38,7 @@ export function RootLayout() {
       {/* Top: at the bottom a toast would cover the calculator keypad. */}
       <Toaster position="top-center" />
       <UpdatePrompt />
+      <LocalDataDialog />
     </div>
   )
 }

@@ -16,12 +16,13 @@ const pasta: Dish = {
 const us: Company = {
   id: 'c',
   name: 'Ваня и Ксюша',
+  createdAt: AT,
   members: [
     { id: 'v', name: 'Ваня', weight: 70 },
     { id: 'k', name: 'Ксюша', weight: 60 },
   ],
 }
-const pot = { id: 't', name: 'Кастрюля', grams: 850 }
+const pot = { id: 't', name: 'Кастрюля', grams: 850, createdAt: AT }
 
 describe('cookingDraft', () => {
   it('two numbers → each person\'s cooked grams', () => {

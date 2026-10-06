@@ -35,13 +35,12 @@ export function TareForm({ onCreated, autoFocus, secondary }: TareFormProps) {
     // A form inside a dialog or popover must not submit the one around it.
     e.stopPropagation()
     if (!valid || !isValidTareGrams(grams)) return
-    const tare = { name: name.trim(), grams }
-    const id = upsertTare(tare)
+    const id = upsertTare({ name: name.trim(), grams })
     setName('')
     setGrams(null)
     setRound((r) => r + 1)
     nameRef.current?.focus()
-    onCreated?.({ ...tare, id })
+    onCreated?.(useAppStore.getState().tares.find((t) => t.id === id)!)
   }
 
   return (
