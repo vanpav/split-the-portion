@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
-import type { Company, CompanyMember, Cooking, Dish, Id, Ingredient, Portion, PortionInput, Tare, Weighing } from '@/domain'
+import type { Company, Cooking, Dish, Id, Ingredient, Lineup, Portion, PortionInput, Tare, Weighing } from '@/domain'
 import { newId } from './id'
 import {
   backupKey,
@@ -53,8 +53,8 @@ export interface AppState extends PersistedState {
   upsertTare(tare: Omit<Tare, 'id'> & { id?: Id }): Id
   deleteTare(id: Id): void
 
-  /** «Сегодня едят»: remembered for every dish until changed again. */
-  setLineup(lineup: CompanyMember[]): void
+  /** «Кто ест» of one dish: the company picked and the shares; other dishes keep their own. */
+  setLineup(dishId: Id, lineup: Lineup): void
   /** Settings: how long «×» is held before a person is removed. */
   setHoldMs(ms: number): void
   /** «Загрузить из файла»: all the user's data replaced by a backup (already migrated). */
@@ -72,7 +72,7 @@ export const storedData = (s: PersistedState): PersistedState => ({
   cookings: s.cookings,
   tares: s.tares,
   companies: s.companies,
-  lineup: s.lineup,
+  lineups: s.lineups,
   holdMs: s.holdMs,
 })
 
@@ -130,10 +130,14 @@ export function createAppStore(storage: () => StateStorage) {
           },
 
           deleteDish: (id) =>
-            set((s) => ({
-              dishes: s.dishes.filter((d) => d.id !== id),
-              cookings: s.cookings.filter((c) => c.dishId !== id),
-            })),
+            set((s) => {
+              const { [id]: _removed, ...lineups } = s.lineups
+              return {
+                dishes: s.dishes.filter((d) => d.id !== id),
+                cookings: s.cookings.filter((c) => c.dishId !== id),
+                lineups,
+              }
+            }),
 
           addDishes: (dishes) => set((s) => ({ dishes: [...s.dishes, ...dishes] })),
 
@@ -246,7 +250,7 @@ export function createAppStore(storage: () => StateStorage) {
 
           deleteTare: (id) => set((s) => ({ tares: s.tares.filter((t) => t.id !== id) })),
 
-          setLineup: (lineup) => set({ lineup }),
+          setLineup: (dishId, lineup) => set((s) => ({ lineups: { ...s.lineups, [dishId]: lineup } })),
           setHoldMs: (holdMs) => set({ holdMs }),
           replaceData: (data) => set({ ...data }),
 

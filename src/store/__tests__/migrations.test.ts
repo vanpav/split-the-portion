@@ -25,13 +25,14 @@ const v1 = {
 
 const v4 = { dishes: [], cookings: [], tares: [tare], companies: [] }
 const v5 = { ...v4, lineup: null }
-const v8: PersistedState = { ...v5, holdMs: 1500 }
+const v8 = { ...v5, holdMs: 1500 }
+const v9: PersistedState = { ...v4, lineups: {}, holdMs: 1500 }
 
 const backups = (data: Map<string, string>) => [...data.keys()].filter((k) => k.startsWith(`${STORAGE_KEY}:backup:`))
 
 describe('migrate', () => {
   it('accepts the current version', () => {
-    expect(migrate(v8, CURRENT_VERSION)).toEqual(v8)
+    expect(migrate(v9, CURRENT_VERSION)).toEqual(v9)
   })
 
   it.each([0, CURRENT_VERSION + 1, 1.5])('rejects version %s', (version) => {
@@ -46,7 +47,7 @@ describe('migrate', () => {
     const dish = { id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, companyId: 'c' }
     const migrated = migrate({ ...v5, dishes: [dish] }, 5)
     expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null }])
-    expect(migrated.lineup).toBeNull()
+    expect(migrated.lineups).toEqual({})
   })
 
   it('v6 → v7: cookings set nothing aside, the rest kept', () => {
@@ -57,7 +58,16 @@ describe('migrate', () => {
   })
 
   it('v7 → v8: removing a person takes a 1,5 s hold, the rest kept', () => {
-    expect(migrate(v5, 7)).toEqual(v8)
+    expect(migrations[7](v5)).toEqual(v8)
+  })
+
+  it('v8 → v9: the lineup shared by all dishes becomes each dish\'s own, no company picked', () => {
+    const dish = (id: string) => ({ id, kind: 'simple', name: id, ingredients: [], tareId: null })
+    const lineup = [{ id: 'g', name: 'Гость', weight: 1 }]
+    const migrated = migrate({ ...v8, dishes: [dish('a'), dish('b')], lineup }, 8)
+    expect(migrated.lineups).toEqual({ a: { companyId: null, members: lineup }, b: { companyId: null, members: lineup } })
+    expect(migrated).not.toHaveProperty('lineup')
+    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v9, dishes: [dish('a')] })
   })
 
   it('v1 → v2: empty portions follow the dish, filled ones are kept', () => {
@@ -102,7 +112,7 @@ describe('migrate', () => {
 
   it('v3 → v4: clean slate for cookings, tares kept, default people become a company', () => {
     const migrated = migrate(v1, 3)
-    expect(migrated).toMatchObject({ dishes: [], cookings: [], tares: [tare], lineup: null })
+    expect(migrated).toMatchObject({ dishes: [], cookings: [], tares: [tare], lineups: {} })
     expect(migrated.companies).toEqual([
       {
         id: 'default',
@@ -166,7 +176,7 @@ describe('store hydration', () => {
   })
 
   it('async storage (IndexedDB): ready resolves once the data is in', async () => {
-    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v8, version: CURRENT_VERSION }) })
+    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v9, version: CURRENT_VERSION }) })
     const slow: StateStorage = {
       getItem: (k) => new Promise((resolve) => setTimeout(() => resolve(storage.getItem(k) as string | null), 5)),
       setItem: (k, v) => Promise.resolve(storage.setItem(k, v)),
@@ -194,7 +204,7 @@ describe('store hydration', () => {
   it('replaceData swaps in a backup and persists it', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    store.getState().replaceData({ ...v8, holdMs: 0 })
+    store.getState().replaceData({ ...v9, holdMs: 0 })
     expect(store.getState()).toMatchObject({ tares: [tare], holdMs: 0 })
     expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual([tare])
   })
@@ -205,7 +215,7 @@ describe('store hydration', () => {
     store.getState().upsertCompany({ name: 'Мы', members: [] })
     const saved = JSON.parse(data.get(STORAGE_KEY)!)
     expect(saved.version).toBe(CURRENT_VERSION)
-    expect(Object.keys(saved.state).sort()).toEqual(['companies', 'cookings', 'dishes', 'holdMs', 'lineup', 'tares'])
+    expect(Object.keys(saved.state).sort()).toEqual(['companies', 'cookings', 'dishes', 'holdMs', 'lineups', 'tares'])
   })
 })
 
@@ -341,10 +351,27 @@ describe('undo of a portion removal', () => {
   })
 })
 
-describe('lineup', () => {
-  it('is remembered across reloads', () => {
+describe('lineups', () => {
+  const guest = { companyId: null, members: [{ id: 'g', name: 'Гость', weight: 1 }] }
+
+  it('are remembered per dish across reloads', () => {
     const { storage } = memoryStorage()
-    createAppStore(() => storage).getState().setLineup([{ id: 'g', name: 'Гость', weight: 1 }])
-    expect(createAppStore(() => storage).getState().lineup).toEqual([{ id: 'g', name: 'Гость', weight: 1 }])
+    createAppStore(() => storage).getState().setLineup('pasta', guest)
+    expect(createAppStore(() => storage).getState().lineups).toEqual({ pasta: guest })
+  })
+
+  it('setting one dish leaves the others as they were', () => {
+    const { getState } = setup()
+    getState().setLineup('pasta', guest)
+    getState().setLineup('soup', { companyId: 'x', members: [] })
+    expect(getState().lineups.pasta).toBe(guest)
+  })
+
+  it('go away with their dish', () => {
+    const { getState } = setup()
+    const id = getState().saveDish(pasta)
+    getState().setLineup(id, guest)
+    getState().deleteDish(id)
+    expect(getState().lineups).toEqual({})
   })
 })
