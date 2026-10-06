@@ -9,3 +9,7 @@ pnpm test
 ```
 
 Документы: [спецификация](docs/SPEC.md) · [архитектура](docs/ARCHITECTURE.md) · [UX](docs/UX.md) · [этапы](docs/roadmap/README.md) · [правила работы](CLAUDE.md)
+
+## Test
+
+Test: Claude picks tasks from the issues of this repository.
