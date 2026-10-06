@@ -13,9 +13,8 @@
     {
       "binding": "DB",
       "database_name": "split-the-portion",
-      // Replace with the id printed by `pnpm wrangler d1 create split-the-portion` (docs/CLOUDFLARE.md §3).
-      // Local development does not need it.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      // Created by `pnpm wrangler d1 create split-the-portion` (docs/CLOUDFLARE.md §3), region WEUR.
+      "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
       "migrations_dir": "worker/migrations"
     }
   ],
