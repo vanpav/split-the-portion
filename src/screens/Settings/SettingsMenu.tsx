@@ -1,6 +1,7 @@
 import { ChevronRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
-import { settingsPath } from '@/app/paths'
+import { SETTINGS_PATH, settingsPath } from '@/app/paths'
+import { useBack } from '@/app/useBack'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { groupLabel } from '@/account/groupLabel'
 import { cn } from '@/lib/utils'
@@ -25,6 +26,10 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
   const openId = useSyncStore((s) => s.groupId)
   const openGroup = me?.groups.find((g) => g.id === openId)
   const groupName = openGroup && groupLabel(openGroup)
+  const { hasPrevious, noPreviousState } = useBack(SETTINGS_PATH)
+  // From an open subsection (the menu beside it, from `md`) switching replaces it, so «←» leaves
+  // the settings instead of walking through every subsection seen.
+  const replace = current !== undefined
   // What is said under a title: the account's email and the open group instead of the defaults.
   const said = (id: SettingsSectionId, description: string) =>
     (id === 'account' && me?.user.email) || (id === 'group' && groupName) || description
@@ -41,7 +46,12 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
                 id === shown && 'md:bg-muted',
               )}
             >
-              <Link to={settingsPath(id)} aria-current={id === current ? 'page' : undefined}>
+              <Link
+                to={settingsPath(id)}
+                replace={replace}
+                state={replace && !hasPrevious ? noPreviousState : undefined}
+                aria-current={id === current ? 'page' : undefined}
+              >
                 <ItemMedia variant="icon">
                   <Icon className="size-5 text-muted-foreground" />
                 </ItemMedia>

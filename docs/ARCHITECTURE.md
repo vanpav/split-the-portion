@@ -300,7 +300,8 @@ src/
   main.tsx
   index.css             — Tailwind + тема shadcn (CSS-переменные цветов, радиусы); свои токены — тоже здесь
   app/
-    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider; нижнего меню нет (этап 15)
+    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider, <ScrollRestoration /> (прокрутка при «назад»); нижнего меню нет (этап 15)
+    useBack.ts          — «←» и «Отмена» (docs/UX.md «Назад»): шаг назад по истории (`navigate(-1)`); без предыдущего экрана в приложении (`location.key === 'default'`) — запасной адрес с `replace`
     LocalDataDialog.tsx — «Перенести данные этого устройства?» при первом входе (этап 13)
     UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов
@@ -325,7 +326,7 @@ src/
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
-    ScreenHeader.tsx    — шапка экрана: «← назад» (куда и подпись — пропсы), заголовок, действия экрана (каждый экран рендерит свою)
+    ScreenHeader.tsx    — шапка экрана: «← назад» (шаг назад по истории через useBack; запасной адрес и подпись — пропсы), заголовок, действия экрана (каждый экран рендерит свою)
     MoreMenu.tsx        — «⋯»: действия экрана и «Настройки», точка «нужно внимание»; во всех шапках
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
