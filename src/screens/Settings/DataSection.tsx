@@ -15,7 +15,9 @@ import { Button } from '@/components/ui/button'
 import { backupFile, readBackupFile } from '@/store/backupFile'
 import { storedData } from '@/store/createAppStore'
 import type { PersistedState } from '@/store/migrations'
+import { groupLabel } from '@/account/groupLabel'
 import { useAccountStore } from '@/store/account'
+import { useSyncStore } from '@/store/sync'
 import { useAppStore } from '@/store/store'
 
 /**
@@ -25,7 +27,9 @@ import { useAppStore } from '@/store/store'
 export function DataSection() {
   const replaceData = useAppStore((s) => s.replaceData)
   // Signed in, the data is a group's: loading a file replaces it for everyone in the group.
-  const groupName = useAccountStore((s) => s.me?.groups.find((g) => g.id === s.me?.defaultGroupId)?.name)
+  const openId = useSyncStore((s) => s.groupId)
+  const openGroup = useAccountStore((s) => s.me?.groups.find((g) => g.id === openId))
+  const groupName = openGroup && groupLabel(openGroup)
   const inputRef = useRef<HTMLInputElement>(null)
   // A file read and migrated, waiting for «Заменить».
   const [pending, setPending] = useState<PersistedState | null>(null)

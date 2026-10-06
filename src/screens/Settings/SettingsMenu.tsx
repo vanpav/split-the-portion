@@ -2,8 +2,10 @@ import { ChevronRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { settingsPath } from '@/app/paths'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item'
+import { groupLabel } from '@/account/groupLabel'
 import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
+import { useSyncStore } from '@/store/sync'
 import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections'
 
 interface SettingsMenuProps {
@@ -19,11 +21,17 @@ interface SettingsMenuProps {
  * from `md` a menu on the left of the open subsection.
  */
 export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
-  const email = useAccountStore((s) => s.me?.user.email)
+  const me = useAccountStore((s) => s.me)
+  const openId = useSyncStore((s) => s.groupId)
+  const openGroup = me?.groups.find((g) => g.id === openId)
+  const groupName = openGroup && groupLabel(openGroup)
+  // What is said under a title: the account's email and the open group instead of the defaults.
+  const said = (id: SettingsSectionId, description: string) =>
+    (id === 'account' && me?.user.email) || (id === 'group' && groupName) || description
   return (
     <nav aria-label="Подразделы настроек" className={className}>
       <ul className="divide-y overflow-hidden rounded-xl border md:flex md:flex-col md:gap-1 md:divide-y-0 md:rounded-none md:border-0">
-        {SETTINGS_SECTIONS.map(({ id, title, description, Icon }) => (
+        {SETTINGS_SECTIONS.filter((s) => s.id !== 'group' || groupName).map(({ id, title, description, Icon }) => (
           <li key={id}>
             <Item
               asChild
@@ -42,7 +50,7 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
                     {title}
                   </ItemTitle>
                   <ItemDescription className="truncate md:hidden">
-                    {id === 'account' && email ? email : description}
+                    {said(id, description)}
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions className="md:hidden">

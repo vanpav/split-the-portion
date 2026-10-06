@@ -7,6 +7,7 @@ import { DishScreen } from '@/screens/Dish/DishScreen'
 import { DishEditorScreen } from '@/screens/DishEditor/DishEditorScreen'
 import { DishListScreen } from '@/screens/DishList/DishListScreen'
 import { HistoryScreen } from '@/screens/History/HistoryScreen'
+import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { RootLayout } from './RootLayout'
 
@@ -26,6 +27,7 @@ export const router = createHashRouter([
       { path: 'settings/:section', element: <SettingsScreen /> },
       { path: 'account', element: <AccountScreen /> },
       { path: 'account/reset', element: <ResetPasswordScreen /> },
+      { path: 'join/:code', element: <JoinScreen /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

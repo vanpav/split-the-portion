@@ -19,4 +19,6 @@ export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`
 /** Sign-in and sign-up (docs/UX.md «Вход»); `reset` — a new password by the link from the owner. */
 export const ACCOUNT_PATH = '/account'
 export const PASSWORD_RESET_PATH = '/account/reset'
+/** Join a group by an invite code (docs/UX.md «Вступить по ссылке»). */
+export const joinPath = (code: string) => `/join/${code}`
 export const isSettingsPath = (pathname: string) => pathname === SETTINGS_PATH || pathname.startsWith(`${SETTINGS_PATH}/`)

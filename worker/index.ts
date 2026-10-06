@@ -1,10 +1,14 @@
 import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
+import { parseInviteCode } from '../src/account/inviteCode'
+import { SYNC_LIMITS } from '../src/sync/protocol'
 import { type Auth, createAuth } from './auth'
-import { getMe } from './me'
+import { acceptInvite, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
+import { getMe, setDefaultGroup } from './me'
 import { isMember, syncGroup } from './sync'
 import { parseSyncRequest } from './syncRequest'
-import { SYNC_LIMITS } from '../src/sync/protocol'
+
+type Session = NonNullable<Awaited<ReturnType<Auth['api']['getSession']>>>
 
 /**
  * The API of the app (docs/ARCHITECTURE.md §9). Only `/api/*` reaches the worker
@@ -13,7 +17,7 @@ import { SYNC_LIMITS } from '../src/sync/protocol'
 /** Previews also have the Secrets Store binding of the `previews` block (wrangler.jsonc). */
 type Bindings = Env & { PREVIEW_AUTH_SECRET?: SecretsStoreSecret }
 
-const app = new Hono<{ Bindings: Bindings; Variables: { auth: Auth } }>().basePath('/api')
+const app = new Hono<{ Bindings: Bindings; Variables: { auth: Auth; session: Session } }>().basePath('/api')
 
 // One Better Auth instance per address in an isolate: setting it up on every request costs CPU.
 const auths = new Map<string, Auth>()
@@ -43,15 +47,57 @@ app.get('/me', async (c) => {
   return me ? c.json(me) : c.json({ error: 'unauthorized' }, 401)
 })
 
-app.post('/groups/:id/sync', async (c) => {
+// A code's group and who invited: shown before «Вступить», also before signing in.
+app.get('/invites/:code', async (c) => {
+  const code = parseInviteCode(c.req.param('code'))
+  const invite = code && (await previewInvite(c.env.DB, code, new Date()))
+  return invite ? c.json(invite) : c.json({ error: 'not_found' }, 404)
+})
+
+// Everything below needs a session.
+app.use(async (c, next) => {
   const session = await c.get('auth').api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'unauthorized' }, 401)
+  c.set('session', session)
+  await next()
+})
+
+app.put('/me/default-group', async (c) => {
+  const { groupId } = await c.req.json<{ groupId?: unknown }>().catch(() => ({ groupId: undefined }))
+  const userId = c.get('session').user.id
+  if (typeof groupId !== 'string' || !(await isMember(c.env.DB, groupId, userId))) return c.json({ error: 'forbidden' }, 403)
+  await setDefaultGroup(c.env.DB, userId, groupId)
+  return c.json({ ok: true })
+})
+
+app.post('/invites/:code/accept', async (c) => {
+  const code = parseInviteCode(c.req.param('code'))
+  const groupId = code && (await acceptInvite(c.get('auth'), c.env.DB, code, c.get('session').user.id, new Date()))
+  return groupId ? c.json({ groupId }) : c.json({ error: 'not_found' }, 404)
+})
+
+app.post('/groups/:id/invites', async (c) => {
   const groupId = c.req.param('id')
-  if (!(await isMember(c.env.DB, groupId, session.user.id))) return c.json({ error: 'forbidden' }, 403)
+  const userId = c.get('session').user.id
+  if (!(await isMember(c.env.DB, groupId, userId))) return c.json({ error: 'forbidden' }, 403)
+  return c.json(await inviteCode(c.env.DB, groupId, userId, new Date()))
+})
+
+app.delete('/groups/:id/invites/:code', async (c) => {
+  const groupId = c.req.param('id')
+  if ((await roleIn(c.env.DB, groupId, c.get('session').user.id)) !== 'owner') return c.json({ error: 'forbidden' }, 403)
+  const code = parseInviteCode(c.req.param('code'))
+  return code && (await revokeInvite(c.env.DB, groupId, code)) ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
+})
+
+app.post('/groups/:id/sync', async (c) => {
+  const groupId = c.req.param('id')
+  const userId = c.get('session').user.id
+  if (!(await isMember(c.env.DB, groupId, userId))) return c.json({ error: 'forbidden' }, 403)
   if (Number(c.req.header('content-length') ?? 0) > SYNC_LIMITS.requestBytes) return c.json({ error: 'too_large' }, 413)
   const req = parseSyncRequest(await c.req.json().catch(() => null))
   if (typeof req === 'string') return c.json({ error: req }, 400)
-  const body = await syncGroup(c.env.DB, groupId, session.user.id, req, new Date().toISOString())
+  const body = await syncGroup(c.env.DB, groupId, userId, req, new Date().toISOString())
   return c.body(body, 200, { 'content-type': 'application/json' })
 })
 

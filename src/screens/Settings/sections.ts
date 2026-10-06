@@ -2,13 +2,14 @@ import {
   BookOpenIcon,
   CircleUserIcon,
   HardDriveIcon,
+  HouseIcon,
   type LucideIcon,
   SunMoonIcon,
   UsersIcon,
   WeightIcon,
 } from 'lucide-react'
 
-export type SettingsSectionId = 'account' | 'tares' | 'companies' | 'presets' | 'data' | 'appearance'
+export type SettingsSectionId = 'account' | 'group' | 'tares' | 'companies' | 'presets' | 'data' | 'appearance'
 
 export interface SettingsSection {
   /** The last part of the address: `#/settings/<id>`. */
@@ -23,6 +24,8 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]] = [
   // Signed in, the menu shows the email instead of the description (SettingsMenu).
   { id: 'account', title: 'Аккаунт', description: 'Данные только на этом устройстве', Icon: CircleUserIcon },
+  // Only with an account (SettingsMenu, SettingsScreen); the menu shows the open group's name.
+  { id: 'group', title: 'Группа', description: 'Кто ведёт учёт вместе', Icon: HouseIcon },
   { id: 'tares', title: 'Тара', description: 'Вес пустой посуды', Icon: WeightIcon },
   { id: 'companies', title: 'Компании', description: 'Кто ест вместе', Icon: UsersIcon },
   { id: 'presets', title: 'Популярные блюда', description: 'Готовые рецепты для начала', Icon: BookOpenIcon },

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { AccountGroup } from '../../src/account/types'
 import { defaultGroupOf } from '../me'
 
-const personal: AccountGroup = { id: 'p', name: 'Личная', role: 'owner' }
-const shared: AccountGroup = { id: 's', name: 'Ванина кухня', role: 'member' }
+const personal: AccountGroup = { id: 'p', name: 'Личная', role: 'owner', members: [] }
+const shared: AccountGroup = { id: 's', name: 'Ванина кухня', role: 'member', members: [] }
 
 describe('defaultGroupOf', () => {
   it('keeps the chosen group while the user is in it', () => {
