@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import { RawList } from '@/screens/Cooking/RawList'
 import { rawWord } from '@/screens/Cooking/messages'
 import { Caret } from './Caret'
-import { lidFill } from './lids'
+import { lidFill } from '@/components/lids'
 
 interface PersonResultProps {
   cooking: Cooking

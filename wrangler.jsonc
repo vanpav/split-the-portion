@@ -4,5 +4,7 @@
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist"
-  }
+  },
+  // Preview builds of branches and pull requests (`wrangler preview`); nothing to override.
+  "previews": {}
 }

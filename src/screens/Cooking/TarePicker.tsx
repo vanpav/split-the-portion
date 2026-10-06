@@ -1,6 +1,6 @@
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
-import { NumberField } from '@/components/NumberField'
+import { useState } from 'react'
+import { TareForm } from '@/components/TareForm'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -11,9 +11,8 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { formatGrams, isValidTareGrams, type TareSnapshot } from '@/domain'
+import { formatGrams, type TareSnapshot } from '@/domain'
 import { useAppStore } from '@/store/store'
 
 interface TarePickerProps {
@@ -26,22 +25,12 @@ const tareLabel = (t: { name: string; grams: number }) => `${t.name} · ${format
 /** Combobox over the tare library; a new tare can be created right here and is selected at once. */
 export function TarePicker({ value, onSelect }: TarePickerProps) {
   const tares = useAppStore((s) => s.tares)
-  const upsertTare = useAppStore((s) => s.upsertTare)
   const [open, setOpen] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [name, setName] = useState('')
-  const [grams, setGrams] = useState<number | null>(null)
 
   const choose = (tare: TareSnapshot) => {
     onSelect(tare)
     setOpen(false)
-  }
-
-  const create = (e: FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || !isValidTareGrams(grams)) return
-    const tare = { name: name.trim(), grams }
-    choose({ ...tare, id: upsertTare(tare) })
   }
 
   return (
@@ -49,11 +38,7 @@ export function TarePicker({ value, onSelect }: TarePickerProps) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (next) {
-          setCreating(tares.length === 0)
-          setName('')
-          setGrams(null)
-        }
+        if (next) setCreating(tares.length === 0)
       }}
     >
       <PopoverTrigger asChild>
@@ -72,27 +57,20 @@ export function TarePicker({ value, onSelect }: TarePickerProps) {
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) min-w-72 p-0" align="start">
         {creating ? (
-          <form className="flex flex-col gap-2 p-3" onSubmit={create}>
+          <div className="flex flex-col gap-3 p-3">
             <p className="text-sm font-medium">Новая тара</p>
-            <Input
-              aria-label="Название тары"
-              placeholder="Кастрюля 3 л"
+            <TareForm
               autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              onCreated={choose}
+              secondary={
+                tares.length > 0 && (
+                  <Button type="button" variant="ghost" onClick={() => setCreating(false)}>
+                    К списку
+                  </Button>
+                )
+              }
             />
-            <NumberField ariaLabel="Вес тары" placeholder="850" value={grams} onValueChange={setGrams} />
-            <div className="flex gap-2">
-              <Button type="submit" disabled={!name.trim() || !isValidTareGrams(grams)}>
-                Сохранить
-              </Button>
-              {tares.length > 0 && (
-                <Button type="button" variant="ghost" onClick={() => setCreating(false)}>
-                  К списку
-                </Button>
-              )}
-            </div>
-          </form>
+          </div>
         ) : (
           <Command>
             <CommandInput placeholder="Найти тару" />

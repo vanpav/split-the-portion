@@ -1,7 +1,7 @@
 import { BookmarkPlusIcon, UsersIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { Id } from '@/domain'
+import { lineupName, type Id } from '@/domain'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
 
@@ -45,7 +45,8 @@ export function CompanyPicker({ value, onChange, customLabel = 'Свой сос�
       <SelectContent>
         {companies.map((c) => (
           <SelectItem key={c.id} value={c.id}>
-            {c.name || 'Без названия'}{' '}
+            {/* No name typed: called by its people, as in the settings. */}
+            {c.name.trim() || lineupName(c.members)}{' '}
             <span className="text-muted-foreground">· {c.members.length}</span>
           </SelectItem>
         ))}

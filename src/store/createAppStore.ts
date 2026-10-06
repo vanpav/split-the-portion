@@ -23,6 +23,8 @@ export interface AppState extends PersistedState {
   saveDish(draft: DishDraft): Id
   /** Removes the dish with its cookings. */
   deleteDish(id: Id): void
+  /** «Добавить популярные блюда»: appended after the user's own dishes, which stay as they are. */
+  addDishes(dishes: Dish[]): void
 
   /**
    * «Сохранить» in the calculator: stores its draft (domain `cookingDraft`) under fresh ids.
@@ -132,6 +134,8 @@ export function createAppStore(storage: () => StateStorage) {
               dishes: s.dishes.filter((d) => d.id !== id),
               cookings: s.cookings.filter((c) => c.dishId !== id),
             })),
+
+          addDishes: (dishes) => set((s) => ({ dishes: [...s.dishes, ...dishes] })),
 
           saveCooking: (draft) => {
             const now = nowIso()

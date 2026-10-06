@@ -1,14 +1,14 @@
-import { PlusIcon, Trash2Icon, XIcon } from 'lucide-react'
+import { Trash2Icon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { NumberField } from '@/components/NumberField'
+import { AddPersonRow } from '@/components/AddPersonRow'
+import { HoldButton } from '@/components/HoldButton'
+import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, lineupName, toPercents, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, lineupName, percentShares, toPercents, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 import { SettingsRow } from './SettingsRow'
-
-const weightError = (v: number | null) => (v !== null && v <= 0 ? 'Больше 0' : null)
 
 interface CompanyCardProps {
   company: Company
@@ -17,27 +17,35 @@ interface CompanyCardProps {
 }
 
 /**
- * A company as one line — «Ваня и Ксюша», «Ваня 54 % · Ксюша 46 %» under it; open — name, people
- * and their shares edited in place (docs/SPEC.md §3а).
+ * A company as one line — «Ваня и Ксюша», «Ваня 54 % · Ксюша 46 %» under it; open — edited in place
+ * the way «Кто ест» is in the calculator: the share bar (no «на завтра» here), people with ×,
+ * and «+ Имя» to add the next one (docs/UX.md §3).
  */
 export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const deleteCompany = useAppStore((s) => s.deleteCompany)
-  const percents = toPercents(company.members.map((m) => m.weight))
+  const holdMs = useAppStore((s) => s.holdMs)
+  const weights = company.members.map((m) => m.weight)
+  const percents = toPercents(weights)
+  const shares = percentShares(weights)
   const personName = (m: CompanyMember, index: number) => m.name.trim() || `Человек ${index + 1}`
+  // Each person's part, for the bar: percents only, there is no dish to weigh here.
+  const segments: DishSegment[] = company.members.map((m, i) => ({ id: m.id, place: i, name: m.name, share: shares[i], label: null }))
 
   const save = (patch: Partial<Company>) => upsertCompany({ ...company, ...patch })
   const setMember = (id: string, patch: Partial<CompanyMember>) =>
     save({ members: company.members.map((m) => (m.id === id ? { ...m, ...patch } : m)) })
-  const addMember = () => {
-    const weight = defaultShareWeight(company.members.map((m) => m.weight))
-    save({ members: [...company.members, { id: newId(), name: '', weight }] })
-  }
+  const addMember = (name: string) =>
+    save({ members: [...company.members, { id: newId(), name, weight: defaultShareWeight(weights) }] })
+  const removeMember = (id: string) => save({ members: company.members.filter((m) => m.id !== id) })
+  // The bar works in whole percents: shares become them.
+  const setPercents = (next: number[]) =>
+    save({ members: company.members.map((m, i) => ({ ...m, weight: next[i] ?? m.weight })) })
 
   const remove = () => {
     deleteCompany(company.id)
     toast('Удалено', {
-      description: company.name || 'Компания',
+      description: company.name.trim() || lineupName(company.members),
       duration: 5000,
       action: { label: 'Отменить', onClick: () => upsertCompany(company) },
     })
@@ -57,45 +65,38 @@ export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
         value={company.name}
         onChange={(e) => save({ name: e.target.value })}
       />
-      <ul className="flex flex-col gap-2">
+      <ShareSlider sharing={company.members} sharingSegments={segments} own={[]} rest={null} onChange={setPercents} />
+      <ul className="flex flex-col divide-y">
         {company.members.map((m, index) => (
-          <li key={m.id} className="flex items-start gap-2">
+          <li key={m.id} className="flex items-center gap-2 py-1">
             <Input
               aria-label={`Имя ${index + 1}`}
               placeholder="Имя"
-              autoFocus={m.name === '' && index === company.members.length - 1 && index > 0}
               value={m.name}
+              enterKeyHint="done"
               onChange={(e) => setMember(m.id, { name: e.target.value })}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              className="h-11 border-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input"
             />
-            <NumberField
-              className="w-20 shrink-0"
-              ariaLabel={`Доля, ${personName(m, index)}`}
-              suffix=""
-              value={m.weight}
-              validate={weightError}
-              onValueChange={(weight) => weight !== null && setMember(m.id, { weight })}
-            />
-            {/* What the share means: the part of the dish. */}
-            <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-end text-sm text-muted-foreground tabular-nums">
+            {/* The part of the dish, here too: on the bar a narrow segment has no room for it. */}
+            <span aria-hidden className="shrink-0 text-sm text-muted-foreground tabular-nums">
               {percents[index]} %
             </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Убрать ${m.name || 'строку'}`}
-              onClick={() => save({ members: company.members.filter((x) => x.id !== m.id) })}
+            <HoldButton
+              holdMs={holdMs}
+              className="w-10 text-muted-foreground"
+              label={`Убрать ${m.name || 'человека'}`}
+              hint="Удерживайте ×, чтобы убрать"
+              onConfirm={() => removeMember(m.id)}
             >
               <XIcon />
-            </Button>
+            </HoldButton>
           </li>
         ))}
+        {/* A new company is empty: the first name is typed right away. */}
+        <AddPersonRow onAdd={addMember} autoFocus={company.members.length === 0} />
       </ul>
-      <p className="text-sm text-muted-foreground">Доля — любое число: 1 и 1 — поровну, 70 и 60 — как сухие граммы.</p>
-      <div className="flex items-center justify-between gap-2">
-        <Button variant="outline" onClick={addMember}>
-          <PlusIcon data-icon="inline-start" />
-          Человек
-        </Button>
+      <div className="flex justify-end">
         <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={remove}>
           <Trash2Icon data-icon="inline-start" />
           Удалить

@@ -38,6 +38,14 @@ export function toPercents(weights: number[]): number[] {
 }
 
 /**
+ * Share weights as parts of the whole (0..1), in the whole percents the share slider shows —
+ * the bar of a company in the settings, where there is no dish to split yet.
+ */
+export function percentShares(weights: number[]): number[] {
+  return toPercents(weights).map((p) => p / 100)
+}
+
+/**
  * Drags the border between person `index` and the next one to `at` (percent from the left edge
  * of the bar). Only these two change; each keeps at least the minimum.
  */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { equalPercents, keepAt, keepLimit, moveBoundary, nudgePercent, portionIn, toPercents } from '../shares'
+import { equalPercents, keepAt, keepLimit, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
 
@@ -14,6 +14,15 @@ describe('toPercents', () => {
     expect(toPercents([1000, 1])).toEqual([99, 1])
     expect(toPercents([1000, 0])).toEqual([99, 1])
     expect(toPercents([0, 0])).toEqual([50, 50])
+  })
+})
+
+describe('percentShares', () => {
+  it('parts of the whole in the whole percents of the bar', () => {
+    expect(percentShares([70, 60])).toEqual([0.54, 0.46])
+    expect(percentShares([1, 1, 1])).toEqual([0.34, 0.33, 0.33])
+    expect(percentShares([5])).toEqual([1])
+    expect(percentShares([])).toEqual([])
   })
 })
 
