@@ -33,6 +33,7 @@
 - [x] Экран `#/account/reset` — новый пароль по ссылке из лога. Better Auth кладёт `token` в настоящую строку запроса (`/?token=…#/account/reset`), экран берёт его оттуда и убирает из адреса после смены.
 - [x] Настройки → «Аккаунт» (`#/settings/account`, первым в меню; в меню на телефоне вместо подписи — почта): не вошли — «Войти»; вошли — почта, «Добавить вход по Face ID» / «Face ID добавлен» (`useListPasskeys`), «Выйти» (только с сетью: сессия должна закончиться на сервере).
 - [x] Документы: ARCHITECTURE §2, §6, §9; UX — «Настройки», «Вход», словарь; CLOUDFLARE.md — без `BETTER_AUTH_URL`, схема через `db:auth-schema`; CLAUDE.md — команды.
+- [x] Превью: блок `previews` не наследует привязки и секреты, поэтому в нём та же `DB`, а секрет превью задан через `wrangler preview base-config secret put`. Воркер без `DB` или секрета отвечает `{"error":"misconfigured"}` — иначе Better Auth тихо держит аккаунты в памяти.
 - [x] Рабочая база (2026-10-06): `pnpm wrangler login` (аккаунт vanpav@gmail.com) → `pnpm wrangler d1 create split-the-portion` (регион WEUR) → `database_id` в `wrangler.jsonc` → `pnpm wrangler secret put BETTER_AUTH_SECRET` (случайные 32 байта) → `pnpm db:migrate:remote` ([CLOUDFLARE.md §2–6](../CLOUDFLARE.md)).
 - [ ] На iPhone по превью-деплою: регистрация, Связка ключей предлагает сохранить пароль, «Добавить вход по Face ID», выход, «Войти с Face ID»; `pnpm wrangler tail` — `sign-up` и `sign-in` с исходом `Ok`.
 

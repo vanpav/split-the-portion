@@ -18,6 +18,17 @@
       "migrations_dir": "worker/migrations"
     }
   ],
-  // Preview builds of branches and pull requests (`wrangler preview`); nothing to override.
-  "previews": {}
+  // Preview builds of branches and pull requests. Bindings are not inherited from the top level, so the
+  // database is named again: previews use the production D1 (docs/CLOUDFLARE.md §8). Their
+  // BETTER_AUTH_SECRET is one for all previews: `pnpm wrangler preview base-config secret put`.
+  "previews": {
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "split-the-portion",
+        "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
+        "migrations_dir": "worker/migrations"
+      }
+    ]
+  }
 }
