@@ -139,6 +139,7 @@ src/domain/
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
   keypad.ts         — applyKey (ввод с клавиатуры калькулятора), keypadKeyFromKeyboard
+  presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
   dates.ts          — dayLabel(at, now) → «сегодня» / «вчера» / «12 окт.»
   validation.ts     — warnings(cooking, result) → Warning[]
@@ -150,6 +151,7 @@ src/domain/
     cooking.test.ts   — граничные случаи SPEC §8
     phases.test.ts    — перевзвешивание (кнопка, остаток в списке, составное блюдо), dayLabel
     share.test.ts     — порции по доле (70 : 60, порция в граммах + доли, без готового веса)
+    presets.test.ts   — популярные блюда валидны для модели, повторно не добавляются
     dish.test.ts      — проверка блюда перед сохранением, «Из простого блюда», доля нового человека
 ```
 
@@ -188,6 +190,7 @@ src/domain/
 | `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
 | `usualScaleGrams(cookings, dishId, tareId)` | Самый частый «Готовый» блюда с этой тарой — подстановка в калькулятор |
 | `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
+| `presetDishes(existing, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему |
 | `canReweigh(result)` | Активна ли «Перевзвесить остаток»: текущий этап взвешен и в кастрюле что-то есть |
 | `leftoverCookedGrams(result)` | «остаток N г» в списке готовок; `null`, пока ничего не брали |
@@ -214,6 +217,7 @@ interface AppState {
   // блюда
   saveDish(draft): Id;            // «Создать» / «Сохранить» из редактора (черновик живёт в состоянии формы)
   deleteDish(id): void;           // вместе с готовками
+  addDishes(dishes): void;        // «Добавить популярные блюда»: в конец списка, свои блюда не трогает
   // готовки
   saveCooking(draft): Id;         // «Сохранить» в калькуляторе: черновик (domain cookingDraft) под новыми id
   updateCooking(id, patch): void;

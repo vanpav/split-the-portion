@@ -26,6 +26,8 @@ export { defaultShareWeight, dishErrors, dishKind, dishSource, dishTitle, lineup
 export type { DishError } from './dish'
 export { applyKey, keypadKeyFromKeyboard } from './keypad'
 export type { KeypadKey } from './keypad'
+export { PRESET_DISHES, presetDishes } from './presets'
+export type { PresetDish, PresetIngredient } from './presets'
 export { cookingDraft } from './draft'
 export type { CalculatorInput } from './draft'
 export { equalPercents, keepAt, keepLimit, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from './shares'
