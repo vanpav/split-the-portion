@@ -512,7 +512,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 - `csrf()` сверяет `Origin`;
 - тело sync проверяется: белый список типов, длина id, размер записи ≤ 64 КБ, ≤ 500 изменений;
 - ограничение частоты на вход, регистрацию и `accept`;
-- секреты — только `wrangler secret` и `.dev.vars` (не в git).
+- секреты — только `wrangler secret`, Secrets Store (для превью) и `.dev.vars` (не в git).
 
 Сервер доверяет данным участника группы, но не разбирает их: испортить можно только свою группу.
 
