@@ -3,7 +3,7 @@ import { backupFile, readBackupFile } from '../backupFile'
 import { CURRENT_VERSION, EMPTY_STATE, STORAGE_KEY, type PersistedState } from '../migrations'
 
 const NOW = new Date('2026-10-06T12:00:00.000Z')
-const tare = { id: 't1', name: 'Кастрюля', grams: 850 }
+const tare = { id: 't1', name: 'Кастрюля', grams: 850, createdAt: '2026-10-01T08:00:00.000Z' }
 const data: PersistedState = { ...EMPTY_STATE, tares: [tare], holdMs: 2000 }
 
 describe('backup file', () => {

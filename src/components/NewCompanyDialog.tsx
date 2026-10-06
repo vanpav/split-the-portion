@@ -36,9 +36,8 @@ export function NewCompanyDialog({ open, onOpenChange, onCreated }: NewCompanyDi
   }
   const add = () => {
     if (draft.members.length === 0) return
-    const company = { ...draft, name: draft.name.trim() }
-    const id = upsertCompany(company)
-    onCreated({ ...company, id })
+    const id = upsertCompany({ ...draft, name: draft.name.trim() })
+    onCreated(useAppStore.getState().companies.find((c) => c.id === id)!)
     change(false)
   }
 

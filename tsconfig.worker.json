@@ -16,7 +16,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Paths: the convergence test drives the app's sync engine against the worker */
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["worker", "src/account/types.ts"]
 }

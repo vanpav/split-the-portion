@@ -70,8 +70,8 @@ describe('defaultShareWeight', () => {
 
 describe('lineup', () => {
   const m = (name: string, weight: number) => ({ id: name, name, weight })
-  const us = { id: 'us', name: 'Мы', members: [m('Ваня', 70), m('Ксюша', 60)] }
-  const withMom = { id: 'mom', name: 'С тёщей', members: [m('Ваня', 70), m('Ксюша', 60), m('Тёща', 60)] }
+  const us = { id: 'us', name: 'Мы', members: [m('Ваня', 70), m('Ксюша', 60)], createdAt: '2026-10-01T08:00:00.000Z' }
+  const withMom = { id: 'mom', name: 'С тёщей', members: [m('Ваня', 70), m('Ксюша', 60), m('Тёща', 60)], createdAt: '2026-10-01T09:00:00.000Z' }
 
   it('matchingCompany: same people and shares in any order, names ignore case and spaces', () => {
     expect(matchingCompany([m(' ксюша', 60), m('Ваня', 70)], [us, withMom])).toBe(us)

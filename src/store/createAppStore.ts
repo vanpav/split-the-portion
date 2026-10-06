@@ -50,7 +50,8 @@ export interface AppState extends PersistedState {
   /** Undo of a removal: puts the portion back at its old position. */
   restorePortion(cookingId: Id, portion: Portion, index: number): void
 
-  upsertTare(tare: Omit<Tare, 'id'> & { id?: Id }): Id
+  /** createdAt is kept on edit; a new tare gets the current time unless given (undo of a removal). */
+  upsertTare(tare: Omit<Tare, 'id' | 'createdAt'> & { id?: Id; createdAt?: string }): Id
   deleteTare(id: Id): void
 
   /** «Кто ест» of one dish: the company picked and the shares; other dishes keep their own. */
@@ -60,7 +61,8 @@ export interface AppState extends PersistedState {
   /** «Загрузить из файла»: all the user's data replaced by a backup (already migrated). */
   replaceData(data: PersistedState): void
 
-  upsertCompany(company: Omit<Company, 'id'> & { id?: Id }): Id
+  /** createdAt is kept on edit; a new company gets the current time unless given (undo of a removal). */
+  upsertCompany(company: Omit<Company, 'id' | 'createdAt'> & { id?: Id; createdAt?: string }): Id
   deleteCompany(id: Id): void
 }
 
@@ -80,6 +82,13 @@ export const storedData = (s: PersistedState): PersistedState => ({
 function insertAt<T extends { id: Id }>(items: T[], item: T, index: number): T[] {
   if (items.some((i) => i.id === item.id)) return items
   return [...items.slice(0, index), item, ...items.slice(index)]
+}
+
+/** Replaces the item with the same id (keeping its createdAt) or appends a new one. */
+function upsertById<T extends { id: Id; createdAt: string }>(items: T[], item: Omit<T, 'createdAt'> & { createdAt?: string }): T[] {
+  const old = items.find((i) => i.id === item.id)
+  const next = { ...item, createdAt: item.createdAt ?? old?.createdAt ?? nowIso() } as T
+  return old ? items.map((i) => (i.id === item.id ? next : i)) : [...items, next]
 }
 
 /** Members of a company as share portions on a weighing. */
@@ -240,11 +249,7 @@ export function createAppStore(storage: () => StateStorage) {
 
           upsertTare: (tare) => {
             const id = tare.id ?? newId()
-            set((s) => ({
-              tares: s.tares.some((t) => t.id === id)
-                ? s.tares.map((t) => (t.id === id ? { ...tare, id } : t))
-                : [...s.tares, { ...tare, id }],
-            }))
+            set((s) => ({ tares: upsertById(s.tares, { ...tare, id }) }))
             return id
           },
 
@@ -256,11 +261,7 @@ export function createAppStore(storage: () => StateStorage) {
 
           upsertCompany: (company) => {
             const id = company.id ?? newId()
-            set((s) => ({
-              companies: s.companies.some((c) => c.id === id)
-                ? s.companies.map((c) => (c.id === id ? { ...company, id } : c))
-                : [...s.companies, { ...company, id }],
-            }))
+            set((s) => ({ companies: upsertById(s.companies, { ...company, id }) }))
             return id
           },
 

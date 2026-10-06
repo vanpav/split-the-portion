@@ -1,7 +1,7 @@
 import type { Company, Cooking, Dish, Id, Lineup, Tare } from '@/domain'
 
 export const STORAGE_KEY = 'split-the-portion'
-export const CURRENT_VERSION = 9
+export const CURRENT_VERSION = 10
 
 export interface PersistedState {
   dishes: Dish[]
@@ -100,6 +100,14 @@ export const migrations: Record<number, (state: unknown) => unknown> = {
       ...s,
       lineups: members ? Object.fromEntries((s.dishes ?? []).map((d) => [d.id, { companyId: null, members }])) : {},
     }
+  },
+  // v10: tares and companies get createdAt — their order once a group's devices merge their lists
+  // (docs/ARCHITECTURE.md §10). Existing ones keep their order: 1 ms apart from the epoch.
+  9: (state) => {
+    const s = state as { tares?: { createdAt?: string }[]; companies?: { createdAt?: string }[] }
+    const ordered = (items: { createdAt?: string }[] | undefined) =>
+      (items ?? []).map((item, i) => ({ ...item, createdAt: item.createdAt ?? new Date(i).toISOString() }))
+    return { ...s, tares: ordered(s.tares), companies: ordered(s.companies) }
   },
 }
 
