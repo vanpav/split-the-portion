@@ -13,12 +13,14 @@
     "icons": "pwa-assets-generator",
     "db:auth-schema": "WRANGLER_LOG=error node --no-deprecation scripts/auth-schema.mjs",
     "db:migrate:local": "wrangler d1 migrations apply split-the-portion --local",
+    "db:migrate:preview": "wrangler d1 migrations apply split-the-portion-preview --remote --config wrangler.preview-db.jsonc",
     "db:migrate:remote": "wrangler d1 migrations apply split-the-portion --remote",
     "deploy": "pnpm build && wrangler deploy"
   },
   "dependencies": {
     "@better-auth/passkey": "^1.7.7",
     "@fontsource-variable/rubik": "^5.3.0",
+    "@use-gesture/react": "^10.3.1",
     "better-auth": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",

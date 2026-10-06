@@ -1,5 +1,7 @@
 import { XIcon } from 'lucide-react'
+import { useRef } from 'react'
 import { NumberField } from '@/components/NumberField'
+import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -17,7 +19,7 @@ interface IngredientEditorRowProps {
   placeholder?: string
 }
 
-/** Ingredient in the dish editor: name, usual raw weight, «не учитывать». */
+/** Ingredient in the dish editor: name, usual raw weight, «не учитывать». On a touch screen × gives way to a swipe left. */
 export function IngredientEditorRow({
   ingredient,
   index,
@@ -29,9 +31,11 @@ export function IngredientEditorRow({
 }: IngredientEditorRowProps) {
   const label = ingredient.name.trim() || `ингредиент ${index + 1}`
   const excludedId = `ingredient-excluded-${ingredient.id}`
+  const rowRef = useRef<SwipeRowHandle>(null)
 
   return (
-    <div className="flex flex-col gap-1.5">
+    // An item of the ingredient list: it folds up when removed, the padding is part of it.
+    <SwipeRow ref={rowRef} itemId={ingredient.id} className="flex flex-col gap-1.5 py-3" onRemove={onRemove}>
       <div className="flex items-start gap-2">
         <Input
           id={ingredientNameId(ingredient.id)}
@@ -57,7 +61,13 @@ export function IngredientEditorRow({
           onValueChange={(rawGrams) => onChange({ rawGrams })}
           onEnter={onEnter}
         />
-        <Button variant="ghost" size="icon" aria-label={`Удалить ${label}`} onClick={onRemove}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="pointer-coarse:sr-only"
+          aria-label={`Удалить ${label}`}
+          onClick={() => rowRef.current?.remove()}
+        >
           <XIcon />
         </Button>
       </div>
@@ -73,6 +83,6 @@ export function IngredientEditorRow({
           не учитывать
         </FieldLabel>
       </Field>
-    </div>
+    </SwipeRow>
   )
 }

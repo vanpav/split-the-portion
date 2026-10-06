@@ -44,13 +44,24 @@ pnpm wrangler whoami
 
 `login` откроет браузер, `whoami` покажет аккаунт. Если аккаунтов несколько, запомните `account_id` — его можно вписать в `wrangler.jsonc`.
 
-## 3. Создать базу D1
+## 3. Создать базы D1
+
+Баз две, у обеих привязка `DB` и одни и те же миграции:
+
+| База | Кто пишет | Где в `wrangler.jsonc` |
+|---|---|---|
+| `split-the-portion` | рабочий воркер | `d1_databases` |
+| `split-the-portion-preview` | превью веток и PR (§8) | `previews.d1_databases` |
 
 ```bash
-pnpm wrangler d1 create split-the-portion
+pnpm wrangler d1 create split-the-portion --location weur
 ```
 
-Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc`. Отказаться: он предложит привязку `split_the_portion`, а у нас `DB` — id вписываем руками в готовый блок `d1_databases`. `database_id` не секрет, он хранится в репозитории. Сделано 2026-10-06: база `split-the-portion`, регион WEUR.
+```bash
+pnpm wrangler d1 create split-the-portion-preview --location weur
+```
+
+Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc`. Отказаться: он предложит привязку `split_the_portion`, а у нас `DB` — id вписываем руками в готовый блок. Id базы превью вписываем в двух местах: `previews.d1_databases` в `wrangler.jsonc` и `wrangler.preview-db.jsonc` (для миграций, §5). `database_id` не секрет, он хранится в репозитории. Сделано 2026-10-06: обе базы, регион WEUR.
 
 ## 4. Привязать базу к воркеру
 
@@ -79,6 +90,8 @@ Wrangler напечатает блок с `database_id` и предложит с
   "previews": {}
 }
 ```
+
+Блок `previews` заполнен в §8: своя база и секрет для превью.
 
 - `not_found_handling` не нужен: маршруты приложения в hash (`#/d/…`), сервер видит только `/`.
 - Адрес приложения в конфиге не нужен: воркер берёт его из запроса. Поэтому рабочий адрес, превью веток и `localhost` работают каждый под своим. Passkey (Face ID) привязан к тому адресу, где его добавили.
@@ -123,9 +136,31 @@ pnpm wrangler d1 migrations apply split-the-portion --remote
 pnpm wrangler d1 migrations list split-the-portion --remote
 ```
 
-Порядок такой: сначала `--local` и проверка в `pnpm dev`, потом `--remote` — **до** деплоя кода, которому нужны новые таблицы. Локальная база (`.wrangler/state`) и удалённая — разные, данные между ними не ходят.
+**База превью.** `wrangler d1 migrations` ищет базу только в верхнем `d1_databases` конфига, блок `previews` он не читает: `… apply split-the-portion-preview --remote` падает с «Couldn't find a D1 DB with the name or binding». Поэтому для миграций превью есть отдельный маленький конфиг `wrangler.preview-db.jsonc` — в нём только база превью. Сборка и деплой его не используют.
 
-Скрипты в `package.json`: `db:migrate:local`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
+```bash
+pnpm db:migrate:preview
+```
+
+```bash
+pnpm wrangler d1 migrations list split-the-portion-preview --remote --config wrangler.preview-db.jsonc
+```
+
+Порядок для ветки с новой миграцией:
+1. `pnpm db:migrate:local` — проверка в `pnpm dev`;
+2. `pnpm db:migrate:preview` — **до** проверки ветки на превью;
+3. `pnpm db:migrate:remote` — перед слиянием PR, **до** деплоя кода, которому нужны новые таблицы.
+
+Локальная база (`.wrangler/state`), база превью и рабочая — разные, данные между ними не ходят.
+
+**Когда мигрировать базу превью — руками.** Команду деплоя веток в Workers Builds не трогаем:
+- база превью одна на все ветки, а номер миграции берётся по порядку. Две ветки с разными `0004_*.sql` в автоматическом деплое накатились бы обе, и вторая ветка увидела бы чужую схему; руками это видно и решается по ходу;
+- токену сборки не нужны права на D1;
+- минус — можно забыть. Симптомы и что делать — §14.
+
+Если база превью запуталась (миграция из брошенной ветки), её не жалко: удалить и создать заново (§3), потом `pnpm db:migrate:preview`. Аккаунты превью при этом пропадут.
+
+Скрипты в `package.json`: `db:migrate:local`, `db:migrate:preview`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
 
 ## 6. Секреты и переменные
 
@@ -180,10 +215,10 @@ pnpm run deploy
 - команда сборки — `pnpm build`;
 - команда деплоя — `pnpm wrangler deploy`.
 
-Миграции в команду деплоя **не** добавлять: превью веток собираются той же сборкой и накатили бы недоделанную схему на рабочую базу. Миграции применяем руками (`pnpm db:migrate:remote`) перед слиянием PR, которому они нужны.
+Миграции в команду деплоя **не** добавлять: превью веток собираются той же сборкой и накатили бы недоделанную схему. Миграции применяем руками: `pnpm db:migrate:preview` перед проверкой ветки, `pnpm db:migrate:remote` перед слиянием PR (§5).
 
 **Превью веток** получают свой адрес: `https://<ветка>-split-the-portion.<поддомен>.workers.dev`. Каждый деплой превью получает **только** привязки из блока `previews` в `wrangler.jsonc`: основной конфиг не наследуется, а секреты, заданные через `wrangler secret put`, `wrangler preview secret put` или базовый конфиг превью, следующая сборка затирает. Поэтому в блоке `previews`:
-- та же база D1 (`DB`) — рабочая;
+- своя база D1 (`DB`) — `split-the-portion-preview`, не рабочая;
 - секрет Better Auth — привязка `PREVIEW_AUTH_SECRET` к Secrets Store аккаунта (хранилище `split-the-portion`, секрет `BETTER_AUTH_SECRET`, свой, не как у рабочего воркера). Воркер берёт `BETTER_AUTH_SECRET`, а если его нет — читает хранилище.
 
 Секрет в хранилище создан так (значение генерируется в команде и никуда не выводится):
@@ -197,7 +232,7 @@ pnpm wrangler secrets-store secret create <id хранилища> --name BETTER_
 ```
 
 На превью:
-- база та же, рабочая, — не экспериментировать с удалением данных; аккаунты, созданные на превью, настоящие;
+- база своя: аккаунты и группы отдельные от рабочих. На превью регистрируемся заново, данные с рабочей базы туда не копируются (там почты и хеши паролей). Экспериментировать с данными можно — рабочие не заденет;
 - passkey, созданный на адресе превью, к рабочему адресу не подходит;
 - адрес превью отдельно разрешать не нужно: воркер доверяет адресу, на который пришёл запрос.
 
@@ -217,7 +252,7 @@ pnpm wrangler tail split-the-portion --format pretty
 
 ## 10. Ручные операции
 
-Все команды — `pnpm wrangler d1 execute split-the-portion --remote --command "<SQL>"`. Имена колонок Better Auth — в camelCase.
+Все команды — `pnpm wrangler d1 execute split-the-portion --remote --command "<SQL>"`. Для базы превью — `pnpm wrangler d1 execute split-the-portion-preview --remote --config wrangler.preview-db.jsonc --command "<SQL>"`. Имена колонок Better Auth — в camelCase.
 
 | Что | SQL |
 |---|---|
@@ -233,6 +268,8 @@ pnpm wrangler tail split-the-portion --format pretty
 3. Ссылку берём из `pnpm wrangler tail` и пересылаем человеку лично. Ссылка одноразовая и живёт час.
 
 ## 11. Резервные копии и восстановление
+
+Беречь нужно рабочую базу `split-the-portion`: команды ниже — для неё. База превью `split-the-portion-preview` — для проверок, её не выгружаем; если испортилась, проще пересоздать (§5). Time Travel у неё тоже есть: в командах ниже заменить имя базы.
 
 **Time Travel** — D1 сама хранит историю: 7 дней на бесплатном плане, 30 дней на платном.
 
@@ -280,13 +317,15 @@ pnpm wrangler d1 export split-the-portion --remote --output ~/Backups/split-the-
 | Симптом | Причина | Что делать |
 |---|---|---|
 | Регистрация падает, в логе `exceededCpu` / Error 1102 | Хеш пароля дольше 10 мс CPU. Чистый JS scrypt тратит 70–170 мс; Better Auth 1.7 под workerd берёт нативный `node:crypto` | Проверить флаг `nodejs_compat` и что в сборке воркера `import { scrypt } from "node:crypto"`. Если не помогло — Workers Paid $5 |
-| `no such table: record` после деплоя | Миграцию применили только `--local` | `pnpm db:migrate:remote` |
+| `no such table: record` после деплоя на рабочий адрес | Миграцию применили только локально или к базе превью | `pnpm db:migrate:remote` |
 | Вход не держится на телефоне | Открыто по `http://` (LAN) — cookie `Secure` не сохраняется | Проверять вход на HTTPS: превью или рабочий адрес |
 | «Войти с Face ID» ничего не делает | Не HTTPS, или адрес не совпадает с `rpID` (превью, другой домен) | Рабочий адрес; на новом адресе добавить Face ID заново |
 | После деплоя на телефоне старая версия | Service Worker отдаёт закешированную сборку | Нажать «Обновить» в тосте «Есть новая версия». Проверить, что `public/_headers` отдаёт `/sw.js` с `no-cache` |
 | На iPhone после установки пусто | У PWA на экране «Домой» своё хранилище, не общее с Safari | Войти — данные придут с сервера; без аккаунта — «Копия данных» |
 | `403` на `/api/groups/…/sync` | Человек не участник группы (вышел или его убрали) | Приложение само убирает группу с устройства и открывает группу по умолчанию; проверить `member` (§10) |
 | На превью вход «проходит», но аккаунт тут же теряется; `/api/invites/…` — 500; `/api/*` — `{"error":"misconfigured"}` | У превью нет привязки `DB` или секрета: деплой превью получает только блок `previews` | Блок `previews` в `wrangler.jsonc`: `d1_databases` и `secrets_store_secrets` (§8); `pnpm wrangler secrets-store secret list <id хранилища> --remote` |
+| На превью регистрация или вход — 500, в `pnpm wrangler tail` `no such table: user`; или работает вход, но синхронизация и приглашения ветки — 500 с `no such table: …` / `no such column: …` | База превью не смигрирована: новая миграция ветки применена только локально | `pnpm db:migrate:preview` (§5) и обновить страницу превью |
+| На превью нет аккаунта, который есть на рабочем адресе | У превью своя база, аккаунты не копируются | Зарегистрироваться на превью заново |
 | `pnpm dev` перестал отвечать на `/api/*` | Миграция применена к локальной базе, пока dev-сервер держал её открытой, или воркер много раз горячо перезагрузился | Перезапустить `pnpm dev` |
 
 ## Источники
