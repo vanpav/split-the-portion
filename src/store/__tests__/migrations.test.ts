@@ -285,6 +285,17 @@ describe('dishes', () => {
     expect(getState().dishes[0].cooked).toBeNull()
   })
 
+  it('setCooked after the dish\'s tare was deleted: weighed without tare, the dish keeps its tare id', () => {
+    const { getState } = setup()
+    const tareId = getState().upsertTare({ name: 'Кастрюля', grams: 850 })
+    const id = getState().saveDish({ ...pasta, tareId })
+    getState().deleteTare(tareId)
+    getState().setCooked(id, 360)
+    expect(getState().dishes[0].cooked).toMatchObject({ grams: 360, tareId: null })
+    // Undoing the removal brings the tare back to the dish.
+    expect(getState().dishes[0].tareId).toBe(tareId)
+  })
+
   it('the editor never touches the cooked weight: a draft without it keeps the dish\'s', () => {
     const { getState } = setup()
     const id = getState().saveDish(pasta)

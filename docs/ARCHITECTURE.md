@@ -214,6 +214,7 @@ src/domain/
 | `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
 | `companyLineup(company)`, `dishLineup(lineups, dishId, companies)`, `lineupCompany(lineup, companies)` | Состав блюда из компании (её доли по умолчанию); состав блюда в калькуляторе (свой или первая компания); какая компания показана в списке (выбранная, если она ещё есть, иначе совпадающая) |
 | `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
+| `liveTareId(tareId, tares)` | Тара блюда, если она ещё есть в библиотеке, иначе `null` — «Без тары» (SPEC §8: тару удалили). Калькулятор и редактор читают тару блюда только через неё |
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `recentDishes(dishes)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок полки (последнее использованное сверху); вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
@@ -242,7 +243,7 @@ interface AppState {
   companies: Company[];
   // блюда
   saveDish(draft): Id;            // «Создать» / «Сохранить» из редактора; калькулятор так же пишет сырой вес и тару
-  setCooked(dishId, grams): void; // готовый вес из калькулятора: время и тару ставит стор; null — поле стёрто (с v11)
+  setCooked(dishId, grams): void; // готовый вес из калькулятора: время и тару (через liveTareId) ставит стор; null — поле стёрто (с v11)
   deleteDish(id): void;           // вместе с его составом lineups
   addDishes(dishes): void;        // «Добавить популярные блюда», популярное из поиска: в конец списка
   // настройки

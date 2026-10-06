@@ -22,7 +22,7 @@ export { cookingWarnings, isValidSplitN, isValidTareGrams, K_RANGE, MAX_SPLIT_PO
 export type { CookingWarning } from './validation'
 export { canReweigh, leftoverCookedGrams } from './phases'
 export { clockTime, cookedToday, dayLabel } from './dates'
-export { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, matchingCompany, rawFold, recentDishes, shareWeights } from './dish'
+export { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights } from './dish'
 export type { DishError } from './dish'
 export { companyLineup, dishLineup, lineupCompany } from './lineup'
 export { applyKey, keypadKeyFromKeyboard } from './keypad'
