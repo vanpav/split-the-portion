@@ -59,6 +59,25 @@ const SEGMENT =
   '@container absolute inset-y-0 flex flex-col items-center justify-center overflow-hidden text-xs leading-tight outline-none'
 
 /**
+ * A grip covers about 2rem; next to a segment narrower than 4rem it hides the grams. For each border the
+ * bar width (rem) under which it no longer fits, as literal container classes Tailwind can find: with
+ * many people or portions only the chosen one's borders keep their grips (docs/UX.md §3).
+ */
+const GRIP_ROOM = [
+  [18, ''],
+  [22, '@max-[22rem]/bar:hidden'],
+  [26, '@max-[26rem]/bar:hidden'],
+  [30, '@max-[30rem]/bar:hidden'],
+  [36, '@max-[36rem]/bar:hidden'],
+  [44, '@max-[44rem]/bar:hidden'],
+] as const
+/** `narrowest` — the narrower of the two segments by a border, in percent of the bar. */
+const gripRoom = (narrowest: number) => {
+  const needed = narrowest > 0 ? 400 / narrowest : Infinity
+  return GRIP_ROOM.find(([rem]) => needed <= rem)?.[1] ?? 'hidden'
+}
+
+/**
  * The whole dish as one bar (docs/SPEC.md §3б): a segment per person in the size of what they get,
  * own portions outlined, what stays in the pot hatched. Borders between people who split by share
  * can be dragged; ±1 % and «Поровну» below act on those people. The labels follow each segment's
@@ -100,9 +119,12 @@ export function ShareSlider({
   // then own portions, then the pot.
   const width = (share: number) => (share / total) * 100
   const groupWidth = width(sharingSegments.reduce((a, s) => a + s.share, 0))
+  // Dragging and ±1 % work in whole percents; the segments are as wide as the exact shares, so seven equal
+  // portions are seven equal segments, not 15, 15, 14… wide.
   const percents = toPercents(sharing.map((p) => p.weight))
-  const sharingStarts = percents.map((_, i) => (percents.slice(0, i).reduce((a, b) => a + b, 0) / 100) * groupWidth)
-  const sharingWidths = percents.map((p) => (p / 100) * groupWidth)
+  const weightTotal = sharing.reduce((a, p) => a + Math.max(p.weight, 0), 0)
+  const sharingWidths = sharing.map((p) => (weightTotal > 0 ? Math.max(p.weight, 0) / weightTotal : 1 / sharing.length) * groupWidth)
+  const sharingStarts = sharingWidths.map((_, i) => sharingWidths.slice(0, i).reduce((a, b) => a + b, 0))
   const ownStarts = own.map((_, i) => groupWidth + own.slice(0, i).reduce((a, s) => a + width(s.share), 0))
   const restStart = groupWidth + own.reduce((a, s) => a + width(s.share), 0)
 
@@ -180,7 +202,7 @@ export function ShareSlider({
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <div ref={barRef} className="relative h-12 min-w-0 flex-1 touch-none select-none">
+        <div ref={barRef} className="@container/bar relative h-12 min-w-0 flex-1 touch-none select-none">
           {sharing.map((person, index) => {
             const segment = segmentFor(person.id)
             return (
@@ -263,6 +285,11 @@ export function ShareSlider({
               className={cn(
                 'group/grip absolute top-1/2 z-20 flex size-11 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center outline-none active:cursor-grabbing',
                 dragging === null && 'transition-[left] duration-300 ease-out',
+                // The chosen one's borders and the one in the hand always keep their grips.
+                index !== selectedIndex &&
+                  index + 1 !== selectedIndex &&
+                  dragging !== index &&
+                  gripRoom(Math.min(sharingWidths[index], sharingWidths[index + 1])),
               )}
             >
               <span
