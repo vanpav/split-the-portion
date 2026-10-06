@@ -1,3 +1,4 @@
+import { AppearanceSection } from './AppearanceSection'
 import { CompaniesSection } from './CompaniesSection'
 import { DataSection } from './DataSection'
 import { HoldSection } from './HoldSection'
@@ -21,5 +22,7 @@ export function SettingsSectionContent({ id }: { id: SettingsSectionId }) {
       return <PresetsSection />
     case 'data':
       return <DataSection />
+    case 'appearance':
+      return <AppearanceSection />
   }
 }

@@ -26,7 +26,7 @@ A unit converter for one cooking, not a food database or a calorie counter. The 
 
 ## Operating Context
 
-- Phone at the stove: kitchen scale, pot or container on it, often wet or busy hands, a glance of a few seconds. Kitchen light, day and evening; dark theme follows the system setting.
+- Phone at the stove: kitchen scale, pot or container on it, often wet or busy hands, a glance of a few seconds. Kitchen light, day and evening; the theme follows the system setting by default and can be set to light or dark in Settings.
 - Desktop is secondary (planning, settings, history).
 - Daily loop: tap a dish → type the cooked weight on the in-app keypad → read each person's portion → copy the raw weight into the tracker. Setup (dishes, containers, companies) is rare.
 - Works offline in the browser; opened over local Wi-Fi on the phone during development (no clipboard over http — fallback dialog).

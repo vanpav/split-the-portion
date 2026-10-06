@@ -1,6 +1,6 @@
-import { BookOpenIcon, HardDriveIcon, type LucideIcon, UsersIcon, WeightIcon } from 'lucide-react'
+import { BookOpenIcon, HardDriveIcon, type LucideIcon, SunMoonIcon, UsersIcon, WeightIcon } from 'lucide-react'
 
-export type SettingsSectionId = 'tares' | 'companies' | 'presets' | 'data'
+export type SettingsSectionId = 'tares' | 'companies' | 'presets' | 'data' | 'appearance'
 
 export interface SettingsSection {
   /** The last part of the address: `#/settings/<id>`. */
@@ -17,6 +17,7 @@ export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]]
   { id: 'companies', title: 'Компании', description: 'Кто ест вместе', Icon: UsersIcon },
   { id: 'presets', title: 'Популярные блюда', description: 'Готовые рецепты для начала', Icon: BookOpenIcon },
   { id: 'data', title: 'Копия данных', description: 'Скачать или загрузить файл', Icon: HardDriveIcon },
+  { id: 'appearance', title: 'Оформление', description: 'Светлая или тёмная тема', Icon: SunMoonIcon },
 ]
 
 export const findSettingsSection = (id: string | undefined): SettingsSection | undefined =>
