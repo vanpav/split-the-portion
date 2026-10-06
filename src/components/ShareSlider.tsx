@@ -1,5 +1,5 @@
 import { GripVerticalIcon } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import {
   formatPercent,
   isEqualSplit,
@@ -48,8 +48,11 @@ interface ShareSliderProps {
   unit?: 'g' | '%'
   /** Without it there is no «г | %» switch, and the labels show percents. */
   onUnit?: (unit: 'g' | '%') => void
-  /** Beside the bar on the right, as tall as it: the portion «−» / «+» in «Доли», where «на завтра» is for people. */
-  aside?: ReactNode
+  /**
+   * Nobody is chosen until a segment is tapped, and a second tap lets go: no ring and no ±1 % until then.
+   * «Доли»: equal portions rarely need ±1 %, and with seven of them the grips stay off the bar.
+   */
+  pickToAdjust?: boolean
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -95,13 +98,13 @@ export function ShareSlider({
   onKeep,
   unit = '%',
   onUnit,
-  aside,
+  pickToAdjust = false,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
   const dragRef = useRef<number | null>(null)
   const [dragging, setDragging] = useState<number | null>(null)
-  // Who the ±1 % buttons adjust: always someone, the first sharing person to start with.
+  // Who the ±1 % buttons adjust: the first sharing person to start with, or nobody until tapped (`pickToAdjust`).
   const [chosenId, setChosenId] = useState<Id | null>(null)
   // A tap on the «на завтра» edge lights it up for a moment: touch has no hover to say «pull me».
   const [edgeLit, setEdgeLit] = useState(false)
@@ -128,7 +131,8 @@ export function ShareSlider({
   const ownStarts = own.map((_, i) => groupWidth + own.slice(0, i).reduce((a, s) => a + width(s.share), 0))
   const restStart = groupWidth + own.reduce((a, s) => a + width(s.share), 0)
 
-  const selectedIndex = Math.max(0, sharing.findIndex((p) => p.id === chosenId))
+  const chosenIndex = sharing.findIndex((p) => p.id === chosenId)
+  const selectedIndex = pickToAdjust ? chosenIndex : Math.max(0, chosenIndex)
   const name = (index: number) => sharing[index]?.name.trim() || 'Без имени'
   const segmentFor = (id: Id) => sharingSegments.find((s) => s.id === id)
   const dishPercent = (share: number) => formatPercent(share / total)
@@ -211,7 +215,7 @@ export function ShareSlider({
                 type="button"
                 aria-pressed={sharing.length > 1 && index === selectedIndex}
                 aria-label={`${name(index)}: ${segment ? dishPercent(segment.share) : percents[index]} % блюда${segment?.label ? `, ${segment.label}` : ''}`}
-                onClick={() => setChosenId(person.id)}
+                onClick={() => setChosenId(pickToAdjust && index === selectedIndex ? null : person.id)}
                 // Placed by percent, not by flex: padding must not move a border away from its grip.
                 style={{ left: `${sharingStarts[index]}%`, width: `${sharingWidths[index]}%` }}
                 className={cn(
@@ -374,7 +378,6 @@ export function ShareSlider({
             </div>
           )}
         </div>
-        {aside}
       </div>
 
       <ShareControls

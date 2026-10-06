@@ -525,18 +525,22 @@ export function Calculator({ id }: { id: Id | undefined }) {
         </section>
 
         <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
-          <CompanyPicker
-            className="w-full"
-            value={companyId}
-            // Ticked only while the shares are the company's own: picking it again brings them back.
-            ticked={matching && matching.id === companyId ? companyId : null}
-            customLabel={`Свой состав · ${lineup.members.length}`}
-            onChange={choosePreset}
-            onAdd={() => openScreen(newCompanyPath(dish.id), COMPANY_SELECT_ID)}
-            onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
-            shares={{ active: inShares, label: `Доли · ${people.length}`, onPick: () => switchMode('shares') }}
-            onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
-          />
+          {/* In «Доли» the number of portions sits beside the field: «Доли [− 7 +]», the bar below gets the width. */}
+          <div className="flex items-center gap-2">
+            <CompanyPicker
+              className="min-w-0 flex-1"
+              value={companyId}
+              // Ticked only while the shares are the company's own: picking it again brings them back.
+              ticked={matching && matching.id === companyId ? companyId : null}
+              customLabel={`Свой состав · ${lineup.members.length}`}
+              onChange={choosePreset}
+              onAdd={() => openScreen(newCompanyPath(dish.id), COMPANY_SELECT_ID)}
+              onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
+              shares={{ active: inShares, label: 'Доли', onPick: () => switchMode('shares') }}
+              onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
+            />
+            {inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
+          </div>
           <ShareSlider
             sharing={sharing}
             sharingSegments={segments.filter((x) => fixed[x.id] === undefined)}
@@ -552,7 +556,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             onKeep={inShares ? undefined : setKeep}
             unit={barUnit}
             onUnit={setBarUnit}
-            aside={inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
+            pickToAdjust={inShares}
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
