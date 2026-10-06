@@ -27,7 +27,8 @@
 | `idb-keyval` | prod | Хранилище `persist` в IndexedDB (≈ 600 Б): браузер может пометить его постоянным (`navigator.storage.persist`), места больше, чем в `localStorage`. Согласовано 2026-10-06 |
 | `nanoid` | prod | Генерация id; в отличие от `crypto.randomUUID` работает и без secure context (телефон по http с LAN-адреса) |
 | `tailwindcss`, `@tailwindcss/vite` | dev | Без Tailwind shadcn/ui не работает; стили пишем утилитарными классами |
-| shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`, `@fontsource-variable/geist` (шрифт с кириллицей); `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты |
+| shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы |
+| `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
@@ -338,6 +339,8 @@ src/
 ### Стили и адаптивность
 - Tailwind-классы прямо в JSX, `cn()` для условных классов. Отдельных CSS-файлов на компонент нет.
 - Цвета — только через переменные темы shadcn (`bg-background`, `text-destructive` …). Для статуса «предупреждение» добавляем переменную `--warning` в `index.css`.
+- Тема — стиль «Ланчбокс» ([DESIGN.md](../DESIGN.md)): токены shadcn в `:root` и `.dark` в `index.css`. Светлая или тёмная — по настройке системы: `ThemeProvider` из `next-themes` ставит `.dark` на `<html>` (`main.tsx`).
+- `--chart-1..5` — цвета крышек едоков, по месту человека в сегодняшнем составе (`screens/Calculator/lids.ts`); текст на них — `--chart-foreground`. Курсор калькулятора (`Caret`) моргает и при каждом появлении берёт крышку следующего едока (`animate-caret-N` в `index.css`).
 - Одна колонка до `lg` (1024 px): секции идут друг под другом «Ингредиенты → После готовки → Порции».
 - От `lg` — две колонки (`lg:grid-cols-2`): слева ввод («Ингредиенты», «После готовки»), справа «Порции» и итоги (`lg:sticky`). Ширина контента ≤ 1200 px.
 - Цвета состояний: ok — нейтральный, предупреждение — жёлтый, ошибка/перебор — `destructive`. Состояние дублируется текстом, а не только цветом.

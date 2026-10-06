@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Impeccable: review captures and hook cache are local
+.impeccable/review/
+.impeccable/hook.cache.json

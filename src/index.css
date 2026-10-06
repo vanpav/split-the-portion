@@ -1,13 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/rubik";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Rubik Variable', sans-serif;
+    /* Text on a person's lid color (`bg-chart-1..5`). */
+    --color-chart-foreground: var(--chart-foreground);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,75 +51,136 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * The calculator caret blinks; each time it comes back it takes the next lid of today's lineup.
+ * `animate-caret-N` — N people (up to five): one blink per color, so the color changes while unseen.
+ */
+@theme {
+    --animate-caret-1: caret-blink 1.06s step-end infinite, caret-lids-1 1.06s step-end infinite;
+    --animate-caret-2: caret-blink 1.06s step-end infinite, caret-lids-2 2.12s step-end infinite;
+    --animate-caret-3: caret-blink 1.06s step-end infinite, caret-lids-3 3.18s step-end infinite;
+    --animate-caret-4: caret-blink 1.06s step-end infinite, caret-lids-4 4.24s step-end infinite;
+    --animate-caret-5: caret-blink 1.06s step-end infinite, caret-lids-5 5.3s step-end infinite;
+
+    @keyframes caret-blink {
+        50% { opacity: 0; }
+    }
+    @keyframes caret-lids-1 {
+        0% { background-color: var(--caret-1); }
+    }
+    @keyframes caret-lids-2 {
+        0% { background-color: var(--caret-1); }
+        50% { background-color: var(--caret-2); }
+    }
+    @keyframes caret-lids-3 {
+        0% { background-color: var(--caret-1); }
+        33.333% { background-color: var(--caret-2); }
+        66.667% { background-color: var(--caret-3); }
+    }
+    @keyframes caret-lids-4 {
+        0% { background-color: var(--caret-1); }
+        25% { background-color: var(--caret-2); }
+        50% { background-color: var(--caret-3); }
+        75% { background-color: var(--caret-4); }
+    }
+    @keyframes caret-lids-5 {
+        0% { background-color: var(--caret-1); }
+        20% { background-color: var(--caret-2); }
+        40% { background-color: var(--caret-3); }
+        60% { background-color: var(--caret-4); }
+        80% { background-color: var(--caret-5); }
+    }
+}
+
+/*
+ * «Ланчбокс» (DESIGN.md): frosted polypropylene ground, navy ink, a cobalt primary,
+ * and a lid color per person — `--chart-1..5`, by the person's place in today's lineup.
+ */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --background: oklch(0.969 0.006 255.5);
+    --foreground: oklch(0.267 0.054 269.1);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.267 0.054 269.1);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --warning: oklch(0.555 0.13 70);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --popover-foreground: oklch(0.267 0.054 269.1);
+    --primary: oklch(0.514 0.192 265);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.929 0.013 255.5);
+    --secondary-foreground: oklch(0.267 0.054 269.1);
+    --muted: oklch(0.944 0.01 252.8);
+    --muted-foreground: oklch(0.526 0.045 262.7);
+    --accent: oklch(0.938 0.018 261.3);
+    --accent-foreground: oklch(0.267 0.054 269.1);
+    --destructive: oklch(0.556 0.183 29.1);
+    --warning: oklch(0.531 0.119 65.1);
+    --border: oklch(0.898 0.016 257.2);
+    --input: oklch(0.873 0.019 255.5);
+    --ring: oklch(0.514 0.192 265);
+    /* Lids: sky, sunflower, mint, lilac, apricot. Light enough for navy text in both themes. */
+    --chart-1: oklch(0.815 0.073 246.3);
+    --chart-2: oklch(0.871 0.14 91.6);
+    --chart-3: oklch(0.847 0.076 164.5);
+    --chart-4: oklch(0.81 0.075 301.4);
+    --chart-5: oklch(0.832 0.095 58.2);
+    --chart-foreground: oklch(0.267 0.054 269.1);
+    /* A lid as a 3 px caret on the white field: the lid's hue, deepened to ≥ 3:1 against white. */
+    --caret-1: oklch(0.6 0.12 246.3);
+    --caret-2: oklch(0.66 0.13 85);
+    --caret-3: oklch(0.62 0.12 164.5);
+    --caret-4: oklch(0.6 0.13 301.4);
+    --caret-5: oklch(0.64 0.14 58.2);
+    --radius: 0.875rem;
+    --sidebar: oklch(0.969 0.006 255.5);
+    --sidebar-foreground: oklch(0.267 0.054 269.1);
+    --sidebar-primary: oklch(0.514 0.192 265);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.938 0.018 261.3);
+    --sidebar-accent-foreground: oklch(0.267 0.054 269.1);
+    --sidebar-border: oklch(0.898 0.016 257.2);
+    --sidebar-ring: oklch(0.514 0.192 265);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --warning: oklch(0.8 0.14 80);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --card-foreground: oklch(0.96 0.009 258.3);
+    --popover: oklch(0.255 0.04 266.9);
+    --popover-foreground: oklch(0.96 0.009 258.3);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --secondary-foreground: oklch(0.96 0.009 258.3);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --accent-foreground: oklch(0.96 0.009 258.3);
+    --destructive: oklch(0.715 0.178 28);
+    --warning: oklch(0.819 0.124 75.6);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --ring: oklch(0.722 0.143 268.2);
+    --chart-1: oklch(0.76 0.086 249);
+    --chart-2: oklch(0.827 0.139 90.3);
+    --chart-3: oklch(0.793 0.084 165.1);
+    --chart-4: oklch(0.751 0.087 299.6);
+    --chart-5: oklch(0.781 0.103 55.4);
+    --chart-foreground: oklch(0.212 0.035 268.5);
+    /* On the dark field the lids show as they are, lifted a little toward the ink. Mixed in oklab:
+       in oklch the hue would swing toward the ink's and turn sunflower green. */
+    --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+    --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+    --caret-3: color-mix(in oklab, var(--chart-3) 70%, var(--foreground));
+    --caret-4: color-mix(in oklab, var(--chart-4) 70%, var(--foreground));
+    --caret-5: color-mix(in oklab, var(--chart-5) 70%, var(--foreground));
+    --sidebar: oklch(0.255 0.04 266.9);
+    --sidebar-foreground: oklch(0.96 0.009 258.3);
+    --sidebar-primary: oklch(0.722 0.143 268.2);
+    --sidebar-primary-foreground: oklch(0.21 0.052 270.1);
+    --sidebar-accent: oklch(0.321 0.055 266.3);
+    --sidebar-accent-foreground: oklch(0.96 0.009 258.3);
+    --sidebar-border: oklch(0.34 0.048 267.7);
+    --sidebar-ring: oklch(0.722 0.143 268.2);
 }
 
 @layer base {
@@ -129,6 +192,7 @@
     }
   html {
     @apply font-sans;
+    scrollbar-color: var(--border) transparent;
     }
   /* Browser surfaces follow the theme too. */
   ::selection {

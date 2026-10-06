@@ -12,9 +12,12 @@ import {
   type Id,
 } from '@/domain'
 import { cn } from '@/lib/utils'
+import { lidFill, lidPale } from './lids'
 
 export interface DishSegment {
   id: Id
+  /** Place in today's lineup: the person's lid color. */
+  place: number
   name: string
   /** Part of the whole dish, 0..1. */
   share: number
@@ -173,11 +176,10 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
                 'transition-[left,width,background-color,color] ease-out focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
                 dragging === null ? 'duration-300' : 'duration-0',
                 rounding(index),
-                sharing.length > 1 && index === selectedIndex
-                  ? 'bg-primary text-primary-foreground'
-                  : index % 2 === 0
-                    ? 'bg-primary/15 text-foreground'
-                    : 'bg-primary/25 text-foreground',
+                // Each person in their lid color; the one the ±1 % buttons adjust is ringed, keeping it.
+                'text-chart-foreground',
+                lidFill(segment?.place ?? index),
+                sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
               )}
             >
               {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`)}
@@ -194,7 +196,8 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
             style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
             className={cn(
               SEGMENT,
-              'border-2 border-dashed border-primary/40 bg-background text-foreground transition-[left,width] duration-300 ease-out',
+              'border-2 border-dashed border-foreground/25 text-foreground transition-[left,width] duration-300 ease-out',
+              lidPale(segment.place),
               rounding(sharing.length + i),
             )}
           >

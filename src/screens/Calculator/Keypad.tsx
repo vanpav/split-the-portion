@@ -13,6 +13,8 @@ interface KeypadProps {
 }
 
 const KEY = 'h-14 text-2xl font-medium tabular-nums active:scale-[0.97] transition-transform'
+/** ⌫, C, ↓: borderless like the digits, a frosted step quieter. */
+const OP = 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent'
 
 /**
  * Calculator keypad, the way unit converters do it: big keys within the thumb's reach,
@@ -30,19 +32,19 @@ export function Keypad({ onKey, onNext, onSave, saveDisabled }: KeypadProps) {
       {digit('7')}
       {digit('8')}
       {digit('9')}
-      <Button type="button" variant="outline" className={KEY} aria-label="Стереть" onClick={() => onKey('back')}>
+      <Button type="button" variant="ghost" className={cn(KEY, OP)} aria-label="Стереть" onClick={() => onKey('back')}>
         <DeleteIcon className="size-6" />
       </Button>
       {digit('4')}
       {digit('5')}
       {digit('6')}
-      <Button type="button" variant="outline" className={cn(KEY, 'text-lg')} aria-label="Очистить" onClick={() => onKey('clear')}>
+      <Button type="button" variant="ghost" className={cn(KEY, OP, 'text-lg')} aria-label="Очистить" onClick={() => onKey('clear')}>
         C
       </Button>
       {digit('1')}
       {digit('2')}
       {digit('3')}
-      <Button type="button" variant="outline" className={KEY} aria-label="Следующее поле" onClick={onNext}>
+      <Button type="button" variant="ghost" className={cn(KEY, OP)} aria-label="Следующее поле" onClick={onNext}>
         <ArrowDownIcon className="size-6" />
       </Button>
       {digit(',', ',')}

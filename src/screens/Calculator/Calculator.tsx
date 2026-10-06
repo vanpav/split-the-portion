@@ -245,9 +245,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
 
   const phase = result?.phases[0]
   const gramsLabel = (grams: number | null) => (grams !== null ? `${formatGrams(grams)} г` : null)
+  // A person's place in today's lineup: their lid color on the bar and in their row.
+  const placeOf = (personId: Id) => Math.max(people.findIndex((x) => x.id === personId), 0)
   // Each person's part of the whole dish, for the bar.
   const segments: DishSegment[] = (phase?.portions ?? []).map((p) => ({
     id: p.portionId,
+    place: placeOf(p.portionId),
     name: people.find((x) => x.id === p.portionId)?.name ?? '',
     share: Math.max(p.share ?? 0, 0),
     label: gramsLabel(p.cookedGrams),
@@ -328,6 +331,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
               active={active === i.id}
               compact={compact}
               onActivate={() => activate(i.id)}
+              lids={people.length}
             />
           ))}
           <CookedRow
@@ -341,6 +345,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             onTare={changeTare}
             note={note || null}
             error={tareExceeds ? 'вес меньше тары' : null}
+            lids={people.length}
           />
         </section>
 
@@ -384,6 +389,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   cooking={draft}
                   result={result}
                   name={people.find((x) => x.id === p.portionId)?.name ?? ''}
+                  place={placeOf(p.portionId)}
+                  lids={people.length}
                   computed={p}
                   onRename={(name) => updatePerson(p.portionId, name)}
                   onRemove={() => removePerson(p.portionId)}

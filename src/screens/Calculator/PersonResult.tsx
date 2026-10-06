@@ -15,11 +15,17 @@ import {
 import { cn } from '@/lib/utils'
 import { RawList } from '@/screens/Cooking/RawList'
 import { rawWord } from '@/screens/Cooking/messages'
+import { Caret } from './Caret'
+import { lidFill } from './lids'
 
 interface PersonResultProps {
   cooking: Cooking
   result: CookingResult
   name: string
+  /** Place in today's lineup: the person's lid color, the same as on the share bar. */
+  place: number
+  /** People eating today: the caret blinks through their lid colors. */
+  lids: number
   computed: PortionResult
   onRename: (name: string) => void
   onRemove: () => void
@@ -52,6 +58,8 @@ export function PersonResult({
   cooking,
   result,
   name,
+  place,
+  lids,
   computed,
   onRename,
   onRemove,
@@ -82,6 +90,7 @@ export function PersonResult({
   return (
     <li className="flex flex-col gap-1 py-3">
       <div className="flex items-center gap-2">
+        <span aria-hidden className={cn('size-3.5 shrink-0 self-start mt-3 rounded-[5px]', lidFill(place))} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Input
             aria-label="Имя"
@@ -92,7 +101,7 @@ export function PersonResult({
             onFocus={() => onEditingName(true)}
             onBlur={() => onEditingName(false)}
             onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-            className="h-9 border-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input"
+            className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
           />
           {(subline.length > 0 || grams.own) && (
             // Each part stays whole («13 г сухого»); the line wraps only between parts.
@@ -127,8 +136,8 @@ export function PersonResult({
             is a switch, always there, so nothing moves when the field is chosen. */}
         <div
           className={cn(
-            'flex min-h-14 shrink-0 items-center rounded-xl transition-colors',
-            grams.active && 'bg-muted',
+            'flex min-h-14 shrink-0 items-center rounded-xl border transition-colors',
+            grams.active ? 'border-border bg-card' : 'border-transparent',
           )}
         >
           <button
@@ -141,19 +150,13 @@ export function PersonResult({
               !grams.active && 'hover:bg-muted/50',
             )}
           >
-            <span className="flex items-baseline text-3xl leading-tight font-semibold whitespace-nowrap tabular-nums max-[360px]:text-2xl">
+            <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
               {grams.active
                 ? // Until a key is pressed: today's number, faded — the field keeps its width.
                   grams.text || <span className="text-muted-foreground/50">{shownNumber ?? '0'}</span>
                 : (shownNumber ?? <span className="text-muted-foreground/50">—</span>)}
               {/* The caret's place is kept when not typing: choosing the field moves nothing. */}
-              <span
-                aria-hidden
-                className={cn(
-                  'ml-0.5 inline-block h-[0.9em] w-0.5 self-center',
-                  grams.active ? 'bg-primary motion-safe:animate-pulse' : 'bg-transparent',
-                )}
-              />
+              <Caret lids={lids} hidden={!grams.active} />
             </span>
           </button>
           <button
