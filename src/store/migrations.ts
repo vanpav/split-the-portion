@@ -1,15 +1,15 @@
-import type { Company, CompanyMember, Cooking, Dish, Tare } from '@/domain'
+import type { Company, Cooking, Dish, Id, Lineup, Tare } from '@/domain'
 
 export const STORAGE_KEY = 'split-the-portion'
-export const CURRENT_VERSION = 8
+export const CURRENT_VERSION = 9
 
 export interface PersistedState {
   dishes: Dish[]
   cookings: Cooking[]
   tares: Tare[]
   companies: Company[]
-  /** «Сегодня едят»: who eats now, shared by all dishes; null until first changed (docs/SPEC.md §3б). */
-  lineup: CompanyMember[] | null
+  /** «Кто ест» of each dish, by dish id; a dish not here starts with the first company (docs/SPEC.md §3б). */
+  lineups: Record<Id, Lineup>
   /** How long to hold «×» before a person is removed, ms; 0 — at once (docs/SPEC.md §3б). */
   holdMs: number
 }
@@ -22,7 +22,7 @@ export const EMPTY_STATE: PersistedState = {
   cookings: [],
   tares: [],
   companies: [],
-  lineup: null,
+  lineups: {},
   holdMs: DEFAULT_HOLD_MS,
 }
 
@@ -91,6 +91,16 @@ export const migrations: Record<number, (state: unknown) => unknown> = {
   },
   // v8: removing a person takes a hold of «×»; how long is a setting.
   7: (state) => ({ ...(state as object), holdMs: DEFAULT_HOLD_MS }),
+  // v9: «Кто ест» is remembered per dish. The lineup shared by all dishes becomes each dish's own;
+  // no company is picked (the picker shows the matching one).
+  8: (state) => {
+    const { lineup, ...s } = state as { lineup?: unknown; dishes?: { id: string }[] }
+    const members = Array.isArray(lineup) ? lineup : null
+    return {
+      ...s,
+      lineups: members ? Object.fromEntries((s.dishes ?? []).map((d) => [d.id, { companyId: null, members }])) : {},
+    }
+  },
 }
 
 function assertShape(state: unknown): asserts state is PersistedState {
@@ -102,7 +112,9 @@ function assertShape(state: unknown): asserts state is PersistedState {
     !Array.isArray(s.cookings) ||
     !Array.isArray(s.tares) ||
     !Array.isArray(s.companies) ||
-    !(s.lineup === null || Array.isArray(s.lineup)) ||
+    typeof s.lineups !== 'object' ||
+    s.lineups === null ||
+    Array.isArray(s.lineups) ||
     typeof s.holdMs !== 'number'
   ) {
     throw new Error('Stored state has an unexpected shape')
