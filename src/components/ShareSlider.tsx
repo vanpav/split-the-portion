@@ -1,5 +1,5 @@
 import { GripVerticalIcon } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import {
   formatPercent,
   keepAt,
@@ -44,6 +44,8 @@ interface ShareSliderProps {
   unit?: 'g' | '%'
   /** Without it there is no «г | %» switch, and the labels show percents. */
   onUnit?: (unit: 'g' | '%') => void
+  /** Beside the bar on the right, as tall as it: the portion «−» / «+» in «Доли», where «на завтра» is for people. */
+  aside?: ReactNode
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -70,6 +72,7 @@ export function ShareSlider({
   onKeep,
   unit = '%',
   onUnit,
+  aside,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
@@ -172,172 +175,175 @@ export function ShareSlider({
   return (
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
     <div className="flex flex-col gap-3">
-      <div ref={barRef} className="relative h-12 w-full touch-none select-none">
-        {sharing.map((person, index) => {
-          const segment = segmentFor(person.id)
-          return (
-            <button
-              key={person.id}
-              type="button"
-              aria-pressed={sharing.length > 1 && index === selectedIndex}
-              aria-label={`${name(index)}: ${segment ? dishPercent(segment.share) : percents[index]} % блюда${segment?.label ? `, ${segment.label}` : ''}`}
-              onClick={() => setChosenId(person.id)}
-              // Placed by percent, not by flex: padding must not move a border away from its grip.
-              style={{ left: `${sharingStarts[index]}%`, width: `${sharingWidths[index]}%` }}
+      <div className="flex items-center gap-2">
+        <div ref={barRef} className="relative h-12 min-w-0 flex-1 touch-none select-none">
+          {sharing.map((person, index) => {
+            const segment = segmentFor(person.id)
+            return (
+              <button
+                key={person.id}
+                type="button"
+                aria-pressed={sharing.length > 1 && index === selectedIndex}
+                aria-label={`${name(index)}: ${segment ? dishPercent(segment.share) : percents[index]} % блюда${segment?.label ? `, ${segment.label}` : ''}`}
+                onClick={() => setChosenId(person.id)}
+                // Placed by percent, not by flex: padding must not move a border away from its grip.
+                style={{ left: `${sharingStarts[index]}%`, width: `${sharingWidths[index]}%` }}
+                className={cn(
+                  SEGMENT,
+                  'transition-[left,width,background-color,color] ease-out focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
+                  dragging === null ? 'duration-300' : 'duration-0',
+                  rounding(index),
+                  // Each person in their lid color; the one the ±1 % buttons adjust is ringed, keeping it.
+                  'text-chart-foreground',
+                  lidFill(segment?.place ?? index),
+                  sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
+                )}
+              >
+                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`)}
+              </button>
+            )
+          })}
+
+          {/* An own portion is fixed in grams: outlined, not dragged. */}
+          {own.map((segment, i) => (
+            <div
+              key={segment.id}
+              role="img"
+              aria-label={`${segment.name.trim() || 'Без имени'}: своя порция, ${dishPercent(segment.share)} % блюда`}
+              style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
               className={cn(
                 SEGMENT,
-                'transition-[left,width,background-color,color] ease-out focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
-                dragging === null ? 'duration-300' : 'duration-0',
-                rounding(index),
-                // Each person in their lid color; the one the ±1 % buttons adjust is ringed, keeping it.
-                'text-chart-foreground',
-                lidFill(segment?.place ?? index),
-                sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
+                'border-2 border-dashed border-foreground/25 text-foreground transition-[left,width] duration-300 ease-out',
+                lidPale(segment.place),
+                rounding(sharing.length + i),
               )}
             >
-              {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`)}
-            </button>
-          )
-        })}
+              {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`)}
+            </div>
+          ))}
 
-        {/* An own portion is fixed in grams: outlined, not dragged. */}
-        {own.map((segment, i) => (
-          <div
-            key={segment.id}
-            role="img"
-            aria-label={`${segment.name.trim() || 'Без имени'}: своя порция, ${dishPercent(segment.share)} % блюда`}
-            style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
-            className={cn(
-              SEGMENT,
-              'border-2 border-dashed border-foreground/25 text-foreground transition-[left,width] duration-300 ease-out',
-              lidPale(segment.place),
-              rounding(sharing.length + i),
-            )}
-          >
-            {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`)}
-          </div>
-        ))}
-
-        {/* What stays in the pot: hatched, so it reads as «not taken» rather than as a person. */}
-        {rest && (
-          <div
-            role="img"
-            aria-label={`${restTitle}: ${rest.label ?? `${dishPercent(rest.share)} %`}`}
-            style={{ left: `${restStart}%`, width: `${width(rest.share)}%` }}
-            className={cn(
-              SEGMENT,
-              'bg-[repeating-linear-gradient(135deg,var(--color-muted)_0_6px,var(--color-background)_6px_12px)] text-muted-foreground transition-[left,width] duration-300 ease-out',
-              rounding(lastIndex),
-            )}
-          >
-            {labels(restTitle, rest.label, `${dishPercent(rest.share)} %`)}
-          </div>
-        )}
-
-        {sharing.slice(0, -1).map((person, index) => (
-          <div
-            key={person.id}
-            role="slider"
-            tabIndex={0}
-            aria-label={`Граница: ${name(index)} и ${name(index + 1)}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={borderPercent(index)}
-            aria-valuetext={`${name(index)} ${percents[index]} %, ${name(index + 1)} ${percents[index + 1]} %`}
-            onPointerDown={startDrag(index)}
-            onPointerMove={drag(index)}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-            onKeyDown={keyStep(index)}
-            style={{ left: gripAt(sharingStarts[index + 1]) }}
-            // Centred on the border, 44 px to hit; a round knob that stands out of the bar says «drag me».
-            // Above the unseen «на завтра» strip: a border pushed to the edge can still be pulled back.
-            className={cn(
-              'group/grip absolute top-1/2 z-20 flex size-11 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center outline-none active:cursor-grabbing',
-              dragging === null && 'transition-[left] duration-300 ease-out',
-            )}
-          >
-            <span
+          {/* What stays in the pot: hatched, so it reads as «not taken» rather than as a person. */}
+          {rest && (
+            <div
+              role="img"
+              aria-label={`${restTitle}: ${rest.label ?? `${dishPercent(rest.share)} %`}`}
+              style={{ left: `${restStart}%`, width: `${width(rest.share)}%` }}
               className={cn(
-                'flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground',
-                'shadow-[0_2px_6px_rgb(0_0_0/0.18)] transition-transform duration-150 ease-out',
-                'group-focus-visible/grip:ring-[3px] group-focus-visible/grip:ring-ring/50',
-                dragging === index && 'scale-110 shadow-[0_4px_12px_rgb(0_0_0/0.22)]',
+                SEGMENT,
+                'bg-[repeating-linear-gradient(135deg,var(--color-muted)_0_6px,var(--color-background)_6px_12px)] text-muted-foreground transition-[left,width] duration-300 ease-out',
+                rounding(lastIndex),
               )}
             >
-              <GripVerticalIcon className="size-4" />
-            </span>
-          </div>
-        ))}
+              {labels(restTitle, rest.label, `${dishPercent(rest.share)} %`)}
+            </div>
+          )}
 
-        {/* «На завтра»: an unseen strip on the right edge; pulled in, it becomes a border with a knob. */}
-        {canKeep && (
-          <div
-            role="slider"
-            tabIndex={0}
-            aria-label="Отложить на завтра"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={keep}
-            aria-valuetext={`На завтра ${keep} % блюда`}
-            data-lit={(keep === 0 && edgeLit) || undefined}
-            onPointerDown={(e) => {
-              startDrag(KEEP)(e)
-              if (e.pointerType !== 'mouse') setEdgeLit(true)
-            }}
-            onPointerMove={drag(KEEP)}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-            onKeyDown={keyStep(KEEP)}
-            style={keep > 0 ? { left: gripAt(keepStart) } : undefined}
-            className={cn(
-              'group/grip absolute top-1/2 z-10 flex -translate-y-1/2 cursor-ew-resize items-center justify-center outline-none',
-              keep > 0
-                ? 'size-11 -translate-x-1/2 cursor-grab active:cursor-grabbing'
-                : // Half over the bar's end, half over the page margin: easy to catch, no scroll.
-                  '-right-3 h-12 w-8',
-              keep > 0 && dragging === null && 'transition-[left] duration-300 ease-out',
-            )}
-          >
-            {keep === 0 && (
-              // Hover (a mouse) or a tap (touch): a hatched sliver of the bar's end and a knob on its edge —
-              // the same look as «На завтра» and as the other borders, before anything is cut.
-              <>
-                <span
-                  aria-hidden
-                  className={cn(
-                    'pointer-events-none absolute inset-y-0 left-0 w-5 rounded-r-xl opacity-0 transition-opacity duration-200 ease-out',
-                    'bg-[repeating-linear-gradient(135deg,var(--color-muted)_0_6px,var(--color-background)_6px_12px)]',
-                    'group-hover/grip:opacity-100 group-focus-visible/grip:opacity-100 group-data-lit/grip:opacity-100',
-                  )}
-                />
-                <span
-                  aria-hidden
-                  className={cn(
-                    'pointer-events-none absolute top-1/2 left-5 flex size-8 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full border border-border bg-background text-foreground opacity-0',
-                    'shadow-[0_2px_6px_rgb(0_0_0/0.18)] transition-[opacity,scale] duration-200 ease-out',
-                    'group-hover/grip:scale-100 group-hover/grip:opacity-100 group-focus-visible/grip:scale-100 group-focus-visible/grip:opacity-100',
-                    'group-data-lit/grip:scale-100 group-data-lit/grip:opacity-100',
-                  )}
-                >
-                  <GripVerticalIcon className="size-4" />
-                </span>
-              </>
-            )}
-            {keep > 0 && (
+          {sharing.slice(0, -1).map((person, index) => (
+            <div
+              key={person.id}
+              role="slider"
+              tabIndex={0}
+              aria-label={`Граница: ${name(index)} и ${name(index + 1)}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={borderPercent(index)}
+              aria-valuetext={`${name(index)} ${percents[index]} %, ${name(index + 1)} ${percents[index + 1]} %`}
+              onPointerDown={startDrag(index)}
+              onPointerMove={drag(index)}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onKeyDown={keyStep(index)}
+              style={{ left: gripAt(sharingStarts[index + 1]) }}
+              // Centred on the border, 44 px to hit; a round knob that stands out of the bar says «drag me».
+              // Above the unseen «на завтра» strip: a border pushed to the edge can still be pulled back.
+              className={cn(
+                'group/grip absolute top-1/2 z-20 flex size-11 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center outline-none active:cursor-grabbing',
+                dragging === null && 'transition-[left] duration-300 ease-out',
+              )}
+            >
               <span
                 className={cn(
                   'flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground',
                   'shadow-[0_2px_6px_rgb(0_0_0/0.18)] transition-transform duration-150 ease-out',
                   'group-focus-visible/grip:ring-[3px] group-focus-visible/grip:ring-ring/50',
-                  dragging === KEEP && 'scale-110 shadow-[0_4px_12px_rgb(0_0_0/0.22)]',
+                  dragging === index && 'scale-110 shadow-[0_4px_12px_rgb(0_0_0/0.22)]',
                 )}
               >
                 <GripVerticalIcon className="size-4" />
               </span>
-            )}
-          </div>
-        )}
+            </div>
+          ))}
+
+          {/* «На завтра»: an unseen strip on the right edge; pulled in, it becomes a border with a knob. */}
+          {canKeep && (
+            <div
+              role="slider"
+              tabIndex={0}
+              aria-label="Отложить на завтра"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={keep}
+              aria-valuetext={`На завтра ${keep} % блюда`}
+              data-lit={(keep === 0 && edgeLit) || undefined}
+              onPointerDown={(e) => {
+                startDrag(KEEP)(e)
+                if (e.pointerType !== 'mouse') setEdgeLit(true)
+              }}
+              onPointerMove={drag(KEEP)}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onKeyDown={keyStep(KEEP)}
+              style={keep > 0 ? { left: gripAt(keepStart) } : undefined}
+              className={cn(
+                'group/grip absolute top-1/2 z-10 flex -translate-y-1/2 cursor-ew-resize items-center justify-center outline-none',
+                keep > 0
+                  ? 'size-11 -translate-x-1/2 cursor-grab active:cursor-grabbing'
+                  : // Half over the bar's end, half over the page margin: easy to catch, no scroll.
+                    '-right-3 h-12 w-8',
+                keep > 0 && dragging === null && 'transition-[left] duration-300 ease-out',
+              )}
+            >
+              {keep === 0 && (
+                // Hover (a mouse) or a tap (touch): a hatched sliver of the bar's end and a knob on its edge —
+                // the same look as «На завтра» and as the other borders, before anything is cut.
+                <>
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'pointer-events-none absolute inset-y-0 left-0 w-5 rounded-r-xl opacity-0 transition-opacity duration-200 ease-out',
+                      'bg-[repeating-linear-gradient(135deg,var(--color-muted)_0_6px,var(--color-background)_6px_12px)]',
+                      'group-hover/grip:opacity-100 group-focus-visible/grip:opacity-100 group-data-lit/grip:opacity-100',
+                    )}
+                  />
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'pointer-events-none absolute top-1/2 left-5 flex size-8 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full border border-border bg-background text-foreground opacity-0',
+                      'shadow-[0_2px_6px_rgb(0_0_0/0.18)] transition-[opacity,scale] duration-200 ease-out',
+                      'group-hover/grip:scale-100 group-hover/grip:opacity-100 group-focus-visible/grip:scale-100 group-focus-visible/grip:opacity-100',
+                      'group-data-lit/grip:scale-100 group-data-lit/grip:opacity-100',
+                    )}
+                  >
+                    <GripVerticalIcon className="size-4" />
+                  </span>
+                </>
+              )}
+              {keep > 0 && (
+                <span
+                  className={cn(
+                    'flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground',
+                    'shadow-[0_2px_6px_rgb(0_0_0/0.18)] transition-transform duration-150 ease-out',
+                    'group-focus-visible/grip:ring-[3px] group-focus-visible/grip:ring-ring/50',
+                    dragging === KEEP && 'scale-110 shadow-[0_4px_12px_rgb(0_0_0/0.22)]',
+                  )}
+                >
+                  <GripVerticalIcon className="size-4" />
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        {aside}
       </div>
 
       <ShareControls

@@ -19,8 +19,8 @@
     }
   ],
   // Preview builds of branches and pull requests. A preview deployment gets only the bindings of this
-  // block, so the database is named again (the production D1) and the auth secret comes from the
-  // account's Secrets Store: `wrangler secret put` values never reach previews (docs/CLOUDFLARE.md §8).
+  // block: its own D1 (never the production one) and the auth secret from the account's Secrets Store,
+  // since `wrangler secret put` values never reach previews (docs/CLOUDFLARE.md §8).
   "previews": {
     "secrets_store_secrets": [
       {
@@ -32,8 +32,9 @@
     "d1_databases": [
       {
         "binding": "DB",
-        "database_name": "split-the-portion",
-        "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
+        "database_name": "split-the-portion-preview",
+        // Created by `pnpm wrangler d1 create split-the-portion-preview` (docs/CLOUDFLARE.md §3), region WEUR.
+        "database_id": "aa414161-a809-4629-ab47-6f0562341e1a",
         "migrations_dir": "worker/migrations"
       }
     ]

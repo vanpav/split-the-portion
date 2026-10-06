@@ -1,0 +1,13 @@
+{
+  // Only for `pnpm db:migrate:preview` (docs/CLOUDFLARE.md §5): `wrangler d1 migrations` looks a database up
+  // in the top-level `d1_databases` and never in `previews`, so the preview D1 is named here once more.
+  // Keep in sync with `previews.d1_databases` in wrangler.jsonc. Not used by builds or deploys.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "split-the-portion-preview",
+      "database_id": "aa414161-a809-4629-ab47-6f0562341e1a",
+      "migrations_dir": "worker/migrations"
+    }
+  ]
+}

@@ -83,6 +83,22 @@ export interface Lineup {
 }
 
 /**
+ * How the calculator splits a dish (docs/SPEC.md §3б «Режим долей»): between the people of «Кто ест»
+ * or into anonymous portions («Доли»). A setting of this device for all dishes, not group data.
+ */
+export type SplitMode = 'people' | 'shares'
+
+/**
+ * One anonymous portion of a dish in «Доли»: a share like a person's, without a name — portions are
+ * numbered by place («Порция 1»). Kept per dish on this device only, never in the group data.
+ */
+export interface PortionShare {
+  id: Id
+  /** Positive; the dish is split in proportion, as between people. */
+  weight: number
+}
+
+/**
  * The last cooked weight typed for a dish (docs/SPEC.md §3а): on the scale, in this tare, at this time.
  * Shown again only the same day and in the same tare (`cookedToday`); seen by the whole group.
  */

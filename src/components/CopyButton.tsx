@@ -1,5 +1,5 @@
 import { CopyIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type Ref } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -12,13 +12,15 @@ interface CopyButtonProps {
   label: string
   /** Default — a 44 px icon button; 'sm' — half the height, for a stack of row actions. */
   size?: 'default' | 'sm'
+  /** The button itself: a swipe right on a touch screen clicks it. */
+  ref?: Ref<HTMLButtonElement>
 }
 
 /**
  * Copies text for the tracker. Clipboard API needs a secure context; on a phone over LAN http it is
  * missing, so the text is shown in a dialog, already selected.
  */
-export function CopyButton({ getText, disabled, label, size = 'default' }: CopyButtonProps) {
+export function CopyButton({ getText, disabled, label, size = 'default', ref }: CopyButtonProps) {
   // Text that could not be copied automatically; the dialog is open while it is set.
   const [manualText, setManualText] = useState<string | null>(null)
 
@@ -36,6 +38,7 @@ export function CopyButton({ getText, disabled, label, size = 'default' }: CopyB
   return (
     <>
       <Button
+        ref={ref}
         variant="ghost"
         size={size === 'sm' ? 'icon-sm' : 'icon'}
         className={size === 'sm' ? 'w-10 text-muted-foreground' : undefined}

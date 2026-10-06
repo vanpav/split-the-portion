@@ -36,6 +36,7 @@
 | `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
 | `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
+| `@use-gesture/react` | prod | Свайп строк на сенсорном экране (`components/SwipeRow`, хук `useDrag`: `axis: 'x'`, отмена при вертикальной прокрутке, скорость для «смахнуть»). В shadcn/ui такого компонента нет; распознавание жестов руками не пишем. Согласовано 2026-10-06 (#27) |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
 
@@ -164,6 +165,8 @@ src/domain/
   reconcile.ts      — reconcilePhase(phase) → { basis, distributed, total, diff, status }
   remainder.ts      — fillRemainder(result, portionId) → граммы в единицах строки
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
+  swipe.ts          — settleSwipe (куда доехать строке после отпускания), rubberBand (сопротивление за краем), settleDuration — для components/SwipeRow
+  portions.ts       — «Доли» (этап 16): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
@@ -209,7 +212,8 @@ src/domain/
 | `isValidTareGrams(grams)` | Вес тары > 0 |
 | `portionBasisOptions(result)`, `basisKey` | В каких единицах можно вводить порцию (по умолчанию — первым) |
 | `convertPortionInput(result, portionId, basis)` | Та же порция в других единицах (при смене единиц на строке) |
-| `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N» |
+| `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N»; предел числа порций в «Долях» |
+| `dishPortions(stored, freshIds)`, `addPortion(list, id)`, `removeLastPortion(list)`, `DEFAULT_PORTIONS` | «Доли» (этап 16): порции блюда — сохранённые на устройстве или 2 равные (битый список — как пустой); «+» — порция со средней долей в конце, «−» — последняя (1…100). Делятся порции тем же расчётом, что люди (`cookingDraft`) |
 | `ingredientDisplayName`, `ingredientNames`, `baseRawGrams` | Подписи ингредиентов, сырой вес базового ингредиента по id |
 | `dishSource(dish)` | Название и обычный сырой вес простого блюда для составного на его основе |
 | `dishTitle(dish)`, `dishErrors(dish)` | Название блюда; что мешает нажать «Создать» / «Сохранить» (нужен учитываемый продукт) |
@@ -271,6 +275,7 @@ interface AppState {
 - **Чтение асинхронное.** `createAppStore` возвращает стор с `ready` — промисом, который выполняется, когда данные прочитаны (или признаны нечитаемыми и сохранены в резервную копию). `main.tsx` рендерит приложение после `ready`: иначе ввод до загрузки перезаписал бы данные.
 - После загрузки просим `navigator.storage.persist()`: браузер не будет чистить данные при нехватке места. Отказ ничего не ломает.
 - **По группам (с этапа 13).** Без входа данные лежат под ключом `split-the-portion`, как раньше. После входа у каждой группы свой блоб `split-the-portion:group:<id>` в том же формате и с теми же миграциями. Рядом лежат неотправленные изменения и курсор: `split-the-portion:sync:<id>`. Аккаунт (кто вошёл, группы, группа по умолчанию) — отдельный стор `src/store/account.ts`, ключ `split-the-portion:account`. В копию данных он не попадает. Подробно — §10.
+- **Настройки устройства** (этап 16) — отдельный стор `src/store/prefs.ts`, ключ `split-the-portion:prefs` в той же IndexedDB: `splitMode` (`'people' | 'shares'`, люди «Кто ест» или «Доли») и `portions` (порции блюда в «Долях» по id блюда: `PortionShare[]` — `{ id, weight }` без имён, номер — по месту). Как тема и аккаунт, они не входят в `storedData`: не синхронизируются (§10), не попадают в копию данных, не зависят от открытой группы и не трогаются выходом из аккаунта. Поэтому форма данных приложения и `CURRENT_VERSION` не меняются. У стора своя версия `PREFS_VERSION = 2` и миграция `migratePrefs` (`src/store/prefsMigrations.ts`, тест на фикстуре v1): v1 — `'portions'` и `portionCounts` (N равных порций) первой версии этапа 16 → v2 — `'shares'` и N порций с долей 1. `main.tsx` ждёт `prefsReady`, как `accountReady`.
 - **Копия в файле** (Настройки → «Копия данных»): «Скачать» — JSON `{ app, version, exportedAt, state }` (`src/store/backupFile.ts`); «Загрузить» — файл любой прошлой версии проходит те же миграции (`readBackupFile`), после подтверждения заменяет данные (`replaceData`), тост «Отменить» возвращает прежние. Чужой, битый или более новый файл — тост «Файл не подошёл».
 
 ### 5.3. Версия схемы и миграции
@@ -319,7 +324,8 @@ src/
       DishShelf.tsx           — полка: 🔍 (меню блюд; ⌘K, «/»), чипы по последнему использованию (пересортировка при открытии и возврате в приложение), «⋯»
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
       DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
-      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts
+      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts — «Кто ест» с пунктом «Доли»; строка человека или порции
+      PortionStepper.tsx      — «−» / «+» справа от полосы долей в режиме «Доли» вместо «На завтра» (этап 16)
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -336,7 +342,8 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
-    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
+    SwipeRow.tsx        — строка со свайпом на сенсорном экране (`pointer: coarse`): влево — красное «Убрать», вправо — «Копировать»; полный свайп делает действие сразу. Поверх `useDrag` и shadcn `Button`; пороги — именованные константы; положение и прозрачность пишутся в `style` через ref, без перерисовки React на каждый кадр; удаление — уезжание влево и схлопывание высоты (Web Animations API), `ref.remove()` — то же для кнопки × строки; `itemId` — строка, возвращённая «Отменить», раскрывается. Куда доехать после отпускания, сопротивление за краем и длительность — чистые функции `domain/swipe.ts`
+    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра», «г | %» и слот `aside` справа от полосы — необязательные пропсы (калькулятор, «Доли», компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
     NewCompanyDialog.tsx — Dialog с CompanyForm и «Добавить компанию»: последний пункт списка компаний (CompanyPicker)
@@ -348,12 +355,15 @@ src/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию (этап 12)
+    prefs.ts            — настройки устройства: люди или «Доли», порции блюд (этап 16, §5.2)
+    prefsMigrations.ts  — версия и миграции настроек устройства
     sync.ts             — статус синхронизации и данные устройства, ждущие «Перенести?» (этап 13)
   account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12); groupsApi.ts, inviteCode.ts, groupLabel.ts, networkText.ts (этап 14)
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
 worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
+wrangler.preview-db.jsonc — только база превью, для `pnpm db:migrate:preview` (CLOUDFLARE §5)
 ```
 
 ### Какие компоненты shadcn для чего
@@ -375,6 +385,8 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | «Добавлено» и «Готово» на экране «Новая тара» | «Добавлено» — `Item` (кнопки-строки с галочкой у выбранной); «Готово» — главная кнопка `Button` (сейчас в `DialogFooter` диалога `NewTareDialog`, после #38 — в `BottomBar`) |
 | Экраны «Новая тара», «Новая компания», «Вступить по коду» | Свой адрес в `router.tsx`: `ScreenHeader` + форма + `BottomBar` (UX §3а) |
 | Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт закрывает список и открывает экран «Новая компания», значение не меняет) |
+| «Доли» в списке «Кто ест» | Пункт того же `Select` (после компаний); «Свой состав · N» — пункт возврата к людям, пока выбраны «Доли» |
+| «−» / «+» порций справа от полосы | `Button` variant `outline` size `icon`, 44 × 48 px (слот `aside` у `ShareSlider`) |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки меню блюд | `CommandItem`: название слева, вес или состав справа |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
@@ -382,6 +394,7 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | Пустой список | `Empty` |
 | Плашка сверки, баннер ошибки чтения, подсказки | `Alert` (варианты default / destructive / `warning` — добавлен в `alert.tsx` через `cva`) |
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
+| Удалить / скопировать строку на телефоне и iPad | `components/SwipeRow` (`@use-gesture/react`) + `Button` под строкой; кнопки строки скрыты вариантом Tailwind `pointer-coarse:sr-only` — остаются для клавиатуры и экранного диктора |
 | Подтверждения (удаление блюда, «Перенести данные?», выход из группы и т. п.) | `AlertDialog` — единственное окно поверх экрана с текстом (UX §3а) |
 | Запасной показ текста для копирования | Экран во весь экран с `Textarea` (UX §3а) |
 | Шапка, переход в настройки | `Button` variant `ghost` + иконки `lucide-react` |
@@ -444,7 +457,7 @@ Hash-маршруты выбраны потому, что работают на 
   - `navigateFallback: index.html`, `/api/*` мимо Service Worker;
   - `public/_headers` отдаёт `sw.js` и манифест с `no-cache`.
 - **Иконка** — стопка из трёх ланчбоксов на `navy-ink`, по корпусу на едока (`lid-sky`, `lid-sunflower`, `lid-mint`), крышки белые. Верхний открыт: каша, морковные палочки и брокколи, его крышка прислонена к стопке. Цвета еды есть только в иконке, в теме их нет. Рисунок — `public/favicon.svg`: плитка со скруглением, рисунок занимает её середину. На iPhone и во вкладке он крупный; maskable-иконке Android `pwa-assets.config.ts` даёт отступ, чтобы рисунок поместился в безопасный круг (80 % ширины), и заливает край тем же `navy-ink`. После правки рисунка — `pnpm icons`.
-- **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
+- **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:preview` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
 
 ## 8. Открытые вопросы (решить с пользователем)
 
@@ -454,6 +467,7 @@ Hash-маршруты выбраны потому, что работают на 
 
 1. **Wake Lock** (бэклог P1): `react-screen-wake-lock` / `@uidotdev/usehooks` или свой хук. Решить, когда дойдём.
 2. ~~**PWA**~~ — решено 2026-10-06: `vite-plugin-pwa`, этап [11](roadmap/11-pwa.md).
+3. ~~**Свайп строк**~~ — решено 2026-10-06: `@use-gesture/react` (#27); `react-swipeable` и `motion` не взяли (§2).
 
 ## 9. Сервер
 
@@ -468,10 +482,12 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 │ src/sync: outbox + cursor    │              │ /api/groups/:id/invites, /invites │
 │ Service Worker (precache)    │              │ всё остальное → статика dist      │
 └──────────────────────────────┘              └───────────────┬──────────────────┘
-                                                              ▼
-                                                     D1 split-the-portion (SQLite)
+                                                              ▼  привязка DB
+                                         рабочий адрес: D1 split-the-portion (SQLite)
+                                       превью веток: D1 split-the-portion-preview
 ```
 
+- **Две базы D1 с одной схемой:** рабочий воркер пишет в `split-the-portion` (`d1_databases`), превью веток и PR — в `split-the-portion-preview` (`previews.d1_databases`). Код один, привязка в обоих случаях `DB`. Аккаунты и данные превью отдельные, с рабочей базы не копируются; миграции базы превью — руками `pnpm db:migrate:preview` ([CLOUDFLARE §5](CLOUDFLARE.md#5-миграции-базы)).
 - **Один воркер на всё:** статика (`assets`) и API на одном адресе. `assets.run_worker_first: ["/api/*"]` — код запускается только для API. Один origin — cookie сессии первого лица работают в установленной PWA на iOS, CORS не нужен.
 - **Код — в `worker/`**, отдельный от `src/`, со своим `tsconfig.worker.json`:
   - `index.ts` — Hono, `csrf()`, маршруты;
@@ -537,7 +553,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 | `lineup` | id блюда | `Lineup` — «Кто ест» у блюда |
 | `settings` | `settings` | `{ holdMs }` |
 
-Как и в IndexedDB, на сервер уходит только ввод; производные значения (k, доли, остатки) не хранятся.
+Как и в IndexedDB, на сервер уходит только ввод; производные значения (k, доли, остатки) не хранятся. Настройки устройства (`src/store/prefs.ts`: люди или «Доли», порции блюд) — не записи: синхронизация подписана только на `useAppStore`, и записи для них нет (§5.2).
 
 **Протокол** — один запрос на push и pull:
 
