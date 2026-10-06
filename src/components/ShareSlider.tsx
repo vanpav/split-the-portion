@@ -1,18 +1,16 @@
-import { GripVerticalIcon, MinusIcon, PlusIcon } from 'lucide-react'
+import { GripVerticalIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { Button } from '@/components/ui/button'
 import {
-  equalPercents,
   formatPercent,
   keepAt,
   moveBoundary,
-  nudgePercent,
   toPercents,
   type CompanyMember,
   type Id,
 } from '@/domain'
 import { cn } from '@/lib/utils'
 import { lidFill, lidPale } from './lids'
+import { ShareControls } from './ShareControls'
 
 export interface DishSegment {
   id: Id
@@ -153,7 +151,6 @@ export function ShareSlider({
     if (index === KEEP) onKeep?.(keepAt(100 - keep + step, keepMost))
     else onChange(moveBoundary(percents, index, borderPercent(index) + step))
   }
-  const isEqual = equalPercents(sharing.length).every((p, i) => p === percents[i])
   const lastIndex = sharing.length + own.length + (rest ? 1 : 0) - 1
   const rounding = (index: number) =>
     cn(index === 0 && 'rounded-l-xl', index === lastIndex && 'rounded-r-xl', index > 0 && 'shadow-[inset_2px_0_0_var(--color-background)]')
@@ -161,9 +158,10 @@ export function ShareSlider({
   const shown = (label: string | null) => (unit === 'g' ? label : null)
   const labels = (title: string, label: string | null, fallback: string) => (
     <>
-      {/* Padding on the labels, not on the segment: a 1 % segment must stay 1 % wide. */}
+      {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
+          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first. */}
       <span className="w-full truncate px-3 text-center font-medium @max-[4.5rem]:hidden">{title}</span>
-      <span className="px-1 text-sm font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden">
+      <span className="px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden">
         {shown(label) ?? fallback}
       </span>
     </>
@@ -172,7 +170,8 @@ export function ShareSlider({
   const selected = segmentFor(sharing[selectedIndex]?.id ?? '')
 
   return (
-    <div className="flex flex-col gap-2">
+    // A little air between the bar and the controls under it: the knobs need room to be grabbed.
+    <div className="flex flex-col gap-3">
       <div ref={barRef} className="relative h-12 w-full touch-none select-none">
         {sharing.map((person, index) => {
           const segment = segmentFor(person.id)
@@ -341,72 +340,16 @@ export function ShareSlider({
         )}
       </div>
 
-      {/* Under the bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
-          Nothing to show for one person without the switch. */}
-      {(sharing.length > 1 || onUnit) && (
-        <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
-          {sharing.length > 1 && (
-            <>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={`${name(selectedIndex)}: на 1 % меньше`}
-                className="max-[360px]:w-9"
-                disabled={percents[selectedIndex] <= 1}
-                onClick={() => onChange(nudgePercent(percents, selectedIndex, -1))}
-              >
-                <MinusIcon />
-              </Button>
-              {/* As wide as its text, so − and + hug it; on a narrow phone it gives way first. */}
-              <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
-                <span className="w-full truncate text-muted-foreground">{name(selectedIndex)}</span>
-                <span className="w-full truncate font-semibold tabular-nums">
-                  {shown(selected?.label ?? null) ?? `${percents[selectedIndex]} %`}
-                  {unit === '%' && (own.length > 0 || keep > 0) && (
-                    <span className="font-normal text-muted-foreground"> от делящих</span>
-                  )}
-                </span>
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={`${name(selectedIndex)}: на 1 % больше`}
-                className="max-[360px]:w-9"
-                onClick={() => onChange(nudgePercent(percents, selectedIndex, 1))}
-              >
-                <PlusIcon />
-              </Button>
-              <Button
-                variant="ghost"
-                // The free space goes before it: ±1 % is one control, «Поровну» another.
-                className="ml-auto px-2 max-[360px]:px-1"
-                disabled={isEqual}
-                onClick={() => onChange(equalPercents(sharing.length))}
-              >
-                Поровну
-              </Button>
-            </>
-          )}
-          {onUnit && (
-            <div role="group" aria-label="Что показывать на полосе" className={cn('flex shrink-0 rounded-lg bg-muted p-0.5 text-sm', sharing.length <= 1 && 'ml-auto')}>
-              {(['g', '%'] as const).map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  aria-pressed={unit === u}
-                  onClick={() => onUnit(u)}
-                  className={cn(
-                    'min-h-10 min-w-9 rounded-md px-2 font-medium max-[360px]:min-w-8 max-[360px]:px-1.5 outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                    unit === u ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',
-                  )}
-                >
-                  {u === 'g' ? 'г' : '%'}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <ShareControls
+        names={sharing.map((_, i) => name(i))}
+        percents={percents}
+        selectedIndex={selectedIndex}
+        onChange={onChange}
+        selectedLabel={shown(selected?.label ?? null)}
+        unit={unit}
+        onUnit={onUnit}
+        partial={own.length > 0 || keep > 0}
+      />
     </div>
   )
 }

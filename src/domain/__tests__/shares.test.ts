@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { equalPercents, keepAt, keepLimit, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from '../shares'
+import { equalPercents, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
 
@@ -115,5 +115,40 @@ describe('keepLimit', () => {
   it('nothing left for them, or no one shares → 0', () => {
     expect(keepLimit(phase(portion('v', 1), portion('k', null)), ['k'])).toBe(0)
     expect(keepLimit(phase(portion('v', 1)), [])).toBe(0)
+  })
+})
+
+describe('lineupPercents', () => {
+  const members = [
+    { id: 'a', name: 'Ваня', weight: 70 },
+    { id: 'b', name: 'Ксюша', weight: 60 },
+    { id: 'c', name: 'Тёща', weight: 60 },
+  ]
+
+  it('each part of the dish as a whole percent, own portions included', () => {
+    const portions = [
+      { portionId: 'a', share: 0.645 },
+      { portionId: 'b', share: 0.1917 },
+      { portionId: 'c', share: 0.1633 },
+    ]
+    const next = lineupPercents(members, portions)
+    expect(next?.map((m) => m.weight)).toEqual([65, 19, 16])
+    expect(next?.map((m) => m.name)).toEqual(['Ваня', 'Ксюша', 'Тёща'])
+  })
+
+  it('what is set aside for tomorrow is not remembered: the parts are of what is given out', () => {
+    const portions = [
+      { portionId: 'a', share: 0.4 },
+      { portionId: 'b', share: 0.2 },
+      { portionId: 'c', share: 0.2 },
+    ]
+    expect(lineupPercents(members, portions)?.map((m) => m.weight)).toEqual([50, 25, 25])
+  })
+
+  it('null while a part is not computable or nobody gets anything', () => {
+    expect(lineupPercents(members, [{ portionId: 'a', share: 0.5 }, { portionId: 'b', share: null }, { portionId: 'c', share: 0.5 }])).toBeNull()
+    expect(lineupPercents(members, [{ portionId: 'a', share: 1 }])).toBeNull()
+    expect(lineupPercents(members, members.map((m) => ({ portionId: m.id, share: 0 })))).toBeNull()
+    expect(lineupPercents([], [])).toBeNull()
   })
 })

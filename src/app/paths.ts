@@ -4,6 +4,8 @@ import type { CookingKind, Id } from '@/domain'
 export const LIST_TAB_PARAM = 'kind'
 
 export const dishListPath = (kind: CookingKind) => (kind === 'composite' ? `/?${LIST_TAB_PARAM}=composite` : '/')
+/** Every dish in one list, from the end of the dish shelf. */
+export const DISHES_PATH = '/dishes'
 /** Opening a dish shows its calculator (docs/SPEC.md §3б). */
 export const dishPath = (id: Id) => `/d/${id}`
 export const dishHistoryPath = (id: Id) => `/d/${id}/history`

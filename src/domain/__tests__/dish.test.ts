@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { defaultShareWeight, dishErrors, dishKind, dishSource, dishTitle, lineupName, matchingCompany, shareWeights, usualScaleGrams } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, matchingCompany, rawFold, recentDishes, shareWeights, usualScaleGrams } from '../dish'
+import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
 import { cooked, cooking, food, ingredient, share, withTare } from './fixtures'
 
@@ -19,6 +20,72 @@ describe('dishTitle', () => {
     expect(dishTitle(dish({ name: ' Плов ' }))).toBe('Плов')
     expect(dishTitle(dish({ ingredients: [ingredient('a', 1, false, 'Рис'), ingredient('b', 1, true, 'Соль')] }))).toBe('Рис')
     expect(dishTitle(dish({}))).toBe('Без названия')
+  })
+})
+
+describe('dishSummary', () => {
+  it('the weight of the one counted product, else what the dish is made of', () => {
+    expect(dishSummary([{ name: 'Булгур', rawGrams: 150 }, { name: 'Вода', rawGrams: 300, excluded: true }])).toBe('150 г')
+    expect(dishSummary([{ name: 'Шампиньоны', rawGrams: null }])).toBe('')
+    expect(
+      dishSummary([ingredient('a', 600, false, 'Курица'), ingredient('b', 400, false, ' Картофель '), ingredient('c', 2000, true, 'Вода')]),
+    ).toBe('Курица, Картофель')
+    // Shown like every gram on screen: whole, rounded half up.
+    expect(dishSummary([{ name: 'Гречка', rawGrams: 1500.5 }])).toBe(`${formatGrams(1501)} г`)
+  })
+})
+
+describe('asSimple', () => {
+  it('the first counted product stays with what is not counted and empty rows; other products go', () => {
+    const rows = [
+      ingredient('w', 400, true, 'Вода'),
+      ingredient('a', 180, false, 'Рис'),
+      ingredient('b', 300, false, 'Курица'),
+      ingredient('e', null, false, ''),
+      ingredient('s', 5, true, 'Соль'),
+    ]
+    const kept = asSimple(rows)
+    expect(kept.map((i) => i.id)).toEqual(['w', 'a', 'e', 's'])
+    expect(dishKind(kept)).toBe('simple')
+    expect(asSimple(kept)).toEqual(kept)
+  })
+})
+
+describe('rawFold', () => {
+  it('counted weights summed; what is not counted named with its weight', () => {
+    const soup = [
+      ingredient('a', 600, false, 'Курица'),
+      ingredient('b', 400, false, 'Картофель'),
+      ingredient('c', 80, false, 'Рис'),
+      ingredient('w', 2000, true, 'Вода'),
+      ingredient('s', 5, true, 'Соль'),
+    ]
+    expect(rawFold(soup)).toEqual({ total: 1080, note: `не учит.: Вода ${formatGrams(2000)} г, Соль 5 г` })
+  })
+
+  it('counted products without a weight are named first; nothing weighed — no total', () => {
+    expect(rawFold([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
+      total: 300,
+      note: 'без веса: Шампиньоны · не учит.: Специи',
+    })
+    expect(rawFold([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, note: 'без веса: Фарш' })
+  })
+
+  it('nameless rows are left out; nothing to note — an empty note', () => {
+    expect(rawFold([ingredient('a', 200, false, 'Рис'), ingredient('b', 50, false, ' ')])).toEqual({ total: 200, note: '' })
+  })
+})
+
+describe('recentDishes', () => {
+  it('the latest used first, without changing the list it was given', () => {
+    const dishes = [
+      dish({ id: 'a', updatedAt: '2026-10-01T10:00:00.000Z' }),
+      dish({ id: 'b', updatedAt: '2026-10-05T19:40:00.000Z' }),
+      dish({ id: 'c', updatedAt: '2026-10-03T08:00:00.000Z' }),
+    ]
+    expect(recentDishes(dishes).map((d) => d.id)).toEqual(['b', 'c', 'a'])
+    expect(dishes.map((d) => d.id)).toEqual(['a', 'b', 'c'])
+    expect(recentDishes([])).toEqual([])
   })
 })
 

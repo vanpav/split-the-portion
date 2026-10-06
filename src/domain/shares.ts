@@ -116,3 +116,20 @@ export function keepLimit(phase: Pick<PhaseResult, 'portions'>, sharingIds: Id[]
 export function keepAt(at: number, most: number): number {
   return Math.min(Math.max(Math.round(100 - at), 0), Math.max(most, 0))
 }
+
+/**
+ * Today's split written back as share weights: each person's part of the dish in whole percents,
+ * own portions included, so the next time the same people get the same parts by share
+ * (docs/SPEC.md §3б). Null while someone's part is not computable or nobody gets anything.
+ */
+export function lineupPercents<T extends { id: Id; weight: number }>(
+  members: T[],
+  portions: Pick<PortionResult, 'portionId' | 'share'>[],
+): T[] | null {
+  const shares = members.map((m) => portions.find((p) => p.portionId === m.id)?.share ?? null)
+  if (members.length === 0 || shares.some((s) => s === null)) return null
+  const parts = shares.map((s) => Math.max(s ?? 0, 0))
+  if (parts.every((s) => s === 0)) return null
+  const percents = toPercents(parts)
+  return members.map((m, i) => ({ ...m, weight: percents[i] }))
+}

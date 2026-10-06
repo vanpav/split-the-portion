@@ -6,6 +6,7 @@ import { CookingScreen } from '@/screens/Cooking/CookingScreen'
 import { DishScreen } from '@/screens/Dish/DishScreen'
 import { DishEditorScreen } from '@/screens/DishEditor/DishEditorScreen'
 import { DishListScreen } from '@/screens/DishList/DishListScreen'
+import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { HistoryScreen } from '@/screens/History/HistoryScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
@@ -16,7 +17,8 @@ export const router = createHashRouter([
     path: '/',
     element: <RootLayout />,
     children: [
-      { index: true, element: <DishListScreen /> },
+      { index: true, element: <HomeScreen /> },
+      { path: 'dishes', element: <DishListScreen /> },
       { path: 'd/new', element: <DishEditorScreen /> },
       { path: 'd/:id', element: <CalculatorScreen /> },
       { path: 'd/:id/history', element: <DishScreen /> },

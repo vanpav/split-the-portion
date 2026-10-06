@@ -1,4 +1,5 @@
 import { ingredientDisplayName } from './cooking'
+import { formatGrams } from './numbers'
 import { toPercents } from './shares'
 import type { Company, CompanyMember, Cooking, CookingKind, Dish, Id, Ingredient, Portion } from './types'
 
@@ -13,8 +14,55 @@ export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
   return names.length > 0 ? names.join(', ') : 'Без названия'
 }
 
+/**
+ * Dishes in the order of use, the latest first: the calculator opens on the first, the dish shelf
+ * follows it. Typing a dish's raw weight or tare is what makes it the latest.
+ */
+export function recentDishes<T extends Pick<Dish, 'updatedAt'>>(dishes: T[]): T[] {
+  return [...dishes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+}
+
+/**
+ * A dish at a glance, in a search list: the usual weight of its one counted product («200 г»),
+ * or what it is made of («Курица, Картофель, Рис»). Empty for one product without a weight.
+ */
+export function dishSummary(ingredients: (Pick<Ingredient, 'name' | 'rawGrams'> & { excluded?: boolean })[]): string {
+  const counted = ingredients.filter((i) => !i.excluded && i.name.trim())
+  if (counted.length === 1) return counted[0].rawGrams !== null ? `${formatGrams(counted[0].rawGrams)} г` : ''
+  return counted.map((i) => i.name.trim()).join(', ')
+}
+
+/**
+ * A composite dish folded to one readout in the calculator: the raw weight of what counts, summed
+ * (null while no counted product has a weight), and a quiet note — counted products still without
+ * a weight, then what is weighed in but not counted: «не учит.: Вода 2 000 г, Соль 5 г».
+ */
+export function rawFold(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; note: string } {
+  const named = ingredients.filter((i) => i.name.trim())
+  const counted = named.filter((i) => !i.excluded)
+  const weighed = counted.filter((i) => i.rawGrams !== null)
+  const total = weighed.length > 0 ? weighed.reduce((a, i) => a + (i.rawGrams ?? 0), 0) : null
+  const unweighed = counted.filter((i) => i.rawGrams === null).map((i) => i.name.trim())
+  const uncounted = named
+    .filter((i) => i.excluded)
+    .map((i) => (i.rawGrams !== null ? `${i.name.trim()} ${formatGrams(i.rawGrams)} г` : i.name.trim()))
+  const note = [unweighed.length > 0 && `без веса: ${unweighed.join(', ')}`, uncounted.length > 0 && `не учит.: ${uncounted.join(', ')}`]
+    .filter((part): part is string => Boolean(part))
+    .join(' · ')
+  return { total, note }
+}
+
 /** Ingredients that go to the tracker: named and not «не учитывать». The weight may still be empty. */
 const countedNamed = (ingredients: Ingredient[]) => ingredients.filter((i) => i.name.trim() && !i.excluded)
+
+/**
+ * «Простое» chosen in the dish editor: the first counted product stays, with what is not counted
+ * (water, salt) and empty rows; the other counted products go. A simple dish has one product.
+ */
+export function asSimple(ingredients: Ingredient[]): Ingredient[] {
+  const first = countedNamed(ingredients)[0]
+  return ingredients.filter((i) => i === first || i.excluded || !i.name.trim())
+}
 
 /**
  * The kind follows the recipe (docs/SPEC.md §3): one counted product is a simple dish, even with

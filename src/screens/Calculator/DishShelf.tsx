@@ -1,0 +1,122 @@
+import { LayoutListIcon, PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
+import { dishEditPath, dishPath, DISHES_PATH, newDishPath } from '@/app/paths'
+import { MoreMenu } from '@/components/MoreMenu'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Kbd } from '@/components/ui/kbd'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { dishTitle, recentDishes, type Id } from '@/domain'
+import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/store'
+import { DishSearch } from './DishSearch'
+
+/** ⌘ on a Mac (and an iPad with a keyboard), Ctrl elsewhere: how the search shortcut is shown. */
+const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl '
+
+/**
+ * The calculator's header: a shelf of dishes, one tap to switch (docs/UX.md «Калькулятор»).
+ * Search and the full list stay at the start, outside the scroll, always within reach; the current dish
+ * is ringed, not filled. On the right, «⋯»: editing the dish, adding one, the settings.
+ */
+export function DishShelf({ currentId }: { currentId: Id | undefined }) {
+  const dishes = useAppStore((s) => s.dishes)
+  // The order is fixed while the shelf is open: typing a weight makes a dish the latest,
+  // and its chip must not jump away under the finger. Dishes added meanwhile go to the end.
+  const [order] = useState(() => recentDishes(dishes).map((d) => d.id))
+  const shown = [
+    ...order.flatMap((id) => dishes.find((d) => d.id === id) ?? []),
+    ...recentDishes(dishes.filter((d) => !order.includes(d.id))),
+  ]
+  const currentDish = dishes.find((d) => d.id === currentId)
+  const currentRef = useRef<HTMLAnchorElement>(null)
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ block: 'nearest', inline: 'center' })
+  }, [currentId])
+  const [searching, setSearching] = useState(false)
+  // From a keyboard: ⌘K / Ctrl+K anywhere (by the key, so a Russian layout works too), or «/» when
+  // not typing somewhere — as on most sites.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const modK = (e.metaKey || e.ctrlKey) && !e.altKey && e.code === 'KeyK'
+      const slash = e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey
+      if (!modK && !slash) return
+      if (e.target instanceof HTMLElement && e.target.closest(modK ? '[role=dialog]' : 'input, textarea, [role=dialog]')) return
+      e.preventDefault()
+      setSearching(true)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  return (
+    <header className="sticky top-0 z-10 flex min-h-14 items-center gap-1 border-b bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 pr-1 pl-2 backdrop-blur">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-11 shrink-0 rounded-full"
+            aria-label="Найти блюдо"
+            aria-keyshortcuts="Meta+K Control+K /"
+            onClick={() => setSearching(true)}
+          >
+            <SearchIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="start">
+          Найти блюдо
+          <Kbd>{MOD}K</Kbd>
+          <Kbd>/</Kbd>
+        </TooltipContent>
+      </Tooltip>
+      <DishSearch open={searching} onOpenChange={setSearching} />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>
+            <Link to={DISHES_PATH} aria-label="Все блюда">
+              <LayoutListIcon />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Все блюда</TooltipContent>
+      </Tooltip>
+      <nav
+        aria-label="Блюда"
+        // Scrolls sideways under the thumb; the scrollbar would only take height.
+        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1 pr-2 pl-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {shown.map((dish) => {
+          const current = dish.id === currentId
+          return (
+            // 44 px to tap, a smaller pill to look at: more dishes fit on the shelf.
+            <Link
+              key={dish.id}
+              ref={current ? currentRef : undefined}
+              to={dishPath(dish.id)}
+              aria-current={current ? 'page' : undefined}
+              className="group/chip flex h-11 shrink-0 items-center rounded-full outline-none"
+            >
+              <span
+                className={cn(
+                  buttonVariants({ variant: 'secondary' }),
+                  'h-9 rounded-full px-3.5 text-sm group-focus-visible/chip:ring-[3px] group-focus-visible/chip:ring-ring/50',
+                  // Ringed, not flooded: the same mark as a chosen person.
+                  current && 'bg-card font-semibold ring-2 ring-foreground ring-inset hover:bg-card',
+                )}
+              >
+                {dishTitle(dish)}
+              </span>
+            </Link>
+          )
+        })}
+      </nav>
+      <MoreMenu
+        items={[
+          ...(currentDish ? [{ label: `Изменить «${dishTitle(currentDish)}»`, to: dishEditPath(currentDish.id), icon: PencilIcon }] : []),
+          { label: 'Добавить блюдо', to: newDishPath(), icon: PlusIcon },
+        ]}
+      />
+    </header>
+  )
+}

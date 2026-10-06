@@ -298,20 +298,28 @@ export const PRESET_DISHES: PresetDish[] = [
 
 const key = (name: string) => name.trim().toLowerCase()
 
+/** Popular dishes the user does not have yet: one with the same title (ignoring case) is theirs already. */
+export function missingPresets(existing: Pick<Dish, 'name' | 'ingredients'>[]): PresetDish[] {
+  const taken = new Set(existing.map((d) => key(dishTitle(d))))
+  return PRESET_DISHES.filter((p) => !taken.has(key(p.name)))
+}
+
+/** One popular dish as the user's own: fresh ids, the given time, no tare, the kind by its recipe. */
+export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dish {
+  const ingredients = preset.ingredients.map((i) => ({
+    id: newId(),
+    name: i.name,
+    rawGrams: i.rawGrams,
+    excluded: i.excluded ?? false,
+  }))
+  return { id: newId(), kind: dishKind(ingredients), name: preset.name, createdAt: at, updatedAt: at, ingredients, tareId: null }
+}
+
 /**
  * The popular dishes the user does not have yet, ready for the store: a dish whose title matches an
  * existing one (ignoring case) is skipped, so pressing the button twice adds nothing. Kind follows the
  * recipe (`dishKind`), no tare. Ids and the time come from outside to keep the domain pure.
  */
 export function presetDishes(existing: Pick<Dish, 'name' | 'ingredients'>[], newId: () => Id, at: string): Dish[] {
-  const taken = new Set(existing.map((d) => key(dishTitle(d))))
-  return PRESET_DISHES.filter((p) => !taken.has(key(p.name))).map((p) => {
-    const ingredients = p.ingredients.map((i) => ({
-      id: newId(),
-      name: i.name,
-      rawGrams: i.rawGrams,
-      excluded: i.excluded ?? false,
-    }))
-    return { id: newId(), kind: dishKind(ingredients), name: p.name, createdAt: at, updatedAt: at, ingredients, tareId: null }
-  })
+  return missingPresets(existing).map((p) => presetDish(p, newId, at))
 }
