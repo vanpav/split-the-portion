@@ -15,6 +15,11 @@ export interface CalculatorInput {
    * the rest split what is left by share (docs/SPEC.md §5).
    */
   fixedCooked?: Record<Id, number>
+  /**
+   * Today's own portions in dry (raw) grams of one ingredient, by person id: «60 г сухого».
+   * The person gets exactly that much of the ingredient; the cooked grams follow from k.
+   */
+  fixedRaw?: Record<Id, { ingredientId: Id; grams: number }>
   /** Today's own portions as a percent of the dish, by person id: «мне 50 %». */
   fixedPercent?: Record<Id, number>
   /** «На завтра»: percent of the dish not given to the sharing people today. */
@@ -33,6 +38,7 @@ export function cookingDraft(dish: Dish, input: CalculatorInput, at: string): Co
     : { id: WEIGHING_ID, at, kind: 'food', grams: input.scaleGrams }
   const portions: Portion[] = input.people.map((m) => {
     const grams = input.fixedCooked?.[m.id]
+    const raw = input.fixedRaw?.[m.id]
     const percent = input.fixedPercent?.[m.id]
     return {
       id: m.id,
@@ -41,7 +47,9 @@ export function cookingDraft(dish: Dish, input: CalculatorInput, at: string): Co
       input:
         grams !== undefined
           ? { basis: 'cooked', grams }
-          : percent !== undefined
+          : raw !== undefined
+            ? { basis: 'raw', ingredientId: raw.ingredientId, grams: raw.grams }
+            : percent !== undefined
             ? { basis: 'part', percent }
             : { basis: 'share', weight: m.weight },
     }

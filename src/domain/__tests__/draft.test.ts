@@ -59,6 +59,38 @@ describe('cookingDraft', () => {
     expect(draft.portions[0].input).toEqual({ basis: 'cooked', grams: 76 })
   })
 
+  it('an own portion in dry grams: exactly that much dry, its cooked grams by k', () => {
+    const draft = cookingDraft(
+      pasta,
+      {
+        rawGrams: {},
+        scaleGrams: 312,
+        tare: null,
+        people: us.members,
+        companyId: us.id,
+        fixedRaw: { v: { ingredientId: 'p', grams: 60 } },
+      },
+      AT,
+    )
+    const [vanya, ksyusha] = computeCooking(draft).phases[0].portions
+    expect(draft.portions[0].input).toEqual({ basis: 'raw', ingredientId: 'p', grams: 60 })
+    expect(vanya.raw[0].grams).toBeCloseTo(60, 9)
+    expect(vanya.cookedGrams).toBeCloseTo(60 * 2.4, 9)
+    expect(ksyusha.raw[0].grams).toBeCloseTo(70, 9)
+    expect(ksyusha.cookedGrams).toBeCloseTo(312 - 144, 9)
+  })
+
+  it('a dry own portion before the cooked weight: dry grams known, cooked not', () => {
+    const draft = cookingDraft(
+      pasta,
+      { rawGrams: {}, scaleGrams: null, tare: null, people: us.members, companyId: us.id, fixedRaw: { v: { ingredientId: 'p', grams: 60 } } },
+      AT,
+    )
+    const [vanya] = computeCooking(draft).phases[0].portions
+    expect(vanya.raw[0].grams).toBeCloseTo(60, 9)
+    expect(vanya.cookedGrams).toBeNull()
+  })
+
   it('part set aside «на завтра»: shares shrink in proportion, the rest stays in the pot', () => {
     const draft = cookingDraft(
       pasta,
