@@ -26,6 +26,7 @@ import {
   lineupPercents,
   matchingCompany,
   parseGrams,
+  portionCount,
   portionIn,
   rawFold,
   toPercents,
@@ -34,16 +35,20 @@ import {
   type Dish,
   type Id,
   type KeypadKey,
+  type SplitMode,
 } from '@/domain'
 import { cn } from '@/lib/utils'
 import { newId } from '@/store/id'
+import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
 import { Keypad } from './Keypad'
 import { kText, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
+import { PortionsSplit } from './PortionsSplit'
 import { RawFoldTile } from './RawFoldTile'
+import { SplitModeToggle } from './SplitModeToggle'
 import { TareSelect } from './TareSelect'
 
 /** Row id of the weight after cooking; the other rows are ingredient ids. */
@@ -82,6 +87,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const holdMs = useAppStore((s) => s.holdMs)
   const setCooked = useAppStore((s) => s.setCooked)
+  // «Люди | Порции» and the number of portions are this device's, not the dish's (docs/SPEC.md §3б).
+  const splitMode = usePrefsStore((s) => s.splitMode)
+  const setSplitMode = usePrefsStore((s) => s.setSplitMode)
+  const portionCounts = usePrefsStore((s) => s.portionCounts)
+  const setPortionCount = usePrefsStore((s) => s.setPortionCount)
   const [now] = useState(() => new Date().toISOString())
 
   // Raw weights come from the dish (what was typed last time).
@@ -288,6 +298,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
     setFixed({})
     if (personTarget(active)) activate(COOKED)
   }
+  // In portions the people are out of sight: the keypad goes back to the weights.
+  const changeSplitMode = (mode: SplitMode) => {
+    setSplitMode(mode)
+    if (mode === 'portions' && personTarget(active)) activate(COOKED)
+  }
   const saveAsCompany = () => {
     const saved = upsertCompany({ name: lineupName(people), members: people.map((p) => ({ ...p })) })
     if (dish) setLineup(dish.id, { companyId: saved, members: people })
@@ -401,7 +416,18 @@ export function Calculator({ id }: { id: Id | undefined }) {
         </div>
       </section>
 
-      <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
+      <div className="px-1">
+        <SplitModeToggle value={splitMode} onChange={changeSplitMode} />
+      </div>
+      {splitMode === 'portions' && (
+        <PortionsSplit
+          cooking={draft}
+          count={portionCount(portionCounts, dish.id)}
+          onCount={(n) => setPortionCount(dish.id, n)}
+        />
+      )}
+      {/* Hidden, not unmounted, in portions: back in «Люди», the bar's chosen person and today's own portions are as left. */}
+      <section aria-label="Кто ест" className={cn('flex flex-col gap-2 px-1', splitMode === 'portions' && 'hidden')}>
         <CompanyPicker
           className="w-full"
           value={companyId}

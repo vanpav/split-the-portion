@@ -83,6 +83,12 @@ export interface Lineup {
 }
 
 /**
+ * How the calculator splits a dish (docs/SPEC.md §3б «Режим порций»): between the people of «Кто ест»
+ * or into equal portions. A setting of this device for all dishes, not group data.
+ */
+export type SplitMode = 'people' | 'portions'
+
+/**
  * The last cooked weight typed for a dish (docs/SPEC.md §3а): on the scale, in this tare, at this time.
  * Shown again only the same day and in the same tare (`cookedToday`); seen by the whole group.
  */
