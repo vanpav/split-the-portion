@@ -231,7 +231,7 @@ Borderless color fields in a 4×4 grid, 56 px keys, 1.5rem medium tabular digits
 A calculator readout: label left, big number right with a small muted «г». The row being typed into is a white lidded box with a 1 px seam on the frosted ground; idle rows are borderless and pick up a faint white on hover. All rows share one height (80 px, 60 px compact) so they stack evenly.
 
 ### Caret (signature)
-A 3 px rounded bar, 0.9em tall, after the typed number. It blinks (step timing, 1.06 s) and each time it reappears takes the next lid of today's lineup (`animate-caret-N`, one blink per color). With no people, or with reduced motion, it is a steady primary bar. On an inactive answer field it keeps its place transparently so nothing shifts.
+A 3 px rounded bar, 0.9em tall, after the typed number. It blinks (step timing, 1.06 s) and each time it reappears takes the next lid of today's lineup (`animate-caret-N`, one blink per color). With no people it blinks in primary; with reduced motion it is a steady primary bar. On an inactive answer field it keeps its place transparently so nothing shifts.
 
 ### Share Bar (signature)
 A 48 px bar split into person segments in their lid colors with navy names and grams. The selected person (the one ± adjusts) is ringed in ink, inset. A person's own fixed portion is the pale lid (45%) with a dashed ink-25% border; what stays in the pot is hatched (muted/ground diagonal stripes, 135°). Round 32 px grip knobs on the borders, 44 px hit area.

@@ -1,7 +1,11 @@
 import { cn } from '@/lib/utils'
 
-/** One blink per lid: `animate-caret-N` in index.css. Literal names, so Tailwind generates them. */
+/**
+ * One blink per lid: `animate-caret-N` in index.css, N people; nobody — a plain blink.
+ * Literal names, so Tailwind generates them.
+ */
 const BLINK = [
+  'motion-safe:animate-caret-0',
   'motion-safe:animate-caret-1',
   'motion-safe:animate-caret-2',
   'motion-safe:animate-caret-3',
@@ -16,7 +20,10 @@ interface CaretProps {
   hidden?: boolean
 }
 
-/** The calculator's caret. Without people (or with reduced motion) it stays in the primary color. */
+/**
+ * The calculator's caret. It blinks; with people it takes their lid colors in turn (after five
+ * they repeat), without anyone it stays in the primary color. Reduced motion — no blinking.
+ */
 export function Caret({ lids, hidden }: CaretProps) {
   return (
     <span
@@ -24,7 +31,7 @@ export function Caret({ lids, hidden }: CaretProps) {
       className={cn(
         'ml-0.5 inline-block h-[0.9em] w-[3px] self-center rounded-full',
         hidden ? 'bg-transparent' : 'bg-primary',
-        !hidden && lids > 0 && BLINK[Math.min(lids, BLINK.length) - 1],
+        !hidden && BLINK[Math.min(lids, BLINK.length - 1)],
       )}
     />
   )

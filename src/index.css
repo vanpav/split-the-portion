@@ -54,8 +54,10 @@
 /*
  * The calculator caret blinks; each time it comes back it takes the next lid of today's lineup.
  * `animate-caret-N` — N people (up to five): one blink per color, so the color changes while unseen.
+ * `animate-caret-0` — nobody yet: it blinks in its own color (primary).
  */
 @theme {
+    --animate-caret-0: caret-blink 1.06s step-end infinite;
     --animate-caret-1: caret-blink 1.06s step-end infinite, caret-lids-1 1.06s step-end infinite;
     --animate-caret-2: caret-blink 1.06s step-end infinite, caret-lids-2 2.12s step-end infinite;
     --animate-caret-3: caret-blink 1.06s step-end infinite, caret-lids-3 3.18s step-end infinite;
