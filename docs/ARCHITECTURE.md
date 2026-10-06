@@ -161,6 +161,7 @@ src/domain/
   reconcile.ts      — reconcilePhase(phase) → { basis, distributed, total, diff, status }
   remainder.ts      — fillRemainder(result, portionId) → граммы в единицах строки
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
+  swipe.ts          — settleSwipe (куда доехать строке после отпускания), rubberBand (сопротивление за краем), settleDuration — для components/SwipeRow
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
@@ -330,7 +331,7 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
-    SwipeRow.tsx        — строка со свайпом на сенсорном экране (`pointer: coarse`): влево — красное «Убрать», вправо — «Копировать»; полный свайп делает действие сразу. Поверх `useDrag` и shadcn `Button`; пороги — именованные константы
+    SwipeRow.tsx        — строка со свайпом на сенсорном экране (`pointer: coarse`): влево — красное «Убрать», вправо — «Копировать»; полный свайп делает действие сразу. Поверх `useDrag` и shadcn `Button`; пороги — именованные константы; положение и прозрачность пишутся в `style` через ref, без перерисовки React на каждый кадр; удаление — уезжание влево и схлопывание высоты (Web Animations API), `ref.remove()` — то же для кнопки × строки; `itemId` — строка, возвращённая «Отменить», раскрывается. Куда доехать после отпускания, сопротивление за краем и длительность — чистые функции `domain/swipe.ts`
     ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога

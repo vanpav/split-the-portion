@@ -1,7 +1,8 @@
 import { Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { NumberField } from '@/components/NumberField'
+import type { SwipeRowHandle } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
   const deleteTare = useAppStore((s) => s.deleteTare)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const nameEmpty = nameDraft !== null && nameDraft.trim() === ''
+  const rowRef = useRef<SwipeRowHandle>(null)
 
   const remove = () => {
     deleteTare(tare.id)
@@ -37,6 +39,8 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
       title={tare.name}
       value={`${formatGrams(tare.grams)} г`}
       onSwipeRemove={remove}
+      itemId={tare.id}
+      ref={rowRef}
     >
       <div className="flex items-start gap-2">
         <Field className="min-w-0 flex-1" data-invalid={nameEmpty || undefined}>
@@ -67,7 +71,8 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
           size="icon"
           className="pointer-coarse:sr-only"
           aria-label={`Удалить «${tare.name}»`}
-          onClick={remove}
+          // The row slides out and folds up, as after a swipe.
+          onClick={() => rowRef.current?.remove()}
         >
           <Trash2Icon />
         </Button>

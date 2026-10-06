@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { asSimple, dishErrors, dishKind, dishSource, dishTitle, liveTareId, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
 import { focusOrBlur, ingredientNameId } from '@/lib/domIds'
@@ -174,10 +173,12 @@ export function DishEditorForm() {
 
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-semibold">Продукты</h2>
-          {draft.ingredients.map((ingredient, index) => (
-            <div key={ingredient.id} className="flex flex-col gap-3">
-              {index > 0 && <Separator />}
+          {/* Rows are padded and divided themselves, so a removed one folds up with nothing left behind;
+              the negative margin keeps the section's own gap to the heading and the buttons. */}
+          <div className="-my-3 flex flex-col divide-y">
+            {draft.ingredients.map((ingredient, index) => (
               <IngredientEditorRow
+                key={ingredient.id}
                 ingredient={ingredient}
                 index={index}
                 placeholder={index === 0 ? 'Макароны' : 'Фарш, соль…'}
@@ -186,8 +187,8 @@ export function DishEditorForm() {
                 onRemove={() => removeIngredient(ingredient.id)}
                 onEnter={() => focusNextIngredient(index)}
               />
-            </div>
-          ))}
+            ))}
+          </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => addIngredient()}>
               <PlusIcon data-icon="inline-start" />

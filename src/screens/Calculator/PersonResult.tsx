@@ -3,7 +3,7 @@ import { Fragment, useRef, type KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
-import { SwipeRow } from '@/components/SwipeRow'
+import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
 import { Input } from '@/components/ui/input'
 import {
   baseRawGrams,
@@ -102,10 +102,13 @@ export function PersonResult({
     ? computed.share !== null ? formatPercent(computed.share) : null
     : viewGrams !== null ? formatGrams(viewGrams) : null
   const copyRef = useRef<HTMLButtonElement>(null)
+  const rowRef = useRef<SwipeRowHandle>(null)
 
   return (
     <SwipeRow
+      ref={rowRef}
       as="li"
+      itemId={computed.portionId}
       className="flex flex-col gap-1 py-3"
       onRemove={onRemove}
       onCopy={computed.share !== null ? () => copyRef.current?.click() : null}
@@ -216,7 +219,8 @@ export function PersonResult({
             className="w-10 text-muted-foreground"
             label={`Убрать ${name || 'человека'}`}
             hint="Удерживайте ×, чтобы убрать"
-            onConfirm={onRemove}
+            // The row slides out and folds up, as after a swipe.
+            onConfirm={() => rowRef.current?.remove()}
           >
             <XIcon />
           </HoldButton>

@@ -1,6 +1,7 @@
 import { XIcon } from 'lucide-react'
+import { useRef } from 'react'
 import { NumberField } from '@/components/NumberField'
-import { SwipeRow } from '@/components/SwipeRow'
+import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -30,9 +31,11 @@ export function IngredientEditorRow({
 }: IngredientEditorRowProps) {
   const label = ingredient.name.trim() || `ингредиент ${index + 1}`
   const excludedId = `ingredient-excluded-${ingredient.id}`
+  const rowRef = useRef<SwipeRowHandle>(null)
 
   return (
-    <SwipeRow className="flex flex-col gap-1.5" onRemove={onRemove}>
+    // An item of the ingredient list: it folds up when removed, the padding is part of it.
+    <SwipeRow ref={rowRef} itemId={ingredient.id} className="flex flex-col gap-1.5 py-3" onRemove={onRemove}>
       <div className="flex items-start gap-2">
         <Input
           id={ingredientNameId(ingredient.id)}
@@ -63,7 +66,7 @@ export function IngredientEditorRow({
           size="icon"
           className="pointer-coarse:sr-only"
           aria-label={`Удалить ${label}`}
-          onClick={onRemove}
+          onClick={() => rowRef.current?.remove()}
         >
           <XIcon />
         </Button>
