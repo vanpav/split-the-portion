@@ -1,5 +1,5 @@
 import { SearchIcon, XIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { dishPath } from '@/app/paths'
@@ -8,6 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandList } from '@/components/u
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import {
   dishMenu,
   dishSummary,
@@ -74,6 +75,17 @@ export function DishMenu() {
     setParams(search, { replace: true, preventScrollReset: true, state: hasPrevious ? undefined : noPreviousState })
     setPicked(undefined)
   }
+
+  // Letters typed right after 🔍, before the menu showed up, went to the invisible field (KEYBOARD_PROXY_ID):
+  // they move over here, so the first letters are not lost. Checked after every render, a no-op
+  // once the invisible field is empty; its letters come before anything already in this field.
+  useEffect(() => {
+    const proxy = document.getElementById(KEYBOARD_PROXY_ID)
+    if (!(proxy instanceof HTMLInputElement) || !proxy.value) return
+    const typed = proxy.value
+    proxy.value = ''
+    update({ q: typed + (inputRef.current?.value ?? '') })
+  })
 
   const clear = () => {
     update({ q: '' })
