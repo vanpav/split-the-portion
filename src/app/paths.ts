@@ -13,3 +13,7 @@ export const newDishPath = (from?: Id) => (from ? `/d/new?from=${from}` : '/d/ne
 export const cookingPath = (id: Id) => `/c/${id}`
 /** Every saved cooking, in the tab bar. */
 export const HISTORY_PATH = '/history'
+/** Settings: on a phone the list of subsections, from `md` the menu with the first one open. */
+export const SETTINGS_PATH = '/settings'
+export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`
+export const isSettingsPath = (pathname: string) => pathname === SETTINGS_PATH || pathname.startsWith(`${SETTINGS_PATH}/`)

@@ -1,7 +1,7 @@
 import { CookingPotIcon, HistoryIcon, PlusIcon, SettingsIcon, SoupIcon, type LucideIcon } from 'lucide-react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { cn } from '@/lib/utils'
-import { dishListPath, HISTORY_PATH, LIST_TAB_PARAM, newDishPath } from './paths'
+import { dishListPath, HISTORY_PATH, isSettingsPath, LIST_TAB_PARAM, newDishPath, SETTINGS_PATH } from './paths'
 
 const ITEM =
   'group/tab flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-xs outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:flex-none lg:py-2'
@@ -54,7 +54,7 @@ export function TabBar() {
           Добавить
         </Link>
         {tabLink(HISTORY_PATH, 'История', HistoryIcon, pathname === HISTORY_PATH)}
-        {tabLink('/settings', 'Настройки', SettingsIcon, pathname === '/settings')}
+        {tabLink(SETTINGS_PATH, 'Настройки', SettingsIcon, isSettingsPath(pathname))}
       </div>
     </nav>
   )
