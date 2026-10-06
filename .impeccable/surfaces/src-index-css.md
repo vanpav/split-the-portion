@@ -15,9 +15,9 @@ THESIS: every eater is a lid color; the calculator reads as lunchboxes laid out 
 
 OWN-WORLD: frosted polypropylene ground (cool white #F2F5F9 / night #121829), navy ink, cobalt primary; lids sky, sunflower, mint, lilac, apricot as `--chart-1..5` with navy `--chart-foreground`; Rubik; radius 0.875rem; keypad keys are borderless color fields; the active calculator field is a white lidded box with a 1px border. Color quarantine: lid colors only on person-owned marks (share bar segments, the lid mark by a name, the caret); chrome stays ink and cobalt. Selection is a ring, never a flood that hides the person's color.
 
-STORY: the person at the stove sees the active field, types the cooked weight, reads each person's portion by name and lid color, saves.
+STORY: the person at the stove opens the app on the last dish (or taps another on the dish shelf), types the cooked weight into the active tile, reads each person's portion by name and lid color. Nothing to save: the dish remembers what was typed (stage 15).
 
-FIRST VIEWPORT: calculator `/d/:id` at 375 px: readouts top (active one boxed), company picker and share bar of lids in the middle, person rows with lid marks, keypad bottom with cobalt «Сохранить».
+FIRST VIEWPORT: calculator `/d/:id` (home) at 375 px: dish shelf on top (round search and «Все блюда», chips by last use with the current one ringed, «⋯»); «Сухой | Готовый» tiles side by side (active one boxed; a composite dish folded to «Сырой»); company picker and the 48 px share bar of lids; person rows with lid marks; plain number pad at the bottom, no save key.
 
 SIGNATURE INTERACTION: the calculator caret blinks (step, 1.06 s) and each time it reappears takes the next lid of today's lineup (`animate-caret-N`, colors pulled 30% toward the ink for contrast); reduced motion — steady cobalt caret.
 
