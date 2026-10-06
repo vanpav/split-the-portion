@@ -32,7 +32,7 @@ export function RootLayout() {
           </div>
         )}
         <Outlet />
-        {/* Top: at the bottom a toast would cover the calculator keypad. */}
+        {/* Top: at the bottom a toast would hide under the phone's keyboard. */}
         <Toaster position="top-center" />
         <UpdatePrompt />
         <LocalDataDialog />

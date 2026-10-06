@@ -87,13 +87,27 @@ export function nudgePercent(percents: number[], index: number, delta: number): 
 
 /**
  * The same portion in another unit, for switching «г ⇄ %» while typing an own portion:
- * whole cooked grams, or percent of the dish with one decimal. Null when it is not computable
- * (no cooked weight for grams, or no portion yet).
+ * whole grams of the view (cooked, or raw of `rawOf` — see `portionGrams`), or percent of the dish
+ * with one decimal. Null when it is not computable (no cooked weight for cooked grams, or no portion yet).
  */
-export function portionIn(computed: Pick<PortionResult, 'share' | 'cookedGrams'>, unit: 'g' | '%'): number | null {
+export function portionIn(
+  computed: Pick<PortionResult, 'share' | 'cookedGrams' | 'raw'>,
+  unit: 'g' | '%',
+  rawOf: Id | null = null,
+): number | null {
   if (computed.share === null) return null
   if (unit === '%') return roundHalfUp(computed.share * 100, 1)
-  return computed.cookedGrams !== null ? roundHalfUp(computed.cookedGrams) : null
+  const grams = portionGrams(computed, rawOf)
+  return grams !== null ? roundHalfUp(grams) : null
+}
+
+/**
+ * A portion in grams of the calculator's view (docs/SPEC.md §3б): cooked, or — while «Сухой» is in
+ * focus — raw grams of the ingredient `rawOf`. Full precision; null when it cannot be known.
+ */
+export function portionGrams(computed: Pick<PortionResult, 'cookedGrams' | 'raw'>, rawOf: Id | null): number | null {
+  if (rawOf === null) return computed.cookedGrams
+  return computed.raw.find((r) => r.ingredientId === rawOf)?.grams ?? null
 }
 
 /**

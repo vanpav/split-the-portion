@@ -163,7 +163,7 @@ src/domain/
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
-  keypad.ts         — applyKey (ввод с клавиатуры калькулятора), keypadKeyFromKeyboard
+  keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
@@ -216,13 +216,13 @@ src/domain/
 | `shareWeights(portions)`, `defaultShareWeight(weights)` | Доля нового человека — среднее долей остальных |
 | `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
 | `companyLineup(company)`, `dishLineup(lineups, dishId, companies)`, `lineupCompany(lineup, companies)` | Состав блюда из компании (её доли по умолчанию); состав блюда в калькуляторе (свой или первая компания); какая компания показана в списке (выбранная, если она ещё есть, иначе совпадающая) |
-| `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
+| `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `portionGrams`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края; порция в граммах вида — готовых или сухого продукта k (`portionGrams`, `portionIn(computed, unit, rawOf)`) |
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `recentDishes(dishes)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок полки (последнее использованное сверху); вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
-| `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
+| `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
-| `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему |
+| `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему. Свои порции — в готовых граммах (`fixedCooked`), в сухом виде (`fixedRaw`, сырой вес продукта) или в процентах (`fixedPercent`) |
 | `canReweigh(result)`, `leftoverCookedGrams(result)` | Перевзвешивание и остаток этапа — в домене и тестах; в интерфейсе с этапа 15 не используются |
 | `dayLabel(at, now)` | Подпись дня этапа; `now` передаётся снаружи, домен остаётся чистым |
 | `defaultTitle`, `countedIngredients`, `findPortionPhase` | Вспомогательные |
@@ -314,8 +314,8 @@ src/
       DishShelf.tsx           — полка: поиск, «Все блюда», чипы по последнему использованию, «⋯»
       DishSearch.tsx          — CommandDialog: свои блюда и популярные с весом
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
-      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, Keypad.tsx, Caret.tsx, messages.ts
-      SplitModeToggle.tsx, PortionsSplit.tsx — «Люди | Порции» и равные порции вместо людей (этап 16)
+      DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
+      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -363,17 +363,15 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | «Не учитывать» | `Checkbox` или `Switch` |
 | «Без тары / С тарой» | `ToggleGroup` (или `Tabs`) |
 | База порции «сырой / готовый / сырой: курица» | `Select` |
-| Поиск блюда на полке | `CommandDialog` + `Command` (свой `filter`: по словам, «е» = «ё») |
+| Поиск блюда на полке | `Command` (свой `filter`: по словам, «е» = «ё»): на телефоне — экран во весь экран, с `md` — в `CommandDialog` (UX §3а) |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказки «Найти блюдо ⌘K /», «Все блюда» | `Tooltip` + `Kbd` |
 | «Простое / Составное» в редакторе | `ToggleGroup` |
-| Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт открывает диалог, значение не меняет) |
-| Новая тара: форма (настройки, диалог, TarePicker) | `Field` + `Input` + `NumberField` + `Slider` (в `slider.tsx` добавлен проп `thumbLabel` — имя ручки для экранного диктора), кнопка `Button` |
-| Диалог «Новая тара» | `Dialog` |
-| «Люди \| Порции» в калькуляторе | `ToggleGroup` |
-| «− 6 порций +» | `Button` variant `outline` size `icon` |
-| Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт открывает диалог, значение не меняет) |
-| Диалог «Новая компания» | `Dialog` |
+| «Из простого блюда» в редакторе | `Command`: на телефоне — экран во весь экран, с `md` — в `Popover` (UX §3а) |
+| Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт закрывает список и открывает экран «Новая тара», значение не меняет) |
+| Новая тара: форма (настройки, экран «Новая тара», TarePicker) | `Field` + `Input` + `NumberField` + `Slider` (в `slider.tsx` добавлен проп `thumbLabel` — имя ручки для экранного диктора), кнопка `Button` |
+| Экраны «Новая тара», «Новая компания», «Вступить по коду» | Свой адрес в `router.tsx`: `ScreenHeader` + форма + `BottomBar` (UX §3а) |
+| Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт закрывает список и открывает экран «Новая компания», значение не меняет) |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки списка блюд | `Item` (ссылка растянута на всю строку) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
@@ -381,10 +379,12 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | Пустой список | `Empty` |
 | Плашка сверки, баннер ошибки чтения, подсказки | `Alert` (варианты default / destructive / `warning` — добавлен в `alert.tsx` через `cva`) |
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
-| Подтверждение удаления блюда | `AlertDialog` |
-| Запасной показ текста для копирования | `Dialog` + `Textarea` |
+| Подтверждения (удаление блюда, «Перенести данные?», выход из группы и т. п.) | `AlertDialog` — единственное окно поверх экрана с текстом (UX §3а) |
+| Запасной показ текста для копирования | Экран во весь экран с `Textarea` (UX §3а) |
 | Шапка, переход в настройки | `Button` variant `ghost` + иконки `lucide-react` |
 | Меню подразделов настроек (список на телефоне, панель слева с `md`) | `Item` (`asChild` + `<Link>`): `ItemMedia` иконка, `ItemTitle`, `ItemDescription`, «›» в `ItemActions`. `Sidebar` из shadcn не берём: он для навигации всего приложения (провайдер, `Sheet` на телефоне), а у нас навигация — полка блюд и «⋯», и на телефоне подраздел — отдельный экран, а не выезжающая панель |
+
+Экраны вместо окон поверх (UX §3а) — целевое состояние: в коде пока `NewTareDialog`, `NewCompanyDialog`, `JoinByCodeDialog`, `CommandDialog` поиска, `Popover` «Из простого блюда» и `Dialog` в `CopyButton`. Переделка — [#38](https://github.com/vanpav/split-the-portion/issues/38).
 
 Если нужного компонента нет в shadcn — сначала ищем в экосистеме shadcn/Radix, потом спрашиваем пользователя.
 
@@ -402,7 +402,7 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 - Tailwind-классы прямо в JSX, `cn()` для условных классов. Отдельных CSS-файлов на компонент нет.
 - Цвета — только через переменные темы shadcn (`bg-background`, `text-destructive` …). Для статуса «предупреждение» добавляем переменную `--warning` в `index.css`.
 - Тема — стиль «Ланчбокс» ([DESIGN.md](../DESIGN.md)): токены shadcn в `:root` и `.dark` в `index.css`. Светлая или тёмная — по настройке системы или как выбрано в «Настройки → Оформление»: `ThemeProvider` из `next-themes` ставит `.dark` на `<html>` (`main.tsx`), выбор хранит сам `next-themes` в `localStorage` (ключ `theme`). Это настройка устройства, а не данные: в стор и копию данных не попадает.
-- `--chart-1..5` — цвета крышек едоков, по месту человека в сегодняшнем составе (`components/lids.ts`); текст на них — `--chart-foreground`. Курсор калькулятора (`Caret`) моргает и при каждом появлении берёт крышку следующего едока (`animate-caret-N` в `index.css`).
+- `--chart-1..5` — цвета крышек едоков, по месту человека в сегодняшнем составе (`components/lids.ts`); текст на них — `--chart-foreground`. Курсор полей калькулятора (`DigitsInput`) — системный; его `caret-color` идёт по крышкам едоков (`animate-caret-N` в `index.css`).
 - Одна колонка до `lg` (1024 px): секции идут друг под другом «Ингредиенты → После готовки → Порции».
 - От `lg` — две колонки (`lg:grid-cols-2`): слева ввод («Ингредиенты», «После готовки»), справа «Порции» и итоги (`lg:sticky`). Ширина контента ≤ 1200 px.
 - Цвета состояний: ok — нейтральный, предупреждение — жёлтый, ошибка/перебор — `destructive`. Состояние дублируется текстом, а не только цветом.

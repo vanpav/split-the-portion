@@ -1,4 +1,4 @@
-/** Keys of the calculator keypad (docs/SPEC.md §3б). */
+/** Keys of the calculator's number input (docs/SPEC.md §3б). */
 export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ',' | 'back' | 'clear'
 
 /** Grams up to 99 999,9: enough for a pot with tare, short enough to stay one line. */
@@ -26,11 +26,15 @@ export function applyKey(text: string, key: KeypadKey, fresh = false): string {
   return int.length >= MAX_INT_DIGITS ? base : base + key
 }
 
-/** Keyboard key → keypad key; null for anything else. Accepts both "," and "." for the decimal point. */
-export function keypadKeyFromKeyboard(key: string): KeypadKey | null {
-  if (/^[0-9]$/.test(key)) return key as KeypadKey
-  if (key === ',' || key === '.') return ','
-  if (key === 'Backspace') return 'back'
-  if (key === 'Delete' || key === 'Escape') return 'clear'
-  return null
+/**
+ * Text typed or pasted into a calculator field, kept to what the keys allow: digits and one comma
+ * (a dot becomes one), at most 99 999,9. Anything else is dropped: «1 240» → «1240», «12.55» → «12,5».
+ */
+export function typedGrams(input: string): string {
+  let text = ''
+  for (const char of input) {
+    if (/^[0-9]$/.test(char)) text = applyKey(text, char as KeypadKey)
+    else if (char === ',' || char === '.') text = applyKey(text, ',')
+  }
+  return text
 }

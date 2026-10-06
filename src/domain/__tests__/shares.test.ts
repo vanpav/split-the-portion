@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { equalPercents, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from '../shares'
+import { equalPercents, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
 
@@ -72,13 +72,35 @@ describe('nudgePercent', () => {
 
 describe('portionIn', () => {
   it('grams ⇄ percent of the dish', () => {
-    expect(portionIn({ share: 76 / 333, cookedGrams: 76 }, '%')).toBe(22.8)
-    expect(portionIn({ share: 0.5, cookedGrams: 166.5 }, 'g')).toBe(167)
+    expect(portionIn({ share: 76 / 333, cookedGrams: 76, raw: [] }, '%')).toBe(22.8)
+    expect(portionIn({ share: 0.5, cookedGrams: 166.5, raw: [] }, 'g')).toBe(167)
+  })
+
+  it('grams of the dry view: raw of the ingredient k is counted by', () => {
+    const vanya = { share: 70 / 130, cookedGrams: 168, raw: [{ ingredientId: 'p', grams: 70 + 1 / 3 }] }
+    expect(portionIn(vanya, 'g', 'p')).toBe(70)
+    expect(portionIn(vanya, '%', 'p')).toBe(53.8)
+    expect(portionIn({ share: 0.5, cookedGrams: null, raw: [{ ingredientId: 'p', grams: 65 }] }, 'g', 'p')).toBe(65)
   })
 
   it('null when it cannot be known', () => {
-    expect(portionIn({ share: 0.5, cookedGrams: null }, 'g')).toBeNull()
-    expect(portionIn({ share: null, cookedGrams: null }, '%')).toBeNull()
+    expect(portionIn({ share: 0.5, cookedGrams: null, raw: [] }, 'g')).toBeNull()
+    expect(portionIn({ share: null, cookedGrams: null, raw: [] }, '%')).toBeNull()
+    expect(portionIn({ share: 0.5, cookedGrams: 100, raw: [] }, 'g', 'p')).toBeNull()
+  })
+})
+
+describe('portionGrams', () => {
+  const portion = { cookedGrams: 100, raw: [{ ingredientId: 'b', grams: 37.6 }] }
+
+  it('«Готовый» in focus → cooked grams, «Сухой» → raw grams, full precision', () => {
+    expect(portionGrams(portion, null)).toBe(100)
+    expect(portionGrams(portion, 'b')).toBe(37.6)
+  })
+
+  it('null when the ingredient has no raw amount or there is no cooked weight', () => {
+    expect(portionGrams(portion, 'x')).toBeNull()
+    expect(portionGrams({ cookedGrams: null, raw: [] }, null)).toBeNull()
   })
 })
 

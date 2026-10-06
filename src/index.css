@@ -52,45 +52,40 @@
 }
 
 /*
- * The calculator caret blinks; each time it comes back it takes the next lid of today's lineup.
- * `animate-caret-N` — N people (up to five): one blink per color, so the color changes while unseen.
- * `animate-caret-0` — nobody yet: it blinks in its own color (primary).
+ * The calculator caret: a field's own text caret, in the next lid of today's lineup about every blink.
+ * `animate-caret-N` — N people (up to five); nobody yet — the primary color (`caret-primary`).
  */
 @theme {
-    --animate-caret-0: caret-blink 1.06s step-end infinite;
-    --animate-caret-1: caret-blink 1.06s step-end infinite, caret-lids-1 1.06s step-end infinite;
-    --animate-caret-2: caret-blink 1.06s step-end infinite, caret-lids-2 2.12s step-end infinite;
-    --animate-caret-3: caret-blink 1.06s step-end infinite, caret-lids-3 3.18s step-end infinite;
-    --animate-caret-4: caret-blink 1.06s step-end infinite, caret-lids-4 4.24s step-end infinite;
-    --animate-caret-5: caret-blink 1.06s step-end infinite, caret-lids-5 5.3s step-end infinite;
+    --animate-caret-1: caret-lids-1 1.06s step-end infinite;
+    --animate-caret-2: caret-lids-2 2.12s step-end infinite;
+    --animate-caret-3: caret-lids-3 3.18s step-end infinite;
+    --animate-caret-4: caret-lids-4 4.24s step-end infinite;
+    --animate-caret-5: caret-lids-5 5.3s step-end infinite;
 
-    @keyframes caret-blink {
-        50% { opacity: 0; }
-    }
     @keyframes caret-lids-1 {
-        0% { background-color: var(--caret-1); }
+        0% { caret-color: var(--caret-1); }
     }
     @keyframes caret-lids-2 {
-        0% { background-color: var(--caret-1); }
-        50% { background-color: var(--caret-2); }
+        0% { caret-color: var(--caret-1); }
+        50% { caret-color: var(--caret-2); }
     }
     @keyframes caret-lids-3 {
-        0% { background-color: var(--caret-1); }
-        33.333% { background-color: var(--caret-2); }
-        66.667% { background-color: var(--caret-3); }
+        0% { caret-color: var(--caret-1); }
+        33.333% { caret-color: var(--caret-2); }
+        66.667% { caret-color: var(--caret-3); }
     }
     @keyframes caret-lids-4 {
-        0% { background-color: var(--caret-1); }
-        25% { background-color: var(--caret-2); }
-        50% { background-color: var(--caret-3); }
-        75% { background-color: var(--caret-4); }
+        0% { caret-color: var(--caret-1); }
+        25% { caret-color: var(--caret-2); }
+        50% { caret-color: var(--caret-3); }
+        75% { caret-color: var(--caret-4); }
     }
     @keyframes caret-lids-5 {
-        0% { background-color: var(--caret-1); }
-        20% { background-color: var(--caret-2); }
-        40% { background-color: var(--caret-3); }
-        60% { background-color: var(--caret-4); }
-        80% { background-color: var(--caret-5); }
+        0% { caret-color: var(--caret-1); }
+        20% { caret-color: var(--caret-2); }
+        40% { caret-color: var(--caret-3); }
+        60% { caret-color: var(--caret-4); }
+        80% { caret-color: var(--caret-5); }
     }
 }
 
