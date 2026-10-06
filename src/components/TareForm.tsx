@@ -78,7 +78,7 @@ export function TareForm({ onCreated, autoFocus }: TareFormProps) {
           else if (name.trim() === '') nameRef.current?.focus()
         }}
       />
-      <Button type="submit" size="lg" className="w-full" disabled={!valid}>
+      <Button type="submit" className="self-end" disabled={!valid}>
         <PlusIcon data-icon="inline-start" />
         Добавить тару
       </Button>
