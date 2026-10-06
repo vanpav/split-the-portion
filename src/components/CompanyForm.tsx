@@ -3,7 +3,7 @@ import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, lineupName, percentShares, toPercents, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 
@@ -26,9 +26,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   const holdMs = useAppStore((s) => s.holdMs)
   const { members } = value
   const weights = members.map((m) => m.weight)
-  const percents = toPercents(weights)
-  const shares = percentShares(weights)
-  // Each person's part, for the bar: percents only.
+  // Each person's part, exact: «Поровну» on three is 33,3 % each, not 34, 33, 33. The bar shows percents only.
+  const shares = exactPercents(weights).map((p) => p / 100)
   const segments: DishSegment[] = members.map((m, i) => ({ id: m.id, place: i, name: m.name, share: shares[i], label: null }))
 
   const setMembers = (next: CompanyMember[]) => onChange({ ...value, members: next })
@@ -64,7 +63,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
             />
             {/* The part of the dish, here too: on the bar a narrow segment has no room for it. */}
             <span aria-hidden className="shrink-0 text-sm text-muted-foreground tabular-nums">
-              {percents[index]} %
+              {formatPercent(shares[index])} %
             </span>
             <HoldButton
               holdMs={holdMs}

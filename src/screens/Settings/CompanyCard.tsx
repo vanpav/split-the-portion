@@ -2,7 +2,7 @@ import { Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { CompanyForm } from '@/components/CompanyForm'
 import { Button } from '@/components/ui/button'
-import { lineupName, toPercents, type Company, type CompanyMember } from '@/domain'
+import { exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { SettingsRow } from './SettingsRow'
 
@@ -19,7 +19,7 @@ interface CompanyCardProps {
 export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const deleteCompany = useAppStore((s) => s.deleteCompany)
-  const percents = toPercents(company.members.map((m) => m.weight))
+  const percents = exactPercents(company.members.map((m) => m.weight))
   const personName = (m: CompanyMember, index: number) => m.name.trim() || `Человек ${index + 1}`
 
   const remove = () => {
@@ -36,7 +36,7 @@ export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={company.name.trim() || lineupName(company.members) || 'Без названия'}
-      detail={company.members.map((m, i) => `${personName(m, i)} ${percents[i]} %`).join(' · ') || 'Никого'}
+      detail={company.members.map((m, i) => `${personName(m, i)} ${formatPercent(percents[i] / 100)} %`).join(' · ') || 'Никого'}
     >
       {/* A new company is empty: the first name is typed right away. */}
       <CompanyForm value={company} onChange={(next) => upsertCompany({ ...company, ...next })} autoFocus />
