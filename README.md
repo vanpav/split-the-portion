@@ -8,4 +8,4 @@ pnpm dev
 pnpm test
 ```
 
-Документы: [спецификация](docs/SPEC.md) · [архитектура](docs/ARCHITECTURE.md) · [UX](docs/UX.md) · [этапы](docs/roadmap/README.md) · [правила работы](CLAUDE.md)
+Документы: [спецификация](docs/SPEC.md) · [архитектура](docs/ARCHITECTURE.md) · [UX](docs/UX.md) · [этапы](docs/roadmap/README.md) · [сервер и база](docs/CLOUDFLARE.md) · [правила работы](CLAUDE.md)
