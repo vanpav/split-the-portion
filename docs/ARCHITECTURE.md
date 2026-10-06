@@ -163,7 +163,7 @@ src/domain/
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
-  keypad.ts         — applyKey (ввод с клавиатуры калькулятора), keypadKeyFromKeyboard
+  keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
@@ -219,7 +219,7 @@ src/domain/
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `recentDishes(dishes)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок полки (последнее использованное сверху); вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
-| `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
+| `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему |
 | `canReweigh(result)`, `leftoverCookedGrams(result)` | Перевзвешивание и остаток этапа — в домене и тестах; в интерфейсе с этапа 15 не используются |
@@ -312,7 +312,8 @@ src/
       DishShelf.tsx           — полка: поиск, «Все блюда», чипы по последнему использованию, «⋯»
       DishSearch.tsx          — CommandDialog: свои блюда и популярные с весом
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
-      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, Keypad.tsx, Caret.tsx, messages.ts
+      DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
+      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -396,7 +397,7 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 - Tailwind-классы прямо в JSX, `cn()` для условных классов. Отдельных CSS-файлов на компонент нет.
 - Цвета — только через переменные темы shadcn (`bg-background`, `text-destructive` …). Для статуса «предупреждение» добавляем переменную `--warning` в `index.css`.
 - Тема — стиль «Ланчбокс» ([DESIGN.md](../DESIGN.md)): токены shadcn в `:root` и `.dark` в `index.css`. Светлая или тёмная — по настройке системы или как выбрано в «Настройки → Оформление»: `ThemeProvider` из `next-themes` ставит `.dark` на `<html>` (`main.tsx`), выбор хранит сам `next-themes` в `localStorage` (ключ `theme`). Это настройка устройства, а не данные: в стор и копию данных не попадает.
-- `--chart-1..5` — цвета крышек едоков, по месту человека в сегодняшнем составе (`components/lids.ts`); текст на них — `--chart-foreground`. Курсор калькулятора (`Caret`) моргает и при каждом появлении берёт крышку следующего едока (`animate-caret-N` в `index.css`).
+- `--chart-1..5` — цвета крышек едоков, по месту человека в сегодняшнем составе (`components/lids.ts`); текст на них — `--chart-foreground`. Курсор полей калькулятора (`DigitsInput`) — системный; его `caret-color` идёт по крышкам едоков (`animate-caret-N` в `index.css`).
 - Одна колонка до `lg` (1024 px): секции идут друг под другом «Ингредиенты → После готовки → Порции».
 - От `lg` — две колонки (`lg:grid-cols-2`): слева ввод («Ингредиенты», «После готовки»), справа «Порции» и итоги (`lg:sticky`). Ширина контента ≤ 1200 px.
 - Цвета состояний: ok — нейтральный, предупреждение — жёлтый, ошибка/перебор — `destructive`. Состояние дублируется текстом, а не только цветом.

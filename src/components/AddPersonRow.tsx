@@ -4,8 +4,6 @@ import { Input } from '@/components/ui/input'
 
 interface AddPersonRowProps {
   onAdd: (name: string) => void
-  /** The field gained or lost focus: the system keyboard is up while it is focused. */
-  onEditingName?: (editing: boolean) => void
   /** Focus the field on mount: a new company starts with typing its first name. */
   autoFocus?: boolean
 }
@@ -15,7 +13,7 @@ interface AddPersonRowProps {
  * the person is in (with an average share), and the field is ready for the next one.
  * No nameless rows to fix afterwards.
  */
-export function AddPersonRow({ onAdd, onEditingName, autoFocus }: AddPersonRowProps) {
+export function AddPersonRow({ onAdd, autoFocus }: AddPersonRowProps) {
   const [name, setName] = useState('')
 
   const add = () => {
@@ -36,12 +34,8 @@ export function AddPersonRow({ onAdd, onEditingName, autoFocus }: AddPersonRowPr
         enterKeyHint="done"
         autoComplete="off"
         onChange={(e) => setName(e.target.value)}
-        onFocus={() => onEditingName?.(true)}
         // A name typed and left is still added: tapping elsewhere must not lose it.
-        onBlur={() => {
-          add()
-          onEditingName?.(false)
-        }}
+        onBlur={add}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault()
