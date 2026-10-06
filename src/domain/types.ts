@@ -82,20 +82,38 @@ export interface Lineup {
   members: CompanyMember[]
 }
 
-/** Recipe: what is cooked and how it usually goes. Cookings are started from it (docs/SPEC.md §3а). */
+/**
+ * The last cooked weight typed for a dish (docs/SPEC.md §3а): on the scale, in this tare, at this time.
+ * Shown again only the same day and in the same tare (`cookedToday`); seen by the whole group.
+ */
+export interface CookedWeight {
+  grams: number
+  tareId: Id | null
+  at: string
+}
+
+/**
+ * A dish is a preset (docs/SPEC.md §3а): what is cooked and what was typed last time — the raw weights,
+ * the tare, the last cooked weight. The calculator writes them as they are typed.
+ */
 export interface Dish {
   id: Id
   kind: CookingKind
   name: string
   createdAt: string
   updatedAt: string
-  /** rawGrams — the usual weight, copied into each new cooking. */
+  /** rawGrams — the weight typed last time. */
   ingredients: Ingredient[]
-  /** Default tare from the library; null — weighed without tare. Who eats is chosen at cooking. */
+  /** The tare it is weighed in; null — without tare. Who eats — `lineups`. */
   tareId: Id | null
+  /** Since v11; null — not weighed yet. */
+  cooked: CookedWeight | null
 }
 
-/** One time the dish was cooked: today's weights and how it was split. */
+/**
+ * One time the dish is cooked: today's weights and how it is split. The calculator's draft
+ * (`cookingDraft`), the input of `computeCooking`; not stored since v11.
+ */
 export interface Cooking {
   id: Id
   dishId: Id

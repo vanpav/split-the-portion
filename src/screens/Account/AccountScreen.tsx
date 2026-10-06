@@ -35,7 +35,7 @@ export function AccountScreen() {
       <ScreenHeader title="Аккаунт" back backTo={BACK} backLabel="Настройки" />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4 lg:py-8">
         <p className="px-1 text-sm text-muted-foreground">
-          С аккаунтом блюда и история есть на всех ваших устройствах, а вести их можно вместе с близкими. Без него всё
+          С аккаунтом блюда есть на всех ваших устройствах, а вести их можно вместе с близкими. Без него всё
           хранится только здесь.
         </p>
         <Tabs defaultValue="sign-in" className="gap-6">

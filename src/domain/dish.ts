@@ -1,7 +1,7 @@
 import { ingredientDisplayName } from './cooking'
 import { formatGrams } from './numbers'
 import { toPercents } from './shares'
-import type { Company, CompanyMember, Cooking, CookingKind, Dish, Id, Ingredient, Portion } from './types'
+import type { Company, CompanyMember, CookingKind, Dish, Ingredient, Portion } from './types'
 
 /** Shown name: the dish name, or its ingredients, or a placeholder. */
 export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
@@ -131,27 +131,3 @@ export function lineupName(lineup: CompanyMember[]): string {
   return `${names.slice(0, -1).join(', ')} и ${names.at(-1)}`
 }
 
-/**
- * The weight after cooking typed most often for this dish with this tare (null — without tare),
- * from its saved cookings; a tie goes to the latest. Prefills «Готовый» in the calculator.
- */
-export function usualScaleGrams(cookings: Cooking[], dishId: Id, tareId: Id | null): number | null {
-  const counts = new Map<number, { count: number; latest: string }>()
-  for (const cooking of cookings) {
-    if (cooking.dishId !== dishId) continue
-    const weighing = cooking.weighings[0]
-    if (!weighing || weighing.grams === null || weighing.grams <= 0) continue
-    const weighingTare = weighing.kind === 'withTare' ? weighing.tare.id : null
-    if (weighingTare !== tareId) continue
-    const entry = counts.get(weighing.grams)
-    counts.set(weighing.grams, {
-      count: (entry?.count ?? 0) + 1,
-      latest: entry && entry.latest > cooking.createdAt ? entry.latest : cooking.createdAt,
-    })
-  }
-  let best: { grams: number; count: number; latest: string } | null = null
-  for (const [grams, { count, latest }] of counts) {
-    if (!best || count > best.count || (count === best.count && latest > best.latest)) best = { grams, count, latest }
-  }
-  return best?.grams ?? null
-}

@@ -8,7 +8,10 @@ export interface SettingsRecord {
 }
 export const SETTINGS_ID = 'settings'
 
-/** What each record type holds; `lineup` — «Кто ест» of the dish with the same id. */
+/**
+ * What each record type holds; `lineup` — «Кто ест» of the dish with the same id. `cooking` — only
+ * from apps before v11: never sent, skipped when it comes (`migrateChange`); the server still takes them.
+ */
 export interface RecordData {
   dish: Dish
   cooking: Cooking
@@ -27,7 +30,6 @@ export const changeKey = (c: Pick<Change, 'type' | 'id'>) => recordKey(c.type, c
 export function toChanges(state: PersistedState, v: number): Change[] {
   return [
     ...state.dishes.map((data): Change => ({ type: 'dish', id: data.id, data, v })),
-    ...state.cookings.map((data): Change => ({ type: 'cooking', id: data.id, data, v })),
     ...state.tares.map((data): Change => ({ type: 'tare', id: data.id, data, v })),
     ...state.companies.map((data): Change => ({ type: 'company', id: data.id, data, v })),
     ...Object.entries(state.lineups).map(([id, data]): Change => ({ type: 'lineup', id, data, v })),
@@ -35,6 +37,5 @@ export function toChanges(state: PersistedState, v: number): Change[] {
   ]
 }
 
-/** No dishes, cookings, tares or companies: nothing worth keeping (settings alone are not data). */
-export const isEmptyData = (s: PersistedState) =>
-  s.dishes.length === 0 && s.cookings.length === 0 && s.tares.length === 0 && s.companies.length === 0
+/** No dishes, tares or companies: nothing worth keeping (settings alone are not data). */
+export const isEmptyData = (s: PersistedState) => s.dishes.length === 0 && s.tares.length === 0 && s.companies.length === 0

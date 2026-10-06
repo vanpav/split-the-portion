@@ -13,7 +13,9 @@ export const dish = (id: string): Dish => ({
   updatedAt: AT,
   ingredients: [{ id: `${id}-i`, name: id, rawGrams: 130, excluded: false }],
   tareId: null,
+  cooked: null,
 })
+/** What apps before v11 sent: the client skips it now. */
 export const cooking = (id: string, dishId: string, grams: number | null = null): Cooking => ({
   id,
   dishId,

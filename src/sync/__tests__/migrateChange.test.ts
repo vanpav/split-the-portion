@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CURRENT_VERSION } from '@/store/migrations'
 import { migrateChange } from '../migrateChange'
-import { tare } from './fixtures'
+import { cooking, dish, tare } from './fixtures'
 
 describe('migrateChange', () => {
   it('a record of this version passes as it is', () => {
@@ -17,6 +17,21 @@ describe('migrateChange', () => {
       data: { id: 'pot', name: 'Кастрюля', grams: 850, createdAt: '1970-01-01T00:00:00.000Z' },
       v: CURRENT_VERSION,
     })
+  })
+
+  it('a dish of an app before v11 is not weighed yet', () => {
+    const { cooked: _cooked, ...old } = dish('pasta')
+    expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 10 })).toEqual({
+      type: 'dish',
+      id: 'pasta',
+      data: dish('pasta'),
+      v: CURRENT_VERSION,
+    })
+  })
+
+  it('a cooking is skipped, whatever app sent it: there are none since v11', () => {
+    expect(migrateChange({ type: 'cooking', id: 'c1', data: cooking('c1', 'pasta'), v: 10 })).toBeNull()
+    expect(migrateChange({ type: 'cooking', id: 'c1', data: null, v: CURRENT_VERSION })).toBeNull()
   })
 
   it('a record of a newer app asks for an update', () => {

@@ -24,7 +24,8 @@ function applyOne(state: PersistedState, change: Change): PersistedState {
     case 'dish':
       return { ...state, dishes: upsert(state.dishes, change.id, change.data) }
     case 'cooking':
-      return { ...state, cookings: upsert(state.cookings, change.id, change.data) }
+      // Only apps before v11 write cookings; `migrateChange` drops them before they get here.
+      return state
     case 'tare':
       return { ...state, tares: upsert(state.tares, change.id, change.data) }
     case 'company':
@@ -61,7 +62,6 @@ export function mergeLocal(group: PersistedState, local: PersistedState): Persis
   return {
     ...group,
     dishes: add(group.dishes, local.dishes),
-    cookings: add(group.cookings, local.cookings),
     tares: byCreatedAt(add(group.tares, local.tares)),
     companies: byCreatedAt(add(group.companies, local.companies)),
     lineups: { ...local.lineups, ...group.lineups },

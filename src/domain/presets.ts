@@ -304,7 +304,7 @@ export function missingPresets(existing: Pick<Dish, 'name' | 'ingredients'>[]): 
   return PRESET_DISHES.filter((p) => !taken.has(key(p.name)))
 }
 
-/** One popular dish as the user's own: fresh ids, the given time, no tare, the kind by its recipe. */
+/** One popular dish as the user's own: fresh ids, the given time, no tare, not weighed, the kind by its recipe. */
 export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dish {
   const ingredients = preset.ingredients.map((i) => ({
     id: newId(),
@@ -312,7 +312,7 @@ export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dis
     rawGrams: i.rawGrams,
     excluded: i.excluded ?? false,
   }))
-  return { id: newId(), kind: dishKind(ingredients), name: preset.name, createdAt: at, updatedAt: at, ingredients, tareId: null }
+  return { id: newId(), kind: dishKind(ingredients), name: preset.name, createdAt: at, updatedAt: at, ingredients, tareId: null, cooked: null }
 }
 
 /**

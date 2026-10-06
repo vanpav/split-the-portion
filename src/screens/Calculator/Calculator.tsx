@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import {
   applyKey,
   baseRawGrams,
+  clockTime,
   companyLineup,
   computeCooking,
+  cookedToday,
   cookingDraft,
   defaultShareWeight,
   dishLineup,
@@ -34,12 +36,12 @@ import {
   type KeypadKey,
 } from '@/domain'
 import { cn } from '@/lib/utils'
-import { CompanyPicker } from '@/screens/Cooking/CompanyPicker'
-import { kText, rawWord } from '@/screens/Cooking/messages'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
+import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
 import { Keypad } from './Keypad'
+import { kText, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
 import { RawFoldTile } from './RawFoldTile'
 import { TareSelect } from './TareSelect'
@@ -79,12 +81,19 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const setLineup = useAppStore((s) => s.setLineup)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const holdMs = useAppStore((s) => s.holdMs)
+  const setCooked = useAppStore((s) => s.setCooked)
+  const [now] = useState(() => new Date().toISOString())
 
-  // Raw weights come from the dish (what was typed last time); «Готовый» is new every time.
-  const [texts, setTexts] = useState<Record<string, string>>(() => ({
-    ...Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, formatInput(i.rawGrams)])),
-    [COOKED]: '',
-  }))
+  // Raw weights come from the dish (what was typed last time).
+  const [texts, setTexts] = useState<Record<string, string>>(() =>
+    Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, formatInput(i.rawGrams)])),
+  )
+  // «Готовый» is today's weighing of this dish, here or on another device of the group; once typed into
+  // here, it is what is typed.
+  const [cookedTouched, setCookedTouched] = useState(false)
+  const cookedHere = useMemo(() => (dish ? cookedToday(dish.cooked, dish.tareId, new Date(now)) : null), [dish, now])
+  const textOf = (row: string) => (row === COOKED && !cookedTouched ? formatInput(cookedHere) : (texts[row] ?? ''))
+  const cookedText = textOf(COOKED)
   // A simple dish shows its product only: water or salt «не учитывать» do not change the portions.
   const shownIngredients = (dish?.ingredients ?? []).filter((i) => dish?.kind !== 'simple' || !i.excluded)
   // A composite dish starts folded: its weights come from last time, only «Готовый» is new.
@@ -93,7 +102,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const [folded, setFolded] = useState(() => foldable && shownIngredients.every((i) => i.excluded || i.rawGrams !== null))
   const rows = [...(folded ? [] : shownIngredients.map((i) => i.id)), COOKED]
   // Start where the number is missing: usually the weight after cooking.
-  const [active, setActive] = useState<string>(() => rows.find((r) => !texts[r]) ?? COOKED)
+  const [active, setActive] = useState<string>(() => rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
   // The first key after activating a row replaces its value, as on a calculator.
   const [fresh, setFresh] = useState(true)
   // Today's own portions, in cooked grams or in percent of the dish: these people get exactly that,
@@ -109,7 +118,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const [keep, setKeep] = useState(0)
   // While a name is typed the system keyboard is up: our keypad steps aside.
   const [editingName, setEditingName] = useState(false)
-  const [now] = useState(() => new Date().toISOString())
 
   // The dish remembers the tare it is weighed in, as it does the raw weight.
   const tareId = dish?.tareId ?? null
@@ -124,7 +132,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const setPeople = (members: CompanyMember[]) => {
     if (dish) setLineup(dish.id, { companyId, members })
   }
-  const remember = (patch: Partial<Pick<Dish, 'ingredients' | 'tareId'>>) => {
+  const remember = (patch: Partial<Pick<Dish, 'ingredients' | 'tareId' | 'cooked'>>) => {
     if (dish) saveDish({ ...dish, ...patch })
   }
   const base = useMemo(
@@ -134,7 +142,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         dish,
         {
           rawGrams: Object.fromEntries(dish.ingredients.map((i) => [i.id, toNumber(texts[i.id] ?? '')])),
-          scaleGrams: toNumber(texts[COOKED]),
+          scaleGrams: toNumber(cookedTouched ? (texts[COOKED] ?? '') : formatInput(cookedHere)),
           tare,
           people,
           companyId,
@@ -143,7 +151,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         },
         now,
       ),
-    [dish, texts, tare, people, companyId, fixed, now],
+    [dish, texts, cookedTouched, cookedHere, tare, people, companyId, fixed, now],
   )
   // «На завтра» is cut from what the sharing people hold: with nothing set aside they hold all that is free.
   // Own portions typed later may leave less, so the cut is held to what is possible now.
@@ -171,11 +179,16 @@ export function Calculator({ id }: { id: Id | undefined }) {
   useEffect(() => () => rememberOwn(), [])
 
   const press = (key: KeypadKey) => {
-    const next = applyKey(texts[active] ?? '', key, fresh)
+    const next = applyKey(textOf(active), key, fresh)
     setTexts((t) => ({ ...t, [active]: next }))
     setFresh(false)
-    // A raw weight is the dish's own: typed today, it is there next time.
     const grams = toNumber(next)
+    // The cooked weight goes into the dish with the time: the group sees today's weighing.
+    if (dish && active === COOKED) {
+      setCookedTouched(true)
+      setCooked(dish.id, grams)
+    }
+    // A raw weight is the dish's own: typed today, it is there next time.
     const ingredient = dish?.ingredients.find((i) => i.id === active)
     if (dish && ingredient && grams !== null && grams > 0 && grams !== ingredient.rawGrams) {
       remember({ ingredients: dish.ingredients.map((i) => (i.id === active ? { ...i, rawGrams: grams } : i)) })
@@ -184,7 +197,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
     const personId = personTarget(active)
     if (personId) setOwn(personId, grams, unit)
   }
-  const changeTare = (next: Id | null) => remember({ tareId: next })
+  // The weight typed here now means the weight in the new tare. One from elsewhere was weighed in the
+  // old tare: it no longer fits and is not shown.
+  const changeTare = (next: Id | null) =>
+    remember({ tareId: next, cooked: cookedTouched && dish?.cooked ? { ...dish.cooked, tareId: next } : (dish?.cooked ?? null) })
   const fold = () => {
     setFolded(true)
     if (shownIngredients.some((i) => i.id === active)) activate(COOKED)
@@ -350,8 +366,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
             ))
           )}
           <DisplayRow
-            label="Готовый"
-            text={texts[COOKED]}
+            label={cookedHere !== null && dish.cooked ? `Готовый · ${clockTime(dish.cooked.at)}` : 'Готовый'}
+            text={cookedText}
             active={active === COOKED}
             className={tiles ? undefined : 'col-span-2'}
             invalid={tareExceeds}

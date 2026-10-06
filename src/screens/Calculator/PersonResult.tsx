@@ -2,6 +2,7 @@ import { XIcon } from 'lucide-react'
 import { Fragment } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
+import { lidFill } from '@/components/lids'
 import { Input } from '@/components/ui/input'
 import {
   baseRawGrams,
@@ -13,10 +14,9 @@ import {
   type PortionResult,
 } from '@/domain'
 import { cn } from '@/lib/utils'
-import { RawList } from '@/screens/Cooking/RawList'
-import { rawWord } from '@/screens/Cooking/messages'
 import { Caret } from './Caret'
-import { lidFill } from '@/components/lids'
+import { rawWord } from './messages'
+import { RawList } from './RawList'
 
 interface PersonResultProps {
   cooking: Cooking

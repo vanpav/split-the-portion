@@ -50,7 +50,7 @@ export function LeaveGroupButton({ group }: { group: AccountGroup }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Выйти из группы «{groupLabel(group)}»?</AlertDialogTitle>
           <AlertDialogDescription>
-            Её блюда и история уйдут с этого устройства, у остальных участников всё останется. Вернуться можно по новому
+            Её блюда уйдут с этого устройства, у остальных участников всё останется. Вернуться можно по новому
             приглашению.
           </AlertDialogDescription>
         </AlertDialogHeader>

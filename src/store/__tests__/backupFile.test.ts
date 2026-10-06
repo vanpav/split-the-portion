@@ -17,8 +17,15 @@ describe('backup file', () => {
   it('a file from an older version is migrated, user data kept', () => {
     const v7 = { dishes: [], cookings: [{ id: 'c', keepPercent: 20 }], tares: [tare], companies: [], lineup: null }
     const text = JSON.stringify({ app: STORAGE_KEY, version: 7, exportedAt: NOW.toISOString(), state: v7 })
-    const { lineup: _lineup, ...rest } = v7
+    const { lineup: _lineup, cookings: _cookings, ...rest } = v7
     expect(readBackupFile(text)).toEqual({ ...rest, lineups: {}, holdMs: 1500 })
+  })
+
+  it('a file from v10 loads without its cookings; dishes are not weighed yet', () => {
+    const dish = { id: 'd', kind: 'simple', name: 'Гречка', createdAt: NOW.toISOString(), updatedAt: NOW.toISOString(), ingredients: [], tareId: null }
+    const v10 = { dishes: [dish], cookings: [{ id: 'c', dishId: 'd' }], tares: [tare], companies: [], lineups: {}, holdMs: 1500 }
+    const text = JSON.stringify({ app: STORAGE_KEY, version: 10, exportedAt: NOW.toISOString(), state: v10 })
+    expect(readBackupFile(text)).toEqual({ dishes: [{ ...dish, cooked: null }], tares: [tare], companies: [], lineups: {}, holdMs: 1500 })
   })
 
   it.each([

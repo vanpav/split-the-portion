@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, matchingCompany, rawFold, recentDishes, shareWeights, usualScaleGrams } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, matchingCompany, rawFold, recentDishes, shareWeights } from '../dish'
 import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
-import { cooked, cooking, food, ingredient, share, withTare } from './fixtures'
+import { cooked, ingredient, share } from './fixtures'
 
 const dish = (parts: Partial<Dish>): Dish => ({
   id: 'd',
@@ -12,6 +12,7 @@ const dish = (parts: Partial<Dish>): Dish => ({
   updatedAt: '',
   ingredients: [],
   tareId: null,
+  cooked: null,
   ...parts,
 })
 
@@ -159,34 +160,3 @@ describe('lineup', () => {
   })
 })
 
-describe('usualScaleGrams', () => {
-  const at = (day: number) => `2026-10-0${day}T12:00:00.000Z`
-  const saved = (dishId: string, day: number, weighing: ReturnType<typeof food>) =>
-    cooking({ id: `c${day}`, dishId, createdAt: at(day), ingredients: [], weighings: [weighing] })
-
-  it('the most frequent weight of this dish; a tie goes to the latest', () => {
-    const history = [
-      saved('pasta', 1, food('w', 312)),
-      saved('pasta', 2, food('w', 300)),
-      saved('pasta', 3, food('w', 312)),
-      saved('pasta', 4, food('w', 300)),
-      saved('pasta', 5, food('w', 290)),
-      saved('soup', 6, food('w', 3160)),
-    ]
-    expect(usualScaleGrams(history, 'pasta', null)).toBe(300)
-    expect(usualScaleGrams(history.slice(0, 3), 'pasta', null)).toBe(312)
-  })
-
-  it('counts only weighings with the same tare; skips empty ones', () => {
-    const history = [
-      saved('pasta', 1, withTare('w', 1160, 850)),
-      saved('pasta', 2, withTare('w', 1160, 850)),
-      saved('pasta', 3, food('w', 312)),
-      saved('pasta', 4, food('w', null)),
-    ]
-    expect(usualScaleGrams(history, 'pasta', 'pot')).toBe(1160)
-    expect(usualScaleGrams(history, 'pasta', null)).toBe(312)
-    expect(usualScaleGrams(history, 'pasta', 'other')).toBeNull()
-    expect(usualScaleGrams([], 'pasta', null)).toBeNull()
-  })
-})

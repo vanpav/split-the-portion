@@ -1,11 +1,10 @@
-import type { Company, Cooking, Dish, Id, Lineup, Tare } from '@/domain'
+import type { Company, Dish, Id, Lineup, Tare } from '@/domain'
 
 export const STORAGE_KEY = 'split-the-portion'
-export const CURRENT_VERSION = 10
+export const CURRENT_VERSION = 11
 
 export interface PersistedState {
   dishes: Dish[]
-  cookings: Cooking[]
   tares: Tare[]
   companies: Company[]
   /** «Кто ест» of each dish, by dish id; a dish not here starts with the first company (docs/SPEC.md §3б). */
@@ -19,7 +18,6 @@ export const DEFAULT_HOLD_MS = 1500
 
 export const EMPTY_STATE: PersistedState = {
   dishes: [],
-  cookings: [],
   tares: [],
   companies: [],
   lineups: {},
@@ -109,6 +107,12 @@ export const migrations: Record<number, (state: unknown) => unknown> = {
       (items ?? []).map((item, i) => ({ ...item, createdAt: item.createdAt ?? new Date(i).toISOString() }))
     return { ...s, tares: ordered(s.tares), companies: ordered(s.companies) }
   },
+  // v11 (stage 15): no cookings — a dish remembers what is typed, the last cooked weight included.
+  // The v10 copy stays in the backup taken before migrating.
+  10: (state) => {
+    const { cookings: _cookings, ...s } = state as { cookings?: unknown; dishes?: object[] }
+    return { ...s, dishes: (s.dishes ?? []).map((d) => ({ ...d, cooked: null })) }
+  },
 }
 
 function assertShape(state: unknown): asserts state is PersistedState {
@@ -117,7 +121,6 @@ function assertShape(state: unknown): asserts state is PersistedState {
     typeof s !== 'object' ||
     s === null ||
     !Array.isArray(s.dishes) ||
-    !Array.isArray(s.cookings) ||
     !Array.isArray(s.tares) ||
     !Array.isArray(s.companies) ||
     typeof s.lineups !== 'object' ||

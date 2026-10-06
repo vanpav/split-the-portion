@@ -16,7 +16,8 @@ describe('applyChanges', () => {
     ]
     const next = applyChanges(base, changes, new Set())
     expect(next).toMatchObject({ dishes: [], tares: [pot], holdMs: 0 })
-    expect(next.cookings.map((c) => c.id)).toEqual(['c1'])
+    // A cooking from an app before v11 changes nothing.
+    expect(next).not.toHaveProperty('cookings')
   })
 
   it('a record waiting to be sent keeps the local version', () => {
