@@ -18,6 +18,27 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+    /* An own portion: the lid paler (light) or as an outline (dark) — `lidPale` in components/lids.ts. */
+    --color-chart-1-pale: var(--chart-1-pale);
+    --color-chart-1-pale-foreground: var(--chart-1-pale-foreground);
+    --color-chart-2-pale: var(--chart-2-pale);
+    --color-chart-2-pale-foreground: var(--chart-2-pale-foreground);
+    --color-chart-3-pale: var(--chart-3-pale);
+    --color-chart-3-pale-foreground: var(--chart-3-pale-foreground);
+    --color-chart-4-pale: var(--chart-4-pale);
+    --color-chart-4-pale-foreground: var(--chart-4-pale-foreground);
+    --color-chart-5-pale: var(--chart-5-pale);
+    --color-chart-5-pale-foreground: var(--chart-5-pale-foreground);
+    --color-chart-6-pale: var(--chart-6-pale);
+    --color-chart-6-pale-foreground: var(--chart-6-pale-foreground);
+    --color-chart-7-pale: var(--chart-7-pale);
+    --color-chart-7-pale-foreground: var(--chart-7-pale-foreground);
+    --color-chart-8-pale: var(--chart-8-pale);
+    --color-chart-8-pale-foreground: var(--chart-8-pale-foreground);
+    --color-chart-9-pale: var(--chart-9-pale);
+    --color-chart-9-pale-foreground: var(--chart-9-pale-foreground);
+    --color-chart-10-pale: var(--chart-10-pale);
+    --color-chart-10-pale-foreground: var(--chart-10-pale-foreground);
     --color-chart-10: var(--chart-10);
     --color-chart-9: var(--chart-9);
     --color-chart-8: var(--chart-8);
@@ -187,6 +208,27 @@
     --chart-9: oklch(0.87 0.06 276);
     --chart-10: oklch(0.87 0.09 342);
     --chart-foreground: oklch(0.267 0.054 269.1);
+    /* An own portion: the same lid, paler, with ink on it. */
+    --chart-1-pale: color-mix(in srgb, var(--chart-1) 45%, var(--background));
+    --chart-2-pale: color-mix(in srgb, var(--chart-2) 45%, var(--background));
+    --chart-3-pale: color-mix(in srgb, var(--chart-3) 45%, var(--background));
+    --chart-4-pale: color-mix(in srgb, var(--chart-4) 45%, var(--background));
+    --chart-5-pale: color-mix(in srgb, var(--chart-5) 45%, var(--background));
+    --chart-6-pale: color-mix(in srgb, var(--chart-6) 45%, var(--background));
+    --chart-7-pale: color-mix(in srgb, var(--chart-7) 45%, var(--background));
+    --chart-8-pale: color-mix(in srgb, var(--chart-8) 45%, var(--background));
+    --chart-9-pale: color-mix(in srgb, var(--chart-9) 45%, var(--background));
+    --chart-10-pale: color-mix(in srgb, var(--chart-10) 45%, var(--background));
+    --chart-1-pale-foreground: var(--foreground);
+    --chart-2-pale-foreground: var(--foreground);
+    --chart-3-pale-foreground: var(--foreground);
+    --chart-4-pale-foreground: var(--foreground);
+    --chart-5-pale-foreground: var(--foreground);
+    --chart-6-pale-foreground: var(--foreground);
+    --chart-7-pale-foreground: var(--foreground);
+    --chart-8-pale-foreground: var(--foreground);
+    --chart-9-pale-foreground: var(--foreground);
+    --chart-10-pale-foreground: var(--foreground);
     /* A lid as a 3 px caret on the white field: the lid's hue, deepened to ≥ 3:1 against white. */
     --caret-1: oklch(0.6 0.12 246.3);
     --caret-2: oklch(0.66 0.13 85);
@@ -240,6 +282,28 @@
     --chart-9: oklch(0.815 0.07 276);
     --chart-10: oklch(0.815 0.1 342);
     --chart-foreground: oklch(0.212 0.035 268.5);
+    /* An own portion on the night ground: a paler lid would turn muddy (apricot went brown), so the lid
+       outlines it instead — the ground barely tinted, the number and the dashed edge in the lid's color. */
+    --chart-1-pale: color-mix(in oklab, var(--chart-1) 20%, var(--background));
+    --chart-2-pale: color-mix(in oklab, var(--chart-2) 20%, var(--background));
+    --chart-3-pale: color-mix(in oklab, var(--chart-3) 20%, var(--background));
+    --chart-4-pale: color-mix(in oklab, var(--chart-4) 20%, var(--background));
+    --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+    --chart-6-pale: color-mix(in oklab, var(--chart-6) 20%, var(--background));
+    --chart-7-pale: color-mix(in oklab, var(--chart-7) 20%, var(--background));
+    --chart-8-pale: color-mix(in oklab, var(--chart-8) 20%, var(--background));
+    --chart-9-pale: color-mix(in oklab, var(--chart-9) 20%, var(--background));
+    --chart-10-pale: color-mix(in oklab, var(--chart-10) 20%, var(--background));
+    --chart-1-pale-foreground: var(--chart-1);
+    --chart-2-pale-foreground: var(--chart-2);
+    --chart-3-pale-foreground: var(--chart-3);
+    --chart-4-pale-foreground: var(--chart-4);
+    --chart-5-pale-foreground: var(--chart-5);
+    --chart-6-pale-foreground: var(--chart-6);
+    --chart-7-pale-foreground: var(--chart-7);
+    --chart-8-pale-foreground: var(--chart-8);
+    --chart-9-pale-foreground: var(--chart-9);
+    --chart-10-pale-foreground: var(--chart-10);
     /* On the dark field the lids show as they are, lifted a little toward the ink. Mixed in oklab:
        in oklch the hue would swing toward the ink's and turn sunflower green. */
     --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));

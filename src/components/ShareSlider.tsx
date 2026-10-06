@@ -265,7 +265,8 @@ export function ShareSlider({
               style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
               className={cn(
                 SEGMENT,
-                'border-2 border-dashed border-foreground/25 text-foreground transition-[left,width] duration-300 ease-out',
+                // Dashed in its own text color: ink at 25% on the pale lid, the lid itself in dark.
+                'border-2 border-dashed border-current/25 transition-[left,width] duration-300 ease-out dark:border-current/60',
                 lidPale(segment.place),
                 rounding(sharing.length + i),
               )}
