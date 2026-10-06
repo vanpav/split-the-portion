@@ -64,6 +64,11 @@ export function DataSection() {
         <p className="text-sm text-muted-foreground">
           Всё хранится в этом браузере. Копия в файле выручит, если браузер очистит данные или вы смените телефон.
         </p>
+        {/* Until sync (stage 13) a file is the only way across: an installed app does not share Safari's storage. */}
+        <p className="text-sm text-muted-foreground">
+          У приложения на экране «Домой» iPhone своё хранилище, не общее с Safari. Чтобы перенести данные, скачайте
+          копию в Safari и загрузите её в приложении.
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" aria-label="Скачать копию данных" onClick={download}>

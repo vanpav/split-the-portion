@@ -1,0 +1,6 @@
+# Workers static assets: the service worker and the manifest are always revalidated,
+# otherwise a new version of the app does not reach installed copies.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

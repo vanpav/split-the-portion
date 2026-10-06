@@ -22,6 +22,7 @@ pnpm build        # tsc -b && vite build — должен проходить б�
 pnpm lint         # oxlint
 pnpm test         # vitest run
 pnpm test:watch   # vitest в watch-режиме
+pnpm icons        # иконки PWA из public/favicon.svg (после правки рисунка)
 ```
 
 С этапа 12 (сервер, [CLOUDFLARE.md](docs/CLOUDFLARE.md)):
@@ -94,3 +95,4 @@ pnpm run deploy          # сборка и wrangler deploy (`pnpm deploy` — в
 3. Пройти сценарии из «Способа проверки» текущего этапа; эталонные примеры SPEC §11 вводить руками и сверять цифры на экране.
 4. Проверить: нет горизонтальной прокрутки на 375 px; поля открывают цифровую клавиатуру (`inputmode`); запятая и точка работают; данные переживают перезагрузку страницы.
 5. Консоль браузера — без ошибок и предупреждений React.
+6. PWA (Service Worker, офлайн, тост обновления) — только на сборке: `pnpm build`, затем preview-конфигурация `preview` (порт 4180). После проверки удалить Service Worker с `localhost:4180`.
