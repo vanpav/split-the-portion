@@ -24,10 +24,22 @@ export function liveTareId(tareId: Id | null, tares: Pick<Tare, 'id'>[]): Id | n
 
 /**
  * Dishes in the order of use, the latest first: the calculator opens on the first, the dish shelf
- * follows it. Typing a dish's raw weight or tare is what makes it the latest.
+ * follows it. Creating a dish, saving its form, typing its raw weight, tare or cooked weight is what
+ * makes it the latest (docs/UX.md «Полка блюд»).
  */
 export function recentDishes<T extends Pick<Dish, 'updatedAt'>>(dishes: T[]): T[] {
   return [...dishes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+}
+
+/**
+ * The dish shelf while it is open: the chips keep the order they had when it opened (`order`, ids),
+ * so a chip never moves away under the finger. Dishes that appeared since — added from the search,
+ * or from another device of the group — go first, the latest first; deleted ones drop out.
+ */
+export function shelfOrder<T extends Pick<Dish, 'id' | 'updatedAt'>>(dishes: T[], order: readonly Id[]): T[] {
+  const byId = new Map(dishes.map((d) => [d.id, d]))
+  const known = new Set(order)
+  return [...recentDishes(dishes.filter((d) => !known.has(d.id))), ...order.flatMap((id) => byId.get(id) ?? [])]
 }
 
 /**

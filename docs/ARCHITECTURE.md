@@ -115,7 +115,7 @@ interface Dish {
   kind: CookingKind;     // simple — один продукт
   name: string;
   createdAt: string;
-  updatedAt: string;     // последнее изменение или ввод в калькуляторе — порядок полки блюд
+  updatedAt: string;     // создание, «Сохранить», ввод сырого веса, тары, готового веса — порядок полки (UX §3); синхронизируется с блюдом
   ingredients: Ingredient[]; // rawGrams — последний введённый сырой вес
   tareId: Id | null;         // тара, в которой взвешивают; кто ест — lineups (companyId убран в v6)
   // Последний готовый вес (с v11): вес на весах, тара, при которой взвешено, и время.
@@ -217,7 +217,7 @@ src/domain/
 | `liveTareId(tareId, tares)` | Тара блюда, если она ещё есть в библиотеке, иначе `null` — «Без тары» (SPEC §8: тару удалили). Калькулятор и редактор читают тару блюда только через неё |
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
-| `recentDishes(dishes)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок полки (последнее использованное сверху); вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
+| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему. Свои порции — в готовых граммах (`fixedCooked`), в сухом виде (`fixedRaw`, сырой вес продукта) или в процентах (`fixedPercent`) |
@@ -308,7 +308,7 @@ src/
     DishEditor/         — создание и правка блюда: DishEditorScreen пересоздаёт DishEditorForm при смене адреса; черновик в состоянии формы, «Создать» / «Сохранить»
       IngredientEditorRow.tsx, FromSimpleDishPicker.tsx, DishActions.tsx («Составное на основе», «Удалить блюдо»)
     Calculator/         — главный экран (этап 15)
-      DishShelf.tsx           — полка: поиск, «Все блюда», чипы по последнему использованию, «⋯»
+      DishShelf.tsx           — полка: поиск, «Все блюда», чипы по последнему использованию (пересортировка при открытии и возврате в приложение), «⋯»
       DishSearch.tsx          — CommandDialog: свои блюда и популярные с весом
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
       DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
