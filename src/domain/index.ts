@@ -31,4 +31,4 @@ export { missingPresets, PRESET_DISHES, presetDish, presetDishes } from './prese
 export type { PresetDish, PresetIngredient } from './presets'
 export { cookingDraft } from './draft'
 export type { CalculatorInput } from './draft'
-export { equalPercents, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionIn, toPercents } from './shares'
+export { equalPercents, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from './shares'

@@ -24,6 +24,7 @@ import {
   lineupPercents,
   matchingCompany,
   parseGrams,
+  portionGrams,
   portionIn,
   rawFold,
   toPercents,
@@ -53,10 +54,20 @@ const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('pe
 interface Own {
   unit: 'g' | '%'
   value: number
+  /** Grams typed while «Сухой» was in focus: dry grams of this ingredient, not cooked. */
+  raw?: Id
 }
 
-const ownOf = (fixed: Record<string, Own>, unit: Own['unit']) =>
-  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === unit ? [[id, own.value]] : [])))
+const ownCooked = (fixed: Record<string, Own>) =>
+  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === 'g' && !own.raw ? [[id, own.value]] : [])))
+const ownRaw = (fixed: Record<string, Own>) =>
+  Object.fromEntries(
+    Object.entries(fixed).flatMap(([id, own]) =>
+      own.unit === 'g' && own.raw ? [[id, { ingredientId: own.raw, grams: own.value }]] : [],
+    ),
+  )
+const ownPercent = (fixed: Record<string, Own>) =>
+  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === '%' ? [[id, own.value]] : [])))
 
 const toNumber = (text: string) => {
   const parsed = parseGrams(text)
@@ -105,6 +116,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
   )
   // The field that has focus, if any.
   const [active, setActive] = useState<string | null>(null)
+  // The weight field last in focus: «Сухой» shows the portions in dry grams, «Готовый» in cooked
+  // (docs/SPEC.md §3б). It stays when a person's field or nothing has focus. The dish opens where the
+  // number is missing, as the focus does with a mouse.
+  const [weightRow, setWeightRow] = useState(() => rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
   // Today's own portions, in cooked grams or in percent of the dish: these people get exactly that,
   // the rest split what is left by share.
   const [fixed, setFixed] = useState<Record<Id, Own>>({})
@@ -144,8 +159,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
           tare,
           people,
           companyId,
-          fixedCooked: ownOf(fixed, 'g'),
-          fixedPercent: ownOf(fixed, '%'),
+          fixedCooked: ownCooked(fixed),
+          fixedRaw: ownRaw(fixed),
+          fixedPercent: ownPercent(fixed),
         },
         now,
       ),
@@ -161,6 +177,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const draft = useMemo(() => base && (keepNow > 0 ? { ...base, keepPercent: keepNow } : base), [base, keepNow])
   const result = useMemo(() => (draft ? computeCooking(draft) : undefined), [draft])
   const phase = result?.phases[0]
+  // The dry view: only the ingredient k is counted by (one counted product) has a dry weight to split.
+  const rawOf = result && result.baseIngredientId !== null && weightRow === result.baseIngredientId ? weightRow : null
 
   // Own portions are remembered as each person's part of the dish: next time the same parts, by share.
   // Once typed, not on every key: a number typed and erased would leave its person with a sliver.
@@ -193,7 +211,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     }
     // A person's number: a value makes it their own portion, an empty field gives them back to the shares.
     const personId = personTarget(row)
-    if (personId) setOwn(personId, grams, unit)
+    if (personId) setOwn(personId, grams, unit, rawOf)
   }
   // The weight typed here now means the weight in the new tare. One from elsewhere was weighed in the
   // old tare: it no longer fits and is not shown.
@@ -202,32 +220,39 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const fold = () => {
     setFolded(true)
     if (shownIngredients.some((i) => i.id === active)) setActive(null)
+    setWeightRow(COOKED)
   }
   const leave = () => setActive(null)
   // Leaving a person's field from a button that changes them: what was typed is settled first.
   const leavePerson = (personId: Id) => {
     if (active === personKey(personId)) focusOrBlur(null)
   }
-  const setOwn = (personId: Id, value: number | null, ownUnit: Own['unit']) =>
+  const setOwn = (personId: Id, value: number | null, ownUnit: Own['unit'], raw: Id | null) =>
     setFixed((f) => {
       const { [personId]: _old, ...rest } = f
-      const valid = value !== null && value > 0 && (ownUnit === 'g' || value <= 100)
-      return valid ? { ...rest, [personId]: { unit: ownUnit, value } } : rest
+      if (value === null || value <= 0 || (ownUnit === '%' && value > 100)) return rest
+      const own: Own = ownUnit === 'g' && raw ? { unit: ownUnit, value, raw } : { unit: ownUnit, value }
+      return { ...rest, [personId]: own }
     })
   const activatePerson = (personId: Id) => {
     const key = personKey(personId)
     const own = fixed[personId]
-    setUnit(own?.unit ?? shown[personId] ?? barUnit)
-    setTexts((t) => ({ ...t, [key]: own ? formatInput(own.value) : '' }))
+    const ownUnit = own?.unit ?? shown[personId] ?? barUnit
+    // An own portion typed in the other view (dry ⇄ cooked) is shown in this one.
+    const computed = phase?.portions.find((p) => p.portionId === personId)
+    const sameView = own && (own.unit === '%' || (own.raw ?? null) === rawOf)
+    const value = !own ? null : sameView ? own.value : computed ? portionIn(computed, own.unit, rawOf) : null
+    setUnit(ownUnit)
+    setTexts((t) => ({ ...t, [key]: value !== null ? formatInput(value) : '' }))
     setActive(key)
   }
   // г ⇄ %: the number typed so far is converted, so the person keeps the same portion.
   const switchUnit = (personId: Id, next: Own['unit']) => {
     if (next === unit) return
     const computed = phase?.portions.find((p) => p.portionId === personId)
-    const converted = fixed[personId] === undefined || !computed ? null : portionIn(computed, next)
+    const converted = fixed[personId] === undefined || !computed ? null : portionIn(computed, next, rawOf)
     setUnit(next)
-    setOwn(personId, converted, next)
+    setOwn(personId, converted, next, rawOf)
     setTexts((t) => ({ ...t, [personKey(personId)]: converted !== null ? formatInput(converted) : '' }))
   }
   // What a person's number is in: typed now, their own portion, their switch, or the bar's.
@@ -239,7 +264,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     setShown((s) => ({ ...s, [personId]: next }))
     if (active === personKey(personId)) return switchUnit(personId, next)
     const computed = phase?.portions.find((p) => p.portionId === personId)
-    if (fixed[personId] !== undefined && computed) setOwn(personId, portionIn(computed, next), next)
+    if (fixed[personId] !== undefined && computed) setOwn(personId, portionIn(computed, next, rawOf), next, rawOf)
   }
   // ↓ ↑ walk the weights; from a person they go back to «Готовый». Enter moves on to «Готовый»
   // and there closes the keyboard: the answer is under it.
@@ -258,7 +283,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
     id: calculatorFieldId(row),
     active: active === row,
     autoFocus: row === start,
-    onFocus: () => setActive(row),
+    onFocus: () => {
+      setActive(row)
+      setWeightRow(row)
+    },
     onBlur: leave,
     onText: (typed: string) => type(row, typed),
     onKeyDown: fieldKeys(row),
@@ -318,7 +346,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     place: placeOf(p.portionId),
     name: people.find((x) => x.id === p.portionId)?.name ?? '',
     share: Math.max(p.share ?? 0, 0),
-    label: gramsLabel(p.cookedGrams),
+    label: gramsLabel(portionGrams(p, rawOf)),
   }))
   const potRaw = result && phase ? baseRawGrams(result, phase.remainder.raw) : null
 
@@ -404,7 +432,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
           own={segments.filter((x) => fixed[x.id] !== undefined)}
           rest={
             people.length > 0 && phase.remainder.state === 'some'
-              ? { share: phase.remainder.share, label: gramsLabel(phase.remainder.cookedGrams) }
+              ? { share: phase.remainder.share, label: gramsLabel(portionGrams(phase.remainder, rawOf)) }
               : null
           }
           onChange={setPercents}
@@ -433,6 +461,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
               place={placeOf(p.portionId)}
               lids={people.length}
               computed={p}
+              dry={rawOf !== null}
               onRename={(name) => updatePerson(p.portionId, name)}
               onRemove={() => removePerson(p.portionId)}
               holdMs={holdMs}

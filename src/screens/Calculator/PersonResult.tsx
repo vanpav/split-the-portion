@@ -27,6 +27,8 @@ interface PersonResultProps {
   /** People eating today: the caret blinks through their lid colors. */
   lids: number
   computed: PortionResult
+  /** «Сухой» is in focus: grams are dry grams of the product k is counted by, cooked go under the name. */
+  dry: boolean
   onRename: (name: string) => void
   onRemove: () => void
   /** «×» is held this long before the person is removed; 0 — a tap. */
@@ -64,6 +66,7 @@ export function PersonResult({
   place,
   lids,
   computed,
+  dry,
   onRename,
   onRemove,
   holdMs,
@@ -73,20 +76,29 @@ export function PersonResult({
 }: PersonResultProps) {
   const single = result.baseIngredientId !== null
   const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
-  // Under the name: own or not, the part of the dish, the raw counterpart.
   const inPercent = grams.unit === '%'
-  // Under the name: the other unit of the answer (percent under grams, grams under percent), then raw.
-  const subline = [
-    inPercent
-      ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г`
-      : percent !== null && `${percent} %`,
-    single && baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`,
-  ].filter((part): part is string => Boolean(part))
+  const rawText = single && baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+  // Under the name: the other unit of the answer (percent under grams, grams under percent), then the
+  // other view — raw under cooked, cooked under dry.
+  const subline = (
+    dry
+      ? [
+          inPercent ? rawText : percent !== null && `${percent} %`,
+          computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`,
+        ]
+      : [
+          inPercent
+            ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г`
+            : percent !== null && `${percent} %`,
+          rawText,
+        ]
+  ).filter((part): part is string => Boolean(part))
 
-  // The answer in the person's unit.
+  // The answer in the person's unit and view.
+  const viewGrams = dry ? baseRaw : computed.cookedGrams
   const shownNumber = inPercent
     ? computed.share !== null ? formatPercent(computed.share) : null
-    : computed.cookedGrams !== null ? formatGrams(computed.cookedGrams) : null
+    : viewGrams !== null ? formatGrams(viewGrams) : null
 
   return (
     <li className="flex flex-col gap-1 py-3">
@@ -149,7 +161,7 @@ export function PersonResult({
             <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
               <DigitsInput
                 id={grams.id}
-                aria-label={`${name || 'Человек'}: своя порция, ${inPercent ? 'проценты' : 'граммы'}`}
+                aria-label={`${name || 'Человек'}: своя порция, ${inPercent ? 'проценты' : dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
                 enterKeyHint="done"
                 lids={lids}
                 // Until something is typed: today's number, faded — the field keeps its width.
