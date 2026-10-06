@@ -23,7 +23,7 @@ interface TareSelectProps {
 
 /**
  * What «Готовый» was weighed in, as a quiet line under the readouts: «Без тары ▾».
- * The list ends with «Добавить тару»: a new tare is made in a dialog and selected at once.
+ * The list ends with «Добавить тару»: new tares are made in a dialog, the first one is selected at once.
  */
 export function TareSelect({ tares, tareId, onTare }: TareSelectProps) {
   const [adding, setAdding] = useState(false)
@@ -66,7 +66,7 @@ export function TareSelect({ tares, tareId, onTare }: TareSelectProps) {
           </SelectItem>
         </SelectContent>
       </Select>
-      <NewTareDialog open={adding} onOpenChange={setAdding} onCreated={(tare) => onTare(tare.id)} />
+      <NewTareDialog open={adding} onOpenChange={setAdding} onSelect={(tare) => onTare(tare.id)} />
     </>
   )
 }

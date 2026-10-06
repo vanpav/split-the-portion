@@ -24,6 +24,7 @@ import {
   lineupCompany,
   lineupName,
   lineupPercents,
+  liveTareId,
   matchingCompany,
   parseGrams,
   portionGrams,
@@ -111,7 +112,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // «Готовый» is today's weighing of this dish, here or on another device of the group; once typed into
   // here, it is what is typed.
   const [cookedTouched, setCookedTouched] = useState(false)
-  const cookedHere = useMemo(() => (dish ? cookedToday(dish.cooked, dish.tareId, new Date(now)) : null), [dish, now])
+  // The dish remembers the tare it is weighed in, as it does the raw weight. A tare deleted from the
+  // library is no tare: weighed without it (docs/SPEC.md §8).
+  const tareId = liveTareId(dish?.tareId ?? null, tares)
+  const tare = tares.find((t) => t.id === tareId) ?? null
+  const cookedHere = useMemo(() => (dish ? cookedToday(dish.cooked, tareId, new Date(now)) : null), [dish, tareId, now])
   const textOf = (row: string) => (row === COOKED && !cookedTouched ? formatInput(cookedHere) : (texts[row] ?? ''))
   const cookedText = textOf(COOKED)
   // A simple dish shows its product only: water or salt «не учитывать» do not change the portions.
@@ -144,9 +149,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // «На завтра»: percent of the dish set aside, pulled in from the bar's right edge.
   const [keep, setKeep] = useState(0)
 
-  // The dish remembers the tare it is weighed in, as it does the raw weight.
-  const tareId = dish?.tareId ?? null
-  const tare = tares.find((t) => t.id === tareId) ?? null
   // «Кто ест» is remembered per dish; before it is first changed, the first company.
   const lineup = useMemo(() => dishLineup(lineups, id ?? '', companies), [lineups, id, companies])
   // The company picked stays picked however the shares are moved: it is a template, never changed here.

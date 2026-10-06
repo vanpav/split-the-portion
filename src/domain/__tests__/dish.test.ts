@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, matchingCompany, rawFold, recentDishes, shareWeights } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights } from '../dish'
 import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
 import { cooked, ingredient, share } from './fixtures'
@@ -160,3 +160,20 @@ describe('lineup', () => {
   })
 })
 
+
+describe('liveTareId', () => {
+  const tares = [{ id: 'pot' }, { id: 'bowl' }]
+
+  it('keeps a tare that is in the library', () => {
+    expect(liveTareId('bowl', tares)).toBe('bowl')
+  })
+
+  it('falls back to no tare when the tare was deleted', () => {
+    expect(liveTareId('pan', tares)).toBeNull()
+    expect(liveTareId('pot', [])).toBeNull()
+  })
+
+  it('no tare stays no tare', () => {
+    expect(liveTareId(null, tares)).toBeNull()
+  })
+})
