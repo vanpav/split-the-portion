@@ -1,9 +1,21 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PlusIcon } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { NewTareDialog } from '@/components/NewTareDialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { formatGrams, type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
 import { displayRowBox } from './displayRowBox'
 
 const NO_TARE = 'none'
+// Not a tare: picking it opens the new tare dialog, the select keeps its value.
+const ADD_TARE = 'add'
 
 interface CookedRowProps {
   label: string
@@ -25,8 +37,17 @@ interface CookedRowProps {
  * «Готовый» on the calculator display: the weight on the scale, and under its label the tare it was
  * weighed in. The whole row is the keypad target; only the tare under the label opens its list.
  * Under the number — the weight without the tare and k; under the field, on the right — an error.
+ * The list ends with «Добавить тару»: a new tare is made in a dialog and selected at once.
  */
 export function CookedRow({ label, text, active, onActivate, compact, tares, tareId, onTare, note, error }: CookedRowProps) {
+  const [adding, setAdding] = useState(false)
+  // «Добавить тару» picked: the dialog opens once the list has closed — the list keeps focus while open.
+  const addPicked = useRef(false)
+  const pick = (v: string) => {
+    if (v === ADD_TARE) addPicked.current = true
+    else onTare(v === NO_TARE ? null : v)
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <div className={cn('relative rounded-xl transition-colors', active ? 'bg-muted' : 'hover:bg-muted/50')}>
@@ -48,7 +69,7 @@ export function CookedRow({ label, text, active, onActivate, compact, tares, tar
             <span className={cn('truncate text-sm leading-tight', active ? 'text-foreground' : 'text-muted-foreground')}>
               {label}
             </span>
-            <Select value={tareId ?? NO_TARE} onValueChange={(v) => onTare(v === NO_TARE ? null : v)}>
+            <Select value={tareId ?? NO_TARE} onValueChange={pick}>
               <SelectTrigger
                 aria-label="Тара"
                 // Small to look at, 44 px to hit: the height reaches out, the margins pull it back.
@@ -56,13 +77,27 @@ export function CookedRow({ label, text, active, onActivate, compact, tares, tar
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent align="start">
+              <SelectContent
+                align="start"
+                onCloseAutoFocus={(e) => {
+                  if (!addPicked.current) return
+                  // Focus stays with the dialog instead of going back to the select.
+                  e.preventDefault()
+                  addPicked.current = false
+                  setAdding(true)
+                }}
+              >
                 <SelectItem value={NO_TARE}>Без тары</SelectItem>
                 {tares.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.name} · {formatGrams(t.grams)} г
                   </SelectItem>
                 ))}
+                <SelectSeparator />
+                <SelectItem value={ADD_TARE}>
+                  <PlusIcon />
+                  Добавить тару
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -87,6 +122,7 @@ export function CookedRow({ label, text, active, onActivate, compact, tares, tar
       </div>
       {/* Kept even when empty, like the note: nothing below moves on the first key. */}
       <p className="min-h-5 px-4 text-right text-sm leading-5 text-destructive">{error}</p>
+      <NewTareDialog open={adding} onOpenChange={setAdding} onCreated={(tare) => onTare(tare.id)} />
     </div>
   )
 }
