@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { TareForm } from '@/components/TareForm'
 import type { Id } from '@/domain'
 import { useAppStore } from '@/store/store'
-import { NewTareForm } from './NewTareForm'
 import { TareRow } from './TareRow'
 
 export function TaresSection() {
@@ -24,8 +24,10 @@ export function TaresSection() {
             onOpenChange={(open) => setOpenId(open ? tare.id : null)}
           />
         ))}
-        <li className="px-4 py-3">
-          <NewTareForm />
+        {/* The same form as «Добавить тару» in the calculator: name, weight in the field or with the slider. */}
+        <li className="flex flex-col gap-3 px-4 py-4">
+          <h3 className="font-medium">Новая тара</h3>
+          <TareForm />
         </li>
       </ul>
     </section>
