@@ -1,8 +1,9 @@
 import { XIcon } from 'lucide-react'
-import { Fragment, type KeyboardEvent } from 'react'
+import { Fragment, useRef, type KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
+import { SwipeRow } from '@/components/SwipeRow'
 import { Input } from '@/components/ui/input'
 import {
   baseRawGrams,
@@ -55,7 +56,8 @@ interface PersonResultProps {
 
 /**
  * «Ваня — 168 г»: the answer, large, with its raw counterpart under it. Shares live on the slider.
- * The name is edited in place; × takes the person out of today's lineup.
+ * The name is edited in place; × takes the person out of today's lineup. On a touch screen the row is
+ * swiped instead: left — out of the lineup, right — copy for the tracker.
  */
 export function PersonResult({
   cooking,
@@ -87,9 +89,15 @@ export function PersonResult({
   const shownNumber = inPercent
     ? computed.share !== null ? formatPercent(computed.share) : null
     : computed.cookedGrams !== null ? formatGrams(computed.cookedGrams) : null
+  const copyRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <li className="flex flex-col gap-1 py-3">
+    <SwipeRow
+      as="li"
+      className="flex flex-col gap-1 py-3"
+      onRemove={onRemove}
+      onCopy={computed.share !== null ? () => copyRef.current?.click() : null}
+    >
       <div className="flex items-center gap-2">
         <span aria-hidden className={cn('size-3.5 shrink-0 self-start mt-3 rounded-[5px]', lidFill(place))} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -181,9 +189,11 @@ export function PersonResult({
             </span>
           </button>
         </div>
-        {/* Row actions, stacked: each half the row's height, so they stay out of the answer's way. */}
-        <div className="flex shrink-0 flex-col">
+        {/* Row actions, stacked: each half the row's height, so they stay out of the answer's way.
+            On a touch screen the row is swiped instead; the buttons stay for the keyboard and a screen reader. */}
+        <div className="flex shrink-0 flex-col pointer-coarse:sr-only">
           <CopyButton
+            ref={copyRef}
             size="sm"
             label={`Скопировать для трекера: ${name}`}
             disabled={computed.share === null}
@@ -201,6 +211,6 @@ export function PersonResult({
         </div>
       </div>
       {!single && computed.share !== null && <RawList cooking={cooking} raw={computed.raw} />}
-    </li>
+    </SwipeRow>
   )
 }

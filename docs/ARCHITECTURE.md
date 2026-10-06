@@ -36,6 +36,7 @@
 | `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
 | `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
+| `@use-gesture/react` | prod | Свайп строк на сенсорном экране (`components/SwipeRow`, хук `useDrag`: `axis: 'x'`, отмена при вертикальной прокрутке, скорость для «смахнуть»). В shadcn/ui такого компонента нет; распознавание жестов руками не пишем. Согласовано 2026-10-06 (#27) |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
 
@@ -330,6 +331,7 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
+    SwipeRow.tsx        — строка со свайпом на сенсорном экране (`pointer: coarse`): влево — красное «Убрать», вправо — «Копировать»; полный свайп делает действие сразу. Поверх `useDrag` и shadcn `Button`; пороги — именованные константы
     ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
@@ -376,6 +378,7 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | Пустой список | `Empty` |
 | Плашка сверки, баннер ошибки чтения, подсказки | `Alert` (варианты default / destructive / `warning` — добавлен в `alert.tsx` через `cva`) |
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
+| Удалить / скопировать строку на телефоне и iPad | `components/SwipeRow` (`@use-gesture/react`) + `Button` под строкой; кнопки строки скрыты вариантом Tailwind `pointer-coarse:sr-only` — остаются для клавиатуры и экранного диктора |
 | Подтверждение удаления блюда | `AlertDialog` |
 | Запасной показ текста для копирования | `Dialog` + `Textarea` |
 | Шапка, переход в настройки | `Button` variant `ghost` + иконки `lucide-react` |
@@ -445,6 +448,7 @@ Hash-маршруты выбраны потому, что работают на 
 
 1. **Wake Lock** (бэклог P1): `react-screen-wake-lock` / `@uidotdev/usehooks` или свой хук. Решить, когда дойдём.
 2. ~~**PWA**~~ — решено 2026-10-06: `vite-plugin-pwa`, этап [11](roadmap/11-pwa.md).
+3. ~~**Свайп строк**~~ — решено 2026-10-06: `@use-gesture/react` (#27); `react-swipeable` и `motion` не взяли (§2).
 
 ## 9. Сервер
 

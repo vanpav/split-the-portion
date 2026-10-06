@@ -31,7 +31,13 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
   }
 
   return (
-    <SettingsRow open={open} onOpenChange={onOpenChange} title={tare.name} value={`${formatGrams(tare.grams)} г`}>
+    <SettingsRow
+      open={open}
+      onOpenChange={onOpenChange}
+      title={tare.name}
+      value={`${formatGrams(tare.grams)} г`}
+      onSwipeRemove={remove}
+    >
       <div className="flex items-start gap-2">
         <Field className="min-w-0 flex-1" data-invalid={nameEmpty || undefined}>
           <Input
@@ -55,7 +61,14 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
           validate={(grams) => (isValidTareGrams(grams) ? null : 'Вес должен быть больше 0')}
           onValueChange={(grams) => isValidTareGrams(grams) && upsertTare({ ...tare, grams })}
         />
-        <Button variant="ghost" size="icon" aria-label={`Удалить «${tare.name}»`} onClick={remove}>
+        {/* On a touch screen the row is swiped left instead; the button stays for the keyboard. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="pointer-coarse:sr-only"
+          aria-label={`Удалить «${tare.name}»`}
+          onClick={remove}
+        >
           <Trash2Icon />
         </Button>
       </div>

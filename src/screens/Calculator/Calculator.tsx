@@ -275,9 +275,23 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const updatePerson = (personId: Id, name: string) =>
     setPeople(people.map((p) => (p.id === personId ? { ...p, name } : p)))
   const removePerson = (personId: Id) => {
+    const before = people
+    const own = fixed[personId]
+    const name = people.find((p) => p.id === personId)?.name.trim()
     setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     leavePerson(personId)
+    // A swipe can remove by accident: the toast brings the person back with their share.
+    toast(name ? `Убрано: ${name}` : 'Человек убран', {
+      duration: 5000,
+      action: {
+        label: 'Отменить',
+        onClick: () => {
+          setPeople(before)
+          if (own) setFixed((f) => ({ ...f, [personId]: own }))
+        },
+      },
+    })
   }
   // The slider splits what is left after own portions: it only shows the people who share.
   const sharing = people.filter((p) => fixed[p.id] === undefined)

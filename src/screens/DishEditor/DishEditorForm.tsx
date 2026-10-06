@@ -82,6 +82,21 @@ export function DishEditorForm() {
     patch({ ingredients: [...kept, next] })
     if (!from) setFocusId(next.id)
   }
+  // A swipe can remove by accident: «Отменить» puts the row back in its place.
+  const removeIngredient = (ingredientId: Id) => {
+    const index = draft.ingredients.findIndex((i) => i.id === ingredientId)
+    const gone = draft.ingredients[index]
+    if (!gone) return
+    patch({ ingredients: draft.ingredients.filter((i) => i.id !== ingredientId) })
+    toast(gone.name.trim() ? `Удалено: ${gone.name.trim()}` : 'Ингредиент удалён', {
+      duration: 5000,
+      action: {
+        label: 'Отменить',
+        onClick: () =>
+          setDraft((d) => d && { ...d, ingredients: [...d.ingredients.slice(0, index), gone, ...d.ingredients.slice(index)] }),
+      },
+    })
+  }
   const focusNextIngredient = (index: number) => {
     const next = draft.ingredients[index + 1]
     if (next) focusOrBlur(ingredientNameId(next.id))
@@ -168,7 +183,7 @@ export function DishEditorForm() {
                 placeholder={index === 0 ? 'Макароны' : 'Фарш, соль…'}
                 autoFocus={focusId === ingredient.id}
                 onChange={(p) => setIngredient(ingredient.id, p)}
-                onRemove={() => patch({ ingredients: draft.ingredients.filter((i) => i.id !== ingredient.id) })}
+                onRemove={() => removeIngredient(ingredient.id)}
                 onEnter={() => focusNextIngredient(index)}
               />
             </div>

@@ -1,5 +1,6 @@
 import { XIcon } from 'lucide-react'
 import { NumberField } from '@/components/NumberField'
+import { SwipeRow } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -17,7 +18,7 @@ interface IngredientEditorRowProps {
   placeholder?: string
 }
 
-/** Ingredient in the dish editor: name, usual raw weight, «не учитывать». */
+/** Ingredient in the dish editor: name, usual raw weight, «не учитывать». On a touch screen × gives way to a swipe left. */
 export function IngredientEditorRow({
   ingredient,
   index,
@@ -31,7 +32,7 @@ export function IngredientEditorRow({
   const excludedId = `ingredient-excluded-${ingredient.id}`
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <SwipeRow className="flex flex-col gap-1.5" onRemove={onRemove}>
       <div className="flex items-start gap-2">
         <Input
           id={ingredientNameId(ingredient.id)}
@@ -57,7 +58,13 @@ export function IngredientEditorRow({
           onValueChange={(rawGrams) => onChange({ rawGrams })}
           onEnter={onEnter}
         />
-        <Button variant="ghost" size="icon" aria-label={`Удалить ${label}`} onClick={onRemove}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="pointer-coarse:sr-only"
+          aria-label={`Удалить ${label}`}
+          onClick={onRemove}
+        >
           <XIcon />
         </Button>
       </div>
@@ -73,6 +80,6 @@ export function IngredientEditorRow({
           не учитывать
         </FieldLabel>
       </Field>
-    </div>
+    </SwipeRow>
   )
 }
