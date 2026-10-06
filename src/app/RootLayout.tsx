@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
-import { HISTORY_PATH } from './paths'
+import { HISTORY_PATH, isSettingsPath } from './paths'
 import { TabBar } from './TabBar'
 
 export function RootLayout() {
@@ -13,7 +13,7 @@ export function RootLayout() {
   const dismissLoadError = useAppStore((s) => s.dismissLoadError)
   // Top-level screens get the tab bar; detail screens use the bottom for their own actions.
   const { pathname } = useLocation()
-  const topLevel = pathname === '/' || pathname === HISTORY_PATH || pathname === '/settings'
+  const topLevel = pathname === '/' || pathname === HISTORY_PATH || isSettingsPath(pathname)
 
   return (
     <div className={cn('flex min-h-svh flex-col bg-background text-foreground', topLevel && 'lg:pl-24')}>

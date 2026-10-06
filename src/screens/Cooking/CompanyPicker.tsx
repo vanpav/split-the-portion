@@ -1,5 +1,6 @@
 import { BookmarkPlusIcon, UsersIcon } from 'lucide-react'
 import { Link } from 'react-router'
+import { settingsPath } from '@/app/paths'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { lineupName, type Id } from '@/domain'
 import { cn } from '@/lib/utils'
@@ -26,7 +27,7 @@ export function CompanyPicker({ value, onChange, customLabel = 'Свой сос�
     return (
       <p className="text-sm text-muted-foreground">
         Кто с кем ест и в каком соотношении — в{' '}
-        <Link to="/settings" className="text-foreground underline underline-offset-4">
+        <Link to={settingsPath('companies')} className="text-foreground underline underline-offset-4">
           настройках
         </Link>
         .
