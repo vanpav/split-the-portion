@@ -1,0 +1,712 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T10:58:02+00:00",
+  "title": "Design System: Split the Portion",
+  "extensions": {
+    "colorMeta": {
+      "frosted-ground": {
+        "role": "neutral",
+        "displayName": "Frosted Ground",
+        "canonical": "oklch(0.969 0.006 255.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 255.5)",
+          "oklch(0.26 0.006 255.5)",
+          "oklch(0.37 0.006 255.5)",
+          "oklch(0.48 0.006 255.5)",
+          "oklch(0.60 0.006 255.5)",
+          "oklch(0.72 0.006 255.5)",
+          "oklch(0.84 0.006 255.5)",
+          "oklch(0.95 0.006 255.5)"
+        ]
+      },
+      "navy-ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink",
+        "canonical": "oklch(0.267 0.054 269.1)",
+        "tonalRamp": [
+          "oklch(0.15 0.054 269.1)",
+          "oklch(0.26 0.054 269.1)",
+          "oklch(0.37 0.054 269.1)",
+          "oklch(0.48 0.054 269.1)",
+          "oklch(0.60 0.054 269.1)",
+          "oklch(0.72 0.054 269.1)",
+          "oklch(0.84 0.054 269.1)",
+          "oklch(0.95 0.054 269.1)"
+        ]
+      },
+      "lid-white": {
+        "role": "neutral",
+        "displayName": "Lid White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "cobalt": {
+        "role": "primary",
+        "displayName": "Cobalt",
+        "canonical": "oklch(0.514 0.192 265)",
+        "tonalRamp": [
+          "oklch(0.15 0.192 265)",
+          "oklch(0.26 0.192 265)",
+          "oklch(0.37 0.192 265)",
+          "oklch(0.48 0.192 265)",
+          "oklch(0.60 0.192 265)",
+          "oklch(0.72 0.192 265)",
+          "oklch(0.84 0.192 265)",
+          "oklch(0.95 0.192 265)"
+        ]
+      },
+      "frost-step": {
+        "role": "neutral",
+        "displayName": "Frost Step",
+        "canonical": "oklch(0.929 0.013 255.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.013 255.5)",
+          "oklch(0.26 0.013 255.5)",
+          "oklch(0.37 0.013 255.5)",
+          "oklch(0.48 0.013 255.5)",
+          "oklch(0.60 0.013 255.5)",
+          "oklch(0.72 0.013 255.5)",
+          "oklch(0.84 0.013 255.5)",
+          "oklch(0.95 0.013 255.5)"
+        ]
+      },
+      "frost-muted": {
+        "role": "neutral",
+        "displayName": "Frost Muted",
+        "canonical": "oklch(0.944 0.01 252.8)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 252.8)",
+          "oklch(0.26 0.01 252.8)",
+          "oklch(0.37 0.01 252.8)",
+          "oklch(0.48 0.01 252.8)",
+          "oklch(0.60 0.01 252.8)",
+          "oklch(0.72 0.01 252.8)",
+          "oklch(0.84 0.01 252.8)",
+          "oklch(0.95 0.01 252.8)"
+        ]
+      },
+      "slate-muted-ink": {
+        "role": "neutral",
+        "displayName": "Slate Muted Ink",
+        "canonical": "oklch(0.526 0.045 262.7)",
+        "tonalRamp": [
+          "oklch(0.15 0.045 262.7)",
+          "oklch(0.26 0.045 262.7)",
+          "oklch(0.37 0.045 262.7)",
+          "oklch(0.48 0.045 262.7)",
+          "oklch(0.60 0.045 262.7)",
+          "oklch(0.72 0.045 262.7)",
+          "oklch(0.84 0.045 262.7)",
+          "oklch(0.95 0.045 262.7)"
+        ]
+      },
+      "frost-accent": {
+        "role": "neutral",
+        "displayName": "Frost Accent",
+        "canonical": "oklch(0.938 0.018 261.3)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 261.3)",
+          "oklch(0.26 0.018 261.3)",
+          "oklch(0.37 0.018 261.3)",
+          "oklch(0.48 0.018 261.3)",
+          "oklch(0.60 0.018 261.3)",
+          "oklch(0.72 0.018 261.3)",
+          "oklch(0.84 0.018 261.3)",
+          "oklch(0.95 0.018 261.3)"
+        ]
+      },
+      "seam": {
+        "role": "neutral",
+        "displayName": "Seam",
+        "canonical": "oklch(0.898 0.016 257.2)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 257.2)",
+          "oklch(0.26 0.016 257.2)",
+          "oklch(0.37 0.016 257.2)",
+          "oklch(0.48 0.016 257.2)",
+          "oklch(0.60 0.016 257.2)",
+          "oklch(0.72 0.016 257.2)",
+          "oklch(0.84 0.016 257.2)",
+          "oklch(0.95 0.016 257.2)"
+        ]
+      },
+      "input-stroke": {
+        "role": "neutral",
+        "displayName": "Input Stroke",
+        "canonical": "oklch(0.873 0.019 255.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.019 255.5)",
+          "oklch(0.26 0.019 255.5)",
+          "oklch(0.37 0.019 255.5)",
+          "oklch(0.48 0.019 255.5)",
+          "oklch(0.60 0.019 255.5)",
+          "oklch(0.72 0.019 255.5)",
+          "oklch(0.84 0.019 255.5)",
+          "oklch(0.95 0.019 255.5)"
+        ]
+      },
+      "tomato": {
+        "role": "tertiary",
+        "displayName": "Tomato",
+        "canonical": "oklch(0.556 0.183 29.1)",
+        "tonalRamp": [
+          "oklch(0.15 0.183 29.1)",
+          "oklch(0.26 0.183 29.1)",
+          "oklch(0.37 0.183 29.1)",
+          "oklch(0.48 0.183 29.1)",
+          "oklch(0.60 0.183 29.1)",
+          "oklch(0.72 0.183 29.1)",
+          "oklch(0.84 0.183 29.1)",
+          "oklch(0.95 0.183 29.1)"
+        ]
+      },
+      "amber-warning": {
+        "role": "tertiary",
+        "displayName": "Amber Warning",
+        "canonical": "oklch(0.531 0.119 65.1)",
+        "tonalRamp": [
+          "oklch(0.15 0.119 65.1)",
+          "oklch(0.26 0.119 65.1)",
+          "oklch(0.37 0.119 65.1)",
+          "oklch(0.48 0.119 65.1)",
+          "oklch(0.60 0.119 65.1)",
+          "oklch(0.72 0.119 65.1)",
+          "oklch(0.84 0.119 65.1)",
+          "oklch(0.95 0.119 65.1)"
+        ]
+      },
+      "lid-sky": {
+        "role": "secondary",
+        "displayName": "Lid Sky",
+        "canonical": "oklch(0.815 0.073 246.3)",
+        "tonalRamp": [
+          "oklch(0.15 0.073 246.3)",
+          "oklch(0.26 0.073 246.3)",
+          "oklch(0.37 0.073 246.3)",
+          "oklch(0.48 0.073 246.3)",
+          "oklch(0.60 0.073 246.3)",
+          "oklch(0.72 0.073 246.3)",
+          "oklch(0.84 0.073 246.3)",
+          "oklch(0.95 0.073 246.3)"
+        ]
+      },
+      "lid-sunflower": {
+        "role": "secondary",
+        "displayName": "Lid Sunflower",
+        "canonical": "oklch(0.871 0.14 91.6)",
+        "tonalRamp": [
+          "oklch(0.15 0.14 91.6)",
+          "oklch(0.26 0.14 91.6)",
+          "oklch(0.37 0.14 91.6)",
+          "oklch(0.48 0.14 91.6)",
+          "oklch(0.60 0.14 91.6)",
+          "oklch(0.72 0.14 91.6)",
+          "oklch(0.84 0.14 91.6)",
+          "oklch(0.95 0.14 91.6)"
+        ]
+      },
+      "lid-mint": {
+        "role": "secondary",
+        "displayName": "Lid Mint",
+        "canonical": "oklch(0.847 0.076 164.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.076 164.5)",
+          "oklch(0.26 0.076 164.5)",
+          "oklch(0.37 0.076 164.5)",
+          "oklch(0.48 0.076 164.5)",
+          "oklch(0.60 0.076 164.5)",
+          "oklch(0.72 0.076 164.5)",
+          "oklch(0.84 0.076 164.5)",
+          "oklch(0.95 0.076 164.5)"
+        ]
+      },
+      "lid-lilac": {
+        "role": "secondary",
+        "displayName": "Lid Lilac",
+        "canonical": "oklch(0.81 0.075 301.4)",
+        "tonalRamp": [
+          "oklch(0.15 0.075 301.4)",
+          "oklch(0.26 0.075 301.4)",
+          "oklch(0.37 0.075 301.4)",
+          "oklch(0.48 0.075 301.4)",
+          "oklch(0.60 0.075 301.4)",
+          "oklch(0.72 0.075 301.4)",
+          "oklch(0.84 0.075 301.4)",
+          "oklch(0.95 0.075 301.4)"
+        ]
+      },
+      "lid-apricot": {
+        "role": "secondary",
+        "displayName": "Lid Apricot",
+        "canonical": "oklch(0.832 0.095 58.2)",
+        "tonalRamp": [
+          "oklch(0.15 0.095 58.2)",
+          "oklch(0.26 0.095 58.2)",
+          "oklch(0.37 0.095 58.2)",
+          "oklch(0.48 0.095 58.2)",
+          "oklch(0.60 0.095 58.2)",
+          "oklch(0.72 0.095 58.2)",
+          "oklch(0.84 0.095 58.2)",
+          "oklch(0.95 0.095 58.2)"
+        ]
+      },
+      "caret-sky": {
+        "role": "secondary",
+        "displayName": "Caret Sky",
+        "canonical": "oklch(0.6 0.12 246.3)",
+        "tonalRamp": [
+          "oklch(0.15 0.12 246.3)",
+          "oklch(0.26 0.12 246.3)",
+          "oklch(0.37 0.12 246.3)",
+          "oklch(0.48 0.12 246.3)",
+          "oklch(0.60 0.12 246.3)",
+          "oklch(0.72 0.12 246.3)",
+          "oklch(0.84 0.12 246.3)",
+          "oklch(0.95 0.12 246.3)"
+        ],
+        "note": "Light theme --caret-N. Dark: color-mix(in oklab, var(--chart-N) 70%, var(--foreground))."
+      },
+      "caret-sunflower": {
+        "role": "secondary",
+        "displayName": "Caret Sunflower",
+        "canonical": "oklch(0.66 0.13 85)",
+        "tonalRamp": [
+          "oklch(0.15 0.13 85)",
+          "oklch(0.26 0.13 85)",
+          "oklch(0.37 0.13 85)",
+          "oklch(0.48 0.13 85)",
+          "oklch(0.60 0.13 85)",
+          "oklch(0.72 0.13 85)",
+          "oklch(0.84 0.13 85)",
+          "oklch(0.95 0.13 85)"
+        ],
+        "note": "Light theme --caret-N. Dark: color-mix(in oklab, var(--chart-N) 70%, var(--foreground))."
+      },
+      "caret-mint": {
+        "role": "secondary",
+        "displayName": "Caret Mint",
+        "canonical": "oklch(0.62 0.12 164.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.12 164.5)",
+          "oklch(0.26 0.12 164.5)",
+          "oklch(0.37 0.12 164.5)",
+          "oklch(0.48 0.12 164.5)",
+          "oklch(0.60 0.12 164.5)",
+          "oklch(0.72 0.12 164.5)",
+          "oklch(0.84 0.12 164.5)",
+          "oklch(0.95 0.12 164.5)"
+        ],
+        "note": "Light theme --caret-N. Dark: color-mix(in oklab, var(--chart-N) 70%, var(--foreground))."
+      },
+      "caret-lilac": {
+        "role": "secondary",
+        "displayName": "Caret Lilac",
+        "canonical": "oklch(0.6 0.13 301.4)",
+        "tonalRamp": [
+          "oklch(0.15 0.13 301.4)",
+          "oklch(0.26 0.13 301.4)",
+          "oklch(0.37 0.13 301.4)",
+          "oklch(0.48 0.13 301.4)",
+          "oklch(0.60 0.13 301.4)",
+          "oklch(0.72 0.13 301.4)",
+          "oklch(0.84 0.13 301.4)",
+          "oklch(0.95 0.13 301.4)"
+        ],
+        "note": "Light theme --caret-N. Dark: color-mix(in oklab, var(--chart-N) 70%, var(--foreground))."
+      },
+      "caret-apricot": {
+        "role": "secondary",
+        "displayName": "Caret Apricot",
+        "canonical": "oklch(0.64 0.14 58.2)",
+        "tonalRamp": [
+          "oklch(0.15 0.14 58.2)",
+          "oklch(0.26 0.14 58.2)",
+          "oklch(0.37 0.14 58.2)",
+          "oklch(0.48 0.14 58.2)",
+          "oklch(0.60 0.14 58.2)",
+          "oklch(0.72 0.14 58.2)",
+          "oklch(0.84 0.14 58.2)",
+          "oklch(0.95 0.14 58.2)"
+        ],
+        "note": "Light theme --caret-N. Dark: color-mix(in oklab, var(--chart-N) 70%, var(--foreground))."
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "oklch(0.212 0.035 268.5)",
+        "tonalRamp": [
+          "oklch(0.15 0.035 268.5)",
+          "oklch(0.26 0.035 268.5)",
+          "oklch(0.37 0.035 268.5)",
+          "oklch(0.48 0.035 268.5)",
+          "oklch(0.60 0.035 268.5)",
+          "oklch(0.72 0.035 268.5)",
+          "oklch(0.84 0.035 268.5)",
+          "oklch(0.95 0.035 268.5)"
+        ],
+        "theme": "dark"
+      },
+      "night-box": {
+        "role": "neutral",
+        "displayName": "Night Box",
+        "canonical": "oklch(0.255 0.04 266.9)",
+        "tonalRamp": [
+          "oklch(0.15 0.04 266.9)",
+          "oklch(0.26 0.04 266.9)",
+          "oklch(0.37 0.04 266.9)",
+          "oklch(0.48 0.04 266.9)",
+          "oklch(0.60 0.04 266.9)",
+          "oklch(0.72 0.04 266.9)",
+          "oklch(0.84 0.04 266.9)",
+          "oklch(0.95 0.04 266.9)"
+        ],
+        "theme": "dark"
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "oklch(0.96 0.009 258.3)",
+        "tonalRamp": [
+          "oklch(0.15 0.009 258.3)",
+          "oklch(0.26 0.009 258.3)",
+          "oklch(0.37 0.009 258.3)",
+          "oklch(0.48 0.009 258.3)",
+          "oklch(0.60 0.009 258.3)",
+          "oklch(0.72 0.009 258.3)",
+          "oklch(0.84 0.009 258.3)",
+          "oklch(0.95 0.009 258.3)"
+        ],
+        "theme": "dark"
+      },
+      "cornflower-cobalt": {
+        "role": "primary",
+        "displayName": "Cornflower Cobalt",
+        "canonical": "oklch(0.722 0.143 268.2)",
+        "tonalRamp": [
+          "oklch(0.15 0.143 268.2)",
+          "oklch(0.26 0.143 268.2)",
+          "oklch(0.37 0.143 268.2)",
+          "oklch(0.48 0.143 268.2)",
+          "oklch(0.60 0.143 268.2)",
+          "oklch(0.72 0.143 268.2)",
+          "oklch(0.84 0.143 268.2)",
+          "oklch(0.95 0.143 268.2)"
+        ],
+        "theme": "dark"
+      },
+      "cornflower-text": {
+        "role": "neutral",
+        "displayName": "Cornflower Text",
+        "canonical": "oklch(0.21 0.052 270.1)",
+        "tonalRamp": [
+          "oklch(0.15 0.052 270.1)",
+          "oklch(0.26 0.052 270.1)",
+          "oklch(0.37 0.052 270.1)",
+          "oklch(0.48 0.052 270.1)",
+          "oklch(0.60 0.052 270.1)",
+          "oklch(0.72 0.052 270.1)",
+          "oklch(0.84 0.052 270.1)",
+          "oklch(0.95 0.052 270.1)"
+        ],
+        "theme": "dark"
+      },
+      "night-step": {
+        "role": "neutral",
+        "displayName": "Night Step",
+        "canonical": "oklch(0.312 0.047 267)",
+        "tonalRamp": [
+          "oklch(0.15 0.047 267)",
+          "oklch(0.26 0.047 267)",
+          "oklch(0.37 0.047 267)",
+          "oklch(0.48 0.047 267)",
+          "oklch(0.60 0.047 267)",
+          "oklch(0.72 0.047 267)",
+          "oklch(0.84 0.047 267)",
+          "oklch(0.95 0.047 267)"
+        ],
+        "theme": "dark"
+      },
+      "night-muted": {
+        "role": "neutral",
+        "displayName": "Night Muted",
+        "canonical": "oklch(0.288 0.044 267.3)",
+        "tonalRamp": [
+          "oklch(0.15 0.044 267.3)",
+          "oklch(0.26 0.044 267.3)",
+          "oklch(0.37 0.044 267.3)",
+          "oklch(0.48 0.044 267.3)",
+          "oklch(0.60 0.044 267.3)",
+          "oklch(0.72 0.044 267.3)",
+          "oklch(0.84 0.044 267.3)",
+          "oklch(0.95 0.044 267.3)"
+        ],
+        "theme": "dark"
+      },
+      "night-muted-ink": {
+        "role": "neutral",
+        "displayName": "Night Muted Ink",
+        "canonical": "oklch(0.724 0.039 265)",
+        "tonalRamp": [
+          "oklch(0.15 0.039 265)",
+          "oklch(0.26 0.039 265)",
+          "oklch(0.37 0.039 265)",
+          "oklch(0.48 0.039 265)",
+          "oklch(0.60 0.039 265)",
+          "oklch(0.72 0.039 265)",
+          "oklch(0.84 0.039 265)",
+          "oklch(0.95 0.039 265)"
+        ],
+        "theme": "dark"
+      },
+      "night-seam": {
+        "role": "neutral",
+        "displayName": "Night Seam",
+        "canonical": "oklch(0.34 0.048 267.7)",
+        "tonalRamp": [
+          "oklch(0.15 0.048 267.7)",
+          "oklch(0.26 0.048 267.7)",
+          "oklch(0.37 0.048 267.7)",
+          "oklch(0.48 0.048 267.7)",
+          "oklch(0.60 0.048 267.7)",
+          "oklch(0.72 0.048 267.7)",
+          "oklch(0.84 0.048 267.7)",
+          "oklch(0.95 0.048 267.7)"
+        ],
+        "theme": "dark"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Calculator readouts; 1.5rem in compact (composite dish) mode."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Each person's answer; 1.5rem below 360px."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Screen header titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Names, inputs, units; gram inputs never below 16px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, sublines, share-bar captions."
+      },
+      "keypad": {
+        "displayName": "Keypad",
+        "purpose": "Digit keys on the in-app keypad."
+      }
+    },
+    "shadows": [
+      {
+        "name": "grip-rest",
+        "value": "0 2px 6px rgb(0 0 0 / 0.18)",
+        "purpose": "Round grip knobs on the share bar at rest."
+      },
+      {
+        "name": "grip-drag",
+        "value": "0 4px 12px rgb(0 0 0 / 0.22)",
+        "purpose": "Grip knob while dragged (with scale 1.1)."
+      },
+      {
+        "name": "segment-selected",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Chosen tab of the «г | %» segmented control (shadow-sm)."
+      },
+      {
+        "name": "tabbar-lift",
+        "value": "0 -4px 12px -6px rgb(0 0 0 / 0.12)",
+        "purpose": "Mobile bottom tab bar; removed at lg."
+      },
+      {
+        "name": "segment-divider",
+        "value": "inset 2px 0 0 var(--color-background)",
+        "purpose": "Seam between adjacent share-bar segments."
+      }
+    ],
+    "motion": [
+      {
+        "name": "caret-blink",
+        "value": "1.06s step-end infinite",
+        "purpose": "Calculator caret blink; disabled under reduced motion (steady primary caret)."
+      },
+      {
+        "name": "caret-lids-N",
+        "value": "N × 1.06s step-end infinite",
+        "purpose": "Caret color cycles through today's N lids (--caret-1..N), one color per blink; animate-caret-1..5."
+      },
+      {
+        "name": "bar-reflow",
+        "value": "300ms ease-out",
+        "purpose": "Share-bar segments and grips moving to new positions (0ms while dragging)."
+      },
+      {
+        "name": "grip-press",
+        "value": "150ms ease-out",
+        "purpose": "Grip knob scale on drag."
+      },
+      {
+        "name": "key-press",
+        "value": "scale(0.97)",
+        "purpose": "Keypad key press feedback."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "max-width: 360px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "themes": {
+      "light": ":root",
+      "dark": ".dark (next-themes, defaultTheme=system)"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Plain cobalt main action («Сохранить»); dark theme uses cornflower cobalt with navy text.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>Сохранить</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:6px; height:44px; padding:0 14px 0 12px; border:1px solid transparent; border-radius:var(--radius, 0.875rem); background:var(--primary, oklch(0.514 0.192 265)); color:var(--primary-foreground, #fff); font:500 0.875rem 'Rubik Variable', sans-serif; transition:all .15s; cursor:pointer; } .ds-btn-primary:hover { background:color-mix(in oklab, var(--primary, oklch(0.514 0.192 265)) 80%, transparent); } .ds-btn-primary:focus-visible { outline:none; border-color:var(--ring, oklch(0.514 0.192 265)); box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-btn-primary:active { transform:translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": null,
+      "description": "Secondary controls such as ±1 %.",
+      "html": "<button class=\"ds-btn-outline\" aria-label=\"+1 %\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14M12 5v14\"/></svg></button>",
+      "css": ".ds-btn-outline { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:1px solid var(--border, oklch(0.898 0.016 257.2)); border-radius:var(--radius, 0.875rem); background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); cursor:pointer; transition:background .15s; } .ds-btn-outline:hover { background:var(--muted, oklch(0.944 0.01 252.8)); } .ds-btn-outline:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); }"
+    },
+    {
+      "name": "Keypad",
+      "kind": "custom",
+      "refersTo": "keypad-digit",
+      "description": "Borderless color-field keys: frost-step digits, quieter operations, two-column cobalt save.",
+      "html": "<div class=\"ds-keypad\"><button class=\"ds-key\">7</button><button class=\"ds-key\">8</button><button class=\"ds-key\">9</button><button class=\"ds-key ds-key-op\">C</button><button class=\"ds-key\">,</button><button class=\"ds-key\">0</button><button class=\"ds-key ds-key-save\">Сохранить</button></div>",
+      "css": ".ds-keypad { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; width:320px; font-family:'Rubik Variable', sans-serif; } .ds-key { height:56px; border:0; border-radius:var(--radius, 0.875rem); background:var(--secondary, oklch(0.929 0.013 255.5)); color:var(--secondary-foreground, oklch(0.267 0.054 269.1)); font-size:1.5rem; font-weight:500; font-variant-numeric:tabular-nums; cursor:pointer; transition:transform .1s, background .15s; } .ds-key:hover { background:color-mix(in oklch, var(--secondary, oklch(0.929 0.013 255.5)), var(--foreground, oklch(0.267 0.054 269.1)) 5%); } .ds-key:active { transform:scale(0.97); } .ds-key:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-key-op { background:var(--muted, oklch(0.944 0.01 252.8)); color:var(--muted-foreground, oklch(0.526 0.045 262.7)); font-size:1.125rem; } .ds-key-op:hover { background:var(--accent, oklch(0.938 0.018 261.3)); color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-key-save { grid-column:span 2; background:var(--primary, oklch(0.514 0.192 265)); color:var(--primary-foreground, #fff); font-size:1.125rem; }"
+    },
+    {
+      "name": "Display Row",
+      "kind": "custom",
+      "refersTo": "display-row-active",
+      "description": "Calculator readout; the active row is a white lidded box with a 1px seam and the lid caret.",
+      "html": "<div class=\"ds-display\"><button class=\"ds-row\"><span class=\"ds-row-label\">Сухой</span><span class=\"ds-row-num\">150<span class=\"ds-unit\">г</span></span></button><button class=\"ds-row ds-row-active\"><span class=\"ds-row-label\">Готовый</span><span class=\"ds-row-num\">1210<span class=\"ds-caret\"></span><span class=\"ds-unit\">г</span></span></button></div>",
+      "css": ".ds-display { display:flex; flex-direction:column; gap:4px; width:340px; font-family:'Rubik Variable', sans-serif; } .ds-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; min-height:80px; padding:8px 16px; border:1px solid transparent; border-radius:calc(var(--radius, 0.875rem) * 1.4); background:transparent; color:var(--foreground, oklch(0.267 0.054 269.1)); text-align:left; cursor:pointer; transition:background .15s; } .ds-row:hover { background:color-mix(in oklab, var(--card, #fff) 60%, transparent); } .ds-row:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-row-label { font-size:.875rem; line-height:1.25; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-row-active { border-color:var(--border, oklch(0.898 0.016 257.2)); background:var(--card, #fff); } .ds-row-active .ds-row-label { color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-row-num { display:flex; align-items:baseline; font-size:2.25rem; line-height:1.25; font-weight:500; font-variant-numeric:tabular-nums; } .ds-unit { margin-left:4px; font-size:1rem; font-weight:400; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-caret { display:inline-block; align-self:center; width:3px; height:.9em; margin-left:2px; border-radius:9999px; background:var(--caret-2, oklch(0.66 0.13 85)); animation:ds-blink 1.06s step-end infinite; } @keyframes ds-blink { 50% { opacity:0; } } @media (prefers-reduced-motion: reduce) { .ds-caret { animation:none; background:var(--primary, oklch(0.514 0.192 265)); } }"
+    },
+    {
+      "name": "Share Bar",
+      "kind": "custom",
+      "refersTo": "share-segment",
+      "description": "Person segments in lid colors; the selected one ringed in ink; round grip on the border; hatched rest.",
+      "html": "<div class=\"ds-bar\"><div class=\"ds-seg ds-seg-sel\" style=\"width:48%;background:var(--chart-1, oklch(0.815 0.073 246.3))\"><b>Ваня</b><span>194 г</span></div><div class=\"ds-seg\" style=\"width:37%;background:var(--chart-2, oklch(0.871 0.14 91.6))\"><b>Ксюша</b><span>166 г</span></div><div class=\"ds-seg ds-seg-rest\" style=\"width:15%\"><span>…</span></div><span class=\"ds-grip\" style=\"left:48%\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"9\" cy=\"6\" r=\"1.5\"/><circle cx=\"15\" cy=\"6\" r=\"1.5\"/><circle cx=\"9\" cy=\"12\" r=\"1.5\"/><circle cx=\"15\" cy=\"12\" r=\"1.5\"/><circle cx=\"9\" cy=\"18\" r=\"1.5\"/><circle cx=\"15\" cy=\"18\" r=\"1.5\"/></svg></span></div>",
+      "css": ".ds-bar { position:relative; display:flex; width:340px; height:48px; font-family:'Rubik Variable', sans-serif; } .ds-seg { display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.875rem; line-height:1.2; color:var(--chart-foreground, oklch(0.267 0.054 269.1)); font-variant-numeric:tabular-nums; box-shadow:inset 2px 0 0 var(--background, oklch(0.969 0.006 255.5)); } .ds-seg b { font-weight:500; } .ds-seg span { font-weight:600; } .ds-seg:first-child { border-radius:calc(var(--radius, 0.875rem) * 1.4) 0 0 calc(var(--radius, 0.875rem) * 1.4); box-shadow:none; } .ds-seg:nth-child(3) { border-radius:0 calc(var(--radius, 0.875rem) * 1.4) calc(var(--radius, 0.875rem) * 1.4) 0; } .ds-seg-sel { box-shadow:inset 0 0 0 2px var(--foreground, oklch(0.267 0.054 269.1)); } .ds-seg-rest { color:var(--muted-foreground, oklch(0.526 0.045 262.7)); background:repeating-linear-gradient(135deg, var(--muted, oklch(0.944 0.01 252.8)) 0 6px, var(--background, oklch(0.969 0.006 255.5)) 6px 12px); } .ds-grip { position:absolute; top:50%; display:flex; align-items:center; justify-content:center; width:32px; height:32px; transform:translate(-50%,-50%); border:1px solid var(--border, oklch(0.898 0.016 257.2)); border-radius:9999px; background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); box-shadow:0 2px 6px rgb(0 0 0 / .18); cursor:grab; transition:transform .15s ease-out; } .ds-grip:hover { transform:translate(-50%,-50%) scale(1.1); box-shadow:0 4px 12px rgb(0 0 0 / .22); }"
+    },
+    {
+      "name": "Person Row",
+      "kind": "custom",
+      "refersTo": "lid-mark",
+      "description": "Lid mark by the name, muted subline, large tabular answer with a unit chip.",
+      "html": "<div class=\"ds-person\"><span class=\"ds-lid\"></span><div class=\"ds-who\"><span class=\"ds-name\">Ваня</span><span class=\"ds-sub\">53,8 % • 81 г сухого</span></div><span class=\"ds-answer\">194</span><span class=\"ds-chip\">г</span></div>",
+      "css": ".ds-person { display:flex; align-items:center; gap:8px; width:340px; padding:12px 0; font-family:'Rubik Variable', sans-serif; color:var(--foreground, oklch(0.267 0.054 269.1)); border-bottom:1px solid var(--border, oklch(0.898 0.016 257.2)); } .ds-lid { align-self:flex-start; margin-top:12px; width:14px; height:14px; border-radius:5px; background:var(--chart-1, oklch(0.815 0.073 246.3)); flex-shrink:0; } .ds-who { display:flex; flex-direction:column; flex:1; min-width:0; } .ds-name { font-size:1rem; font-weight:500; padding:6px 4px 0; } .ds-sub { font-size:.875rem; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); padding:0 4px; font-variant-numeric:tabular-nums; } .ds-answer { font-size:1.875rem; font-weight:500; line-height:1.25; font-variant-numeric:tabular-nums; padding:4px 8px; border-radius:calc(var(--radius, 0.875rem) * 1.4); cursor:pointer; } .ds-answer:hover { background:color-mix(in oklab, var(--muted, oklch(0.944 0.01 252.8)) 50%, transparent); } .ds-chip { min-width:28px; padding:2px 6px; text-align:center; border-radius:calc(var(--radius, 0.875rem) * 0.8); background:var(--muted, oklch(0.944 0.01 252.8)); color:var(--muted-foreground, oklch(0.526 0.045 262.7)); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "44px field with a 1px stroke; cobalt border and ring on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Имя\" />",
+      "css": ".ds-input { height:44px; width:240px; padding:4px 10px; border:1px solid var(--input, oklch(0.873 0.019 255.5)); border-radius:var(--radius, 0.875rem); background:transparent; color:var(--foreground, oklch(0.267 0.054 269.1)); font:400 1rem 'Rubik Variable', sans-serif; transition:border-color .15s, box-shadow .15s; } .ds-input::placeholder { color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-input:focus-visible { outline:none; border-color:var(--ring, oklch(0.514 0.192 265)); box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); }"
+    },
+    {
+      "name": "Unit Segmented Control",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "«г | %» switch: frost-muted track, chosen tab lifted on the ground color.",
+      "html": "<div class=\"ds-seg-ctl\"><button class=\"ds-seg-opt\" aria-pressed=\"true\">г</button><button class=\"ds-seg-opt\" aria-pressed=\"false\">%</button></div>",
+      "css": ".ds-seg-ctl { display:inline-flex; padding:2px; border-radius:var(--radius, 0.875rem); background:var(--muted, oklch(0.944 0.01 252.8)); font:500 .875rem 'Rubik Variable', sans-serif; } .ds-seg-opt { min-width:36px; min-height:40px; padding:0 8px; border:0; border-radius:calc(var(--radius, 0.875rem) * 0.8); background:transparent; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); cursor:pointer; transition:background .15s, color .15s; } .ds-seg-opt[aria-pressed=true] { background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); box-shadow:0 1px 2px rgb(0 0 0 / .05); } .ds-seg-opt:hover { color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-seg-opt:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Ланчбокс",
+    "overview": "\n**Creative North Star: \"Ланчбокс\"**\n\nEvery eater is a lid color. The calculator reads as lunchboxes laid out on a frosted counter: a cool, slightly blue polypropylene ground, navy ink for every number, one cobalt action, and a row of pastel lids (sky, sunflower, mint, lilac, apricot) that belong to people, not to the interface. The user chose this world out of three proposals («Ланчбокс», «Калькулятор», «Табло»).\n\nThe surface is a working tool for a phone at the stove: large tabular numerals, big thumb-reach keys, and almost no decoration. Depth comes from tonal steps (frosted ground, white lidded box, a frost-grey key), not from shadows. Color is quarantined: the lids appear only where a person owns the mark, so a glance at a color is a glance at a name. The tone avoids sterile medical coldness and the default shadcn look without letting anything compete with the grams.\n\nLight and dark follow the phone's setting (next-themes, `defaultTheme=\"system\"`, `.dark` on `<html>`). Dark is \"night\" polypropylene: navy ground, a lifted navy box, the same lids slightly deepened, and a lighter cornflower cobalt so the main action still reads.",
+    "keyCharacteristics": [
+      "Frosted cool-white ground, navy ink, a single plain cobalt primary.",
+      "Five lid colors assigned by a person's place in today's lineup, repeating after five.",
+      "Numbers first: tabular Rubik in medium weight, 30–36 px for answers.",
+      "Flat, tonal layering; the active field is a white lidded box with a 1 px seam.",
+      "Generous radii (0.875rem base, ~1.2rem on boxes and the share bar).",
+      "A blinking caret that cycles through today's lids."
+    ],
+    "rules": [
+      {
+        "name": "The Color Quarantine Rule",
+        "body": "Lid colors appear only on person-owned marks: share-bar segments, the lid mark beside a name, and the caret. Chrome stays ink and cobalt.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ring, Not Flood Rule",
+        "body": "Selection is a ring (`ring-2` in ink, inset), never a fill that would hide the person's color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Plain Cobalt Rule",
+        "body": "Primary buttons are a flat cobalt fill with white (or, in dark, navy) text. The user declined decorated primary buttons.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Grams Rule",
+        "body": "Every number a person reads or types uses tabular figures (`tabular-nums`, and all `inputmode=\"decimal\"` inputs), so digits don't jump while typing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Quiet Unit Rule",
+        "body": "Units and explanations sit one step down in size and in `slate-muted-ink`; the number carries the weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Drag-Only Shadow Rule",
+        "body": "Only draggable or floating controls cast a shadow; boxes and keys are separated by tone.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do give each person their lid by place in today's lineup (`--chart-1..5`), repeating after five, and put navy `--chart-foreground` text on it.",
+      "Do mark the active field as a white lidded box with a 1 px seam; signal state by shape and border as well as color.",
+      "Do keep every gram tabular and every gram input ≥ 16 px and ≥ 44 px tall.",
+      "Do show selection as an inset ring that keeps the person's color visible.",
+      "Do derive a new caret color by deepening the lid's hue to ≥ 3:1 on white (light) or mixing 30% toward the ink in oklab (dark).",
+      "Do quote interface text in Russian and follow docs/SPEC.md §2 terminology («вес с тарой» / «вес без тары»)."
+    ],
+    "donts": [
+      "Don't use lid colors on chrome: buttons, headers, tabs, borders, and backgrounds stay ink, frost, and cobalt.",
+      "Don't decorate the primary button (no gradients, patterns, or lid trims); it stays plain cobalt.",
+      "Don't flood a selected segment or row with a new fill that hides the person's color.",
+      "Don't mix theme colors in oklch when the hue matters; mix in oklab.",
+      "Don't hardcode colors; use the shadcn theme variables.",
+      "Don't use «нетто/брутто» anywhere in the interface."
+    ]
+  }
+}
