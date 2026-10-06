@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { asSimple, dishErrors, dishKind, dishSource, dishTitle, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
+import { asSimple, dishErrors, dishKind, dishSource, dishTitle, liveTareId, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
 import { focusOrBlur, ingredientNameId } from '@/lib/domIds'
 import type { DishDraft } from '@/store/createAppStore'
 import { newId } from '@/store/id'
@@ -196,7 +196,7 @@ export function DishEditorForm() {
           </Field>
           <Field>
             <FieldLabel htmlFor="dish-tare">В чём взвешиваете</FieldLabel>
-            <Select value={draft.tareId ?? NONE} onValueChange={(v) => patch({ tareId: v === NONE ? null : v })}>
+            <Select value={liveTareId(draft.tareId, tares) ?? NONE} onValueChange={(v) => patch({ tareId: v === NONE ? null : v })}>
               <SelectTrigger id="dish-tare" className="w-full">
                 <SelectValue />
               </SelectTrigger>

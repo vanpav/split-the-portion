@@ -1,7 +1,7 @@
 import { ingredientDisplayName } from './cooking'
 import { formatGrams } from './numbers'
 import { toPercents } from './shares'
-import type { Company, CompanyMember, CookingKind, Dish, Ingredient, Portion } from './types'
+import type { Company, CompanyMember, CookingKind, Dish, Id, Ingredient, Portion, Tare } from './types'
 
 /** Shown name: the dish name, or its ingredients, or a placeholder. */
 export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
@@ -12,6 +12,14 @@ export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
     .map((i) => i.name.trim())
     .filter(Boolean)
   return names.length > 0 ? names.join(', ') : 'Без названия'
+}
+
+/**
+ * The tare a dish is weighed in, while it is still in the library; null — without tare
+ * (docs/SPEC.md §8). A deleted tare is not erased from the dish: undoing the removal brings it back.
+ */
+export function liveTareId(tareId: Id | null, tares: Pick<Tare, 'id'>[]): Id | null {
+  return tareId !== null && tares.some((t) => t.id === tareId) ? tareId : null
 }
 
 /**

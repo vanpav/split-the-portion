@@ -24,7 +24,7 @@ export function TaresSection() {
             onOpenChange={(open) => setOpenId(open ? tare.id : null)}
           />
         ))}
-        {/* The same form as «Добавить тару» in the calculator: name, weight in the field or with the slider. */}
+        {/* The same form as «Добавить тару» in the calculator; a new tare shows up as a row above it. */}
         <li className="flex flex-col gap-3 px-4 py-4">
           <h3 className="font-medium">Новая тара</h3>
           <TareForm />

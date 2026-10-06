@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
-import type { Company, Dish, Id, Lineup, Tare } from '@/domain'
+import { liveTareId, type Company, type Dish, type Id, type Lineup, type Tare } from '@/domain'
 import { newId } from './id'
 import {
   backupKey,
@@ -108,7 +108,12 @@ export function createAppStore(storage: () => StateStorage) {
             set((s) => ({
               dishes: s.dishes.map((d) =>
                 d.id === dishId
-                  ? { ...d, cooked: grams !== null && grams > 0 ? { grams, tareId: d.tareId, at } : null, updatedAt: at }
+                  ? {
+                      ...d,
+                      // Weighed in the tare shown: none, if the dish's tare was deleted (docs/SPEC.md §8).
+                      cooked: grams !== null && grams > 0 ? { grams, tareId: liveTareId(d.tareId, s.tares), at } : null,
+                      updatedAt: at,
+                    }
                   : d,
               ),
             }))
