@@ -15,7 +15,7 @@ interface TareFormProps {
 
 /**
  * A new tare for the library: big «Название» and «Вес» fields. The same form in the settings and
- * in the calculator's «Добавить тару» dialog. Enter in the name goes to the weight, Enter in the
+ * on the calculator's «Новая тара» screen. Enter in the name goes to the weight, Enter in the
  * weight adds. After adding it is empty again, the name focused for the next one.
  */
 export function TareForm({ onCreated, autoFocus }: TareFormProps) {
@@ -32,7 +32,7 @@ export function TareForm({ onCreated, autoFocus }: TareFormProps) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    // A form inside a dialog or popover must not submit the one around it.
+    // A form inside another one must not submit it.
     e.stopPropagation()
     if (!valid || !isValidTareGrams(grams)) return
     const id = upsertTare({ name: name.trim(), grams })

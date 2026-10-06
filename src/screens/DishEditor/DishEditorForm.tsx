@@ -1,8 +1,10 @@
-import { PlusIcon } from 'lucide-react'
+import { CookingPotIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useOutlet, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
-import { DISHES_PATH, dishPath } from '@/app/paths'
+import { OverScreen } from '@/app/OverScreen'
+import { DISHES_PATH, dishPath, FROM_SIMPLE_DISH } from '@/app/paths'
+import { useReturnAnimation } from '@/app/screenAnimation'
 import { useBack } from '@/app/useBack'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
@@ -13,11 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { asSimple, dishErrors, dishKind, dishSource, dishTitle, liveTareId, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
 import { focusOrBlur, ingredientNameId } from '@/lib/domIds'
+import { cn } from '@/lib/utils'
 import type { DishDraft } from '@/store/createAppStore'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 import { DishActions } from './DishActions'
-import { FromSimpleDishPicker } from './FromSimpleDishPicker'
+import type { EditorOutlet } from './editorOutlet'
 import { IngredientEditorRow } from './IngredientEditorRow'
 
 const NONE = 'none'
@@ -66,6 +69,11 @@ export function DishEditorForm() {
   const [focusId, setFocusId] = useState<Id | null>(
     () => draft?.ingredients.find((i) => !i.name.trim())?.id ?? null,
   )
+
+  // «Из простого блюда» is a screen over the form (docs/UX.md §3а): the form stays mounted under it,
+  // hidden, keeping the draft; the dish picked comes back through the outlet.
+  const outlet = useOutlet({ onPick: (source) => addIngredient(source) } satisfies EditorOutlet)
+  const returnAnimation = useReturnAnimation(outlet !== null)
 
   if (!draft) return <Navigate to="/" replace />
   const isNew = !existing
@@ -143,113 +151,122 @@ export function DishEditorForm() {
 
   return (
     <>
-      <ScreenHeader
-        title={isNew ? 'Добавить блюдо' : 'Изменить блюдо'}
-        back
-        backTo={backTo}
-        backLabel={existing ? 'Калькулятор' : 'Блюда'}
-      />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-4">
-        <section className="flex flex-col gap-2">
-          {/* A choice, and it follows the ingredients too: two counted products make the dish composite. */}
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            aria-label="Вид блюда"
-            value={shownKind}
-            onValueChange={(v) => v && chooseKind(v as CookingKind)}
-            className="w-full"
-          >
-            <ToggleGroupItem value="simple" className="min-h-11 flex-1">
-              Простое
-            </ToggleGroupItem>
-            <ToggleGroupItem value="composite" className="min-h-11 flex-1">
-              Составное
-            </ToggleGroupItem>
-          </ToggleGroup>
-          <p className="text-sm text-muted-foreground" aria-live="polite">
-            {shownKind === 'simple'
-              ? 'Один продукт. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.'
-              : 'Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметьте «не учитывать».'}
-          </p>
-        </section>
+      <div hidden={outlet !== null} className={cn('flex flex-1 flex-col', returnAnimation)}>
+        <ScreenHeader
+          title={isNew ? 'Добавить блюдо' : 'Изменить блюдо'}
+          back
+          backTo={backTo}
+          backLabel={existing ? 'Калькулятор' : 'Блюда'}
+        />
+        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-4">
+          <section className="flex flex-col gap-2">
+            {/* A choice, and it follows the ingredients too: two counted products make the dish composite. */}
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              aria-label="Вид блюда"
+              value={shownKind}
+              onValueChange={(v) => v && chooseKind(v as CookingKind)}
+              className="w-full"
+            >
+              <ToggleGroupItem value="simple" className="min-h-11 flex-1">
+                Простое
+              </ToggleGroupItem>
+              <ToggleGroupItem value="composite" className="min-h-11 flex-1">
+                Составное
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              {shownKind === 'simple'
+                ? 'Один продукт. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.'
+                : 'Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметьте «не учитывать».'}
+            </p>
+          </section>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold">Продукты</h2>
-          {/* Rows are padded and divided themselves, so a removed one folds up with nothing left behind;
-              the negative margin keeps the section's own gap to the heading and the buttons. */}
-          <div className="-my-3 flex flex-col divide-y">
-            {draft.ingredients.map((ingredient, index) => (
-              <IngredientEditorRow
-                key={ingredient.id}
-                ingredient={ingredient}
-                index={index}
-                placeholder={index === 0 ? 'Макароны' : 'Фарш, соль…'}
-                autoFocus={focusId === ingredient.id}
-                onChange={(p) => setIngredient(ingredient.id, p)}
-                onRemove={() => removeIngredient(ingredient.id)}
-                onEnter={() => focusNextIngredient(index)}
-              />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => addIngredient()}>
-              <PlusIcon data-icon="inline-start" />
-              Ингредиент
-            </Button>
-            <FromSimpleDishPicker onPick={(source) => addIngredient(source)} />
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold">Как обычно</h2>
-          <Field>
-            <FieldLabel htmlFor="dish-name">Название</FieldLabel>
-            <Input
-              id="dish-name"
-              placeholder={dishTitle({ name: '', ingredients: draft.ingredients })}
-              value={draft.name}
-              onChange={(e) => patch({ name: e.target.value })}
-            />
-            <FieldDescription>Можно не заполнять — назовём по продуктам.</FieldDescription>
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="dish-tare">В чём взвешиваете</FieldLabel>
-            <Select value={liveTareId(draft.tareId, tares) ?? NONE} onValueChange={(v) => patch({ tareId: v === NONE ? null : v })}>
-              <SelectTrigger id="dish-tare" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>Без тары</SelectItem>
-                {tares.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name} · {t.grams} г
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {tares.length === 0 && <FieldDescription>Тару можно добавить в настройках.</FieldDescription>}
-          </Field>
-        </section>
-
-        {existing && <DishActions dish={existing} />}
-
-        <BottomBar>
-          <div className="flex flex-1 flex-col gap-2">
-            {errors.length > 0 && (
-              <p className="text-sm text-muted-foreground">{errors.map((e) => ERROR_TEXT[e]).join(' · ')}</p>
-            )}
-            <div className="flex gap-2">
-              <Button size="lg" className="flex-1 lg:flex-none" disabled={errors.length > 0} onClick={save}>
-                {isNew ? 'Создать' : 'Сохранить'}
+          <section className="flex flex-col gap-3">
+            <h2 className="text-base font-semibold">Продукты</h2>
+            {/* Rows are padded and divided themselves, so a removed one folds up with nothing left behind;
+                the negative margin keeps the section's own gap to the heading and the buttons. */}
+            <div className="-my-3 flex flex-col divide-y">
+              {draft.ingredients.map((ingredient, index) => (
+                <IngredientEditorRow
+                  key={ingredient.id}
+                  ingredient={ingredient}
+                  index={index}
+                  placeholder={index === 0 ? 'Макароны' : 'Фарш, соль…'}
+                  autoFocus={focusId === ingredient.id}
+                  onChange={(p) => setIngredient(ingredient.id, p)}
+                  onRemove={() => removeIngredient(ingredient.id)}
+                  onEnter={() => focusNextIngredient(index)}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => addIngredient()}>
+                <PlusIcon data-icon="inline-start" />
+                Ингредиент
               </Button>
-              <Button size="lg" variant="outline" onClick={back}>
-                Отмена
+              <Button variant="outline" asChild>
+                {/* The query (`from`) stays: it is the form's address. */}
+                <Link to={{ pathname: FROM_SIMPLE_DISH, search: params.toString() }}>
+                  <CookingPotIcon data-icon="inline-start" />
+                  Из простого блюда
+                </Link>
               </Button>
             </div>
-          </div>
-        </BottomBar>
-      </main>
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <h2 className="text-base font-semibold">Как обычно</h2>
+            <Field>
+              <FieldLabel htmlFor="dish-name">Название</FieldLabel>
+              <Input
+                id="dish-name"
+                placeholder={dishTitle({ name: '', ingredients: draft.ingredients })}
+                value={draft.name}
+                onChange={(e) => patch({ name: e.target.value })}
+              />
+              <FieldDescription>Можно не заполнять — назовём по продуктам.</FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="dish-tare">В чём взвешиваете</FieldLabel>
+              <Select value={liveTareId(draft.tareId, tares) ?? NONE} onValueChange={(v) => patch({ tareId: v === NONE ? null : v })}>
+                <SelectTrigger id="dish-tare" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Без тары</SelectItem>
+                  {tares.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name} · {t.grams} г
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {tares.length === 0 && <FieldDescription>Тару можно добавить в настройках.</FieldDescription>}
+            </Field>
+          </section>
+
+          {existing && <DishActions dish={existing} />}
+
+          <BottomBar>
+            <div className="flex flex-1 flex-col gap-2">
+              {errors.length > 0 && (
+                <p className="text-sm text-muted-foreground">{errors.map((e) => ERROR_TEXT[e]).join(' · ')}</p>
+              )}
+              <div className="flex gap-2">
+                <Button size="lg" className="flex-1 lg:flex-none" disabled={errors.length > 0} onClick={save}>
+                  {isNew ? 'Создать' : 'Сохранить'}
+                </Button>
+                <Button size="lg" variant="outline" onClick={back}>
+                  Отмена
+                </Button>
+              </div>
+            </div>
+          </BottomBar>
+        </main>
+      </div>
+      {outlet && <OverScreen>{outlet}</OverScreen>}
     </>
   )
 }

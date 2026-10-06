@@ -2,8 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation, useNavigationType } from 'react-router'
 import { cn } from '@/lib/utils'
 import { enterAnimation, screenKey, uaAnimatedKey } from './enterAnimation'
-
-const ENTER = 'motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200 motion-safe:ease-out'
+import { NavigationAnimationContext, screenEnterClass } from './screenAnimation'
 
 /**
  * The entering screen slides in (docs/UX.md «Переходы между экранами»): a new entry in history (PUSH)
@@ -12,6 +11,8 @@ const ENTER = 'motion-safe:animate-in motion-safe:fade-in motion-safe:duration-2
  * animated itself (the edge swipe in iOS Safari) do not animate.
  * Keyed by screen, so a screen remounts (and animates) only when the screen changes, not while typing;
  * switching dishes on the shelf stays on the same screen (the calculator animates its own content).
+ * A screen over another keeps that one's key too; it and the screen under it read how to come in
+ * from NavigationAnimationContext (app/OverScreen, useReturnAnimation).
  */
 export function ScreenTransition({ children }: { children: ReactNode }) {
   const location = useLocation()
@@ -48,16 +49,8 @@ export function ScreenTransition({ children }: { children: ReactNode }) {
     // `clip`, not `hidden`: the shifted screen adds no horizontal scroll, and sticky headers keep working.
     // On the outer box: the clip of an element does not cover its own transform.
     <div className="flex flex-1 flex-col overflow-x-clip">
-      <div
-        key={key}
-        className={cn(
-          'flex flex-1 flex-col',
-          shown !== 'none' && ENTER,
-          shown === 'back' && 'motion-safe:slide-in-from-left-6',
-          shown === 'forward' && 'motion-safe:slide-in-from-right-6',
-        )}
-      >
-        {children}
+      <div key={key} className={cn('flex flex-1 flex-col', screenEnterClass(shown))}>
+        <NavigationAnimationContext value={animation}>{children}</NavigationAnimationContext>
       </div>
     </div>
   )

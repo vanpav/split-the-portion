@@ -59,6 +59,20 @@ describe('screenKey', () => {
     expect(screenKey('/settings/tares')).toBe('/settings/tares')
     expect(screenKey('/')).toBe('/')
   })
+
+  it('keeps the screen under a screen opened over it, so it is not remounted', () => {
+    expect(screenKey('/d/abc/tare/new')).toBe('/d/:id')
+    expect(screenKey('/d/abc/company/new')).toBe('/d/:id')
+    expect(screenKey('/d/abc/copy')).toBe('/d/:id')
+    expect(screenKey('/d/abc/edit/from-dish')).toBe('/d/abc/edit')
+    expect(screenKey('/d/new/from-dish')).toBe('/d/new')
+    expect(screenKey('/settings/group/copy')).toBe('/settings/group')
+  })
+
+  it('does not take a short path that only ends like a screen over another for one', () => {
+    expect(screenKey('/join')).toBe('/join')
+    expect(screenKey('/d/copy')).toBe('/d/:id')
+  })
 })
 
 describe('dishSwitchAnimation', () => {

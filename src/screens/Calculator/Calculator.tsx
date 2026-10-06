@@ -1,7 +1,10 @@
 import { ChevronDownIcon, ChevronUpIcon, PercentIcon } from 'lucide-react'
-import { useEffect, useEffectEvent, useMemo, useState, type KeyboardEvent } from 'react'
-import { Navigate } from 'react-router'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
+import { OverScreen } from '@/app/OverScreen'
+import { newCompanyPath, newTarePath } from '@/app/paths'
+import { useReturnAnimation } from '@/app/screenAnimation'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
@@ -39,10 +42,12 @@ import {
   type Id,
   type SplitMode,
 } from '@/domain'
-import { calculatorFieldId, focusOrBlur } from '@/lib/domIds'
+import { ADD_PERSON_ID, calculatorFieldId, COMPANY_SELECT_ID, focusOrBlur, TARE_SELECT_ID } from '@/lib/domIds'
+import { cn } from '@/lib/utils'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
+import type { CalculatorOutlet } from './calculatorOutlet'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
 import { kText, portionName, rawWord } from './messages'
@@ -347,6 +352,32 @@ export function Calculator({ id }: { id: Id | undefined }) {
     setFixed(({ [last.id]: _removed, ...rest }) => rest)
     leavePerson(last.id)
   }
+
+  // «Новая тара» and «Новая компания» are screens over the calculator (docs/UX.md §3а): it stays
+  // mounted under them, hidden, keeping what is typed today; a result comes back through the outlet.
+  const navigate = useNavigate()
+  // The field focused again once the screen is gone: the one it was opened from, or «+ Имя» after a new company.
+  const refocus = useRef<string | null>(null)
+  const outlet = useOutlet({
+    dishId: id ?? '',
+    onTare: (picked) => changeTare(picked.id),
+    onCompany: (added) => {
+      choosePreset(added)
+      refocus.current = ADD_PERSON_ID
+    },
+  } satisfies CalculatorOutlet)
+  const covered = outlet !== null
+  const returnAnimation = useReturnAnimation(covered)
+  const openScreen = (path: string, from: string) => {
+    refocus.current = from
+    navigate(path)
+  }
+  useEffect(() => {
+    if (covered || !refocus.current) return
+    // The scroll is restored by the router: the field is where it was.
+    document.getElementById(refocus.current)?.focus({ preventScroll: true })
+    refocus.current = null
+  }, [covered])
   const addPerson = (name: string) => {
     const person: CompanyMember = { id: newId(), name, weight: defaultShareWeight(people.map((p) => p.weight)) }
     setPeople([...people, person])
@@ -433,152 +464,162 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-2xl">
-      <section aria-label="Вес" className="flex flex-col gap-1">
-        {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
-            unfolded, its products are small tiles two to a row and «Готовый» goes across. */}
-        <div className="grid grid-cols-2 gap-2">
-          {folded ? (
-            <RawFoldTile total={raw.total} note={raw.note} onExpand={() => setFolded(false)} />
-          ) : (
-            shownIngredients.map((i) => (
-              <DisplayRow
-                key={i.id}
-                {...weightField(i.id)}
-                label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
-                text={texts[i.id] ?? ''}
-                small={!tiles}
-                lids={people.length}
-              />
-            ))
-          )}
-          <DisplayRow
-            {...weightField(COOKED)}
-            last
-            label={cookedHere !== null && dish.cooked ? `Готовый · ${clockTime(dish.cooked.at)}` : 'Готовый'}
-            text={cookedText}
-            className={tiles ? undefined : 'col-span-2'}
-            invalid={tareExceeds}
-            lids={people.length}
-          />
-        </div>
-        {/* One quiet line: what «Готовый» was weighed in, what that leaves and k; a composite dish folds here. */}
-        {/* Small to look at, 44 px to hit: the line pulls its margins in, the people get the height. */}
-        <div className="-my-1.5 flex flex-wrap items-center gap-x-2">
-          <TareSelect tares={tares} tareId={tareId} onTare={changeTare} />
-          {tareExceeds ? (
-            <span className="text-sm text-destructive">вес меньше тары</span>
-          ) : (
-            note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
-          )}
-          {foldable && (
-            <Button
-              variant="ghost"
-              aria-expanded={!folded}
-              // A quiet line: open or not, the button stays text, without the pressed fill.
-              className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
-              onClick={folded ? () => setFolded(false) : fold}
-            >
-              {folded ? 'Продукты' : 'Свернуть'}
-              {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
-            </Button>
-          )}
-        </div>
-      </section>
-
-      <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
-        <CompanyPicker
-          className="w-full"
-          value={companyId}
-          // Ticked only while the shares are the company's own: picking it again brings them back.
-          ticked={matching && matching.id === companyId ? companyId : null}
-          customLabel={`Свой состав · ${lineup.members.length}`}
-          onChange={choosePreset}
-          onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
-          shares={{ active: inShares, label: `Доли · ${people.length}`, onPick: () => switchMode('shares') }}
-          onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
-        />
-        <ShareSlider
-          sharing={sharing}
-          sharingSegments={segments.filter((x) => fixed[x.id] === undefined)}
-          own={segments.filter((x) => fixed[x.id] !== undefined)}
-          rest={
-            people.length > 0 && phase.remainder.state === 'some'
-              ? { share: phase.remainder.share, label: gramsLabel(portionGrams(phase.remainder, rawOf)) }
-              : null
-          }
-          onChange={setPercents}
-          keep={keepNow}
-          keepMost={keepMost}
-          onKeep={inShares ? undefined : setKeep}
-          unit={barUnit}
-          onUnit={setBarUnit}
-          aside={inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
-        />
-        {Object.keys(fixed).length > 0 && (
-          <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
-            <span>Есть свои порции</span>
-            <Button variant="outline" onClick={allToShares}>
-              <PercentIcon data-icon="inline-start" />
-              Всё в доли
-            </Button>
-          </div>
+    <>
+      <main
+        hidden={covered}
+        className={cn(
+          'mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-2xl',
+          returnAnimation,
         )}
-        <ul className="flex flex-col divide-y" aria-live="polite">
-          {phase.portions.map((p) => (
-            <PersonResult
-              key={p.portionId}
-              cooking={draft}
-              result={result}
-              name={people.find((x) => x.id === p.portionId)?.name ?? ''}
-              place={placeOf(p.portionId)}
+      >
+        <section aria-label="Вес" className="flex flex-col gap-1">
+          {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
+              unfolded, its products are small tiles two to a row and «Готовый» goes across. */}
+          <div className="grid grid-cols-2 gap-2">
+            {folded ? (
+              <RawFoldTile total={raw.total} note={raw.note} onExpand={() => setFolded(false)} />
+            ) : (
+              shownIngredients.map((i) => (
+                <DisplayRow
+                  key={i.id}
+                  {...weightField(i.id)}
+                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
+                  text={texts[i.id] ?? ''}
+                  small={!tiles}
+                  lids={people.length}
+                />
+              ))
+            )}
+            <DisplayRow
+              {...weightField(COOKED)}
+              last
+              label={cookedHere !== null && dish.cooked ? `Готовый · ${clockTime(dish.cooked.at)}` : 'Готовый'}
+              text={cookedText}
+              className={tiles ? undefined : 'col-span-2'}
+              invalid={tareExceeds}
               lids={people.length}
-              computed={p}
-              dry={rawOf !== null}
-              onRename={inShares ? undefined : (name) => updatePerson(p.portionId, name)}
-              onRemove={() => removePerson(p.portionId)}
-              removeLabel={inShares ? `Убрать порцию ${placeOf(p.portionId) + 1}` : undefined}
-              holdMs={holdMs}
-              onReleaseOwn={() => releaseOwn(p.portionId)}
-              percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
-              grams={{
-                id: calculatorFieldId(personKey(p.portionId)),
-                active: active === personKey(p.portionId),
-                text: texts[personKey(p.portionId)] ?? '',
-                own: fixed[p.portionId] !== undefined,
-                unit: unitOf(p.portionId),
-                onToggleUnit: () => toggleUnit(p.portionId),
-                onFocus: () => activatePerson(p.portionId),
-                onBlur: leave,
-                onText: (typed) => type(personKey(p.portionId), typed),
-                onKeyDown: fieldKeys(personKey(p.portionId)),
-              }}
             />
-          ))}
-          {!inShares && <AddPersonRow onAdd={addPerson} />}
-        </ul>
-        {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
-        {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
-          <p className="flex items-baseline justify-between gap-2 border-t pt-3 text-sm">
-            <span>В кастрюле останется — на завтра</span>
-            <span className="text-right whitespace-nowrap tabular-nums">
-              <span className="text-xl font-semibold">{formatGrams(phase.remainder.cookedGrams)} г</span>
-              {potRaw !== null && (
-                <span className="block text-muted-foreground">
-                  {formatGrams(potRaw)} г {rawWord(dish.kind)}
-                </span>
-              )}
-            </span>
-          </p>
-        )}
-        {phase.remainder.state === 'over' && phase.foodGrams !== null && (
-          <p className="border-t pt-3 text-sm text-destructive">
-            Своих порций больше, чем сварено: не хватает {formatGrams(-phase.remainder.share * phase.foodGrams)} г.
-          </p>
-        )}
-      </section>
+          </div>
+          {/* One quiet line: what «Готовый» was weighed in, what that leaves and k; a composite dish folds here. */}
+          {/* Small to look at, 44 px to hit: the line pulls its margins in, the people get the height. */}
+          <div className="-my-1.5 flex flex-wrap items-center gap-x-2">
+            <TareSelect tares={tares} tareId={tareId} onTare={changeTare} onAdd={() => openScreen(newTarePath(dish.id), TARE_SELECT_ID)} />
+            {tareExceeds ? (
+              <span className="text-sm text-destructive">вес меньше тары</span>
+            ) : (
+              note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
+            )}
+            {foldable && (
+              <Button
+                variant="ghost"
+                aria-expanded={!folded}
+                // A quiet line: open or not, the button stays text, without the pressed fill.
+                className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
+                onClick={folded ? () => setFolded(false) : fold}
+              >
+                {folded ? 'Продукты' : 'Свернуть'}
+                {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
+              </Button>
+            )}
+          </div>
+        </section>
 
-      <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
-    </main>
+        <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
+          <CompanyPicker
+            className="w-full"
+            value={companyId}
+            // Ticked only while the shares are the company's own: picking it again brings them back.
+            ticked={matching && matching.id === companyId ? companyId : null}
+            customLabel={`Свой состав · ${lineup.members.length}`}
+            onChange={choosePreset}
+            onAdd={() => openScreen(newCompanyPath(dish.id), COMPANY_SELECT_ID)}
+            onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
+            shares={{ active: inShares, label: `Доли · ${people.length}`, onPick: () => switchMode('shares') }}
+            onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
+          />
+          <ShareSlider
+            sharing={sharing}
+            sharingSegments={segments.filter((x) => fixed[x.id] === undefined)}
+            own={segments.filter((x) => fixed[x.id] !== undefined)}
+            rest={
+              people.length > 0 && phase.remainder.state === 'some'
+                ? { share: phase.remainder.share, label: gramsLabel(portionGrams(phase.remainder, rawOf)) }
+                : null
+            }
+            onChange={setPercents}
+            keep={keepNow}
+            keepMost={keepMost}
+            onKeep={inShares ? undefined : setKeep}
+            unit={barUnit}
+            onUnit={setBarUnit}
+            aside={inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
+          />
+          {Object.keys(fixed).length > 0 && (
+            <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
+              <span>Есть свои порции</span>
+              <Button variant="outline" onClick={allToShares}>
+                <PercentIcon data-icon="inline-start" />
+                Всё в доли
+              </Button>
+            </div>
+          )}
+          <ul className="flex flex-col divide-y" aria-live="polite">
+            {phase.portions.map((p) => (
+              <PersonResult
+                key={p.portionId}
+                cooking={draft}
+                result={result}
+                name={people.find((x) => x.id === p.portionId)?.name ?? ''}
+                place={placeOf(p.portionId)}
+                lids={people.length}
+                computed={p}
+                dry={rawOf !== null}
+                onRename={inShares ? undefined : (name) => updatePerson(p.portionId, name)}
+                onRemove={() => removePerson(p.portionId)}
+                removeLabel={inShares ? `Убрать порцию ${placeOf(p.portionId) + 1}` : undefined}
+                holdMs={holdMs}
+                onReleaseOwn={() => releaseOwn(p.portionId)}
+                percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
+                grams={{
+                  id: calculatorFieldId(personKey(p.portionId)),
+                  active: active === personKey(p.portionId),
+                  text: texts[personKey(p.portionId)] ?? '',
+                  own: fixed[p.portionId] !== undefined,
+                  unit: unitOf(p.portionId),
+                  onToggleUnit: () => toggleUnit(p.portionId),
+                  onFocus: () => activatePerson(p.portionId),
+                  onBlur: leave,
+                  onText: (typed) => type(personKey(p.portionId), typed),
+                  onKeyDown: fieldKeys(personKey(p.portionId)),
+                }}
+              />
+            ))}
+            {!inShares && <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} />}
+          </ul>
+          {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
+          {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
+            <p className="flex items-baseline justify-between gap-2 border-t pt-3 text-sm">
+              <span>В кастрюле останется — на завтра</span>
+              <span className="text-right whitespace-nowrap tabular-nums">
+                <span className="text-xl font-semibold">{formatGrams(phase.remainder.cookedGrams)} г</span>
+                {potRaw !== null && (
+                  <span className="block text-muted-foreground">
+                    {formatGrams(potRaw)} г {rawWord(dish.kind)}
+                  </span>
+                )}
+              </span>
+            </p>
+          )}
+          {phase.remainder.state === 'over' && phase.foodGrams !== null && (
+            <p className="border-t pt-3 text-sm text-destructive">
+              Своих порций больше, чем сварено: не хватает {formatGrams(-phase.remainder.share * phase.foodGrams)} г.
+            </p>
+          )}
+        </section>
+
+        <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
+      </main>
+      {outlet && <OverScreen>{outlet}</OverScreen>}
+    </>
   )
 }

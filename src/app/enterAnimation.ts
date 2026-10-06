@@ -1,4 +1,5 @@
 import type { NavigationType } from 'react-router'
+import { COPY_TEXT, FROM_SIMPLE_DISH } from './paths'
 
 /** The part of a `popstate` event the transition reads; a plain object in tests. */
 export type PopStateLike = {
@@ -42,12 +43,23 @@ export function enterAnimation(input: {
  * Which screen a path shows, for keying the screen transition: the same screen keeps its element,
  * so it neither remounts nor animates. Every dish's calculator (`/d/:id`) is one screen — switching
  * dishes on the shelf keeps the shelf in place, only the calculator under it changes
- * (docs/UX.md «Переходы между экранами»). Any other path is its own screen.
+ * (docs/UX.md «Переходы между экранами»). A screen over another (`/d/:id/tare/new`, `…/copy`,
+ * `…/from-dish`, docs/UX.md §3а) keeps the key of the one under it: that one stays mounted, hidden,
+ * so «назад» finds it as it was; the screen over it animates by itself (app/OverScreen).
+ * Any other path is its own screen.
  */
 export function screenKey(pathname: string): string {
   const parts = pathname.split('/').filter((part) => part !== '')
-  return parts.length === 2 && parts[0] === 'd' && parts[1] !== 'new' ? '/d/:id' : pathname
+  const over = OVER_SCREENS.find(
+    (tail) => parts.length > tail.length + 1 && tail.every((part, i) => parts[parts.length - tail.length + i] === part),
+  )
+  const under = over ? parts.slice(0, parts.length - over.length) : parts
+  if (under.length === 2 && under[0] === 'd' && under[1] !== 'new') return '/d/:id'
+  return over ? '/' + under.join('/') : pathname
 }
+
+/** Screens opened over another as its child route (docs/UX.md §3а): the last segments of their path. */
+const OVER_SCREENS: readonly (readonly string[])[] = [['tare', 'new'], ['company', 'new'], [COPY_TEXT], [FROM_SIMPLE_DISH]]
 
 /**
  * How the calculator under the shelf comes in when the dish changes on the same screen

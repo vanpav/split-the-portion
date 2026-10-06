@@ -20,7 +20,7 @@ interface CompanyFormProps {
 /**
  * A company edited the way «Кто ест» is in the calculator: name, the share bar (no «на завтра»
  * here, there is no dish), people with × held, and «+ Имя» for the next one (docs/UX.md §3).
- * The same form in the settings and in the calculator's «Добавить компанию» dialog.
+ * The same form in the settings and on the calculator's «Новая компания» screen.
  */
 export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   const holdMs = useAppStore((s) => s.holdMs)

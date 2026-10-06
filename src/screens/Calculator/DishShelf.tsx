@@ -28,7 +28,15 @@ export interface ChipTap {
   to: number
 }
 
-export function DishShelf({ currentId, onChipTap }: { currentId: Id | undefined; onChipTap?: (tap: ChipTap) => void }) {
+interface DishShelfProps {
+  currentId: Id | undefined
+  onChipTap?: (tap: ChipTap) => void
+  /** Under a screen over the calculator (docs/UX.md §3а): mounted, keeping its scroll, but not shown. */
+  hidden?: boolean
+  className?: string
+}
+
+export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelfProps) {
   const dishes = useAppStore((s) => s.dishes)
   // The order is fixed while the shelf is open: typing a weight makes a dish the latest,
   // and its chip must not jump away under the finger. Dishes added meanwhile go first.
@@ -72,8 +80,9 @@ export function DishShelf({ currentId, onChipTap }: { currentId: Id | undefined;
   }, [currentId])
   const navigate = useNavigate()
   // From a keyboard: ⌘K / Ctrl+K anywhere (by the key, so a Russian layout works too), or «/» when
-  // not typing somewhere — as on most sites.
+  // not typing somewhere — as on most sites. Not while a screen over the calculator covers the shelf.
   useEffect(() => {
+    if (hidden) return
     const onKeyDown = (e: KeyboardEvent) => {
       const modK = (e.metaKey || e.ctrlKey) && !e.altKey && e.code === 'KeyK'
       const slash = e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey
@@ -84,10 +93,16 @@ export function DishShelf({ currentId, onChipTap }: { currentId: Id | undefined;
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [navigate])
+  }, [navigate, hidden])
 
   return (
-    <header className="sticky top-0 z-10 border-b bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur">
+    <header
+      hidden={hidden}
+      className={cn(
+        'sticky top-0 z-10 border-b bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur',
+        className,
+      )}
+    >
       {/* As wide as the calculator under it, so the shelf lines up with the column; on a desktop both are
           wider — more chips in sight without scrolling sideways with a mouse. */}
       <div className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
