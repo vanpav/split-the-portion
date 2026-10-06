@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { StateStorage } from 'zustand/middleware'
 import { createAppStore, type DishDraft } from '../createAppStore'
 import { CURRENT_VERSION, migrate, migrations, STORAGE_KEY, type PersistedState } from '../migrations'
@@ -30,13 +30,15 @@ const v9 = { ...v4, lineups: {}, holdMs: 1500 }
 const at = (i: number) => new Date(i).toISOString()
 const v10 = { ...v9, tares: [{ ...tare, createdAt: at(0) }] }
 /** v11: no cookings; dishes remember their last cooked weight. */
-const v11: PersistedState = { dishes: [], tares: v10.tares, companies: [], lineups: {}, holdMs: 1500 }
+const v11 = { dishes: [], tares: v10.tares, companies: [], lineups: {}, holdMs: 1500 }
+/** v12: dishes remember the days they were used. */
+const v12: PersistedState = v11
 
 const backups = (data: Map<string, string>) => [...data.keys()].filter((k) => k.startsWith(`${STORAGE_KEY}:backup:`))
 
 describe('migrate', () => {
   it('accepts the current version', () => {
-    expect(migrate(v11, CURRENT_VERSION)).toEqual(v11)
+    expect(migrate(v12, CURRENT_VERSION)).toEqual(v12)
   })
 
   it.each([0, CURRENT_VERSION + 1, 1.5])('rejects version %s', (version) => {
@@ -50,7 +52,7 @@ describe('migrate', () => {
   it('v5 → v6: dishes lose companyId, the rest kept', () => {
     const dish = { id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, companyId: 'c' }
     const migrated = migrate({ ...v5, dishes: [dish] }, 5)
-    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, cooked: null }])
+    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, cooked: null, usedOn: [] }])
     expect(migrated.lineups).toEqual({})
   })
 
@@ -71,7 +73,7 @@ describe('migrate', () => {
     const migrated = migrate({ ...v8, dishes: [dish('a'), dish('b')], lineup }, 8)
     expect(migrated.lineups).toEqual({ a: { companyId: null, members: lineup }, b: { companyId: null, members: lineup } })
     expect(migrated).not.toHaveProperty('lineup')
-    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v11, dishes: [{ ...dish('a'), cooked: null }] })
+    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v12, dishes: [{ ...dish('a'), cooked: null, usedOn: [] }] })
   })
 
   it('v9 → v10: tares and companies keep their order through createdAt, the rest kept', () => {
@@ -95,6 +97,16 @@ describe('migrate', () => {
     const migrated = migrations[10]({ ...v10, dishes: [dish], cookings: [old], lineups: { d: { companyId: null, members: [] } } })
     expect(migrated).toEqual({ ...v11, dishes: [{ ...dish, cooked: null }], lineups: { d: { companyId: null, members: [] } } })
     expect(migrated).not.toHaveProperty('cookings')
+  })
+
+  it('v11 → v12: a dish was used on the local day of its updatedAt, the rest kept', () => {
+    // Local noon: the same day in any time zone the tests run in.
+    const noon = new Date(2026, 9, 5, 12).toISOString()
+    const dish = { id: 'd', kind: 'simple', name: 'Гречка', createdAt: at(5), updatedAt: noon, ingredients: [], tareId: 't1', cooked: null }
+    const broken = { ...dish, id: 'x', updatedAt: 'nope' }
+    const lineups = { d: { companyId: null, members: [] } }
+    const migrated = migrate({ ...v11, dishes: [dish, broken], lineups }, 11)
+    expect(migrated).toEqual({ ...v12, dishes: [{ ...dish, usedOn: ['2026-10-05'] }, { ...broken, usedOn: [] }], lineups })
   })
 
   it('v1 → v2: empty portions follow the dish, filled ones are kept', () => {
@@ -206,7 +218,7 @@ describe('store hydration', () => {
   })
 
   it('async storage (IndexedDB): ready resolves once the data is in', async () => {
-    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v11, version: CURRENT_VERSION }) })
+    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v12, version: CURRENT_VERSION }) })
     const slow: StateStorage = {
       getItem: (k) => new Promise((resolve) => setTimeout(() => resolve(storage.getItem(k) as string | null), 5)),
       setItem: (k, v) => Promise.resolve(storage.setItem(k, v)),
@@ -215,7 +227,7 @@ describe('store hydration', () => {
     const store = createAppStore(() => slow)
     expect(store.getState().tares).toEqual([])
     await store.ready
-    expect(store.getState()).toMatchObject({ tares: v11.tares, loadError: false })
+    expect(store.getState()).toMatchObject({ tares: v12.tares, loadError: false })
   })
 
   it('async storage with unreadable data: ready still resolves, with the load error', async () => {
@@ -234,9 +246,9 @@ describe('store hydration', () => {
   it('replaceData swaps in a backup and persists it', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    store.getState().replaceData({ ...v11, holdMs: 0 })
-    expect(store.getState()).toMatchObject({ tares: v11.tares, holdMs: 0 })
-    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v11.tares)
+    store.getState().replaceData({ ...v12, holdMs: 0 })
+    expect(store.getState()).toMatchObject({ tares: v12.tares, holdMs: 0 })
+    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v12.tares)
   })
 
   it('persists only user input', () => {
@@ -305,6 +317,38 @@ describe('dishes', () => {
     expect(getState().dishes[0].cooked).toEqual(cooked)
     getState().saveDish({ ...pasta, id, cooked: null })
     expect(getState().dishes[0].cooked).toBeNull()
+  })
+  describe('usedOn', () => {
+    afterEach(() => vi.useRealTimers())
+    const on = (day: number, hour = 12) => vi.setSystemTime(new Date(2026, 9, day, hour))
+
+    it('the editor does not mark a use; the calculator marks the day once', () => {
+      vi.useFakeTimers()
+      on(5)
+      const { getState } = setup()
+      const id = getState().saveDish(pasta)
+      getState().saveDish({ ...pasta, id, name: 'Спагетти' })
+      expect(getState().dishes[0].usedOn).toEqual([])
+      getState().saveDish({ ...getState().dishes[0], tareId: null }, { used: true })
+      on(5, 20)
+      getState().setCooked(id, 360)
+      expect(getState().dishes[0].usedOn).toEqual(['2026-10-05'])
+      on(6)
+      getState().setCooked(id, 370)
+      expect(getState().dishes[0].usedOn).toEqual(['2026-10-05', '2026-10-06'])
+      // A draft carrying an old copy of usedOn does not overwrite the store's.
+      getState().saveDish({ ...pasta, id, usedOn: [] } as DishDraft)
+      expect(getState().dishes[0].usedOn).toEqual(['2026-10-05', '2026-10-06'])
+    })
+
+    it('survives a reload', () => {
+      vi.useFakeTimers()
+      on(5)
+      const { storage } = memoryStorage()
+      const id = createAppStore(() => storage).getState().saveDish(pasta)
+      createAppStore(() => storage).getState().setCooked(id, 360)
+      expect(createAppStore(() => storage).getState().dishes[0].usedOn).toEqual(['2026-10-05'])
+    })
   })
 })
 

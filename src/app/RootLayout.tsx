@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { useAppStore } from '@/store/store'
 import { LocalDataDialog } from './LocalDataDialog'
 import { UpdatePrompt } from './UpdatePrompt'
@@ -32,6 +33,16 @@ export function RootLayout() {
           </div>
         )}
         <Outlet />
+        {/* Holds the keyboard open on an iPhone between 🔍 and the dish menu's field (KEYBOARD_PROXY_ID).
+            16 px, or the iPhone zooms in on focus; out of the tab order. Not aria-hidden — it does get the focus,
+            for a moment — so it is named as the field it stands in for. */}
+        <input
+          id={KEYBOARD_PROXY_ID}
+          aria-label="Найти блюдо"
+          tabIndex={-1}
+          autoComplete="off"
+          className="pointer-events-none fixed top-0 left-0 size-px text-base opacity-0"
+        />
         {/* «Назад» returns to the same place on the screen; a new screen opens at the top. */}
         <ScrollRestoration />
         {/* Top: at the bottom a toast would hide under the phone's keyboard. */}

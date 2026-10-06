@@ -108,6 +108,11 @@ export interface Dish {
   tareId: Id | null
   /** Since v11; null — not weighed yet. */
   cooked: CookedWeight | null
+  /**
+   * Days the dish was used, «YYYY-MM-DD» local, in order, the last 30 (since v12): a raw weight, the
+   * tare or the cooked weight typed in the calculator. «Частые» in the dish menu (docs/SPEC.md §3б).
+   */
+  usedOn: string[]
 }
 
 /**
