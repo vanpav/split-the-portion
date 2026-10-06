@@ -6,6 +6,7 @@ import { AddPersonRow } from '@/components/AddPersonRow'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
 import {
+  addPortion,
   baseRawGrams,
   clockTime,
   companyLineup,
@@ -14,6 +15,7 @@ import {
   cookingDraft,
   defaultShareWeight,
   dishLineup,
+  dishPortions,
   formatGrams,
   formatInput,
   formatPercent,
@@ -28,20 +30,24 @@ import {
   portionGrams,
   portionIn,
   rawFold,
+  removeLastPortion,
   toPercents,
   typedGrams,
   type Company,
   type CompanyMember,
   type Dish,
   type Id,
+  type SplitMode,
 } from '@/domain'
 import { calculatorFieldId, focusOrBlur } from '@/lib/domIds'
 import { newId } from '@/store/id'
+import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
-import { kText, rawWord } from './messages'
+import { kText, portionName, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
+import { PortionStepper } from './PortionStepper'
 import { RawFoldTile } from './RawFoldTile'
 import { TareSelect } from './TareSelect'
 
@@ -91,6 +97,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const holdMs = useAppStore((s) => s.holdMs)
   const setCooked = useAppStore((s) => s.setCooked)
+  // «Доли» (docs/SPEC.md §3б): this device's choice for every dish; the portions are per dish, here only.
+  const splitMode = usePrefsStore((s) => s.splitMode)
+  const setSplitMode = usePrefsStore((s) => s.setSplitMode)
+  const storedPortions = usePrefsStore((s) => (id ? s.portions[id] : undefined))
+  const setPortions = usePrefsStore((s) => s.setPortions)
+  const inShares = splitMode === 'shares'
   const [now] = useState(() => new Date().toISOString())
 
   // Raw weights come from the dish (what was typed last time).
@@ -139,13 +151,24 @@ export function Calculator({ id }: { id: Id | undefined }) {
 
   // «Кто ест» is remembered per dish; before it is first changed, the first company.
   const lineup = useMemo(() => dishLineup(lineups, id ?? '', companies), [lineups, id, companies])
-  const people = useMemo(() => lineup.members, [lineup])
   // The company picked stays picked however the shares are moved: it is a template, never changed here.
   const company = useMemo(() => lineupCompany(lineup, companies), [lineup, companies])
   const companyId = company?.id ?? null
-  const matching = useMemo(() => matchingCompany(people, companies), [people, companies])
+  const matching = useMemo(() => matchingCompany(lineup.members, companies), [lineup, companies])
+  // A dish never split in «Доли» starts with two equal portions; their ids are made once.
+  const [freshIds] = useState(() => [newId(), newId()])
+  const portions = useMemo(() => dishPortions(storedPortions, freshIds), [storedPortions, freshIds])
+  // Who the dish is split between: the people of «Кто ест», or in «Доли» the portions, named by place.
+  // Everything below treats both alike.
+  const people = useMemo(
+    () => (inShares ? portions.map((p, i) => ({ id: p.id, name: portionName(i), weight: p.weight })) : lineup.members),
+    [inShares, portions, lineup],
+  )
   const setPeople = (members: CompanyMember[]) => {
-    if (dish) setLineup(dish.id, { companyId, members })
+    if (!dish) return
+    // Portions keep no names: they are numbered again after one is taken away.
+    if (inShares) setPortions(dish.id, members.map((m) => ({ id: m.id, weight: m.weight })))
+    else setLineup(dish.id, { companyId, members })
   }
   const remember = (patch: Partial<Pick<Dish, 'ingredients' | 'tareId' | 'cooked'>>) => {
     if (dish) saveDish({ ...dish, ...patch })
@@ -170,11 +193,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
     [dish, texts, cookedTouched, cookedHere, tare, people, companyId, fixed, now],
   )
   // «На завтра» is cut from what the sharing people hold: with nothing set aside they hold all that is free.
-  // Own portions typed later may leave less, so the cut is held to what is possible now.
+  // Own portions typed later may leave less, so the cut is held to what is possible now. «Доли» have no
+  // «На завтра»: what was set aside for people does not touch the portions.
   const keepMost = useMemo(() => {
-    const phase = base && computeCooking(base).phases[0]
+    const phase = !inShares && base && computeCooking(base).phases[0]
     return phase ? keepLimit(phase, people.filter((p) => fixed[p.id] === undefined).map((p) => p.id)) : 0
-  }, [base, people, fixed])
+  }, [inShares, base, people, fixed])
   const keepNow = Math.min(keep, keepMost)
   const draft = useMemo(() => base && (keepNow > 0 ? { ...base, keepPercent: keepNow } : base), [base, keepNow])
   const result = useMemo(() => (draft ? computeCooking(draft) : undefined), [draft])
@@ -187,7 +211,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const rememberOwn = useEffectEvent(() => {
     if (!dish || !phase || Object.keys(fixed).length === 0) return
     const next = lineupPercents(people, phase.portions)
-    if (next && next.some((p, i) => p.weight !== people[i]?.weight)) setLineup(dish.id, { companyId, members: next })
+    if (next && next.some((p, i) => p.weight !== people[i]?.weight)) setPeople(next)
   })
   const typingOwn = active !== null && personTarget(active) !== null
   useEffect(() => {
@@ -294,9 +318,34 @@ export function Calculator({ id }: { id: Id | undefined }) {
     onKeyDown: fieldKeys(row),
   })
 
-  // A company brings its default shares; what was moved for this dish before is replaced.
+  // People ⇄ «Доли»: today's own portions belong to the ones left; they are already remembered as shares.
+  const switchMode = (mode: SplitMode) => {
+    if (mode === splitMode) return
+    if (active !== null && personTarget(active)) focusOrBlur(null)
+    setFixed({})
+    setShown({})
+    setSplitMode(mode)
+  }
+  // A company brings its default shares; what was moved for this dish before is replaced. From «Доли»
+  // the dish's own company goes back to its people as they were.
   const choosePreset = (preset: Company) => {
-    if (dish) setLineup(dish.id, companyLineup(preset))
+    if (!dish) return
+    if (inShares) {
+      switchMode('people')
+      if (preset.id === companyId) return
+    }
+    setLineup(dish.id, companyLineup(preset))
+  }
+  // «−» / «+» right of the bar: one portion more with the average share, or the last one away.
+  const morePortions = () => {
+    if (dish) setPortions(dish.id, addPortion(portions, newId()))
+  }
+  const fewerPortions = () => {
+    const last = portions.at(-1)
+    if (!dish || !last || portions.length <= 1) return
+    setPortions(dish.id, removeLastPortion(portions))
+    setFixed(({ [last.id]: _removed, ...rest }) => rest)
+    leavePerson(last.id)
   }
   const addPerson = (name: string) => {
     const person: CompanyMember = { id: newId(), name, weight: defaultShareWeight(people.map((p) => p.weight)) }
@@ -305,20 +354,25 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const updatePerson = (personId: Id, name: string) =>
     setPeople(people.map((p) => (p.id === personId ? { ...p, name } : p)))
   const removePerson = (personId: Id) => {
-    const before = people
+    // One portion always stays; the row comes back by itself.
+    if (!dish || (inShares && people.length <= 1)) return
     const own = fixed[personId]
     const name = people.find((p) => p.id === personId)?.name.trim()
+    // What «Отменить» puts back: the portions in «Доли», the lineup otherwise — never the other one.
+    const shares = inShares
     setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     leavePerson(personId)
-    // A swipe can remove by accident: the toast brings the person back with their share.
+    // A swipe can remove by accident: the toast brings the person (or the portion) back with their share.
     toast(name ? `Убрано: ${name}` : 'Человек убран', {
       duration: 5000,
       action: {
         label: 'Отменить',
         onClick: () => {
-          setPeople(before)
-          if (own) setFixed((f) => ({ ...f, [personId]: own }))
+          if (shares) setPortions(dish.id, portions)
+          else setLineup(dish.id, lineup)
+          // Today's own portion only while the same list is shown: switching clears them.
+          if (own && usePrefsStore.getState().splitMode === splitMode) setFixed((f) => ({ ...f, [personId]: own }))
         },
       },
     })
@@ -438,9 +492,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
           value={companyId}
           // Ticked only while the shares are the company's own: picking it again brings them back.
           ticked={matching && matching.id === companyId ? companyId : null}
-          customLabel={`Свой состав · ${people.length}`}
+          customLabel={`Свой состав · ${lineup.members.length}`}
           onChange={choosePreset}
-          onSaveCurrent={people.length > 0 && !matching ? saveAsCompany : undefined}
+          onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
+          shares={{ active: inShares, label: `Доли · ${people.length}`, onPick: () => switchMode('shares') }}
+          onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
         />
         <ShareSlider
           sharing={sharing}
@@ -454,9 +510,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
           onChange={setPercents}
           keep={keepNow}
           keepMost={keepMost}
-          onKeep={setKeep}
+          onKeep={inShares ? undefined : setKeep}
           unit={barUnit}
           onUnit={setBarUnit}
+          aside={inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
         />
         {Object.keys(fixed).length > 0 && (
           <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -478,8 +535,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
               lids={people.length}
               computed={p}
               dry={rawOf !== null}
-              onRename={(name) => updatePerson(p.portionId, name)}
+              onRename={inShares ? undefined : (name) => updatePerson(p.portionId, name)}
               onRemove={() => removePerson(p.portionId)}
+              removeLabel={inShares ? `Убрать порцию ${placeOf(p.portionId) + 1}` : undefined}
               holdMs={holdMs}
               onReleaseOwn={() => releaseOwn(p.portionId)}
               percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
@@ -497,7 +555,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
               }}
             />
           ))}
-          <AddPersonRow onAdd={addPerson} />
+          {!inShares && <AddPersonRow onAdd={addPerson} />}
         </ul>
         {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
         {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (

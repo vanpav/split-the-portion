@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { DISHES_PATH, dishPath } from '@/app/paths'
+import { useBack } from '@/app/useBack'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,9 @@ export function DishEditorForm() {
   const { id } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
+  // «←» and «Отмена» go back where the form was opened from; by a direct link — to the dish or the list.
+  const backTo = id ? dishPath(id) : DISHES_PATH
+  const { back } = useBack(backTo)
   const dishes = useAppStore((s) => s.dishes)
   const tares = useAppStore((s) => s.tares)
   const saveDish = useAppStore((s) => s.saveDish)
@@ -136,7 +140,6 @@ export function DishEditorForm() {
     const savedId = saveDish({ ...draft, kind, name: draft.name.trim(), ingredients })
     navigate(dishPath(savedId), { replace: true })
   }
-  const backTo = existing ? dishPath(existing.id) : DISHES_PATH
 
   return (
     <>
@@ -240,7 +243,7 @@ export function DishEditorForm() {
               <Button size="lg" className="flex-1 lg:flex-none" disabled={errors.length > 0} onClick={save}>
                 {isNew ? 'Создать' : 'Сохранить'}
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate(backTo)}>
+              <Button size="lg" variant="outline" onClick={back}>
                 Отмена
               </Button>
             </div>

@@ -30,8 +30,11 @@ interface PersonResultProps {
   computed: PortionResult
   /** «Сухой» is in focus: grams are dry grams of the product k is counted by, cooked go under the name. */
   dry: boolean
-  onRename: (name: string) => void
+  /** Without it the name is not editable: a portion in «Доли» is named by its place. */
+  onRename?: (name: string) => void
   onRemove: () => void
+  /** What «×» says to a screen reader; «Убрать Ваня» by default. */
+  removeLabel?: string
   /** «×» is held this long before the person is removed; 0 — a tap. */
   holdMs: number
   /** The answer is a field: tap it and type the person's own portion. */
@@ -71,6 +74,7 @@ export function PersonResult({
   dry,
   onRename,
   onRemove,
+  removeLabel,
   holdMs,
   grams,
   percent,
@@ -116,15 +120,20 @@ export function PersonResult({
       <div className="flex items-center gap-2">
         <span aria-hidden className={cn('size-3.5 shrink-0 self-start mt-3 rounded-[5px]', lidFill(place))} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Input
-            aria-label="Имя"
-            placeholder="Имя"
-            value={name}
-            enterKeyHint="done"
-            onChange={(e) => onRename(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-            className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
-          />
+          {onRename ? (
+            <Input
+              aria-label="Имя"
+              placeholder="Имя"
+              value={name}
+              enterKeyHint="done"
+              onChange={(e) => onRename(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
+            />
+          ) : (
+            // The same place as the name field, without the field.
+            <span className="flex h-9 items-center px-1 text-base font-medium">{name}</span>
+          )}
           {(subline.length > 0 || grams.own) && (
             // Each part stays whole («13 г сухого»); the line wraps only between parts.
             <span className="px-1 text-sm leading-snug text-muted-foreground tabular-nums">
@@ -217,7 +226,7 @@ export function PersonResult({
           <HoldButton
             holdMs={holdMs}
             className="w-10 text-muted-foreground"
-            label={`Убрать ${name || 'человека'}`}
+            label={removeLabel ?? `Убрать ${name || 'человека'}`}
             hint="Удерживайте ×, чтобы убрать"
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}

@@ -1,5 +1,5 @@
 import { TriangleAlertIcon } from 'lucide-react'
-import { Outlet } from 'react-router'
+import { Outlet, ScrollRestoration } from 'react-router'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
@@ -32,6 +32,8 @@ export function RootLayout() {
           </div>
         )}
         <Outlet />
+        {/* «Назад» returns to the same place on the screen; a new screen opens at the top. */}
+        <ScrollRestoration />
         {/* Top: at the bottom a toast would hide under the phone's keyboard. */}
         <Toaster position="top-center" />
         <UpdatePrompt />

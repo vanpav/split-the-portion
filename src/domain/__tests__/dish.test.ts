@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights, shelfOrder } from '../dish'
 import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
 import { cooked, ingredient, share } from './fixtures'
@@ -87,6 +87,32 @@ describe('recentDishes', () => {
     expect(recentDishes(dishes).map((d) => d.id)).toEqual(['b', 'c', 'a'])
     expect(dishes.map((d) => d.id)).toEqual(['a', 'b', 'c'])
     expect(recentDishes([])).toEqual([])
+  })
+})
+
+describe('shelfOrder', () => {
+  const a = dish({ id: 'a', updatedAt: '2026-10-01T10:00:00.000Z' })
+  const b = dish({ id: 'b', updatedAt: '2026-10-05T19:40:00.000Z' })
+  const c = dish({ id: 'c', updatedAt: '2026-10-03T08:00:00.000Z' })
+
+  it('keeps the order the shelf opened with, even when a dish becomes the latest', () => {
+    const usedA = { ...a, updatedAt: '2026-10-06T12:00:00.000Z' }
+    expect(shelfOrder([usedA, b, c], ['b', 'c', 'a']).map((d) => d.id)).toEqual(['b', 'c', 'a'])
+  })
+
+  it('puts dishes that appeared since first, the latest first', () => {
+    const added = dish({ id: 'n', updatedAt: '2026-10-06T12:00:00.000Z' })
+    const synced = dish({ id: 's', updatedAt: '2026-10-06T09:00:00.000Z' })
+    expect(shelfOrder([a, b, c, synced, added], ['b', 'c', 'a']).map((d) => d.id)).toEqual(['n', 's', 'b', 'c', 'a'])
+  })
+
+  it('drops deleted dishes and shows the latest data of the rest', () => {
+    const renamed = { ...c, name: 'Гречка' }
+    expect(shelfOrder([a, renamed], ['b', 'c', 'a'])).toEqual([renamed, a])
+  })
+
+  it('without an order is the order of use', () => {
+    expect(shelfOrder([a, b, c], []).map((d) => d.id)).toEqual(['b', 'c', 'a'])
   })
 })
 

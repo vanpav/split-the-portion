@@ -1,4 +1,4 @@
-import { BookmarkPlusIcon, PlusIcon, UsersIcon } from 'lucide-react'
+import { BookmarkPlusIcon, ChartPieIcon, PlusIcon, UsersIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { NewCompanyDialog } from '@/components/NewCompanyDialog'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -20,12 +20,29 @@ interface CompanyPickerProps {
   customLabel?: string
   /** «Сохранить состав как компанию» at the end of the list; given only for a lineup of its own. */
   onSaveCurrent?: () => void
+  /**
+   * «Доли» after the companies (docs/SPEC.md §3б «Режим долей»): the dish in anonymous portions
+   * instead of people. Without it there is no such item.
+   */
+  shares?: {
+    /** «Доли» is picked: the field shows `label`, «Доли · 6». */
+    active: boolean
+    label: string
+    onPick: () => void
+  }
+  /**
+   * While «Доли» is picked and the dish's people have no company: «Свой состав · 4», back to them.
+   * A dish whose people came from a company goes back by picking that company.
+   */
+  onOwnLineup?: () => void
   className?: string
 }
 
 /** List items that are actions, not values to keep selected. */
 const SAVE = '__save__'
 const ADD = '__add__'
+const SHARES = '__shares__'
+const OWN = '__own__'
 
 /** No name typed: called by its people, as in the settings. */
 function CompanyLabel({ company }: { company: Company }) {
@@ -38,12 +55,23 @@ function CompanyLabel({ company }: { company: Company }) {
 }
 
 /**
- * «Кто ест»: one compact select over the presets of the settings. It ends with «Добавить компанию»:
- * a new company is made in a dialog and picked at once.
+ * «Кто ест»: one compact select over the presets of the settings, then «Доли» — the dish in anonymous
+ * portions instead of people. It ends with «Добавить компанию»: a new company is made in a dialog and
+ * picked at once.
  */
-export function CompanyPicker({ value, ticked = value, onChange, customLabel = 'Свой состав', onSaveCurrent, className }: CompanyPickerProps) {
+export function CompanyPicker({
+  value,
+  ticked = value,
+  onChange,
+  customLabel = 'Свой состав',
+  onSaveCurrent,
+  shares,
+  onOwnLineup,
+  className,
+}: CompanyPickerProps) {
   const companies = useAppStore((s) => s.companies)
-  const shown = companies.find((c) => c.id === value)
+  const inShares = shares?.active ?? false
+  const shown = inShares ? undefined : companies.find((c) => c.id === value)
   const [adding, setAdding] = useState(false)
   // «Добавить компанию» picked: the dialog opens once the list has closed — the list keeps focus while open.
   const addPicked = useRef(false)
@@ -51,6 +79,8 @@ export function CompanyPicker({ value, ticked = value, onChange, customLabel = '
   const pick = (v: string) => {
     if (v === ADD) addPicked.current = true
     else if (v === SAVE) onSaveCurrent?.()
+    else if (v === SHARES) shares?.onPick()
+    else if (v === OWN) onOwnLineup?.()
     else {
       const company = companies.find((c) => c.id === v)
       if (company) onChange(company)
@@ -59,13 +89,13 @@ export function CompanyPicker({ value, ticked = value, onChange, customLabel = '
 
   return (
     <>
-      <Select value={ticked ?? ''} onValueChange={pick}>
+      <Select value={inShares ? SHARES : (ticked ?? '')} onValueChange={pick}>
         <SelectTrigger className={cn('justify-start', className)} aria-label="Кто ест">
-          <UsersIcon className="text-muted-foreground" />
+          {inShares ? <ChartPieIcon className="text-muted-foreground" /> : <UsersIcon className="text-muted-foreground" />}
           <span className="flex min-w-0 flex-1 justify-start truncate">
             {/* The picked company stays named here even when its shares were moved and it is unticked. */}
             <SelectValue placeholder={shown ? <CompanyLabel company={shown} /> : customLabel}>
-              {shown && <CompanyLabel company={shown} />}
+              {inShares ? shares?.label : shown && <CompanyLabel company={shown} />}
             </SelectValue>
           </span>
         </SelectTrigger>
@@ -83,7 +113,19 @@ export function CompanyPicker({ value, ticked = value, onChange, customLabel = '
               <CompanyLabel company={c} />
             </SelectItem>
           ))}
-          {companies.length > 0 && <SelectSeparator />}
+          {inShares && onOwnLineup && (
+            <SelectItem value={OWN}>
+              <UsersIcon />
+              {customLabel}
+            </SelectItem>
+          )}
+          {shares && (
+            <SelectItem value={SHARES}>
+              <ChartPieIcon />
+              Доли
+            </SelectItem>
+          )}
+          {(companies.length > 0 || shares) && <SelectSeparator />}
           {onSaveCurrent && (
             <SelectItem value={SAVE}>
               <BookmarkPlusIcon />

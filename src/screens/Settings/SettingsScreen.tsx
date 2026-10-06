@@ -1,5 +1,6 @@
 import { Navigate, useParams } from 'react-router'
 import { SETTINGS_PATH } from '@/app/paths'
+import { useBack } from '@/app/useBack'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { cn } from '@/lib/utils'
 import { useSyncStore } from '@/store/sync'
@@ -17,9 +18,10 @@ export function SettingsScreen() {
   const { section: sectionParam } = useParams()
   const inGroup = useSyncStore((s) => s.groupId !== null)
   const section = findSettingsSection(sectionParam)
-  // «Группа» exists with an account only.
+  const { hasPrevious, noPreviousState } = useBack(SETTINGS_PATH)
+  // «Группа» exists with an account only. Opened by a direct link, the list has no previous screen either.
   if (sectionParam !== undefined && (!section || (section.id === 'group' && !inGroup))) {
-    return <Navigate to={SETTINGS_PATH} replace />
+    return <Navigate to={SETTINGS_PATH} replace state={hasPrevious ? undefined : noPreviousState} />
   }
 
   const shown = section ?? SETTINGS_SECTIONS[0]
