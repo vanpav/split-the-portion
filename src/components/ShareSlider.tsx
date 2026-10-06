@@ -200,7 +200,7 @@ export function ShareSlider({
   const shown = (label: string | null) => (unit === 'g' ? label : null)
   // The title over the grams: a name, or in «Доли» the portion's number (its place in the lineup).
   const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
-  // The chosen segment and its neighbours have grips on their borders: narrower than 4.5rem, the grams would
+  // The chosen segment and its neighbours have grips on their borders: narrower than 3.75rem, the grams would
   // sit under them, so these show the number (or nothing) and the grams stay in the rows below.
   const crowded = (index: number) => selectedIndex >= 0 && sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
   const labels = (title: string, label: string | null, fallback: string, place: number | null = null, tight = false) => (
@@ -216,7 +216,7 @@ export function ShareSlider({
       >
         {titleOf(title, place)}
       </span>
-      <span className={cn('px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden', tight && '@max-[4.5rem]:hidden')}>
+      <span className={cn('px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden', tight && '@max-[3.75rem]:hidden')}>
         {shown(label) ?? fallback}
       </span>
     </>

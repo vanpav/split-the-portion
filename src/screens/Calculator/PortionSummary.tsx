@@ -47,7 +47,11 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
   // Beside it: the other view of one of them, the way a portion's tile has it.
   const other = (() => {
     if (summary.same === null) return null
-    if (inPercent) return first.cookedGrams !== null ? `${formatGrams(first.cookedGrams)} г` : null
+    if (inPercent) {
+      // Grams of the view under percent, as in a portion's tile: dry ones with their word.
+      const grams = portionGrams(first, rawOf)
+      return grams !== null ? `${formatGrams(grams)} г${rawOf !== null ? ` ${rawWord(cooking.kind)}` : ''}` : null
+    }
     if (rawOf !== null) return first.cookedGrams !== null ? `${formatGrams(first.cookedGrams)} г готового` : null
     const raw = result.baseIngredientId !== null ? baseRawGrams(result, first.raw) : null
     return raw !== null ? `${formatGrams(raw)} г ${rawWord(cooking.kind)}` : null
