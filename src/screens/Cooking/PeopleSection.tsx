@@ -90,7 +90,7 @@ export function PeopleSection({ cooking, result, onReweigh }: PeopleSectionProps
           <p className="text-sm text-muted-foreground">Взвесьте готовое — появится, сколько класть каждому.</p>
         )}
       </div>
-        <CompanyPicker className="w-full sm:w-auto" value={cooking.companyId} onChange={(id) => setCookingCompany(cooking.id, id)} />
+        <CompanyPicker className="w-full sm:w-auto" value={cooking.companyId} onChange={(company) => setCookingCompany(cooking.id, company.id)} />
 
         {result.phases.slice(0, -1).map(
           (past, index) =>

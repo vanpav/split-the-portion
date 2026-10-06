@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import {
   applyKey,
   baseRawGrams,
+  companyLineup,
   computeCooking,
   cookingDraft,
   defaultShareWeight,
+  dishLineup,
   dishTitle,
   formatGrams,
   formatInput,
@@ -20,12 +22,14 @@ import {
   keepLimit,
   ingredientDisplayName,
   keypadKeyFromKeyboard,
+  lineupCompany,
   lineupName,
   matchingCompany,
   parseGrams,
   portionIn,
   toPercents,
   usualScaleGrams,
+  type Company,
   type CompanyMember,
   type Id,
   type KeypadKey,
@@ -71,7 +75,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const companies = useAppStore((s) => s.companies)
   const saveCooking = useAppStore((s) => s.saveCooking)
   const cookings = useAppStore((s) => s.cookings)
-  const lineup = useAppStore((s) => s.lineup)
+  const lineups = useAppStore((s) => s.lineups)
   const setLineup = useAppStore((s) => s.setLineup)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const holdMs = useAppStore((s) => s.holdMs)
@@ -108,12 +112,16 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const [now] = useState(() => new Date().toISOString())
 
   const tare = tares.find((t) => t.id === tareId) ?? null
-  // «Сегодня едят» is shared by all dishes; before it is first changed, the first company.
-  const people = useMemo(
-    () => lineup ?? companies[0]?.members ?? [],
-    [lineup, companies],
-  )
-  const company = matchingCompany(people, companies)
+  // «Кто ест» is remembered per dish; before it is first changed, the first company.
+  const lineup = useMemo(() => dishLineup(lineups, id ?? '', companies), [lineups, id, companies])
+  const people = useMemo(() => lineup.members, [lineup])
+  // The company picked stays picked however the shares are moved: it is a template, never changed here.
+  const company = useMemo(() => lineupCompany(lineup, companies), [lineup, companies])
+  const companyId = company?.id ?? null
+  const matching = useMemo(() => matchingCompany(people, companies), [people, companies])
+  const setPeople = (members: CompanyMember[]) => {
+    if (dish) setLineup(dish.id, { companyId, members })
+  }
   const base = useMemo(
     () =>
       dish &&
@@ -124,13 +132,13 @@ export function Calculator({ id }: { id: Id | undefined }) {
           scaleGrams: toNumber(texts[COOKED]),
           tare,
           people,
-          companyId: company?.id ?? null,
+          companyId,
           fixedCooked: ownOf(fixed, 'g'),
           fixedPercent: ownOf(fixed, '%'),
         },
         now,
       ),
-    [dish, texts, tare, people, company, fixed, now],
+    [dish, texts, tare, people, companyId, fixed, now],
   )
   // «На завтра» is cut from what the sharing people hold: with nothing set aside they hold all that is free.
   // Own portions typed later may leave less, so the cut is held to what is possible now.
@@ -199,18 +207,18 @@ export function Calculator({ id }: { id: Id | undefined }) {
     activate(index === -1 ? COOKED : rows[(index + step + rows.length) % rows.length])
   }
 
-  const choosePreset = (presetId: Id) => {
-    const preset = companies.find((c) => c.id === presetId)
-    if (preset) setLineup(preset.members.map((m) => ({ ...m })))
+  // A company brings its default shares; what was moved for this dish before is replaced.
+  const choosePreset = (preset: Company) => {
+    if (dish) setLineup(dish.id, companyLineup(preset))
   }
   const addPerson = (name: string) => {
     const person: CompanyMember = { id: newId(), name, weight: defaultShareWeight(people.map((p) => p.weight)) }
-    setLineup([...people, person])
+    setPeople([...people, person])
   }
   const updatePerson = (personId: Id, name: string) =>
-    setLineup(people.map((p) => (p.id === personId ? { ...p, name } : p)))
+    setPeople(people.map((p) => (p.id === personId ? { ...p, name } : p)))
   const removePerson = (personId: Id) => {
-    setLineup(people.filter((p) => p.id !== personId))
+    setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     if (active === personKey(personId)) activate(COOKED)
   }
@@ -218,7 +226,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const sharing = people.filter((p) => fixed[p.id] === undefined)
   // The share slider works in whole percents: shares become them.
   const setPercents = (percents: number[]) =>
-    setLineup(
+    setPeople(
       people.map((p) => {
         const index = sharing.findIndex((x) => x.id === p.id)
         return index === -1 ? p : { ...p, weight: percents[index] ?? p.weight }
@@ -233,13 +241,14 @@ export function Calculator({ id }: { id: Id | undefined }) {
     const shares = people.map((p) => Math.max(phase?.portions.find((x) => x.portionId === p.id)?.share ?? 0, 0))
     if (shares.some((x) => x > 0)) {
       const percents = toPercents(shares)
-      setLineup(people.map((p, i) => ({ ...p, weight: percents[i] })))
+      setPeople(people.map((p, i) => ({ ...p, weight: percents[i] })))
     }
     setFixed({})
     if (personTarget(active)) activate(COOKED)
   }
   const saveAsCompany = () => {
-    upsertCompany({ name: lineupName(people), members: people.map((p) => ({ ...p })) })
+    const saved = upsertCompany({ name: lineupName(people), members: people.map((p) => ({ ...p })) })
+    if (dish) setLineup(dish.id, { companyId: saved, members: people })
     toast('Компания сохранена', { description: lineupName(people) })
   }
 
@@ -347,10 +356,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
         <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
           <CompanyPicker
             className="w-full"
-            value={company?.id ?? null}
+            value={companyId}
+            // Ticked only while the shares are the company's own: picking it again brings them back.
+            ticked={matching && matching.id === companyId ? companyId : null}
             customLabel={`Свой состав · ${people.length}`}
             onChange={choosePreset}
-            onSaveCurrent={!company && people.length > 0 ? saveAsCompany : undefined}
+            onSaveCurrent={people.length > 0 && !matching ? saveAsCompany : undefined}
           />
           <ShareSlider
             sharing={sharing}
