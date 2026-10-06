@@ -17,6 +17,7 @@ export { basisKey, convertPortionInput, portionBasisOptions } from './portionInp
 export type { PortionBasis } from './portionInput'
 export { roundPreservingSum, splitEqual, splitLeftover } from './split'
 export type { EqualSplit } from './split'
+export { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion } from './portions'
 export { portionCopyText, rawAmountsCopyText } from './copyText'
 export { cookingWarnings, isValidSplitN, isValidTareGrams, K_RANGE, MAX_SPLIT_PORTIONS } from './validation'
 export type { CookingWarning } from './validation'

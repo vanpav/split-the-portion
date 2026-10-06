@@ -160,6 +160,7 @@ src/domain/
   reconcile.ts      — reconcilePhase(phase) → { basis, distributed, total, diff, status }
   remainder.ts      — fillRemainder(result, portionId) → граммы в единицах строки
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
+  portions.ts       — «Доли» (этап 16): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
@@ -205,7 +206,8 @@ src/domain/
 | `isValidTareGrams(grams)` | Вес тары > 0 |
 | `portionBasisOptions(result)`, `basisKey` | В каких единицах можно вводить порцию (по умолчанию — первым) |
 | `convertPortionInput(result, portionId, basis)` | Та же порция в других единицах (при смене единиц на строке) |
-| `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N» |
+| `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N»; предел числа порций в «Долях» |
+| `dishPortions(stored, freshIds)`, `addPortion(list, id)`, `removeLastPortion(list)`, `DEFAULT_PORTIONS` | «Доли» (этап 16): порции блюда — сохранённые на устройстве или 2 равные (битый список — как пустой); «+» — порция со средней долей в конце, «−» — последняя (1…100). Делятся порции тем же расчётом, что люди (`cookingDraft`) |
 | `ingredientDisplayName`, `ingredientNames`, `baseRawGrams` | Подписи ингредиентов, сырой вес базового ингредиента по id |
 | `dishSource(dish)` | Название и обычный сырой вес простого блюда для составного на его основе |
 | `dishTitle(dish)`, `dishErrors(dish)` | Название блюда; что мешает нажать «Создать» / «Сохранить» (нужен учитываемый продукт) |
@@ -265,6 +267,7 @@ interface AppState {
 - **Чтение асинхронное.** `createAppStore` возвращает стор с `ready` — промисом, который выполняется, когда данные прочитаны (или признаны нечитаемыми и сохранены в резервную копию). `main.tsx` рендерит приложение после `ready`: иначе ввод до загрузки перезаписал бы данные.
 - После загрузки просим `navigator.storage.persist()`: браузер не будет чистить данные при нехватке места. Отказ ничего не ломает.
 - **По группам (с этапа 13).** Без входа данные лежат под ключом `split-the-portion`, как раньше. После входа у каждой группы свой блоб `split-the-portion:group:<id>` в том же формате и с теми же миграциями. Рядом лежат неотправленные изменения и курсор: `split-the-portion:sync:<id>`. Аккаунт (кто вошёл, группы, группа по умолчанию) — отдельный стор `src/store/account.ts`, ключ `split-the-portion:account`. В копию данных он не попадает. Подробно — §10.
+- **Настройки устройства** (этап 16) — отдельный стор `src/store/prefs.ts`, ключ `split-the-portion:prefs` в той же IndexedDB: `splitMode` (`'people' | 'shares'`, люди «Кто ест» или «Доли») и `portions` (порции блюда в «Долях» по id блюда: `PortionShare[]` — `{ id, weight }` без имён, номер — по месту). Как тема и аккаунт, они не входят в `storedData`: не синхронизируются (§10), не попадают в копию данных, не зависят от открытой группы и не трогаются выходом из аккаунта. Поэтому форма данных приложения и `CURRENT_VERSION` не меняются. У стора своя версия `PREFS_VERSION = 2` и миграция `migratePrefs` (`src/store/prefsMigrations.ts`, тест на фикстуре v1): v1 — `'portions'` и `portionCounts` (N равных порций) первой версии этапа 16 → v2 — `'shares'` и N порций с долей 1. `main.tsx` ждёт `prefsReady`, как `accountReady`.
 - **Копия в файле** (Настройки → «Копия данных»): «Скачать» — JSON `{ app, version, exportedAt, state }` (`src/store/backupFile.ts`); «Загрузить» — файл любой прошлой версии проходит те же миграции (`readBackupFile`), после подтверждения заменяет данные (`replaceData`), тост «Отменить» возвращает прежние. Чужой, битый или более новый файл — тост «Файл не подошёл».
 
 ### 5.3. Версия схемы и миграции
@@ -313,7 +316,8 @@ src/
       DishSearch.tsx          — CommandDialog: свои блюда и популярные с весом
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
       DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
-      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts
+      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts — «Кто ест» с пунктом «Доли»; строка человека или порции
+      PortionStepper.tsx      — «−» / «+» справа от полосы долей в режиме «Доли» вместо «На завтра» (этап 16)
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -330,7 +334,7 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
-    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
+    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра», «г | %» и слот `aside` справа от полосы — необязательные пропсы (калькулятор, «Доли», компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
     NewCompanyDialog.tsx — Dialog с CompanyForm и «Добавить компанию»: последний пункт списка компаний (CompanyPicker)
@@ -342,6 +346,8 @@ src/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию (этап 12)
+    prefs.ts            — настройки устройства: люди или «Доли», порции блюд (этап 16, §5.2)
+    prefsMigrations.ts  — версия и миграции настроек устройства
     sync.ts             — статус синхронизации и данные устройства, ждущие «Перенести?» (этап 13)
   account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12); groupsApi.ts, inviteCode.ts, groupLabel.ts, networkText.ts (этап 14)
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
@@ -369,6 +375,8 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | «Добавлено» и «Готово» на экране «Новая тара» | «Добавлено» — `Item` (кнопки-строки с галочкой у выбранной); «Готово» — главная кнопка `Button` (сейчас в `DialogFooter` диалога `NewTareDialog`, после #38 — в `BottomBar`) |
 | Экраны «Новая тара», «Новая компания», «Вступить по коду» | Свой адрес в `router.tsx`: `ScreenHeader` + форма + `BottomBar` (UX §3а) |
 | Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт закрывает список и открывает экран «Новая компания», значение не меняет) |
+| «Доли» в списке «Кто ест» | Пункт того же `Select` (после компаний); «Свой состав · N» — пункт возврата к людям, пока выбраны «Доли» |
+| «−» / «+» порций справа от полосы | `Button` variant `outline` size `icon`, 44 × 48 px (слот `aside` у `ShareSlider`) |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки списка блюд | `Item` (ссылка растянута на всю строку) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
@@ -531,7 +539,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 | `lineup` | id блюда | `Lineup` — «Кто ест» у блюда |
 | `settings` | `settings` | `{ holdMs }` |
 
-Как и в IndexedDB, на сервер уходит только ввод; производные значения (k, доли, остатки) не хранятся.
+Как и в IndexedDB, на сервер уходит только ввод; производные значения (k, доли, остатки) не хранятся. Настройки устройства (`src/store/prefs.ts`: люди или «Доли», порции блюд) — не записи: синхронизация подписана только на `useAppStore`, и записи для них нет (§5.2).
 
 **Протокол** — один запрос на push и pull:
 

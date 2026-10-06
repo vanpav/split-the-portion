@@ -17,3 +17,8 @@ export const TARE_EXCEEDS_TEXT = 'Вес с тарой меньше веса т�
 export function rawWord(kind: CookingKind): string {
   return kind === 'simple' ? 'сухого' : 'сырого'
 }
+
+/** A portion in «Доли» is named by its place: «Порция 1», «Порция 2» (docs/UX.md §6). */
+export function portionName(index: number): string {
+  return `Порция ${index + 1}`
+}

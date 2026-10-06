@@ -6,12 +6,13 @@ import { router } from '@/app/router'
 import { openStartData, refreshGroups, resumeSync } from '@/sync/session'
 import { accountReady, useAccountStore } from '@/store/account'
 import { askPersistentStorage } from '@/store/idbStorage'
+import { prefsReady } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 import './index.css'
 
 // Data lives in IndexedDB and is read asynchronously: render once it is in, so nothing typed
 // meanwhile can overwrite it. A few milliseconds; the page is blank until then.
-void Promise.all([useAppStore.ready, accountReady]).then(async () => {
+void Promise.all([useAppStore.ready, accountReady, prefsReady]).then(async () => {
   askPersistentStorage()
   // Signed in: the default group's data, also offline (docs/ARCHITECTURE.md §10).
   await openStartData()
