@@ -6,7 +6,7 @@ import { MoreMenu } from '@/components/MoreMenu'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { dishTitle, recentDishes, type Id } from '@/domain'
+import { dishTitle, recentDishes, shelfOrder, type Id } from '@/domain'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
 import { DishSearch } from './DishSearch'
@@ -22,12 +22,18 @@ const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator
 export function DishShelf({ currentId }: { currentId: Id | undefined }) {
   const dishes = useAppStore((s) => s.dishes)
   // The order is fixed while the shelf is open: typing a weight makes a dish the latest,
-  // and its chip must not jump away under the finger. Dishes added meanwhile go to the end.
-  const [order] = useState(() => recentDishes(dishes).map((d) => d.id))
-  const shown = [
-    ...order.flatMap((id) => dishes.find((d) => d.id === id) ?? []),
-    ...recentDishes(dishes.filter((d) => !order.includes(d.id))),
-  ]
+  // and its chip must not jump away under the finger. Dishes added meanwhile go first.
+  const [order, setOrder] = useState(() => recentDishes(dishes).map((d) => d.id))
+  const shown = shelfOrder(dishes, order)
+  // Back in the app after a while (a phone keeps it open for days): the shelf is sorted anew,
+  // nobody's finger is on it yet.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') setOrder(recentDishes(useAppStore.getState().dishes).map((d) => d.id))
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
   const currentDish = dishes.find((d) => d.id === currentId)
   const currentRef = useRef<HTMLAnchorElement>(null)
   useEffect(() => {
