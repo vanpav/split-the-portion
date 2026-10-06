@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
 import { formatInput, parseGrams } from '@/domain'
+import { cn } from '@/lib/utils'
 
 interface NumberFieldProps {
   value: number | null
@@ -18,6 +19,8 @@ interface NumberFieldProps {
   id?: string
   className?: string
   autoFocus?: boolean
+  /** «lg» — a big field for add forms (new tare): 56 px high, 18 px text. */
+  size?: 'default' | 'lg'
 }
 
 /**
@@ -36,6 +39,7 @@ export function NumberField({
   id,
   className,
   autoFocus,
+  size = 'default',
 }: NumberFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
@@ -61,7 +65,7 @@ export function NumberField({
   return (
     <Field className={className} data-invalid={invalid || undefined}>
       {label && <FieldLabel htmlFor={inputId}>{label}</FieldLabel>}
-      <InputGroup>
+      <InputGroup className={cn(size === 'lg' && 'h-14')}>
         <InputGroupInput
           id={inputId}
           type="text"
@@ -69,6 +73,7 @@ export function NumberField({
           enterKeyHint="next"
           autoComplete="off"
           autoFocus={autoFocus}
+          className={cn(size === 'lg' && 'text-lg md:text-lg')}
           placeholder={placeholder}
           aria-label={label ? undefined : ariaLabel}
           aria-invalid={invalid || undefined}
@@ -89,7 +94,7 @@ export function NumberField({
         />
         {suffix && (
           <InputGroupAddon align="inline-end">
-            <InputGroupText>{suffix}</InputGroupText>
+            <InputGroupText className={cn(size === 'lg' && 'text-base')}>{suffix}</InputGroupText>
           </InputGroupAddon>
         )}
       </InputGroup>
