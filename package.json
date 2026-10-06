@@ -13,6 +13,7 @@
     "icons": "pwa-assets-generator",
     "db:auth-schema": "WRANGLER_LOG=error node --no-deprecation scripts/auth-schema.mjs",
     "db:migrate:local": "wrangler d1 migrations apply split-the-portion --local",
+    "db:migrate:preview": "wrangler d1 migrations apply split-the-portion-preview --remote --config wrangler.preview-db.jsonc",
     "db:migrate:remote": "wrangler d1 migrations apply split-the-portion --remote",
     "deploy": "pnpm build && wrangler deploy"
   },

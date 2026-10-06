@@ -14,7 +14,7 @@
 
 ## Задачи
 - [x] `pnpm add -D wrangler @cloudflare/vite-plugin` и `pnpm add better-auth @better-auth/passkey hono`. `@cloudflare/vite-plugin` 1.62 поддерживает Vite 8. Записано в ARCHITECTURE §2.
-- [x] `wrangler.jsonc`: `main`, `nodejs_compat`, `assets.run_worker_first: ["/api/*"]`, `d1_databases` (binding `DB`, `migrations_dir: worker/migrations`). Вместо `database_id` — рабочей базы (до её создания стояла заглушка: локально id не нужен) ([CLOUDFLARE.md §3](../CLOUDFLARE.md#3-создать-базу-d1)). `BETTER_AUTH_URL` не понадобился: адрес берётся из запроса, поэтому рабочий адрес, превью веток и localhost работают каждый под своим.
+- [x] `wrangler.jsonc`: `main`, `nodejs_compat`, `assets.run_worker_first: ["/api/*"]`, `d1_databases` (binding `DB`, `migrations_dir: worker/migrations`). Вместо `database_id` — рабочей базы (до её создания стояла заглушка: локально id не нужен) ([CLOUDFLARE.md §3](../CLOUDFLARE.md#3-создать-базы-d1)). `BETTER_AUTH_URL` не понадобился: адрес берётся из запроса, поэтому рабочий адрес, превью веток и localhost работают каждый под своим.
 - [x] Локальный секрет — `.dev.vars` (`.dev.vars*` и `.wrangler/` в `.gitignore`). Скрипты `db:migrate:local`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
 - [x] `vite.config.ts` — плагин `cloudflare()`: воркер и локальная D1 внутри `pnpm dev` и `pnpm preview`; в тестах (`VITEST`) не подключается. Сборка: `dist/client` (статика и Service Worker) и `dist/split_the_portion` (воркер, 435 КБ gzip).
 - [x] `tsconfig.worker.json` (типы из `pnpm wrangler types` → `worker-configuration.d.ts`, коммитится: сборка в Cloudflare проверяет типы без `.dev.vars`), ссылка из `tsconfig.json`.
