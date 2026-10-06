@@ -28,7 +28,7 @@ describe('invites', () => {
 
   it('a code joins the group once; again — nothing changes', async () => {
     const { code } = await inviteCode(db, 'home', 'vanya', NOW)
-    const auth = createAuth(env, 'http://localhost')
+    const auth = createAuth(env, 'http://localhost', 'test-secret')
     expect(await acceptInvite(auth, db, code, 'ksusha', NOW)).toBe('home')
     expect(await isMember(db, 'home', 'ksusha')).toBe(true)
     expect(await roleIn(db, 'home', 'ksusha')).toBe('member')

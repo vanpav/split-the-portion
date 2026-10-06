@@ -42,10 +42,10 @@ export function authOptions(origin: string) {
   } satisfies BetterAuthOptions
 }
 
-export function createAuth(env: Env, origin: string) {
+export function createAuth(env: Env, origin: string, secret: string) {
   const auth = betterAuth({
     ...authOptions(origin),
-    secret: env.BETTER_AUTH_SECRET,
+    secret,
     database: env.DB,
     databaseHooks: {
       user: {

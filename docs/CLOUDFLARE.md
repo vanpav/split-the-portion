@@ -182,16 +182,18 @@ pnpm run deploy
 
 Миграции в команду деплоя **не** добавлять: превью веток собираются той же сборкой и накатили бы недоделанную схему на рабочую базу. Миграции применяем руками (`pnpm db:migrate:remote`) перед слиянием PR, которому они нужны.
 
-**Превью веток** получают свой адрес: `https://<ветка>-split-the-portion.<поддомен>.workers.dev`. Привязки из основного конфига на превью **не наследуются**. Поэтому в `wrangler.jsonc` блок `previews` ещё раз называет базу — ту же рабочую. Секрет у превью свой, один на все, задаётся в «базовом конфиге превью»:
+**Превью веток** получают свой адрес: `https://<ветка>-split-the-portion.<поддомен>.workers.dev`. Каждый деплой превью получает **только** привязки из блока `previews` в `wrangler.jsonc`: основной конфиг не наследуется, а секреты, заданные через `wrangler secret put`, `wrangler preview secret put` или базовый конфиг превью, следующая сборка затирает. Поэтому в блоке `previews`:
+- та же база D1 (`DB`) — рабочая;
+- секрет Better Auth — привязка `PREVIEW_AUTH_SECRET` к Secrets Store аккаунта (хранилище `split-the-portion`, секрет `BETTER_AUTH_SECRET`, свой, не как у рабочего воркера). Воркер берёт `BETTER_AUTH_SECRET`, а если его нет — читает хранилище.
+
+Секрет в хранилище создан так (значение генерируется в команде и никуда не выводится):
 
 ```bash
-openssl rand -base64 32 | tr -d '\n' | pnpm wrangler preview base-config secret put BETTER_AUTH_SECRET
+pnpm wrangler secrets-store store create split-the-portion --remote
 ```
 
-Базовый конфиг получают только **новые** превью. Превью, которое уже существовало, получает секрет отдельно (так сделано 2026-10-06 для `feat-server-auth`, `feat-sync`, `feat-groups`):
-
 ```bash
-openssl rand -base64 32 | tr -d '\n' | pnpm wrangler preview secret put BETTER_AUTH_SECRET --name feat-groups
+pnpm wrangler secrets-store secret create <id хранилища> --name BETTER_AUTH_SECRET --scopes workers --value "$(openssl rand -base64 32)" --remote
 ```
 
 На превью:
@@ -284,7 +286,7 @@ pnpm wrangler d1 export split-the-portion --remote --output ~/Backups/split-the-
 | После деплоя на телефоне старая версия | Service Worker отдаёт закешированную сборку | Нажать «Обновить» в тосте «Есть новая версия». Проверить, что `public/_headers` отдаёт `/sw.js` с `no-cache` |
 | На iPhone после установки пусто | У PWA на экране «Домой» своё хранилище, не общее с Safari | Войти — данные придут с сервера; без аккаунта — «Копия данных» |
 | `403` на `/api/groups/…/sync` | Человек не участник группы (вышел или его убрали) | Приложение само убирает группу с устройства и открывает группу по умолчанию; проверить `member` (§10) |
-| На превью вход «проходит», но аккаунт тут же теряется; `/api/invites/…` — 500; `/api/*` — `{"error":"misconfigured"}` | У превью нет привязки `DB` или секрета: блок `previews` не наследует основной конфиг | Блок `previews.d1_databases` в `wrangler.jsonc`; `pnpm wrangler preview secret list --name <ветка>`; секрет — `wrangler preview base-config secret put` (§8) |
+| На превью вход «проходит», но аккаунт тут же теряется; `/api/invites/…` — 500; `/api/*` — `{"error":"misconfigured"}` | У превью нет привязки `DB` или секрета: деплой превью получает только блок `previews` | Блок `previews` в `wrangler.jsonc`: `d1_databases` и `secrets_store_secrets` (§8); `pnpm wrangler secrets-store secret list <id хранилища> --remote` |
 | `pnpm dev` перестал отвечать на `/api/*` | Миграция применена к локальной базе, пока dev-сервер держал её открытой, или воркер много раз горячо перезагрузился | Перезапустить `pnpm dev` |
 
 ## Источники

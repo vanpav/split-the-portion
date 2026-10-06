@@ -18,10 +18,17 @@
       "migrations_dir": "worker/migrations"
     }
   ],
-  // Preview builds of branches and pull requests. Bindings are not inherited from the top level, so the
-  // database is named again: previews use the production D1 (docs/CLOUDFLARE.md §8). Their
-  // BETTER_AUTH_SECRET is one for all previews: `pnpm wrangler preview base-config secret put`.
+  // Preview builds of branches and pull requests. A preview deployment gets only the bindings of this
+  // block, so the database is named again (the production D1) and the auth secret comes from the
+  // account's Secrets Store: `wrangler secret put` values never reach previews (docs/CLOUDFLARE.md §8).
   "previews": {
+    "secrets_store_secrets": [
+      {
+        "binding": "PREVIEW_AUTH_SECRET",
+        "store_id": "d9d14f86567d45d5a82e830927b8f1db",
+        "secret_name": "BETTER_AUTH_SECRET"
+      }
+    ],
     "d1_databases": [
       {
         "binding": "DB",
