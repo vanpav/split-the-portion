@@ -1,5 +1,5 @@
 export * from './types'
-export { parseGrams, roundHalfUp, formatGrams, formatInput, formatK, formatPercent } from './numbers'
+export { parseGrams, roundHalfUp, formatGrams, formatInput, formatK, formatPercent, formatTyped } from './numbers'
 export type { ParseResult } from './numbers'
 export { foodGrams } from './weighing'
 export type { FoodGramsResult } from './weighing'

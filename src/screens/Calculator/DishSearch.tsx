@@ -26,15 +26,20 @@ const nowIso = () => new Date().toISOString()
 const plain = (text: string) => text.toLowerCase().replace(/ё/g, 'е')
 
 /**
- * cmdk's filter: by the names in `keywords` (the value holds an id), as text, not fuzzy — «бул» is
- * булгур, not «Борщ». A word that starts with the query comes before one that only contains it.
+ * cmdk's filter: by the names in `keywords` — the title first, then the products (the value holds an id) —
+ * as text, not fuzzy: «бул» is булгур, not «Борщ». The title before the products, a word that starts with
+ * the query before one that only contains it: «рис» puts «Рис» above «Суп» with rice in it.
  */
 function byName(_value: string, search: string, keywords: string[] = []): number {
   const query = plain(search).trim()
   if (!query) return 1
-  const names = keywords.map(plain)
-  if (names.some((name) => name.startsWith(query) || name.includes(` ${query}`))) return 1
-  return names.some((name) => name.includes(query)) ? 0.5 : 0
+  const [title = '', ...products] = keywords.map(plain)
+  const startsWord = (name: string) => name.startsWith(query) || name.includes(` ${query}`)
+  if (title === query) return 1
+  if (startsWord(title)) return 0.9
+  if (title.includes(query)) return 0.7
+  if (products.some(startsWord)) return 0.5
+  return products.some((name) => name.includes(query)) ? 0.3 : 0
 }
 
 /**

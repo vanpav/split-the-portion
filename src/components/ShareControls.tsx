@@ -11,8 +11,11 @@ interface ShareControlsProps {
   /** Who ±1 % adjusts. */
   selectedIndex: number
   onChange: (percents: number[]) => void
-  /** The chosen person's portion as shown in grams; null — show their percent. */
-  selectedLabel: string | null
+  /**
+   * The chosen person's part of the whole dish, as their row shows it («53,8 %»); null — their whole
+   * percent of the sharing people («54 % от делящих»), when own portions or «на завтра» take a part.
+   */
+  selectedPercent?: string | null
   unit: 'g' | '%'
   /** Without it there is no «г | %» switch. */
   onUnit?: (unit: 'g' | '%') => void
@@ -24,7 +27,7 @@ interface ShareControlsProps {
  * Under a share bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
  * Nothing to show for one person without the switch.
  */
-export function ShareControls({ names, percents, selectedIndex, onChange, selectedLabel, unit, onUnit, partial }: ShareControlsProps) {
+export function ShareControls({ names, percents, selectedIndex, onChange, selectedPercent, unit, onUnit, partial }: ShareControlsProps) {
   const many = names.length > 1
   if (!many && !onUnit) return null
   const name = names[selectedIndex] ?? ''
@@ -48,8 +51,10 @@ export function ShareControls({ names, percents, selectedIndex, onChange, select
           <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
             <span className="w-full truncate text-muted-foreground">{name}</span>
             <span className="w-full truncate font-semibold tabular-nums">
-              {selectedLabel ?? `${percents[selectedIndex]} %`}
-              {unit === '%' && partial && <span className="font-normal text-muted-foreground"> от делящих</span>}
+              {/* What ±1 % changes, in percent — the same figure as in the person's row; the grams are on the
+                  bar and in the row already. */}
+              {!partial && selectedPercent ? `${selectedPercent} %` : `${percents[selectedIndex]} %`}
+              {partial && <span className="font-normal text-muted-foreground"> от делящих</span>}
             </span>
           </span>
           <Button

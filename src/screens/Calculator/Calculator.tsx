@@ -311,7 +311,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [role=listbox], [role=dialog]')) return
+      // Keys inside a field, a list, a dialog or a menu are theirs: Esc closing the «⋯» menu must not clear the field.
+      if (e.defaultPrevented) return
+      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [role=listbox], [role=dialog], [role=menu]')) return
       if (e.key === 'Enter' || e.key === 'ArrowDown') {
         e.preventDefault()
         move(1)
@@ -345,7 +347,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-3 pt-3">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 lg:max-w-2xl">
       <section aria-label="Вес" className="flex flex-col gap-1">
         {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
             unfolded, its products are small tiles two to a row and «Готовый» goes across. */}
@@ -376,7 +378,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
           />
         </div>
         {/* One quiet line: what «Готовый» was weighed in, what that leaves and k; a composite dish folds here. */}
-        <div className="flex flex-wrap items-center gap-x-2">
+        {/* Small to look at, 44 px to hit: the line pulls its margins in, the people get the height. */}
+        <div className="-my-1.5 flex flex-wrap items-center gap-x-2">
           <TareSelect tares={tares} tareId={tareId} onTare={changeTare} />
           {tareExceeds ? (
             <span className="text-sm text-destructive">вес меньше тары</span>

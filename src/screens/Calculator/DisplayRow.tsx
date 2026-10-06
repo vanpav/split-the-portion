@@ -1,3 +1,4 @@
+import { formatTyped } from '@/domain'
 import { cn } from '@/lib/utils'
 import { Caret } from './Caret'
 
@@ -31,7 +32,8 @@ export function DisplayRow({ label, text, active, onActivate, small, invalid, li
         'flex w-full min-w-0 flex-col items-start justify-start gap-0.5 rounded-xl border px-4 text-left outline-none transition-colors max-[360px]:px-3',
         small ? 'py-1.5' : 'py-2.5',
         'focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        active ? 'border-border bg-card' : 'border-transparent bg-muted/60 hover:bg-card/60',
+        // The one being typed into is the only raised box; in dark the idle tiles sink toward the ground.
+        active ? 'border-border bg-card' : 'border-transparent bg-muted/60 hover:bg-card/60 dark:bg-muted/20 dark:hover:bg-card/60',
         invalid && 'border-destructive',
         className,
       )}
@@ -46,7 +48,7 @@ export function DisplayRow({ label, text, active, onActivate, small, invalid, li
           !text && 'text-muted-foreground/50',
         )}
       >
-        {text || '0'}
+        {formatTyped(text) || '0'}
         {active && <Caret lids={lids} />}
         <span className="ml-1 text-base font-normal text-muted-foreground">г</span>
       </span>

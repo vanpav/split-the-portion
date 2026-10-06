@@ -345,9 +345,9 @@ export function ShareSlider({
         percents={percents}
         selectedIndex={selectedIndex}
         onChange={onChange}
-        selectedLabel={shown(selected?.label ?? null)}
         unit={unit}
         onUnit={onUnit}
+        selectedPercent={selected ? dishPercent(selected.share) : null}
         partial={own.length > 0 || keep > 0}
       />
     </div>

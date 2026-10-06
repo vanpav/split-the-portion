@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatGrams, formatInput, formatK, formatPercent, parseGrams, roundHalfUp } from '../numbers'
+import { formatGrams, formatInput, formatK, formatPercent, formatTyped, parseGrams, roundHalfUp } from '../numbers'
 
 const NBSP = ' '
 
@@ -69,5 +69,21 @@ describe('formatInput', () => {
     expect(formatInput(336.00000001)).toBe('336')
     expect(formatInput(89.2857)).toBe('89,3')
     expect(parseGrams(formatInput(1240.5))).toEqual({ ok: true, value: 1240.5 })
+  })
+})
+
+describe('formatTyped', () => {
+  it('the whole part grouped like formatGrams, the comma and fraction as typed', () => {
+    expect(formatTyped('3160')).toBe(formatGrams(3160))
+    expect(formatTyped('3160')).not.toBe('3160')
+    expect(formatTyped('80')).toBe('80')
+    expect(formatTyped('1500,')).toBe(`${formatGrams(1500)},`)
+    expect(formatTyped('12500,5')).toBe(`${formatGrams(12500)},5`)
+    expect(formatTyped('0,5')).toBe('0,5')
+  })
+
+  it('nothing typed or not a number — as it is', () => {
+    expect(formatTyped('')).toBe('')
+    expect(formatTyped(',5')).toBe(',5')
   })
 })

@@ -35,7 +35,7 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative size-11 shrink-0" aria-label={attention ? 'Ещё: в настройках нужно внимание' : 'Ещё'}>
+        <Button variant="secondary" size="icon" className="relative size-11 shrink-0 rounded-full" aria-label={attention ? 'Ещё: в настройках нужно внимание' : 'Ещё'}>
           <EllipsisIcon />
           {attention && <span aria-hidden className={cn('absolute top-2 right-2', DOT)} />}
         </Button>
