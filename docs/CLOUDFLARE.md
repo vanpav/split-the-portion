@@ -188,6 +188,12 @@ pnpm run deploy
 openssl rand -base64 32 | tr -d '\n' | pnpm wrangler preview base-config secret put BETTER_AUTH_SECRET
 ```
 
+Базовый конфиг получают только **новые** превью. Превью, которое уже существовало, получает секрет отдельно (так сделано 2026-10-06 для `feat-server-auth`, `feat-sync`, `feat-groups`):
+
+```bash
+openssl rand -base64 32 | tr -d '\n' | pnpm wrangler preview secret put BETTER_AUTH_SECRET --name feat-groups
+```
+
 На превью:
 - база та же, рабочая, — не экспериментировать с удалением данных; аккаунты, созданные на превью, настоящие;
 - passkey, созданный на адресе превью, к рабочему адресу не подходит;
