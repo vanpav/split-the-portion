@@ -14,7 +14,7 @@
 
 ## Задачи
 - [x] `pnpm add -D wrangler @cloudflare/vite-plugin` и `pnpm add better-auth @better-auth/passkey hono`. `@cloudflare/vite-plugin` 1.62 поддерживает Vite 8. Записано в ARCHITECTURE §2.
-- [x] `wrangler.jsonc`: `main`, `nodejs_compat`, `assets.run_worker_first: ["/api/*"]`, `d1_databases` (binding `DB`, `migrations_dir: worker/migrations`). Вместо `database_id` пока заглушка: локально он не нужен, рабочий подставить после `wrangler d1 create` ([CLOUDFLARE.md §3](../CLOUDFLARE.md#3-создать-базу-d1)). `BETTER_AUTH_URL` не понадобился: адрес берётся из запроса, поэтому рабочий адрес, превью веток и localhost работают каждый под своим.
+- [x] `wrangler.jsonc`: `main`, `nodejs_compat`, `assets.run_worker_first: ["/api/*"]`, `d1_databases` (binding `DB`, `migrations_dir: worker/migrations`). Вместо `database_id` — рабочей базы (до её создания стояла заглушка: локально id не нужен) ([CLOUDFLARE.md §3](../CLOUDFLARE.md#3-создать-базу-d1)). `BETTER_AUTH_URL` не понадобился: адрес берётся из запроса, поэтому рабочий адрес, превью веток и localhost работают каждый под своим.
 - [x] Локальный секрет — `.dev.vars` (`.dev.vars*` и `.wrangler/` в `.gitignore`). Скрипты `db:migrate:local`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
 - [x] `vite.config.ts` — плагин `cloudflare()`: воркер и локальная D1 внутри `pnpm dev` и `pnpm preview`; в тестах (`VITEST`) не подключается. Сборка: `dist/client` (статика и Service Worker) и `dist/split_the_portion` (воркер, 435 КБ gzip).
 - [x] `tsconfig.worker.json` (типы из `pnpm wrangler types` → `worker-configuration.d.ts`, коммитится: сборка в Cloudflare проверяет типы без `.dev.vars`), ссылка из `tsconfig.json`.
@@ -33,7 +33,7 @@
 - [x] Экран `#/account/reset` — новый пароль по ссылке из лога. Better Auth кладёт `token` в настоящую строку запроса (`/?token=…#/account/reset`), экран берёт его оттуда и убирает из адреса после смены.
 - [x] Настройки → «Аккаунт» (`#/settings/account`, первым в меню; в меню на телефоне вместо подписи — почта): не вошли — «Войти»; вошли — почта, «Добавить вход по Face ID» / «Face ID добавлен» (`useListPasskeys`), «Выйти» (только с сетью: сессия должна закончиться на сервере).
 - [x] Документы: ARCHITECTURE §2, §6, §9; UX — «Настройки», «Вход», словарь; CLOUDFLARE.md — без `BETTER_AUTH_URL`, схема через `db:auth-schema`; CLAUDE.md — команды.
-- [ ] **Вам:** `pnpm wrangler login` → `pnpm wrangler d1 create split-the-portion` → `database_id` в `wrangler.jsonc` → `pnpm db:migrate:remote` → `pnpm wrangler secret put BETTER_AUTH_SECRET` ([CLOUDFLARE.md §2–6](../CLOUDFLARE.md)). Без этого превью-деплой этого PR не соберётся: в `wrangler.jsonc` заглушка вместо id базы.
+- [x] Рабочая база (2026-10-06): `pnpm wrangler login` (аккаунт vanpav@gmail.com) → `pnpm wrangler d1 create split-the-portion` (регион WEUR) → `database_id` в `wrangler.jsonc` → `pnpm wrangler secret put BETTER_AUTH_SECRET` (случайные 32 байта) → `pnpm db:migrate:remote` ([CLOUDFLARE.md §2–6](../CLOUDFLARE.md)).
 - [ ] На iPhone по превью-деплою: регистрация, Связка ключей предлагает сохранить пароль, «Добавить вход по Face ID», выход, «Войти с Face ID»; `pnpm wrangler tail` — `sign-up` и `sign-in` с исходом `Ok`.
 
 ## Файлы

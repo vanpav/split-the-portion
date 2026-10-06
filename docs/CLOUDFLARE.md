@@ -50,7 +50,7 @@ pnpm wrangler whoami
 pnpm wrangler d1 create split-the-portion
 ```
 
-Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc` — можно согласиться. `database_id` не секрет, он хранится в репозитории.
+Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc`. Отказаться: он предложит привязку `split_the_portion`, а у нас `DB` — id вписываем руками в готовый блок `d1_databases`. `database_id` не секрет, он хранится в репозитории. Сделано 2026-10-06: база `split-the-portion`, регион WEUR.
 
 ## 4. Привязать базу к воркеру
 
@@ -72,7 +72,7 @@ Wrangler напечатает блок с `database_id` и предложит с
     {
       "binding": "DB",
       "database_name": "split-the-portion",
-      "database_id": "<из вывода d1 create; в репозитории пока заглушка из нулей>",
+      "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
       "migrations_dir": "worker/migrations"
     }
   ],
