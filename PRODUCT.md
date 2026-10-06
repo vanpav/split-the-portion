@@ -18,22 +18,22 @@ Split the Portion converts food weight between raw and cooked, accounting for th
 
 Hypothesis under test: if the numbers are there in seconds at the stove, people weigh and log more accurately and stop giving up because of mental arithmetic.
 
-Success: the calculator is opened for every cooking, two numbers are typed, the plates are filled from the screen, and the raw weight is copied into the tracker without recalculating.
+Success: the calculator is opened for every cooking, usually one number is typed (the cooked weight), the plates are filled from the screen, and the raw weight is copied into the tracker without recalculating.
 
 ## Positioning
 
-A unit converter for one cooking, not a food database or a calorie counter. The mechanism neighbouring products do not have: the yield coefficient k of today's pot (cooked ÷ raw), tare subtraction from a container library, and a split by arbitrary shares across a household («Ваня 70 : Ксюша 60»), with leftovers re-weighed the next day.
+A unit converter for one cooking, not a food database or a calorie counter. The mechanism neighbouring products do not have: the yield coefficient k of today's pot (cooked ÷ raw), tare subtraction from a container library, and a split by arbitrary shares across a household («Ваня 70 : Ксюша 60»), with a part set aside for tomorrow («На завтра»).
 
 ## Operating Context
 
 - Phone at the stove: kitchen scale, pot or container on it, often wet or busy hands, a glance of a few seconds. Kitchen light, day and evening; the theme follows the system setting by default and can be set to light or dark in Settings.
-- Desktop is secondary (planning, settings, history).
-- Daily loop: tap a dish → type the cooked weight on the in-app keypad → read each person's portion → copy the raw weight into the tracker. Setup (dishes, containers, companies) is rare.
+- Desktop is secondary (planning, settings).
+- Daily loop: the app opens on the last dish (or one tap on the dish shelf) → type the cooked weight on the in-app keypad → read each person's portion → copy the raw weight into the tracker. Nothing to save: the dish remembers what was typed. Setup (dishes, containers, companies) is rare.
 - Works offline. Served from Cloudflare Workers over HTTPS; installable on the iPhone home screen as a PWA (stage 11). During development also opened over local Wi-Fi (no clipboard and no sign-in over http — fallback dialog for copying).
 
 ## Capabilities and Constraints
 
-- Simple dishes (one product) and composite dishes (several ingredients, some «не учитывать»); calculator, saved cookings, history, re-weighing leftovers, «Разделить на N», companies with shares, tare library, backup to a JSON file.
+- Simple dishes (one product) and composite dishes (several ingredients, some «не учитывать»); a dish is a preset that remembers the last raw weight, tare, who eats and their shares, and today's cooked weight (seen by the rest of the group); calculator as the home screen with a dish shelf and search (own dishes and popular ones with their usual weight); «На завтра»; companies with shares, tare library, backup to a JSON file. No cooking history (removed in stage 15).
 - Offline first: data lives in IndexedDB on the device. An account is optional (stages 12–14: email + password, Face ID on top); with it, data syncs through Cloudflare Workers + D1 and can be shared in a group joined by an invite code. One group is the default and opens on launch. No product database or calorie counting.
 - Interface in Russian. Numbers accept comma and dot. Grams fields open the decimal keyboard, font ≥ 16 px, height ≥ 44 px.
 - UI is built only from shadcn/ui primitives (radix-nova style) themed through CSS variables; Tailwind v4; lucide icons.

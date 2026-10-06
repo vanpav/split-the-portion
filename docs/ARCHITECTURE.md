@@ -109,18 +109,22 @@ interface Lineup {
   members: CompanyMember[]; // люди и доли этого блюда после ползунка, «+ Имя», ×
 }
 
-// Блюдо (рецепт): настраивается заранее, сохраняется кнопкой «Создать» / «Сохранить» (с v4).
+// Блюдо (пресет): создаётся кнопкой «Создать», дальше запоминает ввод калькулятора (этап 15).
 interface Dish {
   id: Id;
   kind: CookingKind;     // simple — один продукт
   name: string;
   createdAt: string;
-  updatedAt: string;
-  ingredients: Ingredient[]; // rawGrams — обычный вес, подставляется в каждую готовку
-  tareId: Id | null;         // тара по умолчанию из библиотеки; кто ест — в калькуляторе (companyId убран в v6)
+  updatedAt: string;     // последнее изменение или ввод в калькуляторе — порядок полки блюд
+  ingredients: Ingredient[]; // rawGrams — последний введённый сырой вес
+  tareId: Id | null;         // тара, в которой взвешивают; кто ест — lineups (companyId убран в v6)
+  // Последний готовый вес (с v11): вес на весах, тара, при которой взвешено, и время.
+  // Показывается, только если сегодня и тара та же (cookedToday); null — не взвешивали.
+  cooked: { grams: number; tareId: Id | null; at: string } | null;
 }
 
-// Готовка: одна варка блюда. Создаётся из черновика калькулятора (saveCooking), копирует ингредиенты.
+// Готовка: одна варка блюда — черновик калькулятора (cookingDraft), вход computeCooking.
+// С v11 не хранится: в сторе и в синхронизации готовок нет.
 interface Cooking {
   id: Id;
   dishId: Id;
@@ -137,11 +141,11 @@ interface Cooking {
 }
 ```
 
-Связи: `Dish 1—N Cooking` (через `dishId`), `Dish —0..1→ Tare`, `Dish —0..1→ Lineup` (`lineups[dishId]`), `Lineup —0..1→ Company`, `Cooking 1—N Ingredient` (копия), `Cooking 1—N Weighing`, `Weighing 1—N Portion` (через `weighingId`), `Weighing —snapshot→ Tare`, `Portion —0..1→ Ingredient` (если `basis: 'raw'`).
+Связи хранимых данных: `Dish —0..1→ Tare`, `Dish —0..1→ Lineup` (`lineups[dishId]`), `Lineup —0..1→ Company`. В черновике расчёта: `Cooking 1—N Ingredient` (копия из блюда), `Cooking 1—N Weighing`, `Weighing 1—N Portion` (через `weighingId`), `Weighing —snapshot→ Tare`, `Portion —0..1→ Ingredient` (если `basis: 'raw'`).
 
 **Группа и аккаунт** (этапы 12–14) в доменную модель не входят: расчёт о них не знает. Все данные выше принадлежат одной группе. Группы, участники и аккаунт живут на сервере (§9) и в кэше `src/store/account.ts`.
 
-Почему этап привязан к взвешиванию, а не к дате: перевзвешивание и есть граница этапа. Новые порции всегда создаются на последнем взвешивании.
+Почему этап привязан к взвешиванию, а не к дате: перевзвешивание и есть граница этапа. Новые порции всегда создаются на последнем взвешивании. С этапа 15 калькулятор строит черновик с одним взвешиванием; этапы остаются в домене и его тестах (пример 3 SPEC §11).
 
 ## 4. Расчётный модуль `src/domain`
 
@@ -196,8 +200,7 @@ src/domain/
 | `parseGrams`, `formatGrams`, `formatK`, `formatPercent`, `roundHalfUp` | Ввод и вывод чисел (SPEC §6–7) |
 | `foodGrams(weighing)` | Вес без тары или ошибка |
 | `computeCooking(cooking)` | Все производные значения |
-| `fillRemainder(cooking, result, portionId)` | Значение для кнопки «Остаток» или `null` (кнопку не показывать) |
-| `splitEqual`, `splitLeftover(result, n)` | «Разделить на N» по остатку последнего этапа |
+| `fillRemainder(cooking, result, portionId)`, `splitEqual`, `splitLeftover(result, n)`, `cookingWarnings`, `convertPortionInput`, `portionBasisOptions` | «Остаток», «Разделить на N», предупреждения, единицы порции — модель и тесты; экрана готовки, который их показывал, с этапа 15 нет |
 | `portionCopyText`, `rawAmountsCopyText` | Текст для трекера (SPEC §9) |
 | `cookingWarnings(cooking, result)` | Предупреждения SPEC §8 |
 | `isValidTareGrams(grams)` | Вес тары > 0 |
@@ -213,12 +216,13 @@ src/domain/
 | `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
 | `companyLineup(company)`, `dishLineup(lineups, dishId, companies)`, `lineupCompany(lineup, companies)` | Состав блюда из компании (её доли по умолчанию); состав блюда в калькуляторе (свой или первая компания); какая компания показана в списке (выбранная, если она ещё есть, иначе совпадающая) |
 | `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
-| `usualScaleGrams(cookings, dishId, tareId)` | Самый частый «Готовый» блюда с этой тарой — подстановка в калькулятор |
+| `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
+| `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
+| `recentDishes(dishes)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок полки (последнее использованное сверху); вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
 | `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
-| `presetDishes(existing, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); вид — по `dishKind`, без тары. Id и время передаются снаружи |
+| `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему |
-| `canReweigh(result)` | Активна ли «Перевзвесить остаток»: текущий этап взвешен и в кастрюле что-то есть |
-| `leftoverCookedGrams(result)` | «остаток N г» в списке готовок; `null`, пока ничего не брали |
+| `canReweigh(result)`, `leftoverCookedGrams(result)` | Перевзвешивание и остаток этапа — в домене и тестах; в интерфейсе с этапа 15 не используются |
 | `dayLabel(at, now)` | Подпись дня этапа; `now` передаётся снаружи, домен остаётся чистым |
 | `defaultTitle`, `countedIngredients`, `findPortionPhase` | Вспомогательные |
 
@@ -236,24 +240,13 @@ src/domain/
 ```ts
 interface AppState {
   dishes: Dish[];
-  cookings: Cooking[];
   tares: Tare[];
   companies: Company[];
   // блюда
-  saveDish(draft): Id;            // «Создать» / «Сохранить» из редактора (черновик живёт в состоянии формы)
-  deleteDish(id): void;           // вместе с готовками
-  addDishes(dishes): void;        // «Добавить популярные блюда»: в конец списка, свои блюда не трогает
-  // готовки
-  saveCooking(draft): Id;         // «Сохранить» в калькуляторе: черновик (domain cookingDraft) под новыми id
-  updateCooking(id, patch): void;
-  deleteCooking(id): void;
-  updateIngredient(cookingId, ingredientId, patch): void; // сегодняшний сырой вес
-  setCookingCompany(cookingId, companyId): void;          // заменяет порции текущего этапа людьми компании
-  setWeighing(cookingId, weighing): void;
-  addReweighing(cookingId): Id;  // пустое взвешивание с режимом и тарой прошлого
-  removeWeighing(cookingId, weighingId): void; // вместе с порциями этапа; первое не удаляется
-  addPortion / updatePortion / removePortion
-  restorePortion(cookingId, portion, index): void; // «Отменить» в тосте удаления
+  saveDish(draft): Id;            // «Создать» / «Сохранить» из редактора; калькулятор так же пишет сырой вес и тару
+  setCooked(dishId, grams): void; // готовый вес из калькулятора: время и тару ставит стор; null — поле стёрто (с v11)
+  deleteDish(id): void;           // вместе с его составом lineups
+  addDishes(dishes): void;        // «Добавить популярные блюда», популярное из поиска: в конец списка
   // настройки
   upsertTare / deleteTare
   upsertCompany / deleteCompany   // удаление компании не трогает составы блюд: она просто не показана выбранной («Отменить» возвращает её)
@@ -262,12 +255,12 @@ interface AppState {
 }
 ```
 
-Действия — тонкие иммутабельные обновления, без расчётов. Компоненты получают вычисленный результат через хук `useCookingResult(id)`, который мемоизирует `computeCooking(cooking)` по ссылке на объект готовки.
+Действия — тонкие иммутабельные обновления, без расчётов. Калькулятор собирает черновик (`cookingDraft`) из блюда и набранных чисел и считает `computeCooking(draft)` в `useMemo`; в стор черновик не попадает.
 
 ### 5.2. Хранение: IndexedDB и копия в файле
 
 - Middleware `persist` от zustand, ключ `split-the-portion`, формат `{ state, version }`. Хранилище — IndexedDB (`idb-keyval`, база `keyval-store`), `src/store/idbStorage.ts`.
-- Сохраняется только ввод пользователя: `storedData(state)` в `createAppStore.ts` — `dishes`, `cookings`, `tares`, `companies`, `lineups`, `holdMs`. Та же функция собирает копию в файл.
+- Сохраняется только ввод пользователя: `storedData(state)` в `createAppStore.ts` — `dishes`, `tares`, `companies`, `lineups`, `holdMs` (готовок нет с v11). Та же функция собирает копию в файл.
 - Запись при каждом изменении. Объём маленький (десятки КБ), троттлинг не нужен.
 - **Переезд из `localStorage`** (версии до 2026-10-06): если в IndexedDB ключа нет, читаем `localStorage`, сразу пишем в IndexedDB и только потом удаляем старую копию.
 - **Чтение асинхронное.** `createAppStore` возвращает стор с `ready` — промисом, который выполняется, когда данные прочитаны (или признаны нечитаемыми и сохранены в резервную копию). `main.tsx` рендерит приложение после `ready`: иначе ввод до загрузки перезаписал бы данные.
@@ -277,7 +270,7 @@ interface AppState {
 
 ### 5.3. Версия схемы и миграции
 
-- `src/store/migrations.ts`: `CURRENT_VERSION = 10` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
+- `src/store/migrations.ts`: `CURRENT_VERSION = 11` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
   - v1 → v2: пустые порции (`grams: null`) получают `basis: 'default'` — в v1 они и задумывались как «следуют за блюдом».
   - v2 → v3: у готовки появляется `kind`. Не больше одного ингредиента и он не «не учитывать» → `simple`, иначе `composite`.
   - v5 → v6: у блюд убран `companyId` — блюдо не привязано к людям.
@@ -287,6 +280,7 @@ interface AppState {
   - v4 → v5: `lineup: null` — общий состав калькулятора ещё не выбран.
   - v3 → v4: блюда и компании. Старые готовки удаляются (согласовано: прототип, чистый лист), тара сохраняется, состав по умолчанию становится компанией «Обычно» с равными долями.
   - v9 → v10 (этап 13): у тары и компаний `createdAt` — их порядок на всех устройствах группы. Существующим проставляются возрастающие метки от `1970-01-01T00:00:00.000Z` с шагом 1 мс в текущем порядке; уже заданный `createdAt` не трогается.
+  - v10 → v11 (этап 15): готовки удаляются (истории больше нет; снимок v10 остаётся в `…:backup:v10:…`), у блюд `cooked: null`.
 - **С синхронизацией** (этап 13) изменение формы данных касается и сервера: каждая запись на сервере несёт свою версию `v`. Записи старших версий клиент мигрирует теми же шагами. Запись новее `CURRENT_VERSION` ставит синхронизацию группы на паузу — «Обновите приложение» (§10).
 - `persist({ version: CURRENT_VERSION, migrate })`: `migrate` по очереди применяет шаги от сохранённой версии до текущей.
 - **Снимок перед миграцией:** данные старой версии до миграции копируются в `split-the-portion:backup:v<N>:<ISO>` в том же хранилище — неудачный шаг не стоит данных.
@@ -306,22 +300,19 @@ src/
   main.tsx
   index.css             — Tailwind + тема shadcn (CSS-переменные цветов, радиусы); свои токены — тоже здесь
   app/
-    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, TabBar на экранах верхнего уровня, <Toaster />, <UpdatePrompt />
+    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider; нижнего меню нет (этап 15)
     LocalDataDialog.tsx — «Перенести данные этого устройства?» при первом входе (этап 13)
     UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
-    TabBar.tsx          — нижнее меню: «Простые», «Составные», «Добавить» (форма блюда), «История», «Настройки» (и все её подразделы); с lg — панель слева
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов
   screens/
-    DishList/           — блюда на вкладках «Простые | Составные», «Готовить» в строке
+    DishList/           — HomeScreen (#/ → последнее блюдо или пустой список), DishListScreen (все блюда), DishListItem, OpenGroupLink
     DishEditor/         — создание и правка блюда: DishEditorScreen пересоздаёт DishEditorForm при смене адреса; черновик в состоянии формы, «Создать» / «Сохранить»
-      IngredientEditorRow.tsx, FromSimpleDishPicker.tsx
-    Calculator/         — калькулятор блюда: DisplayRow, Keypad, PersonResult
-    Dish/               — история готовок блюда, «Составное на основе», удаление
-    Cooking/            — полный экран сохранённой готовки
-      WeighingSection.tsx     — «Сегодня»: сырой вес (TodayFields) и взвешивания, режим и тара свёрнуты в строку
-      PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
-      PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
-      TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
+      IngredientEditorRow.tsx, FromSimpleDishPicker.tsx, DishActions.tsx («Составное на основе», «Удалить блюдо»)
+    Calculator/         — главный экран (этап 15)
+      DishShelf.tsx           — полка: поиск, «Все блюда», чипы по последнему использованию, «⋯»
+      DishSearch.tsx          — CommandDialog: свои блюда и популярные с весом
+      DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
+      CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, Keypad.tsx, Caret.tsx, messages.ts
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -333,10 +324,12 @@ src/
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
-    ScreenHeader.tsx    — шапка экрана: «← назад» (куда и подпись — пропсы), заголовок, действия экрана; настройки — в TabBar (каждый экран рендерит свою)
+    ScreenHeader.tsx    — шапка экрана: «← назад» (куда и подпись — пропсы), заголовок, действия экрана (каждый экран рендерит свою)
+    MoreMenu.tsx        — «⋯»: действия экрана и «Настройки», точка «нужно внимание»; во всех шапках
+    ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
-    ShareSlider.tsx     — полоса долей: сегменты, ручки границ, «− Ваня +», «Поровну»; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
+    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
     NewCompanyDialog.tsx — Dialog с CompanyForm и «Добавить компанию»: последний пункт списка компаний (CompanyPicker)
@@ -366,24 +359,26 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | «Не учитывать» | `Checkbox` или `Switch` |
 | «Без тары / С тарой» | `ToggleGroup` (или `Tabs`) |
 | База порции «сырой / готовый / сырой: курица» | `Select` |
-| Выбор тары + «+ Новая тара» (экран готовки) | `Popover` + `Command` (combobox) |
+| Поиск блюда на полке | `CommandDialog` + `Command` (свой `filter`: по словам, «е» = «ё») |
+| «⋯» в шапках | `DropdownMenu` |
+| Подсказки «Найти блюдо ⌘K /», «Все блюда» | `Tooltip` + `Kbd` |
+| «Простое / Составное» в редакторе | `ToggleGroup` |
 | Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт открывает диалог, значение не меняет) |
 | Новая тара: форма (настройки, диалог, TarePicker) | `Field` + `Input` + `NumberField` + `Slider` (в `slider.tsx` добавлен проп `thumbLabel` — имя ручки для экранного диктора), кнопка `Button` |
 | Диалог «Новая тара» | `Dialog` |
-| Компания в калькуляторе и в готовке + «Добавить компанию» | `Select` (последний пункт открывает диалог, значение не меняет) |
+| Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт открывает диалог, значение не меняет) |
 | Диалог «Новая компания» | `Dialog` |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
-| Строки списка готовок | `Item` (ссылка растянута на всю строку, кнопка удаления поверх) |
+| Строки списка блюд | `Item` (ссылка растянута на всю строку) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
 | Суффикс «г» в поле | `InputGroup` + `InputGroupAddon` |
 | Пустой список | `Empty` |
 | Плашка сверки, баннер ошибки чтения, подсказки | `Alert` (варианты default / destructive / `warning` — добавлен в `alert.tsx` через `cva`) |
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
-| Подтверждение удаления готовки | `AlertDialog` |
+| Подтверждение удаления блюда | `AlertDialog` |
 | Запасной показ текста для копирования | `Dialog` + `Textarea` |
-| Свёрнутые прошлые этапы, состав порции | `Collapsible` |
 | Шапка, переход в настройки | `Button` variant `ghost` + иконки `lucide-react` |
-| Меню подразделов настроек (список на телефоне, панель слева с `md`) | `Item` (`asChild` + `<Link>`): `ItemMedia` иконка, `ItemTitle`, `ItemDescription`, «›» в `ItemActions`. `Sidebar` из shadcn не берём: он для навигации всего приложения (провайдер, `Sheet` на телефоне), а у нас уже есть TabBar, и на телефоне подраздел — отдельный экран, а не выезжающая панель |
+| Меню подразделов настроек (список на телефоне, панель слева с `md`) | `Item` (`asChild` + `<Link>`): `ItemMedia` иконка, `ItemTitle`, `ItemDescription`, «›» в `ItemActions`. `Sidebar` из shadcn не берём: он для навигации всего приложения (провайдер, `Sheet` на телефоне), а у нас навигация — полка блюд и «⋯», и на телефоне подраздел — отдельный экран, а не выезжающая панель |
 
 Если нужного компонента нет в shadcn — сначала ищем в экосистеме shadcn/Radix, потом спрашиваем пользователя.
 
@@ -410,12 +405,11 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 ### Маршруты
 | Hash | Экран |
 |---|---|
-| `#/` | Список блюд; `?kind=composite` — вкладка «Составные» |
-| `#/d/new[?from=…]` | Новое блюдо (одна форма, вид по составу); `from` — простое блюдо, на основе которого составное |
-| `#/d/:id` | Калькулятор блюда (CalculatorScreen пересоздаёт Calculator при смене блюда) |
-| `#/d/:id/history` | История готовок блюда, «Составное на основе», удаление |
-| `#/d/:id/edit` | Правка блюда |
-| `#/c/:id` | Экран готовки (несуществующий id → `<Navigate to="/" />`) |
+| `#/` | `HomeScreen`: калькулятор последнего блюда (`recentDishes`); без блюд — пустой список |
+| `#/dishes` | Все блюда одним списком |
+| `#/d/new[?from=…]` | Добавить блюдо (одна форма, вид выбирается и следует из состава); `from` — простое блюдо, на основе которого составное |
+| `#/d/:id` | Калькулятор блюда: `DishShelf` вне ключа, Calculator пересоздаётся при смене блюда |
+| `#/d/:id/edit` | Правка блюда, «Составное на основе», удаление |
 | `#/settings` | Настройки: на телефоне — список подразделов, с `md` — меню слева и «Тара» справа |
 | `#/settings/:section` | Подраздел настроек: `tares`, `companies`, `presets`, `data`, `appearance`; с этапа 12 — `account`, с 14 — `group` (неизвестный → `#/settings`) |
 | `#/account` | Вход и регистрация (этап 12); после входа — в Настройки → «Аккаунт» |
@@ -527,7 +521,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 | `type` | `id` | Что внутри |
 |---|---|---|
 | `dish` | id блюда | `Dish` |
-| `cooking` | id готовки | `Cooking` целиком: ингредиенты, взвешивания, порции |
+| `cooking` | id готовки | Только у версий до 15: `Cooking` целиком. С v11 клиент такие записи не отправляет и пришедшие пропускает (`migrateChange` → `null`); тип остаётся в `RECORD_TYPES`, чтобы сервер принимал записи старых версий |
 | `tare` | id тары | `Tare` |
 | `company` | id компании | `Company` |
 | `lineup` | id блюда | `Lineup` — «Кто ест» у блюда |
@@ -553,7 +547,7 @@ type SyncResponse = { cursor: number; changes: Change[]; more: boolean };
 
 `record` хранит только последнее состояние записи, а не журнал. Поэтому старое изменение, перезаписанное более поздним, в pull уже не попадёт.
 
-**Конфликты: побеждает пришедшее на сервер последним** — на уровне записи, удаление тоже запись. Часы устройств не участвуют: порядок задаёт `seq`. Правки разных записей не конфликтуют. Если двое без сети правили одну готовку, остаётся та, что синхронизировалась позже. Если одна сторона удалила, а другая правила — победит пришедшая позже. Для пары это редкость; слияние по полям — в бэклоге.
+**Конфликты: побеждает пришедшее на сервер последним** — на уровне записи, удаление тоже запись. Часы устройств не участвуют: порядок задаёт `seq`. Правки разных записей не конфликтуют. Если двое без сети правили одно блюдо (например, ввели готовый вес), остаётся то, что синхронизировалось позже. Если одна сторона удалила, а другая правила — победит пришедшая позже. Для пары это редкость; слияние по полям — в бэклоге.
 
 **Клиент (`src/sync/`):**
 
