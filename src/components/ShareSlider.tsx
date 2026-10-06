@@ -58,6 +58,8 @@ interface ShareSliderProps {
    * tells two portions apart when there are more of them than lids. «Доли».
    */
   numbered?: boolean
+  /** What the sharing people split, «440 г», for «17 % из 440 г» under the bar. */
+  sharedLabel?: string | null
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -105,6 +107,7 @@ export function ShareSlider({
   onUnit,
   pickToAdjust = false,
   numbered = false,
+  sharedLabel = null,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
@@ -197,7 +200,10 @@ export function ShareSlider({
   const shown = (label: string | null) => (unit === 'g' ? label : null)
   // The title over the grams: a name, or in «Доли» the portion's number (its place in the lineup).
   const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
-  const labels = (title: string, label: string | null, fallback: string, place: number | null = null) => (
+  // The chosen segment and its neighbours have grips on their borders: narrower than 4.5rem, the grams would
+  // sit under them, so these show the number (or nothing) and the grams stay in the rows below.
+  const crowded = (index: number) => selectedIndex >= 0 && sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
+  const labels = (title: string, label: string | null, fallback: string, place: number | null = null, tight = false) => (
     <>
       {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
           the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first; a number
@@ -210,7 +216,7 @@ export function ShareSlider({
       >
         {titleOf(title, place)}
       </span>
-      <span className="px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden">
+      <span className={cn('px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden', tight && '@max-[4.5rem]:hidden')}>
         {shown(label) ?? fallback}
       </span>
     </>
@@ -245,7 +251,7 @@ export function ShareSlider({
                   sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
                 )}
               >
-                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`, segment?.place ?? index)}
+                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`, segment?.place ?? index, crowded(index))}
               </button>
             )
           })}
@@ -406,6 +412,7 @@ export function ShareSlider({
         onUnit={onUnit}
         selectedPercent={selected ? dishPercent(selected.share) : null}
         partial={own.length > 0 || keep > 0}
+        sharedLabel={sharedLabel}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon, PercentIcon } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon, Undo2Icon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
@@ -418,7 +418,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         return index === -1 ? p : { ...p, weight: percents[index] ?? p.weight }
       }),
     )
-  // Back to shares. One person keeps their old share; «Всё в доли» keeps today's split as it is.
+  // Back to shares. One person keeps their old share; «Сбросить свои» keeps today's split as it is.
   const releaseOwn = (personId: Id) => {
     setFixed(({ [personId]: _released, ...rest }) => rest)
     leavePerson(personId)
@@ -462,9 +462,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
     label: gramsLabel(portionGrams(p, rawOf)),
   }))
   const potRaw = result && phase ? baseRawGrams(result, phase.remainder.raw) : null
+  // What the people who split by share get together, in grams of the view: «17 % из 440 г».
+  const sharingGrams = (phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined).map((p) => portionGrams(p, rawOf))
+  const sharedGrams = sharingGrams.every((g) => g !== null) ? sharingGrams.reduce<number>((a, g) => a + (g ?? 0), 0) : null
   // «Доли»: the portions that split by share all get the same — one ⧉ above the grid copies any of them.
-  const sameShares =
-    splitSummary((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined).map((p) => portionGrams(p, rawOf)))?.same != null
+  const sameShares = splitSummary(sharingGrams)?.same != null
 
   if (!dish || !draft || !result || !phase) return <Navigate to="/" replace />
   const simple = dish.kind === 'simple'
@@ -547,7 +549,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
               value={companyId}
               // Ticked only while the shares are the company's own: picking it again brings them back.
               ticked={matching && matching.id === companyId ? companyId : null}
-              customLabel={`Свой состав · ${lineup.members.length}`}
+              // Nobody yet: the field is named by its question, not «Свой состав · 0».
+              customLabel={lineup.members.length > 0 ? `Свой состав · ${lineup.members.length}` : 'Кто ест'}
               onChange={choosePreset}
               onAdd={() => openScreen(newCompanyPath(dish.id), COMPANY_SELECT_ID)}
               onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
@@ -556,6 +559,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
             />
             {inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
           </div>
+          {!inShares && people.length === 0 && (
+            <p className="px-1 text-sm text-muted-foreground">Впишите имя или выберите «Доли», чтобы поделить на порции.</p>
+          )}
           <ShareSlider
             sharing={sharing}
             sharingSegments={segments.filter((x) => fixed[x.id] === undefined)}
@@ -573,13 +579,14 @@ export function Calculator({ id }: { id: Id | undefined }) {
             onUnit={setBarUnit}
             pickToAdjust={inShares}
             numbered={inShares}
+            sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
               <span>Есть свои порции</span>
               <Button variant="outline" onClick={allToShares}>
-                <PercentIcon data-icon="inline-start" />
-                Всё в доли
+                <Undo2Icon data-icon="inline-start" />
+                Сбросить свои
               </Button>
             </div>
           )}
