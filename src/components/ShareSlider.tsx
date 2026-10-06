@@ -34,13 +34,15 @@ interface ShareSliderProps {
   /** New split of the sharing people, whole percents in the order of `sharing`. */
   onChange: (percents: number[]) => void
   /** «На завтра»: percent of the dish set aside, pulled in from the right edge. */
-  keep: number
+  keep?: number
   /** The most that can be set aside now (`keepLimit`); 0 — nothing to cut. */
-  keepMost: number
-  onKeep: (percent: number) => void
+  keepMost?: number
+  /** Without it there is no «на завтра» edge (a company in the settings). */
+  onKeep?: (percent: number) => void
   /** What the labels show: cooked grams (once weighed) or percent of the dish. */
-  unit: 'g' | '%'
-  onUnit: (unit: 'g' | '%') => void
+  unit?: 'g' | '%'
+  /** Without it there is no «г | %» switch, and the labels show percents. */
+  onUnit?: (unit: 'g' | '%') => void
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -53,9 +55,21 @@ const SEGMENT =
  * The whole dish as one bar (docs/SPEC.md §3б): a segment per person in the size of what they get,
  * own portions outlined, what stays in the pot hatched. Borders between people who split by share
  * can be dragged; ±1 % and «Поровну» below act on those people. The labels follow each segment's
- * width: name and grams, grams only, or nothing.
+ * width: name and grams, grams only, or nothing. A company in the settings uses it too, with
+ * neither «на завтра» nor «г | %» (docs/UX.md §3).
  */
-export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, keep, keepMost, onKeep, unit, onUnit }: ShareSliderProps) {
+export function ShareSlider({
+  sharing,
+  sharingSegments,
+  own,
+  rest,
+  onChange,
+  keep = 0,
+  keepMost = 0,
+  onKeep,
+  unit = '%',
+  onUnit,
+}: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
   const dragRef = useRef<number | null>(null)
@@ -97,7 +111,7 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
     if (!inGroup) return (atBar / 100) * total * 100
     return groupWidth > 0 ? (atBar / groupWidth) * 100 : 0
   }
-  const canKeep = keepMost > 0
+  const canKeep = onKeep !== undefined && keepMost > 0
   // A grip is 44 px wide: at the very ends it stops half a grip in, so it never sticks out of the page.
   const gripAt = (percent: number) => `clamp(1.375rem, ${percent}%, calc(100% - 1.375rem))`
   const keepStart = 100 - width(rest?.share ?? 0)
@@ -120,7 +134,7 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
     if (dragRef.current !== index) return
     if (index === KEEP) {
       const next = keepAt(atPointer(e, false), keepMost)
-      if (next !== keep) onKeep(next)
+      if (next !== keep) onKeep?.(next)
       return
     }
     const next = moveBoundary(percents, index, atPointer(e))
@@ -133,7 +147,7 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
     const step = arrowStep(e)
     if (!step) return
     e.preventDefault()
-    if (index === KEEP) onKeep(keepAt(100 - keep + step, keepMost))
+    if (index === KEEP) onKeep?.(keepAt(100 - keep + step, keepMost))
     else onChange(moveBoundary(percents, index, borderPercent(index) + step))
   }
   const isEqual = equalPercents(sharing.length).every((p, i) => p === percents[i])
@@ -324,67 +338,72 @@ export function ShareSlider({ sharing, sharingSegments, own, rest, onChange, kee
         )}
       </div>
 
-      {/* Under the bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right. */}
-      <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
-        {sharing.length > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label={`${name(selectedIndex)}: на 1 % меньше`}
-              className="max-[360px]:w-9"
-              disabled={percents[selectedIndex] <= 1}
-              onClick={() => onChange(nudgePercent(percents, selectedIndex, -1))}
-            >
-              <MinusIcon />
-            </Button>
-            {/* As wide as its text, so − and + hug it; on a narrow phone it gives way first. */}
-            <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
-              <span className="w-full truncate text-muted-foreground">{name(selectedIndex)}</span>
-              <span className="w-full truncate font-semibold tabular-nums">
-                {shown(selected?.label ?? null) ?? `${percents[selectedIndex]} %`}
-                {unit === '%' && (own.length > 0 || keep > 0) && (
-                  <span className="font-normal text-muted-foreground"> от делящих</span>
-                )}
+      {/* Under the bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
+          Nothing to show for one person without the switch. */}
+      {(sharing.length > 1 || onUnit) && (
+        <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
+          {sharing.length > 1 && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label={`${name(selectedIndex)}: на 1 % меньше`}
+                className="max-[360px]:w-9"
+                disabled={percents[selectedIndex] <= 1}
+                onClick={() => onChange(nudgePercent(percents, selectedIndex, -1))}
+              >
+                <MinusIcon />
+              </Button>
+              {/* As wide as its text, so − and + hug it; on a narrow phone it gives way first. */}
+              <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
+                <span className="w-full truncate text-muted-foreground">{name(selectedIndex)}</span>
+                <span className="w-full truncate font-semibold tabular-nums">
+                  {shown(selected?.label ?? null) ?? `${percents[selectedIndex]} %`}
+                  {unit === '%' && (own.length > 0 || keep > 0) && (
+                    <span className="font-normal text-muted-foreground"> от делящих</span>
+                  )}
+                </span>
               </span>
-            </span>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label={`${name(selectedIndex)}: на 1 % больше`}
-              className="max-[360px]:w-9"
-              onClick={() => onChange(nudgePercent(percents, selectedIndex, 1))}
-            >
-              <PlusIcon />
-            </Button>
-            <Button
-              variant="ghost"
-              // The free space goes before it: ±1 % is one control, «Поровну» another.
-              className="ml-auto px-2 max-[360px]:px-1"
-              disabled={isEqual}
-              onClick={() => onChange(equalPercents(sharing.length))}
-            >
-              Поровну
-            </Button>
-          </>
-        )}
-        <div role="group" aria-label="Что показывать на полосе" className={cn('flex shrink-0 rounded-lg bg-muted p-0.5 text-sm', sharing.length <= 1 && 'ml-auto')}>
-          {(['g', '%'] as const).map((u) => (
-            <button
-              key={u}
-              type="button"
-              aria-pressed={unit === u}
-              onClick={() => onUnit(u)}
-              className={cn(
-                'min-h-10 min-w-9 rounded-md px-2 font-medium max-[360px]:min-w-8 max-[360px]:px-1.5 outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                unit === u ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',
-              )}
-            >
-              {u === 'g' ? 'г' : '%'}
-            </button>
-          ))}
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label={`${name(selectedIndex)}: на 1 % больше`}
+                className="max-[360px]:w-9"
+                onClick={() => onChange(nudgePercent(percents, selectedIndex, 1))}
+              >
+                <PlusIcon />
+              </Button>
+              <Button
+                variant="ghost"
+                // The free space goes before it: ±1 % is one control, «Поровну» another.
+                className="ml-auto px-2 max-[360px]:px-1"
+                disabled={isEqual}
+                onClick={() => onChange(equalPercents(sharing.length))}
+              >
+                Поровну
+              </Button>
+            </>
+          )}
+          {onUnit && (
+            <div role="group" aria-label="Что показывать на полосе" className={cn('flex shrink-0 rounded-lg bg-muted p-0.5 text-sm', sharing.length <= 1 && 'ml-auto')}>
+              {(['g', '%'] as const).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  aria-pressed={unit === u}
+                  onClick={() => onUnit(u)}
+                  className={cn(
+                    'min-h-10 min-w-9 rounded-md px-2 font-medium max-[360px]:min-w-8 max-[360px]:px-1.5 outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                    unit === u ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',
+                  )}
+                >
+                  {u === 'g' ? 'г' : '%'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   )
 }

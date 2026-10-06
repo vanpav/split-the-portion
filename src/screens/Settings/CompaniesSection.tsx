@@ -1,17 +1,16 @@
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { Id } from '@/domain'
-import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 import { CompanyCard } from './CompanyCard'
 
 export function CompaniesSection() {
   const companies = useAppStore((s) => s.companies)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
-  // The company being edited; one at a time. A new one opens right away.
+  // The company being edited; one at a time. A new one opens right away, empty: names go into «+ Имя».
   const [openId, setOpenId] = useState<Id | null>(null)
 
-  const add = () => setOpenId(upsertCompany({ name: '', members: [{ id: newId(), name: '', weight: 1 }] }))
+  const add = () => setOpenId(upsertCompany({ name: '', members: [] }))
 
   return (
     <section className="flex flex-col gap-3">

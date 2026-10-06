@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { cookingPath, dishEditPath, dishHistoryPath, dishListPath } from '@/app/paths'
+import { AddPersonRow } from '@/components/AddPersonRow'
 import { ScreenHeader } from '@/components/ScreenHeader'
+import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
 import {
   applyKey,
@@ -32,12 +34,10 @@ import { CompanyPicker } from '@/screens/Cooking/CompanyPicker'
 import { kText, rawWord } from '@/screens/Cooking/messages'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
-import { AddPersonRow } from './AddPersonRow'
 import { CookedRow } from './CookedRow'
 import { DisplayRow } from './DisplayRow'
 import { Keypad } from './Keypad'
 import { PersonResult } from './PersonResult'
-import { ShareSlider, type DishSegment } from './ShareSlider'
 
 /** Row id of the weight after cooking; the other rows are ingredient ids. */
 const COOKED = 'cooked'

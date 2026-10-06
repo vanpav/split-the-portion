@@ -185,7 +185,7 @@ src/domain/
 | `dishKind(ingredients)` | Вид блюда по составу: один учитываемый продукт — простое |
 | `shareWeights(portions)`, `defaultShareWeight(weights)` | Доля нового человека — среднее долей остальных |
 | `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
-| `toPercents`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты, сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
+| `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
 | `usualScaleGrams(cookings, dishId, tareId)` | Самый частый «Готовый» блюда с этой тарой — подстановка в калькулятор |
 | `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему |
@@ -287,12 +287,15 @@ src/
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
       TarePicker.tsx          — выбор тары и создание новой на месте
-    Settings/           — справочник тары + компании
+    Settings/           — справочник тары + компании (CompanyCard: полоса долей ShareSlider без «На завтра», «+ Имя»)
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
     ScreenHeader.tsx    — шапка экрана: «← назад» (куда и подпись — пропсы), заголовок, действия экрана; настройки — в TabBar (каждый экран рендерит свою)
     CopyButton.tsx      — shadcn Button + Clipboard + тост
+    HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
+    ShareSlider.tsx     — полоса долей: сегменты, ручки границ, «− Ваня +», «Поровну»; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
+    AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
   lib/
     utils.ts            — cn() от shadcn
   store/
