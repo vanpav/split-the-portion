@@ -1,5 +1,5 @@
 import { XIcon } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, type KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
@@ -8,14 +8,13 @@ import {
   baseRawGrams,
   formatGrams,
   formatPercent,
-  formatTyped,
   rawAmountsCopyText,
   type Cooking,
   type CookingResult,
   type PortionResult,
 } from '@/domain'
 import { cn } from '@/lib/utils'
-import { Caret } from './Caret'
+import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
 import { RawList } from './RawList'
 
@@ -34,10 +33,10 @@ interface PersonResultProps {
   onRemove: () => void
   /** «×» is held this long before the person is removed; 0 — a tap. */
   holdMs: number
-  /** The name field gained or lost focus: the system keyboard is up while it is focused. */
-  onEditingName: (editing: boolean) => void
-  /** The answer is a keypad target: tap it and type the person's own portion. */
+  /** The answer is a field: tap it and type the person's own portion. */
   grams: {
+    id: string
+    /** The field has focus: it shows what is typed, today's number faded until then. */
     active: boolean
     text: string
     own: boolean
@@ -45,7 +44,10 @@ interface PersonResultProps {
     unit: 'g' | '%'
     /** The «г / %» switch, always in the field. */
     onToggleUnit: () => void
-    onActivate: () => void
+    onFocus: () => void
+    onBlur: () => void
+    onText: (text: string) => void
+    onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void
   }
   /** Part of the whole dish, «54» — so the split is readable even where the bar is too narrow. */
   percent: string | null
@@ -68,7 +70,6 @@ export function PersonResult({
   onRename,
   onRemove,
   holdMs,
-  onEditingName,
   grams,
   percent,
   onReleaseOwn,
@@ -98,8 +99,6 @@ export function PersonResult({
   const shownNumber = inPercent
     ? computed.share !== null ? formatPercent(computed.share) : null
     : viewGrams !== null ? formatGrams(viewGrams) : null
-  const shownUnit = inPercent ? '%' : dry ? `г ${rawWord(cooking.kind)}` : 'г'
-  const shownValue = shownNumber !== null ? `${shownNumber} ${shownUnit}` : null
 
   return (
     <li className="flex flex-col gap-1 py-3">
@@ -112,8 +111,6 @@ export function PersonResult({
             value={name}
             enterKeyHint="done"
             onChange={(e) => onRename(e.target.value)}
-            onFocus={() => onEditingName(true)}
-            onBlur={() => onEditingName(false)}
             onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
             className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
           />
@@ -154,29 +151,35 @@ export function PersonResult({
             grams.active ? 'border-border bg-card' : 'border-transparent',
           )}
         >
-          <button
-            type="button"
-            aria-pressed={grams.active}
-            aria-label={`${name || 'Человек'}: ${shownValue ?? 'нет ответа'}${grams.own ? ', своя порция' : ''}. Ввести свою порцию с клавиатуры`}
-            onClick={grams.onActivate}
+          <label
+            htmlFor={grams.id}
             className={cn(
-              'flex min-h-14 items-center rounded-xl py-1 pl-2 outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
+              'flex min-h-14 cursor-text items-center rounded-xl py-1 pl-2 transition-colors',
               !grams.active && 'hover:bg-muted/50',
             )}
           >
             <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
-              {grams.active
-                ? // Until a key is pressed: today's number, faded — the field keeps its width.
-                  formatTyped(grams.text) || <span className="text-muted-foreground/50">{shownNumber ?? '0'}</span>
-                : (shownNumber ?? <span className="text-muted-foreground/50">—</span>)}
-              {/* The caret's place is kept when not typing: choosing the field moves nothing. */}
-              <Caret lids={lids} hidden={!grams.active} />
+              <DigitsInput
+                id={grams.id}
+                aria-label={`${name || 'Человек'}: своя порция, ${inPercent ? 'проценты' : dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+                enterKeyHint="done"
+                lids={lids}
+                // Until something is typed: today's number, faded — the field keeps its width.
+                value={grams.active ? grams.text : (shownNumber ?? '')}
+                placeholder={grams.active ? (shownNumber ?? '0') : '—'}
+                onFocus={grams.onFocus}
+                onBlur={grams.onBlur}
+                onChange={(e) => grams.onText(e.target.value)}
+                onKeyDown={grams.onKeyDown}
+              />
             </span>
-          </button>
+          </label>
           <button
             type="button"
             aria-label={`${name || 'Человек'}: показывать в ${inPercent ? 'граммах' : 'процентах'}`}
             onClick={grams.onToggleUnit}
+            // The number keeps focus: switched while typing, what is typed is converted.
+            onMouseDown={(e) => e.preventDefault()}
             // Small to look at, 44 px to hit.
             className="group/unit flex min-h-11 min-w-11 items-center justify-center rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
