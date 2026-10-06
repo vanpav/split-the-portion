@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { formatGrams, type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
+import { Caret } from './Caret'
 import { displayRowBox } from './displayRowBox'
 
 const NO_TARE = 'none'
@@ -31,6 +32,8 @@ interface CookedRowProps {
   note: string | null
   /** Under the field, on the right: what is wrong with the weight («вес меньше тары»). */
   error: string | null
+  /** People eating today: the caret blinks through their lid colors. */
+  lids: number
 }
 
 /**
@@ -39,7 +42,7 @@ interface CookedRowProps {
  * Under the number — the weight without the tare and k; under the field, on the right — an error.
  * The list ends with «Добавить тару»: a new tare is made in a dialog and selected at once.
  */
-export function CookedRow({ label, text, active, onActivate, compact, tares, tareId, onTare, note, error }: CookedRowProps) {
+export function CookedRow({ label, text, active, onActivate, compact, tares, tareId, onTare, note, error, lids }: CookedRowProps) {
   const [adding, setAdding] = useState(false)
   // «Добавить тару» picked: the dialog opens once the list has closed — the list keeps focus while open.
   const addPicked = useRef(false)
@@ -50,7 +53,13 @@ export function CookedRow({ label, text, active, onActivate, compact, tares, tar
 
   return (
     <div className="flex flex-col gap-1">
-      <div className={cn('relative rounded-xl transition-colors', active ? 'bg-muted' : 'hover:bg-muted/50')}>
+      <div
+        className={cn(
+          'relative rounded-xl border transition-colors',
+          // The row being typed into is a lidded box on the frosted ground.
+          active ? 'border-border bg-card' : 'border-transparent hover:bg-card/60',
+        )}
+      >
         {/* A button cannot hold the tare select: the row's button lies under the layout instead. */}
         <button
           type="button"
@@ -104,19 +113,17 @@ export function CookedRow({ label, text, active, onActivate, compact, tares, tar
           <div className="flex shrink-0 flex-col items-end">
             <span
               className={cn(
-                'flex items-baseline leading-tight font-semibold whitespace-nowrap tabular-nums',
+                'flex items-baseline leading-tight font-medium whitespace-nowrap tabular-nums',
                 compact ? 'text-2xl' : 'text-4xl',
                 !text && 'text-muted-foreground/50',
               )}
             >
               {text || '0'}
-              {active && (
-                <span aria-hidden className="ml-0.5 inline-block h-[0.9em] w-0.5 self-center bg-primary motion-safe:animate-pulse" />
-              )}
+              {active && <Caret lids={lids} />}
               <span className="ml-1 text-base font-normal text-muted-foreground">г</span>
             </span>
             {/* Kept even when empty, so the row does not grow on the first key. */}
-            <span className="min-h-5 text-sm leading-5 whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
+            <span className="min-h-5 text-xs leading-5 whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
           </div>
         </div>
       </div>

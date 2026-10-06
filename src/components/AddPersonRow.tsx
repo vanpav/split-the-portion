@@ -48,7 +48,7 @@ export function AddPersonRow({ onAdd, onEditingName, autoFocus }: AddPersonRowPr
             add()
           }
         }}
-        className="h-11 border-transparent px-1 text-base shadow-none hover:border-input focus-visible:border-input"
+        className="h-11 border-transparent bg-transparent px-1 text-base shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
       />
     </li>
   )

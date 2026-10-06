@@ -29,7 +29,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   const percents = toPercents(weights)
   const shares = percentShares(weights)
   // Each person's part, for the bar: percents only.
-  const segments: DishSegment[] = members.map((m, i) => ({ id: m.id, name: m.name, share: shares[i], label: null }))
+  const segments: DishSegment[] = members.map((m, i) => ({ id: m.id, place: i, name: m.name, share: shares[i], label: null }))
 
   const setMembers = (next: CompanyMember[]) => onChange({ ...value, members: next })
   const setMember = (id: string, patch: Partial<CompanyMember>) =>
