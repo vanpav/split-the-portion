@@ -14,6 +14,11 @@ const auths = new Map<string, Auth>()
 
 app.use(csrf())
 app.use(async (c, next) => {
+  // Without these Better Auth would quietly keep accounts in memory: say it out loud instead.
+  if (!c.env.DB || !c.env.BETTER_AUTH_SECRET) {
+    console.error('The worker has no DB binding or no BETTER_AUTH_SECRET (docs/CLOUDFLARE.md §14)')
+    return c.json({ error: 'misconfigured' }, 500)
+  }
   const { origin } = new URL(c.req.url)
   let auth = auths.get(origin)
   if (!auth) auths.set(origin, (auth = createAuth(c.env, origin)))
