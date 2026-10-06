@@ -160,7 +160,7 @@ src/domain/
   reconcile.ts      — reconcilePhase(phase) → { basis, distributed, total, diff, status }
   remainder.ts      — fillRemainder(result, portionId) → граммы в единицах строки
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
-  portions.ts       — «Доли» (этап 16): dishPortions, addPortion, removeLastPortion, portionsLabel, DEFAULT_PORTIONS
+  portions.ts       — «Доли» (этап 16): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
@@ -207,7 +207,7 @@ src/domain/
 | `portionBasisOptions(result)`, `basisKey` | В каких единицах можно вводить порцию (по умолчанию — первым) |
 | `convertPortionInput(result, portionId, basis)` | Та же порция в других единицах (при смене единиц на строке) |
 | `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N»; предел числа порций в «Долях» |
-| `dishPortions(stored, freshIds)`, `addPortion(list, id)`, `removeLastPortion(list)`, `portionsLabel(n)`, `DEFAULT_PORTIONS` | «Доли» (этап 16): порции блюда — сохранённые на устройстве или 2 равные (битый список — как пустой); «+» — порция со средней долей в конце, «−» — последняя (1…100); «6 порций». Делятся порции тем же расчётом, что люди (`cookingDraft`) |
+| `dishPortions(stored, freshIds)`, `addPortion(list, id)`, `removeLastPortion(list)`, `DEFAULT_PORTIONS` | «Доли» (этап 16): порции блюда — сохранённые на устройстве или 2 равные (битый список — как пустой); «+» — порция со средней долей в конце, «−» — последняя (1…100). Делятся порции тем же расчётом, что люди (`cookingDraft`) |
 | `ingredientDisplayName`, `ingredientNames`, `baseRawGrams` | Подписи ингредиентов, сырой вес базового ингредиента по id |
 | `dishSource(dish)` | Название и обычный сырой вес простого блюда для составного на его основе |
 | `dishTitle(dish)`, `dishErrors(dish)` | Название блюда; что мешает нажать «Создать» / «Сохранить» (нужен учитываемый продукт) |
@@ -316,7 +316,7 @@ src/
       DisplayRow.tsx, RawFoldTile.tsx, TareSelect.tsx — плитки «Сухой | Готовый», свёрнутое составное, тара под плитками
       DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
       CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts — «Кто ест» с пунктом «Доли»; строка человека или порции
-      PortionCountRow.tsx     — «− 6 порций +» вместо «+ Имя» в режиме «Доли» (этап 16)
+      PortionStepper.tsx      — «−» / «+» справа от полосы долей в режиме «Доли» вместо «На завтра» (этап 16)
     Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
@@ -333,7 +333,7 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +», «Поровну», «г | %»
     CopyButton.tsx      — shadcn Button + Clipboard + тост
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
-    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
+    ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ, ShareControls; «На завтра», «г | %» и слот `aside` справа от полосы — необязательные пропсы (калькулятор, «Доли», компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
     CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
     NewCompanyDialog.tsx — Dialog с CompanyForm и «Добавить компанию»: последний пункт списка компаний (CompanyPicker)
@@ -375,7 +375,7 @@ scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth 
 | Экраны «Новая тара», «Новая компания», «Вступить по коду» | Свой адрес в `router.tsx`: `ScreenHeader` + форма + `BottomBar` (UX §3а) |
 | Компания в калькуляторе + «Добавить компанию» | `Select` (последний пункт закрывает список и открывает экран «Новая компания», значение не меняет) |
 | «Доли» в списке «Кто ест» | Пункт того же `Select` (после компаний); «Свой состав · N» — пункт возврата к людям, пока выбраны «Доли» |
-| «− 6 порций +» | `Button` variant `outline` size `icon` (44 px) |
+| «−» / «+» порций справа от полосы | `Button` variant `outline` size `icon`, 44 × 48 px (слот `aside` у `ShareSlider`) |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки списка блюд | `Item` (ссылка растянута на всю строку) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
