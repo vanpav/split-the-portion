@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
-import { liveTareId, type Company, type Dish, type Id, type Lineup, type Tare } from '@/domain'
+import { liveTareId, localDay, markUsed, type Company, type Dish, type Id, type Lineup, type Tare } from '@/domain'
 import { newId } from './id'
 import {
   backupKey,
@@ -11,8 +11,8 @@ import {
   type PersistedState,
 } from './migrations'
 
-/** What the dish editor saves; id is absent for a new dish, `cooked` — kept as it is. */
-export type DishDraft = Omit<Dish, 'id' | 'createdAt' | 'updatedAt' | 'cooked'> & { id?: Id; cooked?: Dish['cooked'] }
+/** What the dish editor saves; id is absent for a new dish, `cooked` — kept as it is; `usedOn` is the store's. */
+export type DishDraft = Omit<Dish, 'id' | 'createdAt' | 'updatedAt' | 'cooked' | 'usedOn'> & { id?: Id; cooked?: Dish['cooked'] }
 
 export interface AppState extends PersistedState {
   /** Stored data could not be read; it was copied to a backup key. Not persisted. */
@@ -22,9 +22,10 @@ export interface AppState extends PersistedState {
   /**
    * «Создать» / «Сохранить» in the dish editor; the calculator writes the raw weights and the tare
    * the same way. Without `cooked` the dish keeps the one it has: the editor never touches it.
+   * `used` — typed in the calculator: today goes into `usedOn` (docs/SPEC.md §3б «Меню блюд»).
    */
-  saveDish(draft: DishDraft): Id
-  /** The cooked weight typed in the calculator: the time and the dish's tare go with it; null — erased. */
+  saveDish(draft: DishDraft, options?: { used?: boolean }): Id
+  /** The cooked weight typed in the calculator: the time and the dish's tare go with it; null — erased. A use of the dish. */
   setCooked(dishId: Id, grams: number | null): void
   /** Removes the dish with its «Кто ест». */
   deleteDish(id: Id): void
@@ -86,17 +87,21 @@ export function createAppStore(storage: () => StateStorage) {
           loadError: false,
           dismissLoadError: () => set({ loadError: false }),
 
-          saveDish: ({ id: existingId, ...draft }) => {
-            const now = nowIso()
+          saveDish: ({ id: existingId, ...draft }, options) => {
+            const now = new Date()
             const id = existingId ?? newId()
             set((s) => {
               const old = s.dishes.find((d) => d.id === id)
+              const usedOn = old?.usedOn ?? []
+              // A draft built from a stored dish carries its `usedOn`: the store's copy wins.
+              const { usedOn: _ignored, ...input } = draft as DishDraft & { usedOn?: unknown }
               const dish: Dish = {
-                ...draft,
+                ...input,
                 id,
                 cooked: draft.cooked !== undefined ? draft.cooked : (old?.cooked ?? null),
-                createdAt: old?.createdAt ?? now,
-                updatedAt: now,
+                usedOn: options?.used ? markUsed(usedOn, localDay(now)) : usedOn,
+                createdAt: old?.createdAt ?? now.toISOString(),
+                updatedAt: now.toISOString(),
               }
               return { dishes: old ? s.dishes.map((d) => (d.id === id ? dish : d)) : [dish, ...s.dishes] }
             })
@@ -104,7 +109,8 @@ export function createAppStore(storage: () => StateStorage) {
           },
 
           setCooked: (dishId, grams) => {
-            const at = nowIso()
+            const now = new Date()
+            const at = now.toISOString()
             set((s) => ({
               dishes: s.dishes.map((d) =>
                 d.id === dishId
@@ -113,6 +119,7 @@ export function createAppStore(storage: () => StateStorage) {
                       // Weighed in the tare shown: none, if the dish's tare was deleted (docs/SPEC.md §8).
                       cooked: grams !== null && grams > 0 ? { grams, tareId: liveTareId(d.tareId, s.tares), at } : null,
                       updatedAt: at,
+                      usedOn: markUsed(d.usedOn, localDay(now)),
                     }
                   : d,
               ),

@@ -1,3 +1,4 @@
+import { localDay } from '@/domain'
 import { describe, expect, it } from 'vitest'
 import { backupFile, readBackupFile } from '../backupFile'
 import { CURRENT_VERSION, EMPTY_STATE, STORAGE_KEY, type PersistedState } from '../migrations'
@@ -25,7 +26,13 @@ describe('backup file', () => {
     const dish = { id: 'd', kind: 'simple', name: 'Гречка', createdAt: NOW.toISOString(), updatedAt: NOW.toISOString(), ingredients: [], tareId: null }
     const v10 = { dishes: [dish], cookings: [{ id: 'c', dishId: 'd' }], tares: [tare], companies: [], lineups: {}, holdMs: 1500 }
     const text = JSON.stringify({ app: STORAGE_KEY, version: 10, exportedAt: NOW.toISOString(), state: v10 })
-    expect(readBackupFile(text)).toEqual({ dishes: [{ ...dish, cooked: null }], tares: [tare], companies: [], lineups: {}, holdMs: 1500 })
+    expect(readBackupFile(text)).toEqual({
+      dishes: [{ ...dish, cooked: null, usedOn: [localDay(NOW)] }],
+      tares: [tare],
+      companies: [],
+      lineups: {},
+      holdMs: 1500,
+    })
   })
 
   it.each([

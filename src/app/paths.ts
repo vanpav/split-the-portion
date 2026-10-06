@@ -1,6 +1,6 @@
 import type { Id } from '@/domain'
 
-/** Every dish in one list, from «Все блюда» on the dish shelf. */
+/** The dish menu: search, kind, sort (`?q=…&kind=…&sort=…`), from 🔍 on the dish shelf. */
 export const DISHES_PATH = '/dishes'
 /** Opening a dish shows its calculator (docs/SPEC.md §3б). */
 export const dishPath = (id: Id) => `/d/${id}`

@@ -5,20 +5,17 @@ import { MoreMenu } from '@/components/MoreMenu'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { ItemGroup } from '@/components/ui/item'
-import { recentDishes } from '@/domain'
 import { useAppStore } from '@/store/store'
-import { DishListItem } from './DishListItem'
+import { DishMenu } from './DishMenu'
 import { OpenGroupLink } from './OpenGroupLink'
 
 /**
- * `#/dishes`: every dish in one list, the latest used first — from «Все блюда» on the dish shelf.
- * Adding one is in «⋯». With no dishes it is the first screen (`home`): there is no calculator to go
- * back to, and the empty state offers to add one.
+ * `#/dishes`: the dish menu — search, kind and sort over the user's dishes, then the popular ones they do
+ * not have yet (docs/UX.md «Меню блюд»). Everything on it is in the address, so «назад» from a dish
+ * comes back to the same menu. With no dishes it is the first screen (`home`) with the empty state.
  */
-export function DishListScreen({ home }: { home?: boolean }) {
+export function DishMenuScreen({ home }: { home?: boolean }) {
   const dishes = useAppStore((s) => s.dishes)
-  const shown = recentDishes(dishes)
 
   return (
     <>
@@ -35,7 +32,7 @@ export function DishListScreen({ home }: { home?: boolean }) {
         }
       />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4">
-        {shown.length === 0 ? (
+        {dishes.length === 0 ? (
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -62,13 +59,10 @@ export function DishListScreen({ home }: { home?: boolean }) {
             </EmptyContent>
           </Empty>
         ) : (
-          <ItemGroup className="gap-2">
-            {shown.map((dish) => (
-              <DishListItem key={dish.id} dish={dish} />
-            ))}
-          </ItemGroup>
+          <DishMenu />
         )}
       </main>
     </>
   )
 }
+
