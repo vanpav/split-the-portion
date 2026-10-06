@@ -1,4 +1,4 @@
-import type { Company, Cooking, Dish, Tare } from '@/domain'
+import { localDay, type Company, type Cooking, type Dish, type Tare } from '@/domain'
 import { EMPTY_STATE, type PersistedState } from '@/store/migrations'
 
 export const AT = '2026-10-06T12:00:00.000Z'
@@ -14,6 +14,8 @@ export const dish = (id: string): Dish => ({
   ingredients: [{ id: `${id}-i`, name: id, rawGrams: 130, excluded: false }],
   tareId: null,
   cooked: null,
+  // As the v12 migration gives a dish of an older app: the local day of its updatedAt.
+  usedOn: [localDay(new Date(AT))],
 })
 /** What apps before v11 sent: the client skips it now. */
 export const cooking = (id: string, dishId: string, grams: number | null = null): Cooking => ({

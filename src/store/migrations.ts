@@ -1,7 +1,7 @@
-import type { Company, Dish, Id, Lineup, Tare } from '@/domain'
+import { localDay, type Company, type Dish, type Id, type Lineup, type Tare } from '@/domain'
 
 export const STORAGE_KEY = 'split-the-portion'
-export const CURRENT_VERSION = 11
+export const CURRENT_VERSION = 12
 
 export interface PersistedState {
   dishes: Dish[]
@@ -112,6 +112,18 @@ export const migrations: Record<number, (state: unknown) => unknown> = {
   10: (state) => {
     const { cookings: _cookings, ...s } = state as { cookings?: unknown; dishes?: object[] }
     return { ...s, dishes: (s.dishes ?? []).map((d) => ({ ...d, cooked: null })) }
+  },
+  // v12 (#42): a dish remembers the days it was used, for «Частые» in the dish menu. Its last use
+  // (`updatedAt`) is the first such day: right after the update «Частые» keep the order by last use.
+  11: (state) => {
+    const s = state as { dishes?: { updatedAt?: unknown }[] }
+    return {
+      ...s,
+      dishes: (s.dishes ?? []).map((d) => {
+        const at = typeof d.updatedAt === 'string' ? new Date(d.updatedAt) : null
+        return { ...d, usedOn: at && !Number.isNaN(at.getTime()) ? [localDay(at)] : [] }
+      }),
+    }
   },
 }
 

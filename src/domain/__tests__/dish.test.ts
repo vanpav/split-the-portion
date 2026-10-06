@@ -13,6 +13,7 @@ const dish = (parts: Partial<Dish>): Dish => ({
   ingredients: [],
   tareId: null,
   cooked: null,
+  usedOn: [],
   ...parts,
 })
 

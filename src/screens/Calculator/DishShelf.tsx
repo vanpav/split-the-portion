@@ -1,6 +1,6 @@
-import { LayoutListIcon, PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { shelfScrollTarget } from '@/app/enterAnimation'
 import { dishEditPath, dishPath, DISHES_PATH, newDishPath } from '@/app/paths'
 import { MoreMenu } from '@/components/MoreMenu'
@@ -8,16 +8,16 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { dishTitle, recentDishes, shelfOrder, type Id } from '@/domain'
+import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
-import { DishSearch } from './DishSearch'
 
 /** ⌘ on a Mac (and an iPad with a keyboard), Ctrl elsewhere: how the search shortcut is shown. */
 const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl '
 
 /**
  * The calculator's header: a shelf of dishes, one tap to switch (docs/UX.md «Калькулятор»).
- * Search and the full list stay at the start, outside the scroll, always within reach; the current dish
+ * 🔍 — the dish menu — stays at the start, outside the scroll, always within reach; the current dish
  * is ringed, not filled. On the right, «⋯»: editing the dish, adding one, the settings.
  */
 /** A chip tapped to switch the dish: the places of the current and the tapped chip, as shown. */
@@ -78,21 +78,22 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
     })
     if (left !== null) shelf.scrollTo({ left, behavior: smooth ? 'smooth' : 'instant' })
   }, [currentId])
-  const [searching, setSearching] = useState(false)
+  const navigate = useNavigate()
   // From a keyboard: ⌘K / Ctrl+K anywhere (by the key, so a Russian layout works too), or «/» when
-  // not typing somewhere — as on most sites.
+  // not typing somewhere — as on most sites. Not while a screen over the calculator covers the shelf.
   useEffect(() => {
+    if (hidden) return
     const onKeyDown = (e: KeyboardEvent) => {
       const modK = (e.metaKey || e.ctrlKey) && !e.altKey && e.code === 'KeyK'
       const slash = e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey
       if (!modK && !slash) return
       if (e.target instanceof HTMLElement && e.target.closest(modK ? '[role=dialog]' : 'input, textarea, [role=dialog]')) return
       e.preventDefault()
-      setSearching(true)
+      navigate(DISHES_PATH)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [navigate, hidden])
 
   return (
     <header
@@ -107,15 +108,17 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
       <div className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="size-11 shrink-0 rounded-full"
-              aria-label="Найти блюдо"
-              aria-keyshortcuts="Meta+K Control+K /"
-              onClick={() => setSearching(true)}
-            >
-              <SearchIcon />
+            <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>
+              <Link
+                to={DISHES_PATH}
+                aria-label="Найти блюдо"
+                aria-keyshortcuts="Meta+K Control+K /"
+                // An iPhone opens the keyboard only for a field focused in the tap itself: the invisible one
+                // takes it now, the dish menu's search field takes it over once the menu is open.
+                onClick={() => document.getElementById(KEYBOARD_PROXY_ID)?.focus()}
+              >
+                <SearchIcon />
+              </Link>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" align="start">
@@ -123,17 +126,6 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
             <Kbd>{MOD}K</Kbd>
             <Kbd>/</Kbd>
           </TooltipContent>
-        </Tooltip>
-        <DishSearch open={searching} onOpenChange={setSearching} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>
-              <Link to={DISHES_PATH} aria-label="Все блюда">
-                <LayoutListIcon />
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Все блюда</TooltipContent>
         </Tooltip>
         <nav
           ref={shelfRef}

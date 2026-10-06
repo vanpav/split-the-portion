@@ -176,7 +176,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     else setLineup(dish.id, { companyId, members })
   }
   const remember = (patch: Partial<Pick<Dish, 'ingredients' | 'tareId' | 'cooked'>>) => {
-    if (dish) saveDish({ ...dish, ...patch })
+    if (dish) saveDish({ ...dish, ...patch }, { used: true })
   }
   const base = useMemo(
     () =>

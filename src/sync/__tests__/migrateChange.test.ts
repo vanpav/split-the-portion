@@ -20,8 +20,18 @@ describe('migrateChange', () => {
   })
 
   it('a dish of an app before v11 is not weighed yet', () => {
-    const { cooked: _cooked, ...old } = dish('pasta')
+    const { cooked: _cooked, usedOn: _usedOn, ...old } = dish('pasta')
     expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 10 })).toEqual({
+      type: 'dish',
+      id: 'pasta',
+      data: dish('pasta'),
+      v: CURRENT_VERSION,
+    })
+  })
+
+  it('a dish of a v11 app was used on the day of its updatedAt', () => {
+    const { usedOn: _usedOn, ...old } = dish('pasta')
+    expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 11 })).toEqual({
       type: 'dish',
       id: 'pasta',
       data: dish('pasta'),

@@ -10,6 +10,13 @@ export const TARE_SELECT_ID = 'calculator-tare'
 export const COMPANY_SELECT_ID = 'calculator-company'
 export const ADD_PERSON_ID = 'calculator-add-person'
 
+/**
+ * An invisible field that is always on the page. iPhone opens the keyboard only for a field focused within
+ * the tap itself, not after the address changes: 🔍 focuses this one in its tap, then the dish menu's
+ * search field takes the focus over and the keyboard stays (docs/UX.md «Меню блюд»).
+ */
+export const KEYBOARD_PROXY_ID = 'keyboard-proxy'
+
 /** Enter moves on: focus an element by id; nothing to move to — close the keyboard. */
 export function focusOrBlur(id: string | null) {
   const next = id && document.getElementById(id)

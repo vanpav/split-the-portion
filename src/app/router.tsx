@@ -7,7 +7,7 @@ import { NewTareScreen } from '@/screens/Calculator/NewTareScreen'
 import { CopyTextScreen } from '@/screens/Copy/CopyTextScreen'
 import { DishEditorScreen } from '@/screens/DishEditor/DishEditorScreen'
 import { FromSimpleDishScreen } from '@/screens/DishEditor/FromSimpleDishScreen'
-import { DishListScreen } from '@/screens/DishList/DishListScreen'
+import { DishMenuScreen } from '@/screens/DishList/DishMenuScreen'
 import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
@@ -26,7 +26,7 @@ export const router = createHashRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomeScreen /> },
-      { path: 'dishes', element: <DishListScreen /> },
+      { path: 'dishes', element: <DishMenuScreen /> },
       { path: 'd/new', element: <DishEditorScreen />, children: [fromSimpleDish] },
       {
         path: 'd/:id',
