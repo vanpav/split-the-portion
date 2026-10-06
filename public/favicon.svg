@@ -1,8 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- «Ланчбокс»: a lunchbox on a cobalt ground, split 54 : 46 between two lid colors (DESIGN.md). -->
-  <!-- The box stays inside the maskable safe zone (a circle of 80 % width), so one image serves every icon. -->
-  <rect width="512" height="512" rx="112" fill="#2f5bd3"/>
-  <rect x="96" y="136" width="320" height="240" rx="44" fill="#ffffff"/>
-  <rect x="118" y="158" width="142" height="196" rx="24" fill="#9cc8f0"/>
-  <rect x="276" y="158" width="118" height="196" rx="24" fill="#f6d15c"/>
+  <!-- «Ланчбокс»: three lunchboxes on the navy-ink ground, one per eater (lid colors, DESIGN.md). -->
+  <!-- The top one is open, with grain, carrot sticks and broccoli; its lid leans against the stack. -->
+  <!-- The drawing is in 100-unit coordinates; pwa-assets.config.ts pads it for the maskable icon. -->
+  <defs>
+    <g id="broccoli">
+      <path d="M-3.2 0L-2.2 -10H2.2L3.2 0Z" fill="#bbdf99"/>
+      <g fill="#38964d">
+        <circle cx="-6.5" cy="-11.4" r="5.2"/><circle cx="6.5" cy="-11.4" r="5.2"/><circle cx="0" cy="-15.9" r="6.6"/>
+        <circle cx="-2.8" cy="-9.9" r="4.6"/><circle cx="3" cy="-9.9" r="4.6"/>
+      </g>
+      <g fill="#61bd67">
+        <circle cx="-6.5" cy="-13" r="5.2"/><circle cx="6.5" cy="-13" r="5.2"/><circle cx="0" cy="-17.5" r="6.6"/>
+        <circle cx="-2.8" cy="-11.5" r="4.6"/><circle cx="3" cy="-11.5" r="4.6"/>
+      </g>
+    </g>
+    <rect id="carrot" x="-2.4" y="-17" width="4.8" height="17" rx="2.4" fill="#f18848"/>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#1b2440"/>
+  <g transform="scale(5.12) translate(1.54 17.7) scale(0.86)">
+    <g fill="#f7b98a">
+      <circle cx="30.64" cy="30.01" r="5.94"/><circle cx="69.36" cy="30.01" r="5.94"/><circle cx="50" cy="29.02" r="7.92"/>
+    </g>
+    <use href="#carrot" transform="translate(33.5 31) rotate(-26) scale(1.32)"/>
+    <use href="#carrot" transform="translate(40.1 31) rotate(-10) scale(1.32)"/>
+    <use href="#broccoli" transform="translate(61 31) rotate(8) scale(1.43)"/>
+    <rect x="25" y="30" width="50" height="12" rx="4" fill="#9cc8f0"/>
+    <rect x="25" y="48.5" width="50" height="11" rx="4" fill="#f6d15c"/>
+    <rect x="21.5" y="45" width="57" height="6.5" rx="3.25" fill="#ffffff"/>
+    <rect x="25" y="66.5" width="50" height="11" rx="4" fill="#9eddc0"/>
+    <rect x="21.5" y="63" width="57" height="6.5" rx="3.25" fill="#ffffff"/>
+    <rect x="-28.5" y="-3.5" width="57" height="7" rx="3.5" fill="#ffffff" transform="translate(82.8 49.25) rotate(79.6)"/>
+  </g>
 </svg>
