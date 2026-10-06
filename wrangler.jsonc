@@ -1,0 +1,8 @@
+{
+  // Cloudflare Workers: the built app is served as static files, no server code.
+  "name": "split-the-portion",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
