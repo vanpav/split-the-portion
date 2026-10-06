@@ -21,6 +21,7 @@ export const router = createHashRouter([
       { path: 'c/:id', element: <CookingScreen /> },
       { path: 'history', element: <HistoryScreen /> },
       { path: 'settings', element: <SettingsScreen /> },
+      { path: 'settings/:section', element: <SettingsScreen /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
