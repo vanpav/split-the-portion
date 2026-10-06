@@ -45,7 +45,7 @@ export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
   const remove = () => {
     deleteCompany(company.id)
     toast('Удалено', {
-      description: company.name || 'Компания',
+      description: company.name.trim() || lineupName(company.members),
       duration: 5000,
       action: { label: 'Отменить', onClick: () => upsertCompany(company) },
     })
