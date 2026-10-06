@@ -19,6 +19,7 @@ import {
   defaultShareWeight,
   dishLineup,
   dishPortions,
+  exactPercents,
   formatGrams,
   formatInput,
   formatPercent,
@@ -34,7 +35,6 @@ import {
   portionIn,
   rawFold,
   removeLastPortion,
-  toPercents,
   typedGrams,
   type Company,
   type CompanyMember,
@@ -426,7 +426,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const allToShares = () => {
     const shares = people.map((p) => Math.max(phase?.portions.find((x) => x.portionId === p.id)?.share ?? 0, 0))
     if (shares.some((x) => x > 0)) {
-      const percents = toPercents(shares)
+      const percents = exactPercents(shares)
       setPeople(people.map((p, i) => ({ ...p, weight: percents[i] })))
     }
     setFixed({})

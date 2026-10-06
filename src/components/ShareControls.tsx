@@ -1,6 +1,6 @@
 import { MinusIcon, PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { equalPercents, nudgePercent } from '@/domain'
+import { equalSplit, nudgePercent } from '@/domain'
 import { cn } from '@/lib/utils'
 
 interface ShareControlsProps {
@@ -8,6 +8,8 @@ interface ShareControlsProps {
   names: string[]
   /** Their split in whole percents, summing to 100. */
   percents: number[]
+  /** They split equally already (exact weights, not the rounded percents): «Поровну» is off. */
+  equal: boolean
   /** Who ±1 % adjusts. */
   selectedIndex: number
   onChange: (percents: number[]) => void
@@ -27,11 +29,10 @@ interface ShareControlsProps {
  * Under a share bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
  * Nothing to show for one person without the switch.
  */
-export function ShareControls({ names, percents, selectedIndex, onChange, selectedPercent, unit, onUnit, partial }: ShareControlsProps) {
+export function ShareControls({ names, percents, equal, selectedIndex, onChange, selectedPercent, unit, onUnit, partial }: ShareControlsProps) {
   const many = names.length > 1
   if (!many && !onUnit) return null
   const name = names[selectedIndex] ?? ''
-  const isEqual = equalPercents(names.length).every((p, i) => p === percents[i])
 
   return (
     <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
@@ -70,8 +71,9 @@ export function ShareControls({ names, percents, selectedIndex, onChange, select
             variant="ghost"
             // The free space goes before it: ±1 % is one control, «Поровну» another.
             className="ml-auto px-2 max-[360px]:px-1"
-            disabled={isEqual}
-            onClick={() => onChange(equalPercents(names.length))}
+            disabled={equal}
+            // Exact, not whole percents: 7 portions of 560 g are 80 g each.
+            onClick={() => onChange(equalSplit(names.length))}
           >
             Поровну
           </Button>

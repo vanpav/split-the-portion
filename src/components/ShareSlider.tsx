@@ -2,6 +2,7 @@ import { GripVerticalIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import {
   formatPercent,
+  isEqualSplit,
   keepAt,
   moveBoundary,
   toPercents,
@@ -32,7 +33,10 @@ interface ShareSliderProps {
   own: DishSegment[]
   /** What stays in the pot; null when everything is given out. */
   rest: { share: number; label: string | null } | null
-  /** New split of the sharing people, whole percents in the order of `sharing`. */
+  /**
+   * New split of the sharing people in the order of `sharing`, in percent: whole after a drag or ±1 %,
+   * exact after «Поровну».
+   */
   onChange: (percents: number[]) => void
   /** «На завтра»: percent of the dish set aside, pulled in from the right edge. */
   keep?: number
@@ -349,6 +353,7 @@ export function ShareSlider({
       <ShareControls
         names={sharing.map((_, i) => name(i))}
         percents={percents}
+        equal={isEqualSplit(sharing.map((p) => p.weight))}
         selectedIndex={selectedIndex}
         onChange={onChange}
         unit={unit}
