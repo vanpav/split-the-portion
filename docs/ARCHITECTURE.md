@@ -166,7 +166,7 @@ src/domain/
   remainder.ts      — fillRemainder(result, portionId) → граммы в единицах строки
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
   swipe.ts          — settleSwipe (куда доехать строке после отпускания), rubberBand (сопротивление за краем), settleDuration — для components/SwipeRow
-  portions.ts       — «Доли» (этап 16): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS
+  portions.ts       — «Доли» (этапы 16–17): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS, splitSummary
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
@@ -214,6 +214,8 @@ src/domain/
 | `convertPortionInput(result, portionId, basis)` | Та же порция в других единицах (при смене единиц на строке) |
 | `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N»; предел числа порций в «Долях» |
 | `dishPortions(stored, freshIds)`, `addPortion(list, id)`, `removeLastPortion(list)`, `DEFAULT_PORTIONS` | «Доли» (этап 16): порции блюда — сохранённые на устройстве или 2 равные (битый список — как пустой); «+» — порция со средней долей в конце, «−» — последняя (1…100). Делятся порции тем же расчётом, что люди (`cookingDraft`) |
+| `splitSummary(values, digits)` | «по 80 г × 7» над сеткой «Долей» (этап 17): сколько порций делят по долям, одно значение, если все округляются до одного (граммы — до целого, проценты — до десятых), иначе наименьшее и наибольшее |
+| `equalSplit(n)`, `isEqualSplit(weights)`, `exactPercents(parts)` | «Поровну» точно (100 / n каждому, не целые проценты), «уже поровну» по весам, части блюда в процентах без округления (минимум 1 %) — для `lineupPercents` и «Всё в доли» (этап 17) |
 | `ingredientDisplayName`, `ingredientNames`, `baseRawGrams` | Подписи ингредиентов, сырой вес базового ингредиента по id |
 | `dishSource(dish)` | Название и обычный сырой вес простого блюда для составного на его основе |
 | `dishTitle(dish)`, `dishErrors(dish)` | Название блюда; что мешает нажать «Создать» / «Сохранить» (нужен учитываемый продукт) |
@@ -332,6 +334,7 @@ src/
       DigitsInput.tsx         — число калькулятора как поле: shadcn Input шириной по тексту, выделение при фокусе
       CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts — «Кто ест» с пунктом «Доли»; строка человека или порции
       PortionStepper.tsx      — «− 7 +» справа от поля «Доли»: число порций между кнопками (`ButtonGroup`, этапы 16–17)
+      PortionSummary.tsx, PortionTile.tsx — «Доли» (этап 17): ответ одной строкой «по 80 г × 7 · 29 г сухого» с ⧉ (`splitSummary`) и контейнер порции в сетке по три: номер в крышке, число-поле своей порции (`DigitsInput`), сухой вес, ⧉ — когда порции разные или своя
       NewTareScreen.tsx       — экран «Новая тара» (`#/d/:id/tare/new`): TareForm, список «Добавлено» с выбранной, «Готово» в BottomBar
       NewCompanyScreen.tsx    — экран «Новая компания» (`#/d/:id/company/new`): CompanyForm, «Добавить компанию» в BottomBar
       calculatorOutlet.ts     — что калькулятор передаёт экранам над собой (`useOutletContext`): выбрать тару, выбрать компанию
@@ -397,6 +400,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | «Доли» в списке «Кто ест» | Пункт того же `Select` (после компаний); «Свой состав · N» — пункт возврата к людям, пока выбраны «Доли» |
 | «− 7 +» порций рядом с полем «Доли» | `ButtonGroup`: `Button` variant `outline` size `icon` + `ButtonGroupText` с числом |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
+| Сетка порций в «Доли» | `<ul>` grid по три (`max-[360px]:grid-cols-2`, `lg:grid-cols-4`); контейнер — как плитка калькулятора (`bg-muted/60`, активный — `bg-card` с рамкой), своя — `outline-dashed`; ⧉ — `CopyButton` |
 | Строки меню блюд | `CommandItem`: название слева, вес или состав справа |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
 | Суффикс «г» в поле | `InputGroup` + `InputGroupAddon` |

@@ -35,6 +35,7 @@ import {
   portionIn,
   rawFold,
   removeLastPortion,
+  splitSummary,
   typedGrams,
   type Company,
   type CompanyMember,
@@ -53,6 +54,8 @@ import { DisplayRow } from './DisplayRow'
 import { kText, portionName, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
 import { PortionStepper } from './PortionStepper'
+import { PortionSummary } from './PortionSummary'
+import { PortionTile } from './PortionTile'
 import { RawFoldTile } from './RawFoldTile'
 import { TareSelect } from './TareSelect'
 
@@ -384,24 +387,21 @@ export function Calculator({ id }: { id: Id | undefined }) {
   }
   const updatePerson = (personId: Id, name: string) =>
     setPeople(people.map((p) => (p.id === personId ? { ...p, name } : p)))
+  // A person out of today's lineup (a portion in «Доли» goes with «−»: portions are numbered by place).
   const removePerson = (personId: Id) => {
-    // One portion always stays; the row comes back by itself.
-    if (!dish || (inShares && people.length <= 1)) return
+    if (!dish) return
     const own = fixed[personId]
     const name = people.find((p) => p.id === personId)?.name.trim()
-    // What «Отменить» puts back: the portions in «Доли», the lineup otherwise — never the other one.
-    const shares = inShares
     setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     leavePerson(personId)
-    // A swipe can remove by accident: the toast brings the person (or the portion) back with their share.
+    // A swipe can remove by accident: the toast brings the person back with their share.
     toast(name ? `Убрано: ${name}` : 'Человек убран', {
       duration: 5000,
       action: {
         label: 'Отменить',
         onClick: () => {
-          if (shares) setPortions(dish.id, portions)
-          else setLineup(dish.id, lineup)
+          setLineup(dish.id, lineup)
           // Today's own portion only while the same list is shown: switching clears them.
           if (own && usePrefsStore.getState().splitMode === splitMode) setFixed((f) => ({ ...f, [personId]: own }))
         },
@@ -438,6 +438,18 @@ export function Calculator({ id }: { id: Id | undefined }) {
     toast('Компания сохранена', { description: lineupName(people) })
   }
 
+  // A person's or a portion's amount as a field: tap it and type their own portion.
+  const amountField = (personId: Id) => ({
+    id: calculatorFieldId(personKey(personId)),
+    active: active === personKey(personId),
+    text: texts[personKey(personId)] ?? '',
+    own: fixed[personId] !== undefined,
+    unit: unitOf(personId),
+    onFocus: () => activatePerson(personId),
+    onBlur: leave,
+    onText: (typed: string) => type(personKey(personId), typed),
+    onKeyDown: fieldKeys(personKey(personId)),
+  })
   const gramsLabel = (grams: number | null) => (grams !== null ? `${formatGrams(grams)} г` : null)
   // A person's place in today's lineup: their lid color on the bar and in their row.
   const placeOf = (personId: Id) => Math.max(people.findIndex((x) => x.id === personId), 0)
@@ -450,6 +462,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
     label: gramsLabel(portionGrams(p, rawOf)),
   }))
   const potRaw = result && phase ? baseRawGrams(result, phase.remainder.raw) : null
+  // «Доли»: the portions that split by share all get the same — one ⧉ above the grid copies any of them.
+  const sameShares =
+    splitSummary((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined).map((p) => portionGrams(p, rawOf)))?.same != null
 
   if (!dish || !draft || !result || !phase) return <Navigate to="/" replace />
   const simple = dish.kind === 'simple'
@@ -568,39 +583,57 @@ export function Calculator({ id }: { id: Id | undefined }) {
               </Button>
             </div>
           )}
-          <ul className="flex flex-col divide-y" aria-live="polite">
-            {phase.portions.map((p) => (
-              <PersonResult
-                key={p.portionId}
+          {inShares ? (
+            // «Доли»: what goes into each container said once, then the containers, three to a row.
+            <>
+              <PortionSummary
                 cooking={draft}
                 result={result}
-                name={people.find((x) => x.id === p.portionId)?.name ?? ''}
-                place={placeOf(p.portionId)}
-                lids={people.length}
-                computed={p}
-                dry={rawOf !== null}
-                onRename={inShares ? undefined : (name) => updatePerson(p.portionId, name)}
-                onRemove={() => removePerson(p.portionId)}
-                removeLabel={inShares ? `Убрать порцию ${placeOf(p.portionId) + 1}` : undefined}
-                holdMs={holdMs}
-                onReleaseOwn={() => releaseOwn(p.portionId)}
-                percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
-                grams={{
-                  id: calculatorFieldId(personKey(p.portionId)),
-                  active: active === personKey(p.portionId),
-                  text: texts[personKey(p.portionId)] ?? '',
-                  own: fixed[p.portionId] !== undefined,
-                  unit: unitOf(p.portionId),
-                  onToggleUnit: () => toggleUnit(p.portionId),
-                  onFocus: () => activatePerson(p.portionId),
-                  onBlur: leave,
-                  onText: (typed) => type(personKey(p.portionId), typed),
-                  onKeyDown: fieldKeys(personKey(p.portionId)),
-                }}
+                portions={phase.portions}
+                ownIds={Object.keys(fixed)}
+                rawOf={rawOf}
+                unit={barUnit}
+                numberOf={(portionId) => placeOf(portionId) + 1}
               />
-            ))}
-            {!inShares && <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} />}
-          </ul>
+              <ul className="grid grid-cols-3 gap-2 max-[360px]:grid-cols-2 lg:grid-cols-4">
+                {phase.portions.map((p) => (
+                  <PortionTile
+                    key={p.portionId}
+                    cooking={draft}
+                    result={result}
+                    place={placeOf(p.portionId)}
+                    lids={people.length}
+                    computed={p}
+                    dry={rawOf !== null}
+                    grams={amountField(p.portionId)}
+                    copyable={!sameShares || fixed[p.portionId] !== undefined}
+                  />
+                ))}
+              </ul>
+            </>
+          ) : (
+            <ul className="flex flex-col divide-y" aria-live="polite">
+              {phase.portions.map((p) => (
+                <PersonResult
+                  key={p.portionId}
+                  cooking={draft}
+                  result={result}
+                  name={people.find((x) => x.id === p.portionId)?.name ?? ''}
+                  place={placeOf(p.portionId)}
+                  lids={people.length}
+                  computed={p}
+                  dry={rawOf !== null}
+                  onRename={(name) => updatePerson(p.portionId, name)}
+                  onRemove={() => removePerson(p.portionId)}
+                  holdMs={holdMs}
+                  onReleaseOwn={() => releaseOwn(p.portionId)}
+                  percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
+                  grams={{ ...amountField(p.portionId), onToggleUnit: () => toggleUnit(p.portionId) }}
+                />
+              ))}
+              <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} />
+            </ul>
+          )}
           {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
           {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
             <p className="flex items-baseline justify-between gap-2 border-t pt-3 text-sm">
