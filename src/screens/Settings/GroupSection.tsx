@@ -23,7 +23,7 @@ export function GroupSection() {
         <div className="flex flex-col gap-1 px-1">
           <h2 className="text-base font-semibold">Группа</h2>
           <p className="text-sm text-muted-foreground">
-            Блюда, история, тара и компании — общие для всех в группе.
+            Блюда, тара и компании — общие для всех в группе.
           </p>
         </div>
         <GroupPicker groups={me.groups} openId={group.id} defaultId={me.defaultGroupId} />

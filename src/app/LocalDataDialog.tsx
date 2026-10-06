@@ -28,7 +28,7 @@ export function LocalDataDialog() {
           <AlertDialogTitle>Перенести данные этого устройства?</AlertDialogTitle>
           <AlertDialogDescription>
             {localData &&
-              `На этом устройстве блюд: ${localData.dishes.length}, готовок: ${localData.cookings.length}. ` +
+              `На этом устройстве блюд: ${localData.dishes.length}. ` +
                 `В группе «${groupName}» уже есть свои. Перенести эти в группу? Одинаковые блюда могут задвоиться.`}
           </AlertDialogDescription>
         </AlertDialogHeader>

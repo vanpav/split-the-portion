@@ -18,12 +18,10 @@ import { useAppStore } from '@/store/store'
 
 /**
  * «Популярные блюда»: ready recipes for a new user. Added next to the user's own dishes, never
- * replacing them; ones with the same name are skipped. With dishes or cookings already there —
- * confirm first.
+ * replacing them; ones with the same name are skipped. With dishes already there — confirm first.
  */
 export function PresetsSection() {
   const dishes = useAppStore((s) => s.dishes)
-  const hasCookings = useAppStore((s) => s.cookings.length > 0)
   const addDishes = useAppStore((s) => s.addDishes)
   const deleteDish = useAppStore((s) => s.deleteDish)
   // Counts shown in the dialog, kept while it closes (the list changes under it on «Добавить»).
@@ -46,7 +44,7 @@ export function PresetsSection() {
     })
   }
 
-  const press = () => (dishes.length > 0 || hasCookings ? setConfirm({ open: true, simple, composite }) : add())
+  const press = () => (dishes.length > 0 ? setConfirm({ open: true, simple, composite }) : add())
 
   return (
     <section className="flex flex-col gap-3">

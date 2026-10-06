@@ -1,7 +1,8 @@
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
-import { dishListPath, dishPath } from '@/app/paths'
+import { toast } from 'sonner'
+import { DISHES_PATH, dishPath } from '@/app/paths'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
@@ -9,12 +10,13 @@ import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { dishErrors, dishKind, dishSource, dishTitle, type DishError, type Id, type Ingredient } from '@/domain'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { asSimple, dishErrors, dishKind, dishSource, dishTitle, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
 import { focusOrBlur, ingredientNameId } from '@/lib/domIds'
-import { cn } from '@/lib/utils'
 import type { DishDraft } from '@/store/createAppStore'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
+import { DishActions } from './DishActions'
 import { FromSimpleDishPicker } from './FromSimpleDishPicker'
 import { IngredientEditorRow } from './IngredientEditorRow'
 
@@ -29,8 +31,8 @@ const emptyIngredient = (): Ingredient => ({ id: newId(), name: '', rawGrams: nu
 const isEmpty = (i: Ingredient) => !i.name.trim() && i.rawGrams === null && !i.excluded
 
 /**
- * Create or edit a dish (recipe). One form for both kinds: the kind follows the ingredients
- * (`dishKind`) and is shown live at the top. Nothing is saved until «Создать» / «Сохранить».
+ * Create or edit a dish (recipe). One form for both kinds: the kind is chosen at the top and follows
+ * the ingredients (`dishKind`) as they are typed. Nothing is saved until «Создать» / «Сохранить».
  * `/d/new[?from=<simple dish>]` or `/d/:id/edit`; the draft is taken from the route once, on mount.
  */
 export function DishEditorForm() {
@@ -55,6 +57,8 @@ export function DishEditorForm() {
       tareId: null,
     }
   })
+  // The kind picked by hand, until the ingredients say it themselves.
+  const [intent, setIntent] = useState<CookingKind | null>(null)
   // The row that gets focus: the first empty one when the form opens, then a freshly added one.
   const [focusId, setFocusId] = useState<Id | null>(
     () => draft?.ingredients.find((i) => !i.name.trim())?.id ?? null,
@@ -64,6 +68,8 @@ export function DishEditorForm() {
   const isNew = !existing
   const errors = dishErrors(draft)
   const kind = dishKind(draft.ingredients)
+  // «Составное» chosen before the second product is typed: the form is composite already.
+  const shownKind: CookingKind = kind === 'composite' ? 'composite' : (intent ?? 'simple')
 
   const patch = (p: Partial<DishDraft>) => setDraft({ ...draft, ...p })
   const setIngredient = (ingredientId: Id, p: Partial<Ingredient>) =>
@@ -82,40 +88,70 @@ export function DishEditorForm() {
     else addIngredient()
   }
 
+  // «Составное»: a row for the next product, the cursor in it. «Простое»: the first product stays, the
+  // other counted ones go — nothing is saved yet, and «Вернуть» brings them back.
+  const chooseKind = (next: CookingKind) => {
+    if (next === shownKind) return
+    setIntent(next)
+    if (next === 'composite') {
+      const empty = draft.ingredients.find((i) => !i.name.trim())
+      if (draft.ingredients.length < 2 || !empty) addIngredient()
+      else focusOrBlur(ingredientNameId(empty.id))
+      return
+    }
+    const before = draft.ingredients
+    const kept = asSimple(before)
+    if (kept.length === before.length) return
+    patch({ ingredients: kept })
+    const gone = before.length - kept.length
+    toast('Блюдо стало простым', {
+      description: `Убрано продуктов: ${gone}`,
+      action: {
+        label: 'Вернуть',
+        onClick: () => {
+          setDraft((d) => d && { ...d, ingredients: before })
+          setIntent('composite')
+        },
+      },
+    })
+  }
+
   const save = () => {
     if (errors.length > 0) return
     const ingredients = draft.ingredients.filter((i) => !isEmpty(i))
     const savedId = saveDish({ ...draft, kind, name: draft.name.trim(), ingredients })
     navigate(dishPath(savedId), { replace: true })
   }
-  const backTo = existing ? dishPath(existing.id) : dishListPath('simple')
+  const backTo = existing ? dishPath(existing.id) : DISHES_PATH
 
   return (
     <>
       <ScreenHeader
-        title={isNew ? 'Новое блюдо' : 'Изменить блюдо'}
+        title={isNew ? 'Добавить блюдо' : 'Изменить блюдо'}
         back
         backTo={backTo}
-        backLabel={existing ? 'Блюдо' : 'Блюда'}
+        backLabel={existing ? 'Калькулятор' : 'Блюда'}
       />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-4">
-        <section className="flex flex-col gap-2" aria-live="polite">
-          {/* Looks like tabs, but follows the ingredients: one counted product — simple. */}
-          <div className="grid grid-cols-2 rounded-lg bg-muted p-1 text-sm" role="status">
-            {(['simple', 'composite'] as const).map((k) => (
-              <span
-                key={k}
-                className={cn(
-                  'flex min-h-10 items-center justify-center rounded-md font-medium transition-colors',
-                  kind === k ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',
-                )}
-              >
-                {k === 'simple' ? 'Простое' : 'Составное'}
-              </span>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {kind === 'simple'
+        <section className="flex flex-col gap-2">
+          {/* A choice, and it follows the ingredients too: two counted products make the dish composite. */}
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            aria-label="Вид блюда"
+            value={shownKind}
+            onValueChange={(v) => v && chooseKind(v as CookingKind)}
+            className="w-full"
+          >
+            <ToggleGroupItem value="simple" className="min-h-11 flex-1">
+              Простое
+            </ToggleGroupItem>
+            <ToggleGroupItem value="composite" className="min-h-11 flex-1">
+              Составное
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {shownKind === 'simple'
               ? 'Один продукт. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.'
               : 'Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметьте «не учитывать».'}
           </p>
@@ -176,6 +212,8 @@ export function DishEditorForm() {
             {tares.length === 0 && <FieldDescription>Тару можно добавить в настройках.</FieldDescription>}
           </Field>
         </section>
+
+        {existing && <DishActions dish={existing} />}
 
         <BottomBar>
           <div className="flex flex-1 flex-col gap-2">

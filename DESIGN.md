@@ -36,7 +36,7 @@ colors:
 typography:
   display:
     fontFamily: "Rubik Variable, sans-serif"
-    fontSize: "2.25rem"
+    fontSize: "1.875rem"
     fontWeight: 500
     lineHeight: 1.25
     fontFeature: "\"tnum\""
@@ -86,12 +86,43 @@ components:
     textColor: "{colors.lid-white}"
     rounded: "{rounded.lg}"
     padding: "0 14px"
-    height: "44px"
+    height: "48px"
   button-primary-dark:
     backgroundColor: "{colors.cornflower-cobalt}"
     textColor: "{colors.cornflower-text}"
     rounded: "{rounded.lg}"
-    height: "44px"
+    height: "48px"
+  dish-chip:
+    backgroundColor: "{colors.frost-step}"
+    textColor: "{colors.navy-ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.full}"
+    padding: "0 14px"
+    height: "36px"
+  dish-chip-current:
+    backgroundColor: "{colors.lid-white}"
+    textColor: "{colors.navy-ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.full}"
+    padding: "0 14px"
+    height: "36px"
+  round-icon-button:
+    backgroundColor: "{colors.frost-step}"
+    textColor: "{colors.navy-ink}"
+    rounded: "{rounded.full}"
+    size: "44px"
+  readout-tile-active:
+    backgroundColor: "{colors.lid-white}"
+    textColor: "{colors.navy-ink}"
+    typography: "{typography.display}"
+    rounded: "{rounded.xl}"
+    padding: "10px 16px"
+  readout-tile-idle:
+    backgroundColor: "{colors.frost-muted}"
+    textColor: "{colors.navy-ink}"
+    typography: "{typography.display}"
+    rounded: "{rounded.xl}"
+    padding: "10px 16px"
   keypad-digit:
     backgroundColor: "{colors.frost-step}"
     textColor: "{colors.navy-ink}"
@@ -103,17 +134,6 @@ components:
     textColor: "{colors.slate-muted-ink}"
     rounded: "{rounded.lg}"
     height: "56px"
-  display-row-active:
-    backgroundColor: "{colors.lid-white}"
-    textColor: "{colors.navy-ink}"
-    typography: "{typography.display}"
-    rounded: "{rounded.xl}"
-    padding: "8px 16px"
-  display-row-idle:
-    textColor: "{colors.navy-ink}"
-    typography: "{typography.display}"
-    rounded: "{rounded.xl}"
-    padding: "8px 16px"
   share-segment:
     textColor: "{colors.navy-ink}"
     rounded: "{rounded.xl}"
@@ -143,8 +163,8 @@ Light and dark follow the phone's setting (next-themes, `defaultTheme="system"`,
 **Key Characteristics:**
 - Frosted cool-white ground, navy ink, a single plain cobalt primary.
 - Five lid colors assigned by a person's place in today's lineup, repeating after five.
-- Numbers first: tabular Rubik in medium weight, 30–36 px for answers.
-- Flat, tonal layering; the active field is a white lidded box with a 1 px seam.
+- Numbers first: tabular Rubik in medium weight, 30 px for readouts and answers.
+- Flat, tonal layering; the active field is a white lidded box with a 1 px seam, idle tiles sit a frosted step below.
 - Generous radii (0.875rem base, ~1.2rem on boxes and the share bar).
 - A blinking caret that cycles through today's lids.
 
@@ -153,7 +173,7 @@ Light and dark follow the phone's setting (next-themes, `defaultTheme="system"`,
 A cool frosted neutral set with one saturated cobalt for action and five soft pastel lids reserved for people.
 
 ### Primary
-- **Cobalt** (`cobalt`): the primary action («Сохранить»), focus rings (at 50% opacity), text selection, native input carets, and the caret's reduced-motion fallback. Plain fill, white text.
+- **Cobalt** (`cobalt`): the primary «Создать / Сохранить» in the dish editor, focus rings (at 50% opacity), text selection, native input carets, and the caret's reduced-motion fallback. Plain fill, white text. The calculator has no save action: the dish remembers what is typed, so the calculator carries no cobalt button.
 - **Cornflower Cobalt** (`cornflower-cobalt`, dark theme): the dark theme's primary, deliberately lighter than light-theme cobalt with navy text (`cornflower-text`) so the main action reads on the night ground. It is the same «кобальт» role adapted, not a second accent.
 
 ### Secondary (person lids)
@@ -166,10 +186,10 @@ A cool frosted neutral set with one saturated cobalt for action and five soft pa
 
 ### Neutral
 - **Frosted Ground** (`frosted-ground`): page and sticky keypad tray background.
-- **Lid White** (`lid-white`): cards, popovers, and the active display box.
+- **Lid White** (`lid-white`): cards, popovers, the active readout tile, and the current dish chip.
 - **Navy Ink** (`navy-ink`): all text and numbers; also the text on lids.
-- **Frost Step** (`frost-step`): digit keys (shadcn secondary).
-- **Frost Muted** (`frost-muted`): operation keys, segmented-control track, unit chips.
+- **Frost Step** (`frost-step`): digit keys, dish chips, and the round search / «Все блюда» / «⋯» buttons (shadcn secondary).
+- **Frost Muted** (`frost-muted`): operation keys, idle readout tiles (at 60%; 20% in dark, so they sink toward the night ground), segmented-control track, unit chips.
 - **Slate Muted Ink** (`slate-muted-ink`): labels, units («г»), sublines, placeholders.
 - **Seam** (`seam`) and **Input Stroke** (`input-stroke`): 1 px borders, dividers, the active box's edge.
 - Night counterparts: `night-ground`, `night-box`, `night-ink`, `night-step`, `night-muted`, `night-muted-ink`, `night-seam`.
@@ -177,7 +197,7 @@ A cool frosted neutral set with one saturated cobalt for action and five soft pa
 ### Named Rules
 **The Color Quarantine Rule.** Lid colors appear only on person-owned marks: share-bar segments, the lid mark beside a name, and the caret. Chrome stays ink and cobalt.
 
-**The Ring, Not Flood Rule.** Selection is a ring (`ring-2` in ink, inset), never a fill that would hide the person's color.
+**The Ring, Not Flood Rule.** Selection is a ring (`ring-2` in ink, inset), never a fill that would hide the person's color. The current dish chip on the shelf takes the same mark.
 
 **The Plain Cobalt Rule.** Primary buttons are a flat cobalt fill with white (or, in dark, navy) text. The user declined decorated primary buttons.
 
@@ -189,11 +209,11 @@ A cool frosted neutral set with one saturated cobalt for action and five soft pa
 **Character:** One soft, rounded grotesk for everything; its friendly geometry keeps the tool homely rather than clinical, and its tabular figures keep grams aligned while typing.
 
 ### Hierarchy
-- **Display** (500, 2.25rem, 1.25): calculator readouts («Сухой», «Готовый»); 1.5rem in compact mode for composite dishes.
+- **Display** (500, 1.875rem, 1.25): calculator readout tiles («Сухой», «Готовый», a folded «Сырой»); 1.5rem below 360 px; 1.25rem on the small product tiles of an unfolded composite dish. Typed digits are grouped like every gram («3 160»).
 - **Headline** (500, 1.875rem, 1.25): each person's answer; 1.5rem below 360 px.
 - **Title** (600, 1.125rem): screen header titles.
 - **Body** (400, 1rem): names, inputs, units next to readouts. Gram inputs stay ≥ 16 px.
-- **Label** (400, 0.875rem, 1.25): field labels, sublines («53,8 % • 81 г сухого»), share-bar captions (500/600).
+- **Label** (400, 0.875rem, 1.25): tile labels above the number (500 and ink on the active tile, muted on idle ones; «Готовый · 17:19» when the cooked weight was remembered today), dish chips (500; 600 when current), sublines («53,8 % • 81 г сухого»), share-bar names (0.75rem, 500) over grams (1rem, 600).
 - **Keypad** (500, 1.5rem, tabular): digit keys.
 
 ### Named Rules
@@ -203,38 +223,50 @@ A cool frosted neutral set with one saturated cobalt for action and five soft pa
 
 ## Layout
 
-Single column, phone-first. The calculator column is capped at 28rem and centered, with 12 px side padding and 20 px between sections (readouts, «Кто ест», results). The keypad is a 4-column grid with 8 px gaps, pinned in a sticky bottom tray (frosted ground at 95% with backdrop blur, top seam, safe-area padding). At `lg` (1024 px) the tray becomes static, the keypad hides, and a full-width large primary «Сохранить» replaces it; the tab bar moves to a left rail. Below 360 px controls tighten (smaller gaps and paddings, answer drops a size). No horizontal scroll at 375 px. Touch targets are at least 44 px; small visual marks (unit chip, «своя ×») reach 44 px through padding.
+Single column, phone-first. The calculator is the home screen; there is no tab bar. Its header is the dish shelf: sticky, frosted ground at 95% with backdrop blur and a bottom seam, its content as wide as the calculator column under it. Other screens use a sticky header with back, title, and «⋯», and keep their main action in a bottom bar under the thumb (static from `lg`).
+
+The calculator column is capped at 28rem (42rem from `lg`, 1024 px) and centered, with 12 px side padding and 16 px between sections (readouts, «Кто ест»). Readouts are a two-column grid of tiles with 8 px gaps («Сухой | Готовый»); a quiet line under them carries the tare, the weight without it, k, and «Продукты ⌄ / Свернуть ⌃». The keypad is a 4-column grid with 8 px gaps, pinned in a sticky bottom tray (frosted ground at 95% with backdrop blur, top seam, safe-area padding). At `lg` the tray hides and a muted hint line («Цифры — с клавиатуры, Enter или ↓ — следующее поле.») takes its place. Below 360 px controls tighten (smaller gaps and paddings, numbers drop a size). No horizontal scroll at 375 px. Touch targets are at least 44 px; small visual marks (dish chips, unit chip, «своя ×») reach 44 px through padding.
 
 ## Elevation & Depth
 
-Flat by default, with tonal layering: frosted ground → white lidded box → frost-grey keys. Borders are 1 px seams. Shadows exist only on things that physically move or float: the round grip knobs on the share bar (`0 2px 6px rgb(0 0 0 / 0.18)`, lifting to `0 4px 12px rgb(0 0 0 / 0.22)` while dragged), the selected tab of the segmented control (`shadow-sm`), and a soft upward shadow under the mobile tab bar.
+Flat by default, with tonal layering: frosted ground → white lidded box → frost-grey keys. Borders are 1 px seams. Shadows exist only on things that physically move or float: the round grip knobs on the share bar (`0 2px 6px rgb(0 0 0 / 0.18)`, lifting to `0 4px 12px rgb(0 0 0 / 0.22)` while dragged), the selected tab of the segmented control (`shadow-sm`), and floating menus and dialogs (the «⋯» menu, search). The sticky shelf and keypad tray separate from content with a seam and blur, not a shadow.
 
 ### Named Rules
-**The Drag-Only Shadow Rule.** Only draggable or floating controls cast a shadow; boxes and keys are separated by tone.
+**The Drag-Only Shadow Rule.** Only draggable or floating controls cast a shadow; boxes, tiles, chips, and keys are separated by tone.
 
 ## Shapes
 
-Generously rounded, like molded plastic. Base radius 0.875rem (buttons, inputs, keys); display boxes, the answer field, and the share bar use ~1.2rem (`rounded-xl`). Lid marks are 14 px squares with 5 px corners, a small lid seen from above. Grips, chips, and the caret are fully round. Share-bar segments butt together, separated by a 2 px inset line of the ground color; only the bar's outer ends are rounded.
+Generously rounded, like molded plastic. Base radius 0.875rem (buttons, inputs, keys); readout tiles, the answer field, and the share bar use ~1.2rem (`rounded-xl`). Lid marks are 14 px squares with 5 px corners, a small lid seen from above. Grips, dish chips, the round header buttons, and the caret are fully round. Share-bar segments butt together, separated by a 2 px inset line of the ground color; only the bar's outer ends are rounded.
 
 ## Components
 
 ### Buttons
 - **Shape:** gently rounded (0.875rem), 44 px tall; large 48 px.
-- **Primary:** flat cobalt, white text, 500 weight; hover fades to 80%; press nudges down 1 px; disabled at 50% opacity. Dark: cornflower cobalt with navy text.
+- **Primary:** flat cobalt, white text, 500 weight; hover fades to 80%; press nudges down 1 px; disabled at 50% opacity. Dark: cornflower cobalt with navy text. It lives in the dish editor's bottom bar («Создать» / «Сохранить», large, beside an outline «Отмена»).
+- **Round icon buttons:** 44 px frost-step circles for search, «Все блюда», and «⋯» in headers.
 - **Focus:** 3 px ring in cobalt at 50%.
 - **Outline / Ghost:** outline is ground fill with a seam border (± buttons); ghost is text-only with a muted hover («Поровну»).
 
-### Keypad
-Borderless color fields in a 4×4 grid, 56 px keys, 1.5rem medium tabular digits. Digits sit on frost step; operations (⌫, C, ↓) a frosted step quieter in muted ink. «Сохранить» spans two columns in plain cobalt with a check icon. Press scales to 0.97.
+### Dish Shelf (signature)
+The calculator's header. Round search and «Все блюда» buttons sit at the start, outside the scroll, always in reach; then a sideways-scrolling row of dish chips ordered by last use (fixed while the shelf is open, so a chip never jumps under the finger); «⋯» at the end. Chips are 36 px frost-step pills, 0.875rem text, on a 44 px hit area. The current dish is a white chip ringed in ink (`ring-2`, inset, 600 weight), never filled with cobalt. The scroll's edges fade with a mask so a chip running under them reads as «more this way». Search and «Все блюда» show a tooltip; search's tooltip carries ⌘K and «/» as key caps.
 
-### Display Row (signature)
-A calculator readout: label left, big number right with a small muted «г». The row being typed into is a white lidded box with a 1 px seam on the frosted ground; idle rows are borderless and pick up a faint white on hover. All rows share one height (80 px, 60 px compact) so they stack evenly.
+### «⋯» Menu
+A round 44 px frost-step trigger at the right of every header. It opens a dropdown of 44 px items with 1rem text and an icon: the screen's rare actions («Изменить «…»», «Добавить блюдо»), a separator, then «Настройки». When the user has to act, an amber-warning dot ringed in the ground color sits on «⋯» and beside «Настройки».
+
+### Dish Search
+A command dialog pinned near the top on a phone (the system keyboard takes the bottom half), a 16 px field («Гречка, суп…»), then «Ваши блюда» and «Популярные — добавить». Items are 44 px: the name left, its weights right-aligned in muted tabular 0.875rem. Opens from the shelf, ⌘K / Ctrl+K, or «/».
+
+### Readout Tiles (signature)
+A calculator readout as a tile: the label above, a 30 px number below with a small muted «г». «Сухой | Готовый» sit side by side. Idle tiles are borderless frost-muted fields at 60% (20% in dark) that pick up white on hover; the one being typed into is the white lidded box with a 1 px seam and an ink label. An error («вес меньше тары») turns the edge tomato. A composite dish folds into a «Сырой ⌄» tile showing the summed raw weight and a 0.75rem muted note of what is not counted («не учит.: Вода 2 000 г»); unfolded, its products become small tiles (1.25rem numbers) two to a row and «Готовый» spans the width.
+
+### Keypad
+A plain number pad: borderless color fields in a 4-column grid, 56 px keys, 1.5rem medium tabular digits. Digits sit on frost step; ⌫ and C a frosted step quieter in muted ink; ↓ (next field) is tall, spanning two rows; 0 is wide, spanning two columns. No save key. Press scales to 0.97.
 
 ### Caret (signature)
 A 3 px rounded bar, 0.9em tall, after the typed number. It blinks (step timing, 1.06 s) and each time it reappears takes the next lid of today's lineup (`animate-caret-N`, one blink per color). With no people it blinks in primary; with reduced motion it is a steady primary bar. On an inactive answer field it keeps its place transparently so nothing shifts.
 
 ### Share Bar (signature)
-A 48 px bar split into person segments in their lid colors with navy names and grams. The selected person (the one ± adjusts) is ringed in ink, inset. A person's own fixed portion is the pale lid (45%) with a dashed ink-25% border; what stays in the pot is hatched (muted/ground diagonal stripes, 135°). Round 32 px grip knobs on the borders, 44 px hit area.
+A 48 px bar split into person segments in their lid colors, two lines each: the name (0.75rem, 500) over the grams (1rem, 600); a narrow segment drops the name first. The selected person (the one ± adjusts) is ringed in ink, inset. 12 px of air separates it from the controls row: − and + (outline, 44 px) hug the chosen person's name over their percent of the dish (the same figure as their row; with own portions or «на завтра», their whole percent «от делящих»), «Поровну» (ghost) and the «г | %» switch at the right. A person's own fixed portion is the pale lid (45%) with a dashed ink-25% border; what stays in the pot is hatched (muted/ground diagonal stripes, 135°). Round 32 px grip knobs on the borders, 44 px hit area.
 
 ### Person Row
 Lid mark, editable name (borderless input that shows a stroke on hover/focus), muted subline, then the answer field: a 30 px number that becomes a white lidded box when active, with a «г / %» unit chip that stays in place. Copy and hold-to-remove actions stacked at the end. Rows divided by seams.

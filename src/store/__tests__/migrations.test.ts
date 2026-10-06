@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import type { StateStorage } from 'zustand/middleware'
-import { cookingDraft, type CalculatorInput, type Id } from '@/domain'
 import { createAppStore, type DishDraft } from '../createAppStore'
 import { CURRENT_VERSION, migrate, migrations, STORAGE_KEY, type PersistedState } from '../migrations'
 
@@ -29,13 +28,15 @@ const v8 = { ...v5, holdMs: 1500 }
 const v9 = { ...v4, lineups: {}, holdMs: 1500 }
 /** v10: tares and companies ordered by createdAt; old ones 1 ms apart from the epoch. */
 const at = (i: number) => new Date(i).toISOString()
-const v10: PersistedState = { ...v9, tares: [{ ...tare, createdAt: at(0) }] }
+const v10 = { ...v9, tares: [{ ...tare, createdAt: at(0) }] }
+/** v11: no cookings; dishes remember their last cooked weight. */
+const v11: PersistedState = { dishes: [], tares: v10.tares, companies: [], lineups: {}, holdMs: 1500 }
 
 const backups = (data: Map<string, string>) => [...data.keys()].filter((k) => k.startsWith(`${STORAGE_KEY}:backup:`))
 
 describe('migrate', () => {
   it('accepts the current version', () => {
-    expect(migrate(v10, CURRENT_VERSION)).toEqual(v10)
+    expect(migrate(v11, CURRENT_VERSION)).toEqual(v11)
   })
 
   it.each([0, CURRENT_VERSION + 1, 1.5])('rejects version %s', (version) => {
@@ -49,15 +50,15 @@ describe('migrate', () => {
   it('v5 → v6: dishes lose companyId, the rest kept', () => {
     const dish = { id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, companyId: 'c' }
     const migrated = migrate({ ...v5, dishes: [dish] }, 5)
-    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null }])
+    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, cooked: null }])
     expect(migrated.lineups).toEqual({})
   })
 
   it('v6 → v7: cookings set nothing aside, the rest kept', () => {
     const old = { id: 'c', dishId: 'd', portions: [], weighings: [] }
-    const migrated = migrate({ ...v5, cookings: [old] }, 6)
+    const migrated = migrations[6]({ ...v5, cookings: [old] }) as typeof v5
     expect(migrated.cookings).toEqual([{ ...old, keepPercent: null }])
-    expect(migrated.tares).toEqual(v10.tares)
+    expect(migrated.tares).toEqual(v5.tares)
   })
 
   it('v7 → v8: removing a person takes a 1,5 s hold, the rest kept', () => {
@@ -70,7 +71,7 @@ describe('migrate', () => {
     const migrated = migrate({ ...v8, dishes: [dish('a'), dish('b')], lineup }, 8)
     expect(migrated.lineups).toEqual({ a: { companyId: null, members: lineup }, b: { companyId: null, members: lineup } })
     expect(migrated).not.toHaveProperty('lineup')
-    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v10, dishes: [dish('a')] })
+    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v11, dishes: [{ ...dish('a'), cooked: null }] })
   })
 
   it('v9 → v10: tares and companies keep their order through createdAt, the rest kept', () => {
@@ -86,6 +87,14 @@ describe('migrate', () => {
       ['mom', at(1)],
     ])
     expect(migrated.lineups).toEqual({})
+  })
+
+  it('v10 → v11: cookings go, dishes are not weighed yet, the rest kept', () => {
+    const dish = { id: 'd', kind: 'simple', name: 'Гречка', createdAt: at(5), updatedAt: at(5), ingredients: [], tareId: 't1' }
+    const old = { id: 'c', dishId: 'd', portions: [], weighings: [] }
+    const migrated = migrations[10]({ ...v10, dishes: [dish], cookings: [old], lineups: { d: { companyId: null, members: [] } } })
+    expect(migrated).toEqual({ ...v11, dishes: [{ ...dish, cooked: null }], lineups: { d: { companyId: null, members: [] } } })
+    expect(migrated).not.toHaveProperty('cookings')
   })
 
   it('v1 → v2: empty portions follow the dish, filled ones are kept', () => {
@@ -130,7 +139,8 @@ describe('migrate', () => {
 
   it('v3 → v4: clean slate for cookings, tares kept, default people become a company', () => {
     const migrated = migrate(v1, 3)
-    expect(migrated).toMatchObject({ dishes: [], cookings: [], tares: [tare], lineups: {} })
+    expect(migrated).toMatchObject({ dishes: [], tares: [tare], lineups: {} })
+    expect(migrated).not.toHaveProperty('cookings')
     expect(migrated.companies).toEqual([
       {
         id: 'default',
@@ -146,7 +156,7 @@ describe('migrate', () => {
   })
 
   it('rejects an unexpected shape', () => {
-    expect(() => migrate({ cookings: 'nope' }, CURRENT_VERSION)).toThrow()
+    expect(() => migrate({ dishes: 'nope' }, CURRENT_VERSION)).toThrow()
   })
 })
 
@@ -154,20 +164,21 @@ describe('store hydration', () => {
   it('empty storage → empty state, no error', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    expect(store.getState()).toMatchObject({ dishes: [], cookings: [], tares: [], loadError: false })
+    expect(store.getState()).toMatchObject({ dishes: [], tares: [], loadError: false })
     expect(backups(data)).toEqual([])
   })
 
   it('v1 is migrated on load', () => {
     const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v1, version: 1 }) })
     const store = createAppStore(() => storage)
-    expect(store.getState()).toMatchObject({ tares: [tare], cookings: [], loadError: false })
+    expect(store.getState()).toMatchObject({ tares: [tare], loadError: false })
+    expect(store.getState()).not.toHaveProperty('cookings')
   })
 
   it('broken JSON → empty state, load error, raw data backed up', () => {
     const { storage, data } = memoryStorage({ [STORAGE_KEY]: '{oops' })
     const store = createAppStore(() => storage)
-    expect(store.getState()).toMatchObject({ cookings: [], loadError: true })
+    expect(store.getState()).toMatchObject({ dishes: [], loadError: true })
     const [key] = backups(data)
     expect(data.get(key)).toBe('{oops')
   })
@@ -195,7 +206,7 @@ describe('store hydration', () => {
   })
 
   it('async storage (IndexedDB): ready resolves once the data is in', async () => {
-    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v9, version: CURRENT_VERSION }) })
+    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v11, version: CURRENT_VERSION }) })
     const slow: StateStorage = {
       getItem: (k) => new Promise((resolve) => setTimeout(() => resolve(storage.getItem(k) as string | null), 5)),
       setItem: (k, v) => Promise.resolve(storage.setItem(k, v)),
@@ -204,7 +215,7 @@ describe('store hydration', () => {
     const store = createAppStore(() => slow)
     expect(store.getState().tares).toEqual([])
     await store.ready
-    expect(store.getState()).toMatchObject({ tares: [tare], loadError: false })
+    expect(store.getState()).toMatchObject({ tares: v11.tares, loadError: false })
   })
 
   it('async storage with unreadable data: ready still resolves, with the load error', async () => {
@@ -223,9 +234,9 @@ describe('store hydration', () => {
   it('replaceData swaps in a backup and persists it', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    store.getState().replaceData({ ...v10, holdMs: 0 })
-    expect(store.getState()).toMatchObject({ tares: v10.tares, holdMs: 0 })
-    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v10.tares)
+    store.getState().replaceData({ ...v11, holdMs: 0 })
+    expect(store.getState()).toMatchObject({ tares: v11.tares, holdMs: 0 })
+    expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v11.tares)
   })
 
   it('persists only user input', () => {
@@ -234,7 +245,7 @@ describe('store hydration', () => {
     store.getState().upsertCompany({ name: 'Мы', members: [] })
     const saved = JSON.parse(data.get(STORAGE_KEY)!)
     expect(saved.version).toBe(CURRENT_VERSION)
-    expect(Object.keys(saved.state).sort()).toEqual(['companies', 'cookings', 'dishes', 'holdMs', 'lineups', 'tares'])
+    expect(Object.keys(saved.state).sort()).toEqual(['companies', 'dishes', 'holdMs', 'lineups', 'tares'])
   })
 })
 
@@ -247,126 +258,42 @@ const pasta: DishDraft = {
 
 function setup() {
   const store = createAppStore(() => memoryStorage().storage)
-  const { getState } = store
-  const cooking = (id: string) => getState().cookings.find((c) => c.id === id)!
-  const us = getState().upsertCompany({
-    name: 'Ваня и Ксюша',
-    members: [
-      { id: 'v', name: 'Ваня', weight: 70 },
-      { id: 'k', name: 'Ксюша', weight: 60 },
-    ],
-  })
-  /** What «Сохранить» in the calculator does: the dish's draft with today's numbers. */
-  const start = (dishId: Id, input: Partial<CalculatorInput> = {}) => {
-    const st = getState()
-    const dish = st.dishes.find((d) => d.id === dishId)!
-    const draft = cookingDraft(
-      dish,
-      {
-        rawGrams: {},
-        scaleGrams: null,
-        tare: st.tares.find((t) => t.id === dish.tareId) ?? null,
-        // The calculator starts with the first company until the lineup is changed.
-        people: st.companies[0]?.members ?? [],
-        companyId: st.companies[0]?.id ?? null,
-        ...input,
-      },
-      '2026-10-05T12:00:00.000Z',
-    )
-    return st.saveCooking(draft)
-  }
-  return { getState, cooking, us, start }
+  return { getState: store.getState }
 }
 
-describe('dishes and cookings', () => {
+describe('dishes', () => {
   it('saveDish creates, then updates in place keeping createdAt', () => {
     const { getState } = setup()
     const id = getState().saveDish(pasta)
     const created = getState().dishes[0]
+    expect(created.cooked).toBeNull()
     getState().saveDish({ ...pasta, id, name: 'Спагетти' })
     expect(getState().dishes).toHaveLength(1)
     expect(getState().dishes[0]).toMatchObject({ id, name: 'Спагетти', createdAt: created.createdAt })
   })
 
-  it('nothing is stored until «Сохранить»; the draft gets fresh ids', () => {
-    const { getState, cooking, us, start } = setup()
+  it('setCooked: the weight with the dish\'s tare and the time; null erases it', () => {
+    const { getState } = setup()
     const tareId = getState().upsertTare({ name: 'Кастрюля', grams: 850 })
-    const dishId = getState().saveDish({ ...pasta, tareId })
-    expect(getState().cookings).toEqual([])
-
-    const c = cooking(start(dishId, { rawGrams: { p: 150 }, scaleGrams: 1210 }))
-    expect(c).toMatchObject({ dishId, kind: 'simple', title: 'Макароны', companyId: us })
-    expect(c.id).not.toBe('draft')
-    expect(c.ingredients[0].rawGrams).toBe(150)
-    expect(c.weighings[0]).toMatchObject({ kind: 'withTare', grams: 1210, tare: { id: tareId, grams: 850 } })
-    expect(c.portions.map((p) => [p.name, p.input])).toEqual([
-      ['Ваня', { basis: 'share', weight: 70 }],
-      ['Ксюша', { basis: 'share', weight: 60 }],
-    ])
-    expect(c.portions.every((p) => p.weighingId === c.weighings[0].id && p.id !== 'v' && p.id !== 'k')).toBe(true)
-
-    // Today's weight does not change the recipe.
-    expect(getState().dishes[0].ingredients[0].rawGrams).toBe(130)
+    const id = getState().saveDish({ ...pasta, tareId })
+    getState().setCooked(id, 1210)
+    const { cooked, updatedAt } = getState().dishes[0]
+    expect(cooked).toEqual({ grams: 1210, tareId, at: updatedAt })
+    getState().setCooked(id, null)
+    expect(getState().dishes[0].cooked).toBeNull()
+    getState().setCooked(id, 0)
+    expect(getState().dishes[0].cooked).toBeNull()
   })
 
-  it('setCookingCompany replaces the portions of the current phase only', () => {
-    const { getState, cooking, start } = setup()
-    const withMom = getState().upsertCompany({
-      name: 'С тёщей',
-      members: [
-        { id: 'v', name: 'Ваня', weight: 70 },
-        { id: 'k', name: 'Ксюша', weight: 60 },
-        { id: 'm', name: 'Тёща', weight: 60 },
-      ],
-    })
-    const id = start(getState().saveDish(pasta))
-    const firstPhase = cooking(id).weighings[0].id
-    getState().addReweighing(id)
-    getState().setCookingCompany(id, withMom)
-    const c = cooking(id)
-    expect(c.companyId).toBe(withMom)
-    expect(c.portions.filter((p) => p.weighingId === firstPhase).map((p) => p.name)).toEqual(['Ваня', 'Ксюша'])
-    expect(c.portions.filter((p) => p.weighingId !== firstPhase).map((p) => p.name)).toEqual(['Ваня', 'Ксюша', 'Тёща'])
-  })
-
-  it('deleteDish removes its cookings', () => {
-    const { getState, start } = setup()
-    const dishId = getState().saveDish(pasta)
-    start(dishId)
-    getState().deleteDish(dishId)
-    expect(getState().cookings).toEqual([])
-  })
-})
-
-describe('re-weighing', () => {
-  it('copies the mode and tare of the previous weighing; removing it removes its portions', () => {
-    const { getState, cooking, start } = setup()
-    const id = start(getState().saveDish(pasta))
-    const first = cooking(id).weighings[0]
-    getState().setWeighing(id, { id: first.id, at: first.at, kind: 'withTare', grams: 1410, tare })
-    const second = getState().addReweighing(id)
-    expect(cooking(id).weighings[1]).toMatchObject({ kind: 'withTare', grams: null, tare })
-
-    getState().addPortion(id, 'Борис', { basis: 'cooked', grams: 155 })
-    expect(cooking(id).portions.at(-1)!.weighingId).toBe(second)
-    getState().removeWeighing(id, second)
-    expect(cooking(id).weighings.map((w) => w.id)).toEqual([first.id])
-    expect(cooking(id).portions.map((p) => p.name)).toEqual(['Ваня', 'Ксюша'])
-
-    getState().removeWeighing(id, first.id)
-    expect(cooking(id).weighings).toHaveLength(1)
-  })
-})
-
-describe('undo of a portion removal', () => {
-  it('puts the portion back at its position, once', () => {
-    const { getState, cooking, start } = setup()
-    const id = start(getState().saveDish(pasta))
-    const before = cooking(id).portions
-    getState().removePortion(id, before[0].id)
-    getState().restorePortion(id, before[0], 0)
-    getState().restorePortion(id, before[0], 0)
-    expect(cooking(id).portions).toEqual(before)
+  it('the editor never touches the cooked weight: a draft without it keeps the dish\'s', () => {
+    const { getState } = setup()
+    const id = getState().saveDish(pasta)
+    getState().setCooked(id, 360)
+    const cooked = getState().dishes[0].cooked
+    getState().saveDish({ ...pasta, id, name: 'Спагетти' })
+    expect(getState().dishes[0].cooked).toEqual(cooked)
+    getState().saveDish({ ...pasta, id, cooked: null })
+    expect(getState().dishes[0].cooked).toBeNull()
   })
 })
 

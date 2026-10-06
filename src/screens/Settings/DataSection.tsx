@@ -97,7 +97,7 @@ export function DataSection() {
             <AlertDialogTitle>Заменить данные из файла?</AlertDialogTitle>
             <AlertDialogDescription>
               {pending &&
-                `В файле — блюда: ${pending.dishes.length}, готовки: ${pending.cookings.length}, тара: ${pending.tares.length}, компании: ${pending.companies.length}. ${groupName ? `Они заменят данные группы «${groupName}» у всех её участников.` : 'Они заменят то, что сейчас в приложении.'}`}
+                `В файле — блюда: ${pending.dishes.length}, тара: ${pending.tares.length}, компании: ${pending.companies.length}. ${groupName ? `Они заменят данные группы «${groupName}» у всех её участников.` : 'Они заменят то, что сейчас в приложении.'}`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -2,21 +2,22 @@ import { XIcon } from 'lucide-react'
 import { Fragment } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
+import { lidFill } from '@/components/lids'
 import { Input } from '@/components/ui/input'
 import {
   baseRawGrams,
   formatGrams,
   formatPercent,
+  formatTyped,
   rawAmountsCopyText,
   type Cooking,
   type CookingResult,
   type PortionResult,
 } from '@/domain'
 import { cn } from '@/lib/utils'
-import { RawList } from '@/screens/Cooking/RawList'
-import { rawWord } from '@/screens/Cooking/messages'
 import { Caret } from './Caret'
-import { lidFill } from '@/components/lids'
+import { rawWord } from './messages'
+import { RawList } from './RawList'
 
 interface PersonResultProps {
   cooking: Cooking
@@ -153,7 +154,7 @@ export function PersonResult({
             <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
               {grams.active
                 ? // Until a key is pressed: today's number, faded — the field keeps its width.
-                  grams.text || <span className="text-muted-foreground/50">{shownNumber ?? '0'}</span>
+                  formatTyped(grams.text) || <span className="text-muted-foreground/50">{shownNumber ?? '0'}</span>
                 : (shownNumber ?? <span className="text-muted-foreground/50">—</span>)}
               {/* The caret's place is kept when not typing: choosing the field moves nothing. */}
               <Caret lids={lids} hidden={!grams.active} />

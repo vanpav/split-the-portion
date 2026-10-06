@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { cooking, dish, tare } from '../../src/sync/__tests__/fixtures'
+import { AT, company, dish, tare } from '../../src/sync/__tests__/fixtures'
 import { device } from '../../src/sync/__tests__/device'
 import type { SyncRequest, SyncResponse } from '../../src/sync/protocol'
 import { syncGroup } from '../sync'
@@ -31,31 +31,32 @@ describe('two phones of one group', () => {
   it('offline edits on both sides meet', async () => {
     const { vanya, ksusha } = await twoPhones()
     vanya.edit((s) => ({ ...s, dishes: [dish('pasta')], tares: [tare('pot')] }))
-    ksusha.edit((s) => ({ ...s, cookings: [cooking('c1', 'pasta', 560)], holdMs: 0 }))
+    ksusha.edit((s) => ({ ...s, companies: [company('us')], holdMs: 0 }))
     await vanya.engine.sync()
     await ksusha.engine.sync()
     await vanya.engine.sync()
     expect(vanya.data).toEqual(ksusha.data)
-    expect(vanya.data).toMatchObject({ holdMs: 0, tares: [tare('pot')] })
-    expect(vanya.data.cookings.map((c) => c.id)).toEqual(['c1'])
+    expect(vanya.data).toMatchObject({ holdMs: 0, tares: [tare('pot')], companies: [company('us')] })
+    expect(vanya.data.dishes.map((d) => d.id)).toEqual(['pasta'])
   })
 
   it('a removal against an edit: the one synced later wins, on both phones', async () => {
     for (const editLast of [true, false]) {
       const { vanya, ksusha } = await twoPhones()
-      vanya.edit((s) => ({ ...s, cookings: [cooking('c1', 'pasta')] }))
+      vanya.edit((s) => ({ ...s, dishes: [dish('pasta')] }))
       await vanya.engine.sync()
       await ksusha.engine.sync()
 
-      vanya.edit((s) => ({ ...s, cookings: [cooking('c1', 'pasta', 560)] }))
-      ksusha.edit((s) => ({ ...s, cookings: [] }))
+      // Ваня weighs the pasta while Ксюша removes it.
+      vanya.edit((s) => ({ ...s, dishes: [{ ...dish('pasta'), cooked: { grams: 560, tareId: null, at: AT } }] }))
+      ksusha.edit((s) => ({ ...s, dishes: [] }))
       const [first, second] = editLast ? [ksusha, vanya] : [vanya, ksusha]
       await first.engine.sync()
       await second.engine.sync()
       await first.engine.sync()
 
       expect(vanya.data).toEqual(ksusha.data)
-      expect(vanya.data.cookings.map((c) => c.weighings[0].grams)).toEqual(editLast ? [560] : [])
+      expect(vanya.data.dishes.map((d) => d.cooked?.grams)).toEqual(editLast ? [560] : [])
     }
   })
 })

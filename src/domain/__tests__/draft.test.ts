@@ -12,6 +12,7 @@ const pasta: Dish = {
   updatedAt: AT,
   ingredients: [{ id: 'p', name: 'Макароны', rawGrams: 130, excluded: false }],
   tareId: null,
+  cooked: null,
 }
 const us: Company = {
   id: 'c',

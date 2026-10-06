@@ -39,6 +39,17 @@ export function formatPercent(share: number): string {
   return percentFormat.format(roundHalfUp(share * 100, 1))
 }
 
+/**
+ * The number being typed on the keypad, shown like every other gram on screen: the whole part grouped
+ * («3 160»), the comma and the fraction as typed («12,», «1 500,5»). Display only: the text stays as typed.
+ */
+export function formatTyped(text: string): string {
+  const [int, fraction] = text.split(',')
+  if (!/^\d+$/.test(int)) return text
+  const grouped = gramsFormat.format(Number(int))
+  return fraction === undefined ? grouped : `${grouped},${fraction}`
+}
+
 /** Value for an editable field: no grouping, comma, up to 1 decimal. null → ''. */
 export function formatInput(value: number | null): string {
   if (value === null) return ''

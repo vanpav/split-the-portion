@@ -1,18 +1,12 @@
-import type { CookingKind, Id } from '@/domain'
+import type { Id } from '@/domain'
 
-/** Query parameter of the dish list tab; simple dishes are the default tab. */
-export const LIST_TAB_PARAM = 'kind'
-
-export const dishListPath = (kind: CookingKind) => (kind === 'composite' ? `/?${LIST_TAB_PARAM}=composite` : '/')
+/** Every dish in one list, from «Все блюда» on the dish shelf. */
+export const DISHES_PATH = '/dishes'
 /** Opening a dish shows its calculator (docs/SPEC.md §3б). */
 export const dishPath = (id: Id) => `/d/${id}`
-export const dishHistoryPath = (id: Id) => `/d/${id}/history`
 export const dishEditPath = (id: Id) => `/d/${id}/edit`
 /** One form for both kinds; from — a simple dish to start a composite one with. */
 export const newDishPath = (from?: Id) => (from ? `/d/new?from=${from}` : '/d/new')
-export const cookingPath = (id: Id) => `/c/${id}`
-/** Every saved cooking, in the tab bar. */
-export const HISTORY_PATH = '/history'
 /** Settings: on a phone the list of subsections, from `md` the menu with the first one open. */
 export const SETTINGS_PATH = '/settings'
 export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`
@@ -21,4 +15,3 @@ export const ACCOUNT_PATH = '/account'
 export const PASSWORD_RESET_PATH = '/account/reset'
 /** Join a group by an invite code (docs/UX.md «Вступить по ссылке»). */
 export const joinPath = (code: string) => `/join/${code}`
-export const isSettingsPath = (pathname: string) => pathname === SETTINGS_PATH || pathname.startsWith(`${SETTINGS_PATH}/`)

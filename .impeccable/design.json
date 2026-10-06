@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T10:58:02+00:00",
+  "generatedAt": "2026-10-06T15:34:23+00:00",
   "title": "Design System: Split the Portion",
   "extensions": {
     "colorMeta": {
@@ -487,7 +487,7 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Calculator readouts; 1.5rem in compact (composite dish) mode."
+        "purpose": "Calculator readout tiles; 1.5rem below 360px, 1.25rem on the small product tiles of an unfolded composite dish."
       },
       "headline": {
         "displayName": "Headline",
@@ -503,7 +503,7 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Field labels, sublines, share-bar captions."
+        "purpose": "Tile labels, dish chips, sublines, share-bar names."
       },
       "keypad": {
         "displayName": "Keypad",
@@ -525,11 +525,6 @@
         "name": "segment-selected",
         "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
         "purpose": "Chosen tab of the «г | %» segmented control (shadow-sm)."
-      },
-      {
-        "name": "tabbar-lift",
-        "value": "0 -4px 12px -6px rgb(0 0 0 / 0.12)",
-        "purpose": "Mobile bottom tab bar; removed at lg."
       },
       {
         "name": "segment-divider",
@@ -588,9 +583,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Plain cobalt main action («Сохранить»); dark theme uses cornflower cobalt with navy text.",
-      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>Сохранить</button>",
-      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:6px; height:44px; padding:0 14px 0 12px; border:1px solid transparent; border-radius:var(--radius, 0.875rem); background:var(--primary, oklch(0.514 0.192 265)); color:var(--primary-foreground, #fff); font:500 0.875rem 'Rubik Variable', sans-serif; transition:all .15s; cursor:pointer; } .ds-btn-primary:hover { background:color-mix(in oklab, var(--primary, oklch(0.514 0.192 265)) 80%, transparent); } .ds-btn-primary:focus-visible { outline:none; border-color:var(--ring, oklch(0.514 0.192 265)); box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-btn-primary:active { transform:translateY(1px); }"
+      "description": "Plain cobalt main action in the dish editor's bottom bar («Создать» / «Сохранить»); dark theme uses cornflower cobalt with navy text. The calculator has none.",
+      "html": "<button class=\"ds-btn-primary\">Создать</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; height:48px; padding:0 14px; min-width:160px; border:1px solid transparent; border-radius:var(--radius, 0.875rem); background:var(--primary, oklch(0.514 0.192 265)); color:var(--primary-foreground, #fff); font-family:'Rubik Variable', sans-serif; font-weight:500; font-size:0.875rem; transition:all .15s; cursor:pointer; } .ds-btn-primary:hover { background:color-mix(in oklab, var(--primary, oklch(0.514 0.192 265)) 80%, transparent); } .ds-btn-primary:focus-visible { border-color:var(--ring, oklch(0.514 0.192 265)); outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-btn-primary:active { transform:translateY(1px); } .ds-btn-primary:disabled { opacity:.5; pointer-events:none; }"
     },
     {
       "name": "Outline Button",
@@ -601,28 +596,44 @@
       "css": ".ds-btn-outline { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:1px solid var(--border, oklch(0.898 0.016 257.2)); border-radius:var(--radius, 0.875rem); background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); cursor:pointer; transition:background .15s; } .ds-btn-outline:hover { background:var(--muted, oklch(0.944 0.01 252.8)); } .ds-btn-outline:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); }"
     },
     {
-      "name": "Keypad",
-      "kind": "custom",
-      "refersTo": "keypad-digit",
-      "description": "Borderless color-field keys: frost-step digits, quieter operations, two-column cobalt save.",
-      "html": "<div class=\"ds-keypad\"><button class=\"ds-key\">7</button><button class=\"ds-key\">8</button><button class=\"ds-key\">9</button><button class=\"ds-key ds-key-op\">C</button><button class=\"ds-key\">,</button><button class=\"ds-key\">0</button><button class=\"ds-key ds-key-save\">Сохранить</button></div>",
-      "css": ".ds-keypad { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; width:320px; font-family:'Rubik Variable', sans-serif; } .ds-key { height:56px; border:0; border-radius:var(--radius, 0.875rem); background:var(--secondary, oklch(0.929 0.013 255.5)); color:var(--secondary-foreground, oklch(0.267 0.054 269.1)); font-size:1.5rem; font-weight:500; font-variant-numeric:tabular-nums; cursor:pointer; transition:transform .1s, background .15s; } .ds-key:hover { background:color-mix(in oklch, var(--secondary, oklch(0.929 0.013 255.5)), var(--foreground, oklch(0.267 0.054 269.1)) 5%); } .ds-key:active { transform:scale(0.97); } .ds-key:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-key-op { background:var(--muted, oklch(0.944 0.01 252.8)); color:var(--muted-foreground, oklch(0.526 0.045 262.7)); font-size:1.125rem; } .ds-key-op:hover { background:var(--accent, oklch(0.938 0.018 261.3)); color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-key-save { grid-column:span 2; background:var(--primary, oklch(0.514 0.192 265)); color:var(--primary-foreground, #fff); font-size:1.125rem; }"
+      "name": "Round Icon Button («⋯»)",
+      "kind": "button",
+      "refersTo": "round-icon-button",
+      "description": "44 px frost-step circle for search, «Все блюда» and «⋯» in headers; an amber dot on «⋯» when settings need attention.",
+      "html": "<button class=\"ds-round\" aria-label=\"Ещё\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg><span class=\"ds-round-dot\"></span></button>",
+      "css": ".ds-round { position:relative; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:0; border-radius:9999px; background:var(--secondary, oklch(0.929 0.013 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); cursor:pointer; transition:background .15s; } .ds-round:hover { background:color-mix(in oklab, var(--secondary, oklch(0.929 0.013 255.5)), var(--foreground, oklch(0.267 0.054 269.1)) 6%); } .ds-round:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-round-dot { position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:9999px; background:var(--warning, oklch(0.531 0.119 65.1)); box-shadow:0 0 0 2px var(--background, oklch(0.969 0.006 255.5)); }"
     },
     {
-      "name": "Display Row",
+      "name": "Dish Chip",
+      "kind": "chip",
+      "refersTo": "dish-chip",
+      "description": "Dish shelf chips by last use: 36 px frost-step pills on a 44 px hit area; the current dish is white, ringed in ink, never filled.",
+      "html": "<nav class=\"ds-shelf\"><a class=\"ds-chip\" href=\"#\">Суп</a><a class=\"ds-chip ds-chip-current\" aria-current=\"page\" href=\"#\">Гречка</a><a class=\"ds-chip\" href=\"#\">Рис</a></nav>",
+      "css": ".ds-shelf { display:flex; align-items:center; gap:6px; font-family:'Rubik Variable', sans-serif; } .ds-chip { display:inline-flex; align-items:center; height:36px; margin:4px 0; padding:0 14px; border-radius:9999px; background:var(--secondary, oklch(0.929 0.013 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); font-size:0.875rem; font-weight:500; text-decoration:none; white-space:nowrap; transition:background .15s; } .ds-chip:hover { background:color-mix(in oklab, var(--secondary, oklch(0.929 0.013 255.5)), var(--foreground, oklch(0.267 0.054 269.1)) 6%); } .ds-chip:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-chip-current, .ds-chip-current:hover { background:var(--card, oklch(1 0 0)); font-weight:600; box-shadow:inset 0 0 0 2px var(--foreground, oklch(0.267 0.054 269.1)); }"
+    },
+    {
+      "name": "Readout Tile",
       "kind": "custom",
-      "refersTo": "display-row-active",
-      "description": "Calculator readout; the active row is a white lidded box with a 1px seam and the lid caret.",
-      "html": "<div class=\"ds-display\"><button class=\"ds-row\"><span class=\"ds-row-label\">Сухой</span><span class=\"ds-row-num\">150<span class=\"ds-unit\">г</span></span></button><button class=\"ds-row ds-row-active\"><span class=\"ds-row-label\">Готовый</span><span class=\"ds-row-num\">1210<span class=\"ds-caret\"></span><span class=\"ds-unit\">г</span></span></button></div>",
-      "css": ".ds-display { display:flex; flex-direction:column; gap:4px; width:340px; font-family:'Rubik Variable', sans-serif; } .ds-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; min-height:80px; padding:8px 16px; border:1px solid transparent; border-radius:calc(var(--radius, 0.875rem) * 1.4); background:transparent; color:var(--foreground, oklch(0.267 0.054 269.1)); text-align:left; cursor:pointer; transition:background .15s; } .ds-row:hover { background:color-mix(in oklab, var(--card, #fff) 60%, transparent); } .ds-row:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-row-label { font-size:.875rem; line-height:1.25; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-row-active { border-color:var(--border, oklch(0.898 0.016 257.2)); background:var(--card, #fff); } .ds-row-active .ds-row-label { color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-row-num { display:flex; align-items:baseline; font-size:2.25rem; line-height:1.25; font-weight:500; font-variant-numeric:tabular-nums; } .ds-unit { margin-left:4px; font-size:1rem; font-weight:400; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-caret { display:inline-block; align-self:center; width:3px; height:.9em; margin-left:2px; border-radius:9999px; background:var(--caret-2, oklch(0.66 0.13 85)); animation:ds-blink 1.06s step-end infinite; } @keyframes ds-blink { 50% { opacity:0; } } @media (prefers-reduced-motion: reduce) { .ds-caret { animation:none; background:var(--primary, oklch(0.514 0.192 265)); } }"
+      "refersTo": "readout-tile-active",
+      "description": "«Сухой | Готовый» side by side: label above a 30 px tabular number; idle tiles are frost-muted at 60%, the one being typed into is the white lidded box with a 1 px seam.",
+      "html": "<div class=\"ds-tiles\"><button class=\"ds-tile\"><span class=\"ds-tile-label\">Сухой</span><span class=\"ds-tile-num\">80<span class=\"ds-tile-unit\">г</span></span></button><button class=\"ds-tile ds-tile-active\" aria-pressed=\"true\"><span class=\"ds-tile-label\">Готовый · 17:19</span><span class=\"ds-tile-num\">186<span class=\"ds-caret\"></span><span class=\"ds-tile-unit\">г</span></span></button></div>",
+      "css": ".ds-tiles { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:340px; font-family:'Rubik Variable', sans-serif; } .ds-tile { display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:10px 16px; border:1px solid transparent; border-radius:calc(var(--radius, 0.875rem) * 1.4); background:color-mix(in oklab, var(--muted, oklch(0.944 0.01 252.8)) 60%, transparent); color:var(--foreground, oklch(0.267 0.054 269.1)); text-align:left; cursor:pointer; transition:background .15s; } .ds-tile:hover { background:color-mix(in oklab, var(--card, oklch(1 0 0)) 60%, transparent); } .ds-tile:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-tile-active, .ds-tile-active:hover { background:var(--card, oklch(1 0 0)); border-color:var(--border, oklch(0.898 0.016 257.2)); } .ds-tile-label { font-size:0.875rem; line-height:1.25; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-tile-active .ds-tile-label { color:var(--foreground, oklch(0.267 0.054 269.1)); font-weight:500; } .ds-tile-num { display:flex; align-items:baseline; font-size:1.875rem; line-height:1.25; font-weight:500; font-variant-numeric:tabular-nums; } .ds-tile-unit { margin-left:4px; font-size:1rem; font-weight:400; color:var(--muted-foreground, oklch(0.526 0.045 262.7)); } .ds-caret { display:inline-block; width:3px; height:0.9em; margin-left:2px; align-self:center; border-radius:9999px; background:var(--caret-2, oklch(0.66 0.13 85)); animation:ds-blink 1.06s step-end infinite; } @keyframes ds-blink { 50% { opacity:0; } } @media (prefers-reduced-motion: reduce) { .ds-caret { animation:none; background:var(--primary, oklch(0.514 0.192 265)); } }"
     },
     {
       "name": "Share Bar",
       "kind": "custom",
       "refersTo": "share-segment",
-      "description": "Person segments in lid colors; the selected one ringed in ink; round grip on the border; hatched rest.",
-      "html": "<div class=\"ds-bar\"><div class=\"ds-seg ds-seg-sel\" style=\"width:48%;background:var(--chart-1, oklch(0.815 0.073 246.3))\"><b>Ваня</b><span>194 г</span></div><div class=\"ds-seg\" style=\"width:37%;background:var(--chart-2, oklch(0.871 0.14 91.6))\"><b>Ксюша</b><span>166 г</span></div><div class=\"ds-seg ds-seg-rest\" style=\"width:15%\"><span>…</span></div><span class=\"ds-grip\" style=\"left:48%\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"9\" cy=\"6\" r=\"1.5\"/><circle cx=\"15\" cy=\"6\" r=\"1.5\"/><circle cx=\"9\" cy=\"12\" r=\"1.5\"/><circle cx=\"15\" cy=\"12\" r=\"1.5\"/><circle cx=\"9\" cy=\"18\" r=\"1.5\"/><circle cx=\"15\" cy=\"18\" r=\"1.5\"/></svg></span></div>",
-      "css": ".ds-bar { position:relative; display:flex; width:340px; height:48px; font-family:'Rubik Variable', sans-serif; } .ds-seg { display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.875rem; line-height:1.2; color:var(--chart-foreground, oklch(0.267 0.054 269.1)); font-variant-numeric:tabular-nums; box-shadow:inset 2px 0 0 var(--background, oklch(0.969 0.006 255.5)); } .ds-seg b { font-weight:500; } .ds-seg span { font-weight:600; } .ds-seg:first-child { border-radius:calc(var(--radius, 0.875rem) * 1.4) 0 0 calc(var(--radius, 0.875rem) * 1.4); box-shadow:none; } .ds-seg:nth-child(3) { border-radius:0 calc(var(--radius, 0.875rem) * 1.4) calc(var(--radius, 0.875rem) * 1.4) 0; } .ds-seg-sel { box-shadow:inset 0 0 0 2px var(--foreground, oklch(0.267 0.054 269.1)); } .ds-seg-rest { color:var(--muted-foreground, oklch(0.526 0.045 262.7)); background:repeating-linear-gradient(135deg, var(--muted, oklch(0.944 0.01 252.8)) 0 6px, var(--background, oklch(0.969 0.006 255.5)) 6px 12px); } .ds-grip { position:absolute; top:50%; display:flex; align-items:center; justify-content:center; width:32px; height:32px; transform:translate(-50%,-50%); border:1px solid var(--border, oklch(0.898 0.016 257.2)); border-radius:9999px; background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); box-shadow:0 2px 6px rgb(0 0 0 / .18); cursor:grab; transition:transform .15s ease-out; } .ds-grip:hover { transform:translate(-50%,-50%) scale(1.1); box-shadow:0 4px 12px rgb(0 0 0 / .22); }"
+      "description": "48 px bar of person segments in lid colors, name over grams; the selected person ringed in ink, inset; a round grip knob on the border.",
+      "html": "<div class=\"ds-bar\"><button class=\"ds-seg ds-seg-1 ds-seg-sel\" aria-pressed=\"true\"><span class=\"ds-seg-name\">Ваня</span><span class=\"ds-seg-g\">100 г</span></button><button class=\"ds-seg ds-seg-2\"><span class=\"ds-seg-name\">Ксюша</span><span class=\"ds-seg-g\">86 г</span></button><span class=\"ds-grip\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"12\" r=\"1\"/><circle cx=\"9\" cy=\"5\" r=\"1\"/><circle cx=\"9\" cy=\"19\" r=\"1\"/><circle cx=\"15\" cy=\"12\" r=\"1\"/><circle cx=\"15\" cy=\"5\" r=\"1\"/><circle cx=\"15\" cy=\"19\" r=\"1\"/></svg></span></div>",
+      "css": ".ds-bar { position:relative; display:flex; width:340px; height:48px; font-family:'Rubik Variable', sans-serif; } .ds-seg { display:flex; flex-direction:column; align-items:center; justify-content:center; border:0; color:var(--chart-foreground, oklch(0.267 0.054 269.1)); font-size:0.75rem; line-height:1.25; cursor:pointer; } .ds-seg:focus-visible { outline:none; box-shadow:inset 0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-seg-name { font-weight:500; } .ds-seg-g { font-size:1rem; font-weight:600; font-variant-numeric:tabular-nums; } .ds-seg-1 { width:54%; background:var(--chart-1, oklch(0.815 0.073 246.3)); border-radius:calc(var(--radius, 0.875rem) * 1.4) 0 0 calc(var(--radius, 0.875rem) * 1.4); } .ds-seg-2 { width:46%; background:var(--chart-2, oklch(0.871 0.14 91.6)); border-radius:0 calc(var(--radius, 0.875rem) * 1.4) calc(var(--radius, 0.875rem) * 1.4) 0; box-shadow:inset 2px 0 0 var(--background, oklch(0.969 0.006 255.5)); } .ds-seg-sel { font-weight:600; box-shadow:inset 0 0 0 2px var(--foreground, oklch(0.267 0.054 269.1)); } .ds-grip { position:absolute; left:54%; top:50%; transform:translate(-50%,-50%); display:flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--border, oklch(0.898 0.016 257.2)); border-radius:9999px; background:var(--background, oklch(0.969 0.006 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); box-shadow:0 2px 6px rgb(0 0 0 / 0.18); cursor:grab; transition:transform .15s ease-out; } .ds-grip:active { transform:translate(-50%,-50%) scale(1.1); box-shadow:0 4px 12px rgb(0 0 0 / 0.22); }"
+    },
+    {
+      "name": "Keypad",
+      "kind": "custom",
+      "refersTo": "keypad-digit",
+      "description": "Plain number pad: frost-step digits, ⌫ and C a step quieter, a tall ↓ over two rows, a wide 0 over two columns; no save key.",
+      "html": "<div class=\"ds-keypad\"><button class=\"ds-key\">7</button><button class=\"ds-key\">8</button><button class=\"ds-key\">9</button><button class=\"ds-key ds-key-op\" aria-label=\"Стереть\">⌫</button><button class=\"ds-key\">4</button><button class=\"ds-key\">5</button><button class=\"ds-key\">6</button><button class=\"ds-key ds-key-op\">C</button><button class=\"ds-key\">1</button><button class=\"ds-key\">2</button><button class=\"ds-key\">3</button><button class=\"ds-key ds-key-op ds-key-tall\" aria-label=\"Следующее поле\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14\"/><path d=\"m19 12-7 7-7-7\"/></svg></button><button class=\"ds-key\">,</button><button class=\"ds-key ds-key-wide\">0</button></div>",
+      "css": ".ds-keypad { display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:56px; gap:8px; width:340px; font-family:'Rubik Variable', sans-serif; } .ds-key { display:flex; align-items:center; justify-content:center; border:0; border-radius:var(--radius, 0.875rem); background:var(--secondary, oklch(0.929 0.013 255.5)); color:var(--foreground, oklch(0.267 0.054 269.1)); font-size:1.5rem; font-weight:500; font-variant-numeric:tabular-nums; cursor:pointer; transition:transform .1s, background .15s; } .ds-key:hover { background:color-mix(in oklab, var(--secondary, oklch(0.929 0.013 255.5)), var(--foreground, oklch(0.267 0.054 269.1)) 6%); } .ds-key:active { transform:scale(0.97); } .ds-key:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--ring, oklch(0.514 0.192 265)) 50%, transparent); } .ds-key-op { background:var(--muted, oklch(0.944 0.01 252.8)); color:var(--muted-foreground, oklch(0.526 0.045 262.7)); font-size:1.125rem; } .ds-key-op:hover { background:var(--accent, oklch(0.938 0.018 261.3)); color:var(--foreground, oklch(0.267 0.054 269.1)); } .ds-key-tall { grid-row:span 2; } .ds-key-wide { grid-column:span 2; }"
     },
     {
       "name": "Person Row",
@@ -651,12 +662,12 @@
   ],
   "narrative": {
     "northStar": "Ланчбокс",
-    "overview": "\n**Creative North Star: \"Ланчбокс\"**\n\nEvery eater is a lid color. The calculator reads as lunchboxes laid out on a frosted counter: a cool, slightly blue polypropylene ground, navy ink for every number, one cobalt action, and a row of pastel lids (sky, sunflower, mint, lilac, apricot) that belong to people, not to the interface. The user chose this world out of three proposals («Ланчбокс», «Калькулятор», «Табло»).\n\nThe surface is a working tool for a phone at the stove: large tabular numerals, big thumb-reach keys, and almost no decoration. Depth comes from tonal steps (frosted ground, white lidded box, a frost-grey key), not from shadows. Color is quarantined: the lids appear only where a person owns the mark, so a glance at a color is a glance at a name. The tone avoids sterile medical coldness and the default shadcn look without letting anything compete with the grams.\n\nLight and dark follow the phone's setting (next-themes, `defaultTheme=\"system\"`, `.dark` on `<html>`). Dark is \"night\" polypropylene: navy ground, a lifted navy box, the same lids slightly deepened, and a lighter cornflower cobalt so the main action still reads.",
+    "overview": "\n**Creative North Star: \"Ланчбокс\"**\n\nEvery eater is a lid color. The calculator reads as lunchboxes laid out on a frosted counter: a cool, slightly blue polypropylene ground, navy ink for every number, one cobalt action, and a row of pastel lids (sky, sunflower, mint, lilac, apricot) that belong to people, not to the interface. The user chose this world out of three proposals («Ланчбокс», «Калькулятор», «Табло»).\n\nThe surface is a working tool for a phone at the stove: large tabular numerals, big thumb-reach keys, and almost no decoration. Depth comes from tonal steps (frosted ground, white lidded box, a frost-grey key), not from shadows. Color is quarantined: the lids appear only where a person owns the mark, so a glance at a color is a glance at a name. The tone avoids sterile medical coldness and the default shadcn look without letting anything compete with the grams.\n\nLight and dark follow the phone's setting (next-themes, `defaultTheme=\"system\"`, `.dark` on `<html>`). Dark is \"night\" polypropylene: navy ground, a lifted navy box, the same lids slightly deepened, and a lighter cornflower cobalt so the main action still reads.\n\n",
     "keyCharacteristics": [
       "Frosted cool-white ground, navy ink, a single plain cobalt primary.",
       "Five lid colors assigned by a person's place in today's lineup, repeating after five.",
-      "Numbers first: tabular Rubik in medium weight, 30–36 px for answers.",
-      "Flat, tonal layering; the active field is a white lidded box with a 1 px seam.",
+      "Numbers first: tabular Rubik in medium weight, 30 px for readouts and answers.",
+      "Flat, tonal layering; the active field is a white lidded box with a 1 px seam, idle tiles sit a frosted step below.",
       "Generous radii (0.875rem base, ~1.2rem on boxes and the share bar).",
       "A blinking caret that cycles through today's lids."
     ],
@@ -668,7 +679,7 @@
       },
       {
         "name": "The Ring, Not Flood Rule",
-        "body": "Selection is a ring (`ring-2` in ink, inset), never a fill that would hide the person's color.",
+        "body": "Selection is a ring (`ring-2` in ink, inset), never a fill that would hide the person's color. The current dish chip on the shelf takes the same mark.",
         "section": "colors"
       },
       {
@@ -688,25 +699,25 @@
       },
       {
         "name": "The Drag-Only Shadow Rule",
-        "body": "Only draggable or floating controls cast a shadow; boxes and keys are separated by tone.",
+        "body": "Only draggable or floating controls cast a shadow; boxes, tiles, chips, and keys are separated by tone.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do give each person their lid by place in today's lineup (`--chart-1..5`), repeating after five, and put navy `--chart-foreground` text on it.",
-      "Do mark the active field as a white lidded box with a 1 px seam; signal state by shape and border as well as color.",
-      "Do keep every gram tabular and every gram input ≥ 16 px and ≥ 44 px tall.",
-      "Do show selection as an inset ring that keeps the person's color visible.",
-      "Do derive a new caret color by deepening the lid's hue to ≥ 3:1 on white (light) or mixing 30% toward the ink in oklab (dark).",
-      "Do quote interface text in Russian and follow docs/SPEC.md §2 terminology («вес с тарой» / «вес без тары»)."
+      "**Do** give each person their lid by place in today's lineup (`--chart-1..5`), repeating after five, and put navy `--chart-foreground` text on it.",
+      "**Do** mark the active field as a white lidded box with a 1 px seam; signal state by shape and border as well as color.",
+      "**Do** keep every gram tabular and every gram input ≥ 16 px and ≥ 44 px tall.",
+      "**Do** show selection as an inset ring that keeps the person's color visible.",
+      "**Do** derive a new caret color by deepening the lid's hue to ≥ 3:1 on white (light) or mixing 30% toward the ink in oklab (dark).",
+      "**Do** quote interface text in Russian and follow docs/SPEC.md §2 terminology («вес с тарой» / «вес без тары»)."
     ],
     "donts": [
-      "Don't use lid colors on chrome: buttons, headers, tabs, borders, and backgrounds stay ink, frost, and cobalt.",
-      "Don't decorate the primary button (no gradients, patterns, or lid trims); it stays plain cobalt.",
-      "Don't flood a selected segment or row with a new fill that hides the person's color.",
-      "Don't mix theme colors in oklch when the hue matters; mix in oklab.",
-      "Don't hardcode colors; use the shadcn theme variables.",
-      "Don't use «нетто/брутто» anywhere in the interface."
+      "**Don't** use lid colors on chrome: buttons, headers, tabs, borders, and backgrounds stay ink, frost, and cobalt.",
+      "**Don't** decorate the primary button (no gradients, patterns, or lid trims); it stays plain cobalt.",
+      "**Don't** flood a selected segment or row with a new fill that hides the person's color.",
+      "**Don't** mix theme colors in oklch when the hue matters; mix in oklab.",
+      "**Don't** hardcode colors; use the shadcn theme variables.",
+      "**Don't** use «нетто/брутто» anywhere in the interface."
     ]
   }
 }

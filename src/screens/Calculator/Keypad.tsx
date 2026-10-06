@@ -1,4 +1,4 @@
-import { ArrowDownIcon, CheckIcon, DeleteIcon } from 'lucide-react'
+import { ArrowDownIcon, DeleteIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import type { KeypadKey } from '@/domain'
@@ -8,8 +8,6 @@ interface KeypadProps {
   onKey: (key: KeypadKey) => void
   /** Moves to the next field. */
   onNext: () => void
-  onSave: () => void
-  saveDisabled: boolean
 }
 
 const KEY = 'h-14 text-2xl font-medium tabular-nums active:scale-[0.97] transition-transform'
@@ -18,11 +16,12 @@ const OP = 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground
 
 /**
  * Calculator keypad, the way unit converters do it: big keys within the thumb's reach,
- * no system keyboard covering the result.
+ * no system keyboard covering the result. Nothing to save: the dish remembers what is typed,
+ * so the keys are a plain number pad — a wide 0 and a tall ↓ to the next field.
  */
-export function Keypad({ onKey, onNext, onSave, saveDisabled }: KeypadProps) {
-  const digit = (key: KeypadKey, label: ReactNode = key) => (
-    <Button key={key} type="button" variant="secondary" className={KEY} onClick={() => onKey(key)}>
+export function Keypad({ onKey, onNext }: KeypadProps) {
+  const digit = (key: KeypadKey, label: ReactNode = key, className?: string) => (
+    <Button key={key} type="button" variant="secondary" className={cn(KEY, className)} onClick={() => onKey(key)}>
       {label}
     </Button>
   )
@@ -44,15 +43,11 @@ export function Keypad({ onKey, onNext, onSave, saveDisabled }: KeypadProps) {
       {digit('1')}
       {digit('2')}
       {digit('3')}
-      <Button type="button" variant="ghost" className={cn(KEY, OP)} aria-label="Следующее поле" onClick={onNext}>
+      <Button type="button" variant="ghost" className={cn(KEY, OP, 'row-span-2 h-auto')} aria-label="Следующее поле" onClick={onNext}>
         <ArrowDownIcon className="size-6" />
       </Button>
       {digit(',', ',')}
-      {digit('0')}
-      <Button type="button" className={cn(KEY, 'col-span-2 text-lg')} disabled={saveDisabled} onClick={onSave}>
-        <CheckIcon data-icon="inline-start" />
-        Сохранить
-      </Button>
+      {digit('0', '0', 'col-span-2')}
     </div>
   )
 }

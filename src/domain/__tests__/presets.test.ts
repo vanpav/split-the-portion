@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dishErrors, dishKind } from '../dish'
-import { PRESET_DISHES, presetDishes } from '../presets'
+import { missingPresets, PRESET_DISHES, presetDish, presetDishes } from '../presets'
 import type { Dish } from '../types'
 
 const ids = () => {
@@ -68,5 +68,28 @@ describe('presetDishes', () => {
   it('adds nothing the second time', () => {
     const first = presetDishes([], ids(), AT)
     expect(presetDishes(first, ids(), AT)).toEqual([])
+  })
+})
+
+describe('missingPresets', () => {
+  it('the catalog without the titles the user has, ignoring case and spaces', () => {
+    const own: Pick<Dish, 'name' | 'ingredients'>[] = [{ name: 'ГРЕЧКА ', ingredients: [] }]
+    const names = missingPresets(own).map((p) => p.name)
+    expect(names).not.toContain('Гречка')
+    expect(names).toContain('Булгур')
+    expect(missingPresets([])).toEqual(PRESET_DISHES)
+  })
+})
+
+describe('presetDish', () => {
+  it('one popular dish as the user\'s own: its weights, fresh ids, the given time, no tare', () => {
+    const bulgur = PRESET_DISHES.find((p) => p.name === 'Булгур')!
+    const dish = presetDish(bulgur, ids(), AT)
+    expect(dish).toMatchObject({ name: 'Булгур', kind: 'simple', createdAt: AT, updatedAt: AT, tareId: null })
+    expect(dish.ingredients.map((i) => [i.name, i.rawGrams, i.excluded])).toEqual([
+      ['Булгур', 150, false],
+      ['Вода', 300, true],
+    ])
+    expect(new Set([dish.id, ...dish.ingredients.map((i) => i.id)]).size).toBe(3)
   })
 })

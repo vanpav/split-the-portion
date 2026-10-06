@@ -10,7 +10,6 @@ import { SETTINGS_ID, type Change, type RecordData } from './records'
 export function diffState(prev: PersistedState, next: PersistedState, v: number): Change[] {
   const changes: Change[] = [
     ...diffRecords('dish', prev.dishes, next.dishes, byId, v),
-    ...diffRecords('cooking', prev.cookings, next.cookings, byId, v),
     ...diffRecords('tare', prev.tares, next.tares, byId, v),
     ...diffRecords('company', prev.companies, next.companies, byId, v),
     ...diffRecords('lineup', prev.lineups, next.lineups, (l) => new Map(Object.entries(l)), v),

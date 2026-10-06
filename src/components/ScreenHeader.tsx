@@ -14,7 +14,7 @@ interface ScreenHeaderProps {
   action?: ReactNode
 }
 
-/** On a phone the back link is an arrow only: the title needs the width. Settings live in the tab bar. */
+/** On a phone the back link is an arrow only: the title needs the width. */
 export function ScreenHeader({ title, back, backTo = '/', backLabel = 'Блюда', action }: ScreenHeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex min-h-14 items-center gap-1 border-b bg-background/95 px-2 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur">

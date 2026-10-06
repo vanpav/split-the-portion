@@ -1,6 +1,7 @@
 import { ingredientDisplayName } from './cooking'
+import { formatGrams } from './numbers'
 import { toPercents } from './shares'
-import type { Company, CompanyMember, Cooking, CookingKind, Dish, Id, Ingredient, Portion } from './types'
+import type { Company, CompanyMember, CookingKind, Dish, Ingredient, Portion } from './types'
 
 /** Shown name: the dish name, or its ingredients, or a placeholder. */
 export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
@@ -13,8 +14,55 @@ export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
   return names.length > 0 ? names.join(', ') : 'Без названия'
 }
 
+/**
+ * Dishes in the order of use, the latest first: the calculator opens on the first, the dish shelf
+ * follows it. Typing a dish's raw weight or tare is what makes it the latest.
+ */
+export function recentDishes<T extends Pick<Dish, 'updatedAt'>>(dishes: T[]): T[] {
+  return [...dishes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+}
+
+/**
+ * A dish at a glance, in a search list: the usual weight of its one counted product («200 г»),
+ * or what it is made of («Курица, Картофель, Рис»). Empty for one product without a weight.
+ */
+export function dishSummary(ingredients: (Pick<Ingredient, 'name' | 'rawGrams'> & { excluded?: boolean })[]): string {
+  const counted = ingredients.filter((i) => !i.excluded && i.name.trim())
+  if (counted.length === 1) return counted[0].rawGrams !== null ? `${formatGrams(counted[0].rawGrams)} г` : ''
+  return counted.map((i) => i.name.trim()).join(', ')
+}
+
+/**
+ * A composite dish folded to one readout in the calculator: the raw weight of what counts, summed
+ * (null while no counted product has a weight), and a quiet note — counted products still without
+ * a weight, then what is weighed in but not counted: «не учит.: Вода 2 000 г, Соль 5 г».
+ */
+export function rawFold(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; note: string } {
+  const named = ingredients.filter((i) => i.name.trim())
+  const counted = named.filter((i) => !i.excluded)
+  const weighed = counted.filter((i) => i.rawGrams !== null)
+  const total = weighed.length > 0 ? weighed.reduce((a, i) => a + (i.rawGrams ?? 0), 0) : null
+  const unweighed = counted.filter((i) => i.rawGrams === null).map((i) => i.name.trim())
+  const uncounted = named
+    .filter((i) => i.excluded)
+    .map((i) => (i.rawGrams !== null ? `${i.name.trim()} ${formatGrams(i.rawGrams)} г` : i.name.trim()))
+  const note = [unweighed.length > 0 && `без веса: ${unweighed.join(', ')}`, uncounted.length > 0 && `не учит.: ${uncounted.join(', ')}`]
+    .filter((part): part is string => Boolean(part))
+    .join(' · ')
+  return { total, note }
+}
+
 /** Ingredients that go to the tracker: named and not «не учитывать». The weight may still be empty. */
 const countedNamed = (ingredients: Ingredient[]) => ingredients.filter((i) => i.name.trim() && !i.excluded)
+
+/**
+ * «Простое» chosen in the dish editor: the first counted product stays, with what is not counted
+ * (water, salt) and empty rows; the other counted products go. A simple dish has one product.
+ */
+export function asSimple(ingredients: Ingredient[]): Ingredient[] {
+  const first = countedNamed(ingredients)[0]
+  return ingredients.filter((i) => i === first || i.excluded || !i.name.trim())
+}
 
 /**
  * The kind follows the recipe (docs/SPEC.md §3): one counted product is a simple dish, even with
@@ -83,27 +131,3 @@ export function lineupName(lineup: CompanyMember[]): string {
   return `${names.slice(0, -1).join(', ')} и ${names.at(-1)}`
 }
 
-/**
- * The weight after cooking typed most often for this dish with this tare (null — without tare),
- * from its saved cookings; a tie goes to the latest. Prefills «Готовый» in the calculator.
- */
-export function usualScaleGrams(cookings: Cooking[], dishId: Id, tareId: Id | null): number | null {
-  const counts = new Map<number, { count: number; latest: string }>()
-  for (const cooking of cookings) {
-    if (cooking.dishId !== dishId) continue
-    const weighing = cooking.weighings[0]
-    if (!weighing || weighing.grams === null || weighing.grams <= 0) continue
-    const weighingTare = weighing.kind === 'withTare' ? weighing.tare.id : null
-    if (weighingTare !== tareId) continue
-    const entry = counts.get(weighing.grams)
-    counts.set(weighing.grams, {
-      count: (entry?.count ?? 0) + 1,
-      latest: entry && entry.latest > cooking.createdAt ? entry.latest : cooking.createdAt,
-    })
-  }
-  let best: { grams: number; count: number; latest: string } | null = null
-  for (const [grams, { count, latest }] of counts) {
-    if (!best || count > best.count || (count === best.count && latest > best.latest)) best = { grams, count, latest }
-  }
-  return best?.grams ?? null
-}
