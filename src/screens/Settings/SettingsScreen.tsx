@@ -2,6 +2,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { CompaniesSection } from './CompaniesSection'
 import { DataSection } from './DataSection'
 import { HoldSection } from './HoldSection'
+import { PresetsSection } from './PresetsSection'
 import { TaresSection } from './TaresSection'
 
 export function SettingsScreen() {
@@ -14,6 +15,7 @@ export function SettingsScreen() {
           <TaresSection />
           <HoldSection />
           <DataSection />
+          <PresetsSection />
         </div>
         <CompaniesSection />
       </main>
