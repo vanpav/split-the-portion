@@ -2,7 +2,9 @@ import { ChevronDownIcon, ChevronUpIcon, PercentIcon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
+import { OverScreen } from '@/app/OverScreen'
 import { newCompanyPath, newTarePath } from '@/app/paths'
+import { useReturnAnimation } from '@/app/screenAnimation'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
@@ -41,6 +43,7 @@ import {
   type SplitMode,
 } from '@/domain'
 import { ADD_PERSON_ID, calculatorFieldId, COMPANY_SELECT_ID, focusOrBlur, TARE_SELECT_ID } from '@/lib/domIds'
+import { cn } from '@/lib/utils'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
@@ -364,6 +367,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     },
   } satisfies CalculatorOutlet)
   const covered = outlet !== null
+  const returnAnimation = useReturnAnimation(covered)
   const openScreen = (path: string, from: string) => {
     refocus.current = from
     navigate(path)
@@ -463,7 +467,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
     <>
       <main
         hidden={covered}
-        className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-2xl"
+        className={cn(
+          'mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-2xl',
+          returnAnimation,
+        )}
       >
         <section aria-label="Вес" className="flex flex-col gap-1">
           {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
@@ -612,7 +619,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
 
         <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
       </main>
-      {outlet}
+      {outlet && <OverScreen>{outlet}</OverScreen>}
     </>
   )
 }

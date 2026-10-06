@@ -1,6 +1,7 @@
 import { LayoutListIcon, PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
+import { shelfScrollTarget } from '@/app/enterAnimation'
 import { dishEditPath, dishPath, DISHES_PATH, newDishPath } from '@/app/paths'
 import { MoreMenu } from '@/components/MoreMenu'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -19,7 +20,23 @@ const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator
  * Search and the full list stay at the start, outside the scroll, always within reach; the current dish
  * is ringed, not filled. On the right, «⋯»: editing the dish, adding one, the settings.
  */
-export function DishShelf({ currentId }: { currentId: Id | undefined }) {
+/** A chip tapped to switch the dish: the places of the current and the tapped chip, as shown. */
+export interface ChipTap {
+  id: Id
+  /** `null` when the current dish is not on the shelf. */
+  from: number | null
+  to: number
+}
+
+interface DishShelfProps {
+  currentId: Id | undefined
+  onChipTap?: (tap: ChipTap) => void
+  /** Under a screen over the calculator (docs/UX.md §3а): mounted, keeping its scroll, but not shown. */
+  hidden?: boolean
+  className?: string
+}
+
+export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelfProps) {
   const dishes = useAppStore((s) => s.dishes)
   // The order is fixed while the shelf is open: typing a weight makes a dish the latest,
   // and its chip must not jump away under the finger. Dishes added meanwhile go first.
@@ -36,8 +53,30 @@ export function DishShelf({ currentId }: { currentId: Id | undefined }) {
   }, [])
   const currentDish = dishes.find((d) => d.id === currentId)
   const currentRef = useRef<HTMLAnchorElement>(null)
+  const shelfRef = useRef<HTMLElement>(null)
+  // The current chip comes into sight only if it is out of it, clear of the faded edges: the shelf
+  // does not jump under the finger. Opening the screen — at once; another dish on the shelf —
+  // smoothly, unless the system asks to reduce motion. Only the shelf scrolls, not the page.
+  const shelfShown = useRef(false)
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: 'nearest', inline: 'center' })
+    const shelf = shelfRef.current
+    const chip = currentRef.current
+    const smooth = shelfShown.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    shelfShown.current = true
+    if (!shelf || !chip) return
+    const style = getComputedStyle(shelf)
+    const shelfBox = shelf.getBoundingClientRect()
+    const chipBox = chip.getBoundingClientRect()
+    const itemStart = chipBox.left - shelfBox.left + shelf.scrollLeft
+    const left = shelfScrollTarget({
+      scrollLeft: shelf.scrollLeft,
+      width: shelf.clientWidth,
+      itemStart,
+      itemEnd: itemStart + chipBox.width,
+      padStart: parseFloat(style.paddingLeft),
+      padEnd: parseFloat(style.paddingRight),
+    })
+    if (left !== null) shelf.scrollTo({ left, behavior: smooth ? 'smooth' : 'instant' })
   }, [currentId])
   const [searching, setSearching] = useState(false)
   // From a keyboard: ⌘K / Ctrl+K anywhere (by the key, so a Russian layout works too), or «/» when
@@ -56,7 +95,13 @@ export function DishShelf({ currentId }: { currentId: Id | undefined }) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-10 border-b bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur">
+    <header
+      hidden={hidden}
+      className={cn(
+        'sticky top-0 z-10 border-b bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur',
+        className,
+      )}
+    >
       {/* As wide as the calculator under it, so the shelf lines up with the column; on a desktop both are
           wider — more chips in sight without scrolling sideways with a mouse. */}
       <div className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
@@ -91,12 +136,13 @@ export function DishShelf({ currentId }: { currentId: Id | undefined }) {
           <TooltipContent side="bottom">Все блюда</TooltipContent>
         </Tooltip>
         <nav
+          ref={shelfRef}
           aria-label="Блюда"
           // Scrolls sideways under the thumb; the scrollbar would only take height. The edges fade, so a chip
           // running under them reads as «more this way», not as a cut; the padding keeps the ends clear of it.
           className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1 pr-6 pl-3 [mask-image:linear-gradient(to_right,transparent,#000_0.75rem,#000_calc(100%-1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {shown.map((dish) => {
+          {shown.map((dish, index) => {
             const current = dish.id === currentId
             return (
               // 44 px to tap, a smaller pill to look at: more dishes fit on the shelf.
@@ -105,6 +151,11 @@ export function DishShelf({ currentId }: { currentId: Id | undefined }) {
                 ref={current ? currentRef : undefined}
                 to={dishPath(dish.id)}
                 aria-current={current ? 'page' : undefined}
+                onClick={() => {
+                  if (current) return
+                  const from = shown.findIndex((d) => d.id === currentId)
+                  onChipTap?.({ id: dish.id, from: from === -1 ? null : from, to: index })
+                }}
                 className="group/chip flex h-11 shrink-0 items-center rounded-full outline-none"
               >
                 <span

@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAppStore } from '@/store/store'
 import { LocalDataDialog } from './LocalDataDialog'
+import { ScreenTransition } from './ScreenTransition'
 import { UpdatePrompt } from './UpdatePrompt'
 
 export function RootLayout() {
@@ -31,7 +32,9 @@ export function RootLayout() {
             </Alert>
           </div>
         )}
-        <Outlet />
+        <ScreenTransition>
+          <Outlet />
+        </ScreenTransition>
         {/* «Назад» returns to the same place on the screen; a new screen opens at the top. */}
         <ScrollRestoration />
         {/* Top: at the bottom a toast would hide under the phone's keyboard. */}

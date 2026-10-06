@@ -2,7 +2,9 @@ import { CookingPotIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useOutlet, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
+import { OverScreen } from '@/app/OverScreen'
 import { DISHES_PATH, dishPath, FROM_SIMPLE_DISH } from '@/app/paths'
+import { useReturnAnimation } from '@/app/screenAnimation'
 import { useBack } from '@/app/useBack'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
@@ -13,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { asSimple, dishErrors, dishKind, dishSource, dishTitle, liveTareId, type CookingKind, type DishError, type Id, type Ingredient } from '@/domain'
 import { focusOrBlur, ingredientNameId } from '@/lib/domIds'
+import { cn } from '@/lib/utils'
 import type { DishDraft } from '@/store/createAppStore'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
@@ -70,6 +73,7 @@ export function DishEditorForm() {
   // «Из простого блюда» is a screen over the form (docs/UX.md §3а): the form stays mounted under it,
   // hidden, keeping the draft; the dish picked comes back through the outlet.
   const outlet = useOutlet({ onPick: (source) => addIngredient(source) } satisfies EditorOutlet)
+  const returnAnimation = useReturnAnimation(outlet !== null)
 
   if (!draft) return <Navigate to="/" replace />
   const isNew = !existing
@@ -147,7 +151,7 @@ export function DishEditorForm() {
 
   return (
     <>
-      <div hidden={outlet !== null} className="contents">
+      <div hidden={outlet !== null} className={cn('flex flex-1 flex-col', returnAnimation)}>
         <ScreenHeader
           title={isNew ? 'Добавить блюдо' : 'Изменить блюдо'}
           back
@@ -262,7 +266,7 @@ export function DishEditorForm() {
           </BottomBar>
         </main>
       </div>
-      {outlet}
+      {outlet && <OverScreen>{outlet}</OverScreen>}
     </>
   )
 }

@@ -1,5 +1,7 @@
 import { Navigate, useOutlet, useParams } from 'react-router'
+import { OverScreen } from '@/app/OverScreen'
 import { SETTINGS_PATH } from '@/app/paths'
+import { useReturnAnimation } from '@/app/screenAnimation'
 import { useBack } from '@/app/useBack'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { cn } from '@/lib/utils'
@@ -21,6 +23,7 @@ export function SettingsScreen() {
   const section = findSettingsSection(sectionParam)
   const { hasPrevious, noPreviousState } = useBack(SETTINGS_PATH)
   const outlet = useOutlet()
+  const returnAnimation = useReturnAnimation(outlet !== null)
   // «Группа» exists with an account only. Opened by a direct link, the list has no previous screen either.
   if (sectionParam !== undefined && (!section || (section.id === 'group' && !inGroup))) {
     return <Navigate to={SETTINGS_PATH} replace state={hasPrevious ? undefined : noPreviousState} />
@@ -30,8 +33,8 @@ export function SettingsScreen() {
 
   return (
     <>
-      <div hidden={outlet !== null} className="contents">
-        {/* `contents` keeps the header sticky. A subsection on a phone has its own header leading back to the list. */}
+      <div hidden={outlet !== null} className={cn('flex flex-1 flex-col', returnAnimation)}>
+        {/* The header stays sticky: this box is as tall as the screen. A subsection on a phone has its own header leading back to the list. */}
         {section && (
           <div className="contents md:hidden">
             <ScreenHeader title={section.title} back backTo={SETTINGS_PATH} backLabel="Настройки" />
@@ -51,7 +54,7 @@ export function SettingsScreen() {
           </div>
         </main>
       </div>
-      {outlet}
+      {outlet && <OverScreen>{outlet}</OverScreen>}
     </>
   )
 }
