@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { useAppStore } from '@/store/store'
 import { LocalDataDialog } from './LocalDataDialog'
+import { ScreenTransition } from './ScreenTransition'
 import { UpdatePrompt } from './UpdatePrompt'
 
 export function RootLayout() {
@@ -32,9 +33,11 @@ export function RootLayout() {
             </Alert>
           </div>
         )}
-        <Outlet />
+        <ScreenTransition>
+          <Outlet />
+        </ScreenTransition>
         {/* Holds the keyboard open on an iPhone between 🔍 and the dish menu's field (KEYBOARD_PROXY_ID).
-            16 px, or the iPhone zooms in on focus; out of the tab order. Not aria-hidden — it does get the focus,
+            Outside ScreenTransition, so a screen change never remounts it; fixed, so it adds no scroll. 16 px, or the iPhone zooms in on focus; out of the tab order. Not aria-hidden — it does get the focus,
             for a moment — so it is named as the field it stands in for. */}
         <input
           id={KEYBOARD_PROXY_ID}
