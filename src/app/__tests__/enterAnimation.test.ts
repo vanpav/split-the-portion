@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { enterAnimation, uaAnimatedKey } from '../enterAnimation'
+import { dishSwitchAnimation, enterAnimation, screenKey, shelfScrollTarget, uaAnimatedKey } from '../enterAnimation'
 
 describe('uaAnimatedKey', () => {
   it('returns the key of the entry the browser animated into', () => {
@@ -42,5 +42,62 @@ describe('enterAnimation', () => {
     expect(enterAnimation({ ...base, navigationType: 'POP', locationKey: 'xyz', uaAnimatedKey: 'abc' })).toBe('back')
     // A PUSH always creates a new key, but even a matching one is not a browser-animated step.
     expect(enterAnimation({ ...base, navigationType: 'PUSH', uaAnimatedKey: 'abc' })).toBe('forward')
+  })
+})
+
+describe('screenKey', () => {
+  it('maps every dish calculator to one screen', () => {
+    expect(screenKey('/d/abc')).toBe('/d/:id')
+    expect(screenKey('/d/xyz')).toBe(screenKey('/d/abc'))
+    expect(screenKey('/d/abc/')).toBe('/d/:id')
+  })
+
+  it('keeps the dish form, a new dish and other screens apart', () => {
+    expect(screenKey('/d/new')).toBe('/d/new')
+    expect(screenKey('/d/abc/edit')).toBe('/d/abc/edit')
+    expect(screenKey('/dishes')).toBe('/dishes')
+    expect(screenKey('/settings/tares')).toBe('/settings/tares')
+    expect(screenKey('/')).toBe('/')
+  })
+})
+
+describe('dishSwitchAnimation', () => {
+  it('comes from the side of the tapped chip', () => {
+    expect(dishSwitchAnimation({ from: 1, to: 3, navigationType: 'PUSH' })).toBe('forward')
+    expect(dishSwitchAnimation({ from: 3, to: 0, navigationType: 'PUSH' })).toBe('back')
+  })
+
+  it('falls back to the navigation type when the dish is not switched by a chip', () => {
+    expect(dishSwitchAnimation({ from: null, to: null, navigationType: 'PUSH' })).toBe('forward')
+    expect(dishSwitchAnimation({ from: null, to: null, navigationType: 'POP' })).toBe('back')
+    expect(dishSwitchAnimation({ from: null, to: null, navigationType: 'REPLACE' })).toBe('none')
+  })
+
+  it('falls back when the current dish is not on the shelf or the places are the same', () => {
+    expect(dishSwitchAnimation({ from: null, to: 2, navigationType: 'PUSH' })).toBe('forward')
+    expect(dishSwitchAnimation({ from: 2, to: 2, navigationType: 'POP' })).toBe('back')
+  })
+})
+
+describe('shelfScrollTarget', () => {
+  const view = { scrollLeft: 100, width: 200, padStart: 16, padEnd: 32 }
+
+  it('does not scroll when the chip is in sight', () => {
+    expect(shelfScrollTarget({ ...view, itemStart: 116, itemEnd: 268 })).toBeNull()
+    expect(shelfScrollTarget({ ...view, itemStart: 150, itemEnd: 200 })).toBeNull()
+  })
+
+  it('brings a chip on the left to the start, past the padding', () => {
+    expect(shelfScrollTarget({ ...view, itemStart: 110, itemEnd: 160 })).toBe(94)
+    expect(shelfScrollTarget({ ...view, itemStart: 5, itemEnd: 50 })).toBe(0)
+  })
+
+  it('brings a chip on the right to the end, past the padding', () => {
+    expect(shelfScrollTarget({ ...view, itemStart: 250, itemEnd: 300 })).toBe(132)
+    expect(shelfScrollTarget({ ...view, itemStart: 1000, itemEnd: 1050 })).toBe(882)
+  })
+
+  it('shows the start of a chip wider than the view', () => {
+    expect(shelfScrollTarget({ ...view, itemStart: 300, itemEnd: 600 })).toBe(284)
   })
 })
