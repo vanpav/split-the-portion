@@ -8,7 +8,8 @@ import { useSyncStore } from '@/store/sync'
 
 /** In more than one group, the list says whose dishes these are; a tap leads to switching. */
 export function OpenGroupLink() {
-  const groups = useAccountStore((s) => s.me?.groups ?? [])
+  // The selector returns what the store holds: a fresh `[]` on each call would re-render forever (React #185).
+  const groups = useAccountStore((s) => s.me?.groups) ?? []
   const openId = useSyncStore((s) => s.groupId)
   const group = groups.find((g) => g.id === openId)
   if (groups.length < 2 || !group) return null
