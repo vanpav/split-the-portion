@@ -557,6 +557,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             unit={barUnit}
             onUnit={setBarUnit}
             pickToAdjust={inShares}
+            numbered={inShares}
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">

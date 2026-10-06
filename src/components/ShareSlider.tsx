@@ -53,6 +53,11 @@ interface ShareSliderProps {
    * «Доли»: equal portions rarely need ±1 %, and with seven of them the grips stay off the bar.
    */
   pickToAdjust?: boolean
+  /**
+   * Segments are titled by number, not by name: «3» fits a segment far narrower than «Порция 3», and it
+   * tells two portions apart when there are more of them than lids. «Доли».
+   */
+  numbered?: boolean
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -99,6 +104,7 @@ export function ShareSlider({
   unit = '%',
   onUnit,
   pickToAdjust = false,
+  numbered = false,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
@@ -189,11 +195,21 @@ export function ShareSlider({
     cn(index === 0 && 'rounded-l-xl', index === lastIndex && 'rounded-r-xl', index > 0 && 'shadow-[inset_2px_0_0_var(--color-background)]')
   // Grams once weighed and asked for; percent of the dish otherwise.
   const shown = (label: string | null) => (unit === 'g' ? label : null)
-  const labels = (title: string, label: string | null, fallback: string) => (
+  // The title over the grams: a name, or in «Доли» the portion's number (its place in the lineup).
+  const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
+  const labels = (title: string, label: string | null, fallback: string, place: number | null = null) => (
     <>
       {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
-          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first. */}
-      <span className="w-full truncate px-3 text-center font-medium @max-[4.5rem]:hidden">{title}</span>
+          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first; a number
+          stays down to 1rem. */}
+      <span
+        className={cn(
+          'w-full truncate text-center font-medium',
+          numbered && place !== null ? 'px-0.5 @max-[1rem]:hidden' : 'px-3 @max-[4.5rem]:hidden',
+        )}
+      >
+        {titleOf(title, place)}
+      </span>
       <span className="px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden">
         {shown(label) ?? fallback}
       </span>
@@ -229,7 +245,7 @@ export function ShareSlider({
                   sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
                 )}
               >
-                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`)}
+                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`, segment?.place ?? index)}
               </button>
             )
           })}
@@ -248,7 +264,7 @@ export function ShareSlider({
                 rounding(sharing.length + i),
               )}
             >
-              {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`)}
+              {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`, segment.place)}
             </div>
           ))}
 
