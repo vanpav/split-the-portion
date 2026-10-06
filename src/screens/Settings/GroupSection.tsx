@@ -1,10 +1,12 @@
+import { Link } from 'react-router'
+import { JOIN_PATH } from '@/app/paths'
+import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { GroupMembers } from './GroupMembers'
 import { GroupName } from './GroupName'
 import { GroupPicker } from './GroupPicker'
 import { InviteCard } from './InviteCard'
-import { JoinByCodeDialog } from './JoinByCodeDialog'
 import { LeaveGroupButton } from './LeaveGroupButton'
 
 /**
@@ -36,7 +38,10 @@ export function GroupSection() {
         <InviteCard key={group.id} group={group} />
       </div>
       <div className="flex flex-col gap-1">
-        <JoinByCodeDialog />
+        {/* A screen of its own (docs/UX.md §3а): the code is typed there. */}
+        <Button variant="ghost" className="self-start" asChild>
+          <Link to={JOIN_PATH}>Вступить по коду</Link>
+        </Button>
         <LeaveGroupButton group={group} />
       </div>
     </section>

@@ -1,8 +1,8 @@
 import { BookmarkPlusIcon, PlusIcon, UsersIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { NewCompanyDialog } from '@/components/NewCompanyDialog'
+import { useRef } from 'react'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { lineupName, type Company, type Id } from '@/domain'
+import { COMPANY_SELECT_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
 
@@ -14,8 +14,10 @@ interface CompanyPickerProps {
    * untick it, so picking it again brings its default shares back. Defaults to `value`.
    */
   ticked?: Id | null
-  /** A company picked from the list, or just added in the dialog. */
+  /** A company picked from the list. */
   onChange: (company: Company) => void
+  /** «Добавить компанию»: open the «Новая компания» screen. */
+  onAdd: () => void
   /** Shown when no company is picked, e.g. «Свой состав · 4». */
   customLabel?: string
   /** «Сохранить состав как компанию» at the end of the list; given only for a lineup of its own. */
@@ -39,13 +41,12 @@ function CompanyLabel({ company }: { company: Company }) {
 
 /**
  * «Кто ест»: one compact select over the presets of the settings. It ends with «Добавить компанию»:
- * a new company is made in a dialog and picked at once.
+ * a new company is made on the «Новая компания» screen (docs/UX.md §3а) and picked on the way back.
  */
-export function CompanyPicker({ value, ticked = value, onChange, customLabel = 'Свой состав', onSaveCurrent, className }: CompanyPickerProps) {
+export function CompanyPicker({ value, ticked = value, onChange, onAdd, customLabel = 'Свой состав', onSaveCurrent, className }: CompanyPickerProps) {
   const companies = useAppStore((s) => s.companies)
   const shown = companies.find((c) => c.id === value)
-  const [adding, setAdding] = useState(false)
-  // «Добавить компанию» picked: the dialog opens once the list has closed — the list keeps focus while open.
+  // «Добавить компанию» picked: the screen opens once the list has closed — the list keeps focus while open.
   const addPicked = useRef(false)
 
   const pick = (v: string) => {
@@ -58,45 +59,42 @@ export function CompanyPicker({ value, ticked = value, onChange, customLabel = '
   }
 
   return (
-    <>
-      <Select value={ticked ?? ''} onValueChange={pick}>
-        <SelectTrigger className={cn('justify-start', className)} aria-label="Кто ест">
-          <UsersIcon className="text-muted-foreground" />
-          <span className="flex min-w-0 flex-1 justify-start truncate">
-            {/* The picked company stays named here even when its shares were moved and it is unticked. */}
-            <SelectValue placeholder={shown ? <CompanyLabel company={shown} /> : customLabel}>
-              {shown && <CompanyLabel company={shown} />}
-            </SelectValue>
-          </span>
-        </SelectTrigger>
-        <SelectContent
-          onCloseAutoFocus={(e) => {
-            if (!addPicked.current) return
-            // Focus goes to the dialog («+ Имя») instead of back to the select.
-            e.preventDefault()
-            addPicked.current = false
-            setAdding(true)
-          }}
-        >
-          {companies.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              <CompanyLabel company={c} />
-            </SelectItem>
-          ))}
-          {companies.length > 0 && <SelectSeparator />}
-          {onSaveCurrent && (
-            <SelectItem value={SAVE}>
-              <BookmarkPlusIcon />
-              Сохранить состав как компанию
-            </SelectItem>
-          )}
-          <SelectItem value={ADD}>
-            <PlusIcon />
-            Добавить компанию
+    <Select value={ticked ?? ''} onValueChange={pick}>
+      <SelectTrigger id={COMPANY_SELECT_ID} className={cn('justify-start', className)} aria-label="Кто ест">
+        <UsersIcon className="text-muted-foreground" />
+        <span className="flex min-w-0 flex-1 justify-start truncate">
+          {/* The picked company stays named here even when its shares were moved and it is unticked. */}
+          <SelectValue placeholder={shown ? <CompanyLabel company={shown} /> : customLabel}>
+            {shown && <CompanyLabel company={shown} />}
+          </SelectValue>
+        </span>
+      </SelectTrigger>
+      <SelectContent
+        onCloseAutoFocus={(e) => {
+          if (!addPicked.current) return
+          // The screen takes the focus («+ Имя») instead of the select.
+          e.preventDefault()
+          addPicked.current = false
+          onAdd()
+        }}
+      >
+        {companies.map((c) => (
+          <SelectItem key={c.id} value={c.id}>
+            <CompanyLabel company={c} />
           </SelectItem>
-        </SelectContent>
-      </Select>
-      <NewCompanyDialog open={adding} onOpenChange={setAdding} onCreated={onChange} />
-    </>
+        ))}
+        {companies.length > 0 && <SelectSeparator />}
+        {onSaveCurrent && (
+          <SelectItem value={SAVE}>
+            <BookmarkPlusIcon />
+            Сохранить состав как компанию
+          </SelectItem>
+        )}
+        <SelectItem value={ADD}>
+          <PlusIcon />
+          Добавить компанию
+        </SelectItem>
+      </SelectContent>
+    </Select>
   )
 }

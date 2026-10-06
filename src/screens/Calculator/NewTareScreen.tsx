@@ -1,46 +1,33 @@
 import { CheckIcon } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useOutletContext } from 'react-router'
+import { dishPath } from '@/app/paths'
+import { useBack } from '@/app/useBack'
+import { BottomBar } from '@/components/BottomBar'
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { TareForm } from '@/components/TareForm'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from '@/components/ui/item'
 import { formatGrams, type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
-
-interface NewTareDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  /** The tare to select: the first one added, or one tapped in «Добавлено». */
-  onSelect: (tare: Tare) => void
-}
+import type { CalculatorOutlet } from './calculatorOutlet'
 
 /**
- * «Добавить тару» from a tare select: the settings' form in a dialog. Several tares in one go —
- * each added one is listed in «Добавлено»; the first is selected, a tap selects another. «Готово» closes.
+ * `#/d/:id/tare/new` — «Добавить тару» from the calculator's tare list (docs/UX.md П4, §3а): the
+ * settings' form on a screen of its own. Several tares in one go — each added one is listed in
+ * «Добавлено»; the first is selected for the dish at once, a tap selects another. «Готово» and «←»
+ * go back to the calculator, what was added stays.
  */
-export function NewTareDialog({ open, onOpenChange, onSelect }: NewTareDialogProps) {
+export function NewTareScreen() {
+  const { dishId, onTare } = useOutletContext<CalculatorOutlet>()
+  const { back } = useBack(dishPath(dishId))
   const addedId = useId()
   const [added, setAdded] = useState<Tare[]>([])
   const [selectedId, setSelectedId] = useState<Id | null>(null)
 
-  const change = (next: boolean) => {
-    if (!next) {
-      setAdded([])
-      setSelectedId(null)
-    }
-    onOpenChange(next)
-  }
   const select = (tare: Tare) => {
     setSelectedId(tare.id)
-    onSelect(tare)
+    onTare(tare)
   }
   const created = (tare: Tare) => {
     setAdded((list) => [...list, tare])
@@ -48,17 +35,15 @@ export function NewTareDialog({ open, onOpenChange, onSelect }: NewTareDialogPro
   }
 
   return (
-    <Dialog open={open} onOpenChange={change}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Новая тара</DialogTitle>
-          <DialogDescription>Вес пустой посуды — вычтем его сами.</DialogDescription>
-        </DialogHeader>
+    <>
+      <ScreenHeader title="Новая тара" back backTo={dishPath(dishId)} backLabel="Калькулятор" />
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
+        <p className="px-1 text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
         {added.length > 0 && (
           <section className="flex flex-col gap-1">
-            <h3 id={addedId} className="text-sm font-medium text-muted-foreground">
+            <h2 id={addedId} className="px-1 text-sm font-medium text-muted-foreground">
               Добавлено
-            </h3>
+            </h2>
             <ItemGroup role="group" aria-labelledby={addedId} className="gap-0">
               {added.map((tare) => {
                 const selected = tare.id === selectedId
@@ -69,9 +54,7 @@ export function NewTareDialog({ open, onOpenChange, onSelect }: NewTareDialogPro
                       <ItemContent>
                         <ItemTitle>{tare.name}</ItemTitle>
                       </ItemContent>
-                      <ItemActions className="text-muted-foreground tabular-nums">
-                        {formatGrams(tare.grams)} г
-                      </ItemActions>
+                      <ItemActions className="text-muted-foreground tabular-nums">{formatGrams(tare.grams)} г</ItemActions>
                     </button>
                   </Item>
                 )
@@ -80,12 +63,12 @@ export function NewTareDialog({ open, onOpenChange, onSelect }: NewTareDialogPro
           </section>
         )}
         <TareForm autoFocus onCreated={created} />
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Готово</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <BottomBar>
+          <Button size="lg" variant="outline" className="flex-1 lg:flex-none" onClick={back}>
+            Готово
+          </Button>
+        </BottomBar>
+      </main>
+    </>
   )
 }

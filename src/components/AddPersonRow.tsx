@@ -6,6 +6,8 @@ interface AddPersonRowProps {
   onAdd: (name: string) => void
   /** Focus the field on mount: a new company starts with typing its first name. */
   autoFocus?: boolean
+  /** For focusing the field from outside, e.g. on the way back from «Новая компания». */
+  id?: string
 }
 
 /**
@@ -13,7 +15,7 @@ interface AddPersonRowProps {
  * the person is in (with an average share), and the field is ready for the next one.
  * No nameless rows to fix afterwards.
  */
-export function AddPersonRow({ onAdd, autoFocus }: AddPersonRowProps) {
+export function AddPersonRow({ onAdd, autoFocus, id }: AddPersonRowProps) {
   const [name, setName] = useState('')
 
   const add = () => {
@@ -27,6 +29,7 @@ export function AddPersonRow({ onAdd, autoFocus }: AddPersonRowProps) {
     <li className="flex items-center gap-1 py-2">
       <PlusIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
       <Input
+        id={id}
         aria-label="Добавить человека"
         placeholder="Имя"
         value={name}

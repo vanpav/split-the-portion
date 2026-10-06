@@ -2,12 +2,23 @@ import { createHashRouter, Navigate } from 'react-router'
 import { AccountScreen } from '@/screens/Account/AccountScreen'
 import { ResetPasswordScreen } from '@/screens/Account/ResetPasswordScreen'
 import { CalculatorScreen } from '@/screens/Calculator/CalculatorScreen'
+import { NewCompanyScreen } from '@/screens/Calculator/NewCompanyScreen'
+import { NewTareScreen } from '@/screens/Calculator/NewTareScreen'
+import { CopyTextScreen } from '@/screens/Copy/CopyTextScreen'
 import { DishEditorScreen } from '@/screens/DishEditor/DishEditorScreen'
+import { FromSimpleDishScreen } from '@/screens/DishEditor/FromSimpleDishScreen'
 import { DishListScreen } from '@/screens/DishList/DishListScreen'
 import { HomeScreen } from '@/screens/DishList/HomeScreen'
+import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
+import { COPY_TEXT, FROM_SIMPLE_DISH } from './paths'
 import { RootLayout } from './RootLayout'
+
+// Screens opened over another one (docs/UX.md §3а) are its child routes: the screen under them stays
+// mounted and hidden, so «назад» finds it as it was — the same numbers typed, the same draft.
+const fromSimpleDish = { path: FROM_SIMPLE_DISH, element: <FromSimpleDishScreen /> }
+const copyText = { path: COPY_TEXT, element: <CopyTextScreen /> }
 
 export const router = createHashRouter([
   {
@@ -16,13 +27,22 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <HomeScreen /> },
       { path: 'dishes', element: <DishListScreen /> },
-      { path: 'd/new', element: <DishEditorScreen /> },
-      { path: 'd/:id', element: <CalculatorScreen /> },
-      { path: 'd/:id/edit', element: <DishEditorScreen /> },
+      { path: 'd/new', element: <DishEditorScreen />, children: [fromSimpleDish] },
+      {
+        path: 'd/:id',
+        element: <CalculatorScreen />,
+        children: [
+          { path: 'tare/new', element: <NewTareScreen /> },
+          { path: 'company/new', element: <NewCompanyScreen /> },
+          copyText,
+        ],
+      },
+      { path: 'd/:id/edit', element: <DishEditorScreen />, children: [fromSimpleDish] },
       { path: 'settings', element: <SettingsScreen /> },
-      { path: 'settings/:section', element: <SettingsScreen /> },
+      { path: 'settings/:section', element: <SettingsScreen />, children: [copyText] },
       { path: 'account', element: <AccountScreen /> },
       { path: 'account/reset', element: <ResetPasswordScreen /> },
+      { path: 'join', element: <JoinByCodeScreen /> },
       { path: 'join/:code', element: <JoinScreen /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
