@@ -29,8 +29,10 @@
 Аккаунт Cloudflare уже есть: приложение деплоится как воркер `split-the-portion`.
 
 ```bash
-pnpm add -D wrangler @cloudflare/vite-plugin
+pnpm install
 ```
+
+`wrangler` и `@cloudflare/vite-plugin` уже в `devDependencies` (этап 12).
 
 ```bash
 pnpm wrangler login
@@ -48,7 +50,7 @@ pnpm wrangler whoami
 pnpm wrangler d1 create split-the-portion
 ```
 
-Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc` — можно согласиться. `database_id` не секрет, он хранится в репозитории.
+Wrangler напечатает блок с `database_id` и предложит сам дописать его в `wrangler.jsonc`. Отказаться: он предложит привязку `split_the_portion`, а у нас `DB` — id вписываем руками в готовый блок `d1_databases`. `database_id` не секрет, он хранится в репозитории. Сделано 2026-10-06: база `split-the-portion`, регион WEUR.
 
 ## 4. Привязать базу к воркеру
 
@@ -60,30 +62,27 @@ Wrangler напечатает блок с `database_id` и предложит с
   "name": "split-the-portion",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
-  // node:crypto for password hashing (native scrypt fits the free plan's CPU limit).
+  // node:crypto for Better Auth: its password hash runs natively in workerd instead of slow pure JS.
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": "./dist",
-    // Only the API runs code; everything else is served as files without waking the worker.
+    // Only the API runs code; everything else is served as files (hash routes: the server only sees `/`).
     "run_worker_first": ["/api/*"]
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "split-the-portion",
-      "database_id": "<из вывода d1 create>",
+      "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
       "migrations_dir": "worker/migrations"
     }
   ],
-  "vars": {
-    "BETTER_AUTH_URL": "https://split-the-portion.<поддомен>.workers.dev"
-  },
   "previews": {}
 }
 ```
 
 - `not_found_handling` не нужен: маршруты приложения в hash (`#/d/…`), сервер видит только `/`.
-- После перехода на `@cloudflare/vite-plugin` сборка кладёт итоговый конфиг для деплоя рядом с собой, `wrangler deploy` подхватывает его сам. `assets.directory` плагин тоже выставляет сам.
+- Адрес приложения в конфиге не нужен: воркер берёт его из запроса. Поэтому рабочий адрес, превью веток и `localhost` работают каждый под своим. Passkey (Face ID) привязан к тому адресу, где его добавили.
+- Сборка с `@cloudflare/vite-plugin` кладёт статику в `dist/client`, воркер и итоговый конфиг — в `dist/split_the_portion`; `wrangler deploy` подхватывает его сам (`.wrangler/deploy/config.json`).
 - Типы окружения (`Env` с `DB`) генерирует `pnpm wrangler types` — запускать после каждой правки `wrangler.jsonc`.
 
 ## 5. Миграции базы
@@ -96,10 +95,20 @@ Wrangler напечатает блок с `database_id` и предложит с
 | `0002_sync.sql` | `record`, `group_clock` | 13 |
 | `0003_invites.sql` | `group_invite` | 14 |
 
-SQL для Better Auth генерирует его CLI по конфигу `worker/auth.ts`. Точную команду брать из документации Better Auth для D1; файл перед применением прочитать глазами.
+SQL для таблиц Better Auth печатает `pnpm -s db:auth-schema` (`scripts/auth-schema.mjs`). Скрипт сравнивает конфиг `worker/auth.ts` с локальной базой и выводит только недостающее. Поэтому сначала применить существующие миграции локально. Файл перед применением прочитать глазами.
 
 ```bash
-pnpm wrangler d1 migrations create split-the-portion auth
+pnpm db:migrate:local
+```
+
+```bash
+pnpm -s db:auth-schema > worker/migrations/NNNN_auth.sql
+```
+
+Свои таблицы (`record`, `group_invite`) — обычные файлы, их пишем руками. Пустой файл с номером создаёт:
+
+```bash
+pnpm wrangler d1 migrations create split-the-portion sync
 ```
 
 ```bash
@@ -116,20 +125,13 @@ pnpm wrangler d1 migrations list split-the-portion --remote
 
 Порядок такой: сначала `--local` и проверка в `pnpm dev`, потом `--remote` — **до** деплоя кода, которому нужны новые таблицы. Локальная база (`.wrangler/state`) и удалённая — разные, данные между ними не ходят.
 
-В `package.json` (этап 12):
-
-```json
-"db:migrate:local": "wrangler d1 migrations apply split-the-portion --local",
-"db:migrate:remote": "wrangler d1 migrations apply split-the-portion --remote",
-"deploy": "pnpm build && wrangler deploy"
-```
+Скрипты в `package.json`: `db:migrate:local`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
 
 ## 6. Секреты и переменные
 
 | Имя | Где | Что |
 |---|---|---|
 | `BETTER_AUTH_SECRET` | секрет | Подписывает cookie сессий. Случайные 32 байта; сменить — значит разлогинить всех |
-| `BETTER_AUTH_URL` | `vars` в `wrangler.jsonc` | Адрес приложения: от него зависят cookie и `rpID` для Face ID |
 
 ```bash
 openssl rand -base64 32
@@ -145,10 +147,9 @@ Wrangler спросит значение — вставить строку из 
 
 ```
 BETTER_AUTH_SECRET=<другая случайная строка>
-BETTER_AUTH_URL=http://localhost:5180
 ```
 
-В `.gitignore` (этап 12) добавить `.dev.vars*` и `.wrangler/`.
+`.dev.vars*` и `.wrangler/` (локальная D1 и состояние воркера) — в `.gitignore`.
 
 ## 7. Локальная разработка
 
@@ -181,10 +182,24 @@ pnpm run deploy
 
 Миграции в команду деплоя **не** добавлять: превью веток собираются той же сборкой и накатили бы недоделанную схему на рабочую базу. Миграции применяем руками (`pnpm db:migrate:remote`) перед слиянием PR, которому они нужны.
 
-**Превью веток** (`"previews": {}`) получают свой адрес. На превью:
-- база та же, рабочая, — не экспериментировать с удалением данных;
+**Превью веток** получают свой адрес: `https://<ветка>-split-the-portion.<поддомен>.workers.dev`. Каждый деплой превью получает **только** привязки из блока `previews` в `wrangler.jsonc`: основной конфиг не наследуется, а секреты, заданные через `wrangler secret put`, `wrangler preview secret put` или базовый конфиг превью, следующая сборка затирает. Поэтому в блоке `previews`:
+- та же база D1 (`DB`) — рабочая;
+- секрет Better Auth — привязка `PREVIEW_AUTH_SECRET` к Secrets Store аккаунта (хранилище `split-the-portion`, секрет `BETTER_AUTH_SECRET`, свой, не как у рабочего воркера). Воркер берёт `BETTER_AUTH_SECRET`, а если его нет — читает хранилище.
+
+Секрет в хранилище создан так (значение генерируется в команде и никуда не выводится):
+
+```bash
+pnpm wrangler secrets-store store create split-the-portion --remote
+```
+
+```bash
+pnpm wrangler secrets-store secret create <id хранилища> --name BETTER_AUTH_SECRET --scopes workers --value "$(openssl rand -base64 32)" --remote
+```
+
+На превью:
+- база та же, рабочая, — не экспериментировать с удалением данных; аккаунты, созданные на превью, настоящие;
 - passkey, созданный на адресе превью, к рабочему адресу не подходит;
-- адрес превью нужно разрешить в `trustedOrigins` Better Auth (шаблон `https://*-split-the-portion.<поддомен>.workers.dev`).
+- адрес превью отдельно разрешать не нужно: воркер доверяет адресу, на который пришёл запрос.
 
 ## 9. Проверить, что всё работает
 
@@ -244,7 +259,7 @@ pnpm wrangler d1 export split-the-portion --remote --output ~/Backups/split-the-
 ## 12. Свой домен (по желанию)
 
 - Нужен для писем (§13) и для красивого адреса. Cloudflare Registrar продаёт домены по себестоимости: `.com` — около $10 в год; `.ru` там не продаётся.
-- Подключение: Workers → split-the-portion → Settings → Domains & Routes → Add → Custom domain. Потом поменять `BETTER_AUTH_URL`.
+- Подключение: Workers → split-the-portion → Settings → Domains & Routes → Add → Custom domain. Адрес в конфиге менять не нужно.
 - **Делать до того, как люди добавят Face ID.** Passkey привязан к домену. После переезда все входят паролем и добавляют Face ID заново.
 - Установленная PWA привязана к адресу. После переезда:
   1. на старом адресе открыть приложение и дождаться «Синхронизировано»;
@@ -264,13 +279,14 @@ pnpm wrangler d1 export split-the-portion --remote --output ~/Backups/split-the-
 
 | Симптом | Причина | Что делать |
 |---|---|---|
-| Регистрация падает, в логе `exceededCpu` / Error 1102 | Хеш пароля дольше 10 мс CPU. Чистый JS scrypt Better Auth тратит 70–170 мс | Проверить, что подключены свои `password.hash/verify` на `node:crypto` и включён флаг `nodejs_compat`. Если не помогло — Workers Paid $5 |
+| Регистрация падает, в логе `exceededCpu` / Error 1102 | Хеш пароля дольше 10 мс CPU. Чистый JS scrypt тратит 70–170 мс; Better Auth 1.7 под workerd берёт нативный `node:crypto` | Проверить флаг `nodejs_compat` и что в сборке воркера `import { scrypt } from "node:crypto"`. Если не помогло — Workers Paid $5 |
 | `no such table: record` после деплоя | Миграцию применили только `--local` | `pnpm db:migrate:remote` |
 | Вход не держится на телефоне | Открыто по `http://` (LAN) — cookie `Secure` не сохраняется | Проверять вход на HTTPS: превью или рабочий адрес |
 | «Войти с Face ID» ничего не делает | Не HTTPS, или адрес не совпадает с `rpID` (превью, другой домен) | Рабочий адрес; на новом адресе добавить Face ID заново |
 | После деплоя на телефоне старая версия | Service Worker отдаёт закешированную сборку | Нажать «Обновить» в тосте «Есть новая версия». Проверить, что `public/_headers` отдаёт `/sw.js` с `no-cache` |
 | На iPhone после установки пусто | У PWA на экране «Домой» своё хранилище, не общее с Safari | Войти — данные придут с сервера; без аккаунта — «Копия данных» |
 | `403` на `/api/groups/…/sync` | Человек не участник группы (вышел или его убрали) | В приложении выбрать другую группу; проверить `member` (§10) |
+| На превью вход «проходит», но аккаунт тут же теряется; `/api/invites/…` — 500; `/api/*` — `{"error":"misconfigured"}` | У превью нет привязки `DB` или секрета: деплой превью получает только блок `previews` | Блок `previews` в `wrangler.jsonc`: `d1_databases` и `secrets_store_secrets` (§8); `pnpm wrangler secrets-store secret list <id хранилища> --remote` |
 
 ## Источники
 

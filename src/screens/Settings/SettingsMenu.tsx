@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { settingsPath } from '@/app/paths'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/lib/utils'
+import { useAccountStore } from '@/store/account'
 import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections'
 
 interface SettingsMenuProps {
@@ -18,6 +19,7 @@ interface SettingsMenuProps {
  * from `md` a menu on the left of the open subsection.
  */
 export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
+  const email = useAccountStore((s) => s.me?.user.email)
   return (
     <nav aria-label="Подразделы настроек" className={className}>
       <ul className="divide-y overflow-hidden rounded-xl border md:flex md:flex-col md:gap-1 md:divide-y-0 md:rounded-none md:border-0">
@@ -39,7 +41,9 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
                   <ItemTitle className={cn('text-base', (id === current || id === shown) && 'md:font-semibold')}>
                     {title}
                   </ItemTitle>
-                  <ItemDescription className="md:hidden">{description}</ItemDescription>
+                  <ItemDescription className="truncate md:hidden">
+                    {id === 'account' && email ? email : description}
+                  </ItemDescription>
                 </ItemContent>
                 <ItemActions className="md:hidden">
                   <ChevronRightIcon className="size-4 text-muted-foreground" />

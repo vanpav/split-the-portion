@@ -1,6 +1,14 @@
-import { BookOpenIcon, HardDriveIcon, type LucideIcon, SunMoonIcon, UsersIcon, WeightIcon } from 'lucide-react'
+import {
+  BookOpenIcon,
+  CircleUserIcon,
+  HardDriveIcon,
+  type LucideIcon,
+  SunMoonIcon,
+  UsersIcon,
+  WeightIcon,
+} from 'lucide-react'
 
-export type SettingsSectionId = 'tares' | 'companies' | 'presets' | 'data' | 'appearance'
+export type SettingsSectionId = 'account' | 'tares' | 'companies' | 'presets' | 'data' | 'appearance'
 
 export interface SettingsSection {
   /** The last part of the address: `#/settings/<id>`. */
@@ -13,6 +21,8 @@ export interface SettingsSection {
 
 /** Settings subsections in menu order (docs/UX.md «Настройки»). The first one opens on `#/settings` from `md`. */
 export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]] = [
+  // Signed in, the menu shows the email instead of the description (SettingsMenu).
+  { id: 'account', title: 'Аккаунт', description: 'Данные только на этом устройстве', Icon: CircleUserIcon },
   { id: 'tares', title: 'Тара', description: 'Вес пустой посуды', Icon: WeightIcon },
   { id: 'companies', title: 'Компании', description: 'Кто ест вместе', Icon: UsersIcon },
   { id: 'presets', title: 'Популярные блюда', description: 'Готовые рецепты для начала', Icon: BookOpenIcon },

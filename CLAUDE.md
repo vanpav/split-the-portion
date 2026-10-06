@@ -22,6 +22,7 @@ pnpm build        # tsc -b && vite build — должен проходить б�
 pnpm lint         # oxlint
 pnpm test         # vitest run
 pnpm test:watch   # vitest в watch-режиме
+pnpm icons        # иконки PWA из public/favicon.svg (после правки рисунка)
 ```
 
 С этапа 12 (сервер, [CLOUDFLARE.md](docs/CLOUDFLARE.md)):
@@ -29,6 +30,8 @@ pnpm test:watch   # vitest в watch-режиме
 ```bash
 pnpm db:migrate:local    # миграции D1 в локальную базу
 pnpm db:migrate:remote   # миграции D1 в рабочую базу — до деплоя кода, которому они нужны
+pnpm -s db:auth-schema   # SQL недостающих таблиц Better Auth (после правки worker/auth.ts) → новая миграция
+pnpm wrangler types      # типы окружения воркера после правки wrangler.jsonc или .dev.vars
 pnpm run deploy          # сборка и wrangler deploy (`pnpm deploy` — встроенная команда pnpm)
 ```
 
@@ -94,3 +97,4 @@ pnpm run deploy          # сборка и wrangler deploy (`pnpm deploy` — в
 3. Пройти сценарии из «Способа проверки» текущего этапа; эталонные примеры SPEC §11 вводить руками и сверять цифры на экране.
 4. Проверить: нет горизонтальной прокрутки на 375 px; поля открывают цифровую клавиатуру (`inputmode`); запятая и точка работают; данные переживают перезагрузку страницы.
 5. Консоль браузера — без ошибок и предупреждений React.
+6. PWA (Service Worker, офлайн, тост обновления) — только на сборке: `pnpm build`, затем preview-конфигурация `preview` (порт 4180). После проверки удалить Service Worker с `localhost:4180`.

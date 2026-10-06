@@ -30,6 +30,12 @@
 | shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы |
 | `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
+| `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
+| `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой, типы окружения (`pnpm wrangler types`), `getPlatformProxy` для `pnpm db:auth-schema` ([CLOUDFLARE.md](CLOUDFLARE.md)). Согласовано 2026-10-06 |
+| `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` и `pnpm preview` — один dev-сервер на 5180; сборка воркера в `dist/split_the_portion`. Согласовано 2026-10-06 |
+| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
+| `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
+| `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
 
@@ -37,12 +43,6 @@
 
 | Добавляем | Тип | Зачем | Этап |
 |---|---|---|---|
-| `vite-plugin-pwa`, `workbox-window` | dev, prod | Манифест, Service Worker (Workbox precache) и `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. v2 поддерживает Vite 8 | 11 |
-| `@vite-pwa/assets-generator` | dev | Иконки PWA и `apple-touch-icon` из `favicon.svg` | 11 |
-| `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой ([CLOUDFLARE.md](CLOUDFLARE.md)) | 12 |
-| `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` — один dev-сервер на 5180 | 12 |
-| `better-auth` + плагин passkey (`@better-auth/passkey`, имя сверить при установке) | prod | Вход почта + пароль, Face ID (WebAuthn), сессии в D1, группы (плагин `organization`). Свою авторизацию не пишем: это безопасность. D1 поддерживается напрямую с 1.5 | 12 |
-| `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере; Better Auth подключается к нему штатно | 12 |
 | `@cloudflare/vitest-pool-workers` | dev | Тесты воркера с настоящей локальной D1. Если не совместим с Vitest 5 — проверка скриптом с `curl` | 13 |
 
 **Синхронизация — своя** (`src/sync`, §10), а не готовый движок (Firebase, Dexie Cloud, Replicache, PowerSync). Готовые движки заменяют Zustand persist своим хранилищем или тянут вторую систему. Нам нужны ~300 строк чистых функций с тестами поверх уже работающих стора, миграций и IndexedDB. Согласовано 2026-10-06.
@@ -310,7 +310,8 @@ src/
   main.tsx
   index.css             — Tailwind + тема shadcn (CSS-переменные цветов, радиусы); свои токены — тоже здесь
   app/
-    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, TabBar на экранах верхнего уровня, <Toaster />
+    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, TabBar на экранах верхнего уровня, <Toaster />, <UpdatePrompt />
+    UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
     TabBar.tsx          — нижнее меню: «Простые», «Составные», «Добавить» (форма блюда), «История», «Настройки» (и все её подразделы); с lg — панель слева
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов
   screens/
@@ -324,7 +325,8 @@ src/
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
       TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
-    Settings/           — настройки по подразделам (docs/UX.md «Настройки»)
+    Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
+    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting — «Аккаунт»
       SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список, либо подраздел
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
@@ -349,10 +351,11 @@ src/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию и открытая (этап 12)
-  account/              — authClient.ts: клиент Better Auth (этап 12)
+  account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12)
   sync/                 — синхронизация, см. §10 (этап 13)
   domain/               — см. §4
-worker/                 — сервер, см. §9 (этап 12)
+worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, migrations/, __tests__/
+scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 ```
 
 ### Какие компоненты shadcn для чего
@@ -416,7 +419,8 @@ worker/                 — сервер, см. §9 (этап 12)
 | `#/c/:id` | Экран готовки (несуществующий id → `<Navigate to="/" />`) |
 | `#/settings` | Настройки: на телефоне — список подразделов, с `md` — меню слева и «Тара» справа |
 | `#/settings/:section` | Подраздел настроек: `tares`, `companies`, `presets`, `data`, `appearance`; с этапа 12 — `account`, с 14 — `group` (неизвестный → `#/settings`) |
-| `#/account` | Вход и регистрация (этап 12); после входа — назад, откуда пришли |
+| `#/account` | Вход и регистрация (этап 12); после входа — в Настройки → «Аккаунт» |
+| `#/account/reset` | Новый пароль по ссылке сброса (`token` — в строке запроса до `#`) |
 | `#/join/:code` | Вступить в группу по коду из ссылки (этап 14) |
 
 Hash-маршруты выбраны потому, что работают на любом статическом хостинге без настройки сервера. Неизвестный путь → `errorElement` / `*` с редиректом на список. Навигация — `<Link>` и `useNavigate()`, параметр — `useParams()`.
@@ -429,7 +433,14 @@ Hash-маршруты выбраны потому, что работают на 
 - `pnpm lint` = oxlint.
 - Для проверки на телефоне: `pnpm dev --host`, открыть адрес из локальной сети. Помнить: у `localhost` и у LAN-адреса разные origin, поэтому и разные хранилища; перенести данные — «Копия данных» в настройках.
 - После `shadcn add` проверить, что сгенерированный код проходит `pnpm lint` и `pnpm build`.
-- **С этапа 11** проверка PWA — `pnpm build && pnpm preview` (Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone.
+- **С этапа 11** проверка PWA — `pnpm build`, затем конфигурация `preview` в `.claude/launch.json` (`pnpm preview`, порт 4180; Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone. После проверки Service Worker на `localhost:4180` лучше удалить (DevTools → Application или `navigator.serviceWorker.getRegistrations()`), чтобы он не перехватывал другой проект на том же порту.
+- **PWA (`vite.config.ts`, `VitePWA`):**
+  - `registerType: 'prompt'` — новая версия ждёт «Обновить»;
+  - манифест «Порции», `display: standalone`, цвет — `frosted-ground`;
+  - precache всей сборки, кроме арабского и иврита из Rubik;
+  - `navigateFallback: index.html`, `/api/*` мимо Service Worker;
+  - `public/_headers` отдаёт `sw.js` и манифест с `no-cache`.
+- **Иконка** — ланчбокс на `cobalt`, разделённый на два цвета крышек (`lid-sky` и `lid-sunflower`) 54 : 46, в `public/favicon.svg`. Рисунок помещается в безопасную зону maskable-иконки, поэтому одна картинка служит для всех размеров. После правки рисунка — `pnpm icons`.
 - **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
 
 ## 8. Открытые вопросы (решить с пользователем)
@@ -467,11 +478,13 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 
   Общие типы протокола — `src/sync/protocol.ts`, их импортируют обе стороны. Домен (`src/domain`) воркер не импортирует: сервер не считает и не разбирает блюда.
 - **Вход — Better Auth:**
-  - почта + пароль; хеш — нативный `node:crypto` scrypt (флаг `nodejs_compat`), потому что чистый JS не укладывается в 10 мс CPU бесплатного плана;
+  - адрес (`baseURL`, доверенный `Origin`, `rpID`) берётся из запроса: рабочий адрес, превью веток и `localhost` работают каждый под своим. Экземпляр Better Auth создаётся один раз на адрес в изоляте (`worker/index.ts`);
+  - почта + пароль; хеш — нативный `node:crypto` scrypt: Better Auth 1.7 выбирает его для workerd сам (флаг `nodejs_compat`), чистый JS не уложился бы в 10 мс CPU бесплатного плана;
   - passkey (Face ID); `rpID` — хост, при смене домена ключи добавляются заново;
+  - сброс пароля: пока писем нет, `sendResetPassword` пишет ссылку в лог воркера; экран `#/account/reset` берёт `token` из настоящей строки запроса (`/?token=…#/account/reset`);
   - сессия в cookie `HttpOnly; Secure; SameSite=Lax`, живёт 60 дней с продлением;
   - ограничение частоты хранится в D1.
-- **Группы — плагин `organization`:** группа = организация, участник = `member`, роли `owner` и `member`. При регистрации создаётся «Личная» и записывается в `user.defaultGroupId` (дополнительное поле). Приглашения Better Auth (по почте) не используем, у нас свои коды (`group_invite`).
+- **Группы — плагин `organization`:** группа = организация, участник = `member`, роли `owner` и `member`. При регистрации создаётся «Личная» (`databaseHooks.user.create.after`). Группа по умолчанию — `user.defaultGroupId` (дополнительное поле), пока человек в ней, иначе первая по дате вступления (`defaultGroupOf` в `worker/me.ts`). Приглашения Better Auth (по почте) не используем, у нас свои коды (`group_invite`).
 
 **Таблицы D1** (кроме таблиц Better Auth):
 
@@ -499,7 +512,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 - `csrf()` сверяет `Origin`;
 - тело sync проверяется: белый список типов, длина id, размер записи ≤ 64 КБ, ≤ 500 изменений;
 - ограничение частоты на вход, регистрацию и `accept`;
-- секреты — только `wrangler secret` и `.dev.vars` (не в git).
+- секреты — только `wrangler secret`, Secrets Store (для превью) и `.dev.vars` (не в git).
 
 Сервер доверяет данным участника группы, но не разбирает их: испортить можно только свою группу.
 

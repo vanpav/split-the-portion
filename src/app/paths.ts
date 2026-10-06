@@ -16,4 +16,7 @@ export const HISTORY_PATH = '/history'
 /** Settings: on a phone the list of subsections, from `md` the menu with the first one open. */
 export const SETTINGS_PATH = '/settings'
 export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`
+/** Sign-in and sign-up (docs/UX.md «Вход»); `reset` — a new password by the link from the owner. */
+export const ACCOUNT_PATH = '/account'
+export const PASSWORD_RESET_PATH = '/account/reset'
 export const isSettingsPath = (pathname: string) => pathname === SETTINGS_PATH || pathname.startsWith(`${SETTINGS_PATH}/`)

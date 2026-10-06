@@ -1,10 +1,41 @@
 {
-  // Cloudflare Workers: the built app is served as static files, no server code.
+  // Cloudflare Workers: the built app as static files, /api/* handled by worker/index.ts (docs/CLOUDFLARE.md).
   "name": "split-the-portion",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
+  // node:crypto for Better Auth: its password hash runs natively in workerd instead of slow pure JS.
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": "./dist"
+    // Only the API runs code; everything else is served as files (hash routes: the server only sees `/`).
+    "run_worker_first": ["/api/*"]
   },
-  // Preview builds of branches and pull requests (`wrangler preview`); nothing to override.
-  "previews": {}
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "split-the-portion",
+      // Created by `pnpm wrangler d1 create split-the-portion` (docs/CLOUDFLARE.md §3), region WEUR.
+      "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
+      "migrations_dir": "worker/migrations"
+    }
+  ],
+  // Preview builds of branches and pull requests. A preview deployment gets only the bindings of this
+  // block, so the database is named again (the production D1) and the auth secret comes from the
+  // account's Secrets Store: `wrangler secret put` values never reach previews (docs/CLOUDFLARE.md §8).
+  "previews": {
+    "secrets_store_secrets": [
+      {
+        "binding": "PREVIEW_AUTH_SECRET",
+        "store_id": "d9d14f86567d45d5a82e830927b8f1db",
+        "secret_name": "BETTER_AUTH_SECRET"
+      }
+    ],
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "split-the-portion",
+        "database_id": "9ddc8c02-9162-4f45-929b-248ca1391a47",
+        "migrations_dir": "worker/migrations"
+      }
+    ]
+  }
 }
