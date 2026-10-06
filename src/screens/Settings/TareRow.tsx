@@ -1,7 +1,8 @@
 import { Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { NumberField } from '@/components/NumberField'
+import type { SwipeRowHandle } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
   const deleteTare = useAppStore((s) => s.deleteTare)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const nameEmpty = nameDraft !== null && nameDraft.trim() === ''
+  const rowRef = useRef<SwipeRowHandle>(null)
 
   const remove = () => {
     deleteTare(tare.id)
@@ -31,7 +33,15 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
   }
 
   return (
-    <SettingsRow open={open} onOpenChange={onOpenChange} title={tare.name} value={`${formatGrams(tare.grams)} г`}>
+    <SettingsRow
+      open={open}
+      onOpenChange={onOpenChange}
+      title={tare.name}
+      value={`${formatGrams(tare.grams)} г`}
+      onSwipeRemove={remove}
+      itemId={tare.id}
+      ref={rowRef}
+    >
       <div className="flex items-start gap-2">
         <Field className="min-w-0 flex-1" data-invalid={nameEmpty || undefined}>
           <Input
@@ -55,7 +65,15 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
           validate={(grams) => (isValidTareGrams(grams) ? null : 'Вес должен быть больше 0')}
           onValueChange={(grams) => isValidTareGrams(grams) && upsertTare({ ...tare, grams })}
         />
-        <Button variant="ghost" size="icon" aria-label={`Удалить «${tare.name}»`} onClick={remove}>
+        {/* On a touch screen the row is swiped left instead; the button stays for the keyboard. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="pointer-coarse:sr-only"
+          aria-label={`Удалить «${tare.name}»`}
+          // The row slides out and folds up, as after a swipe.
+          onClick={() => rowRef.current?.remove()}
+        >
           <Trash2Icon />
         </Button>
       </div>

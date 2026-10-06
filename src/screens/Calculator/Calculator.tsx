@@ -354,11 +354,28 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const updatePerson = (personId: Id, name: string) =>
     setPeople(people.map((p) => (p.id === personId ? { ...p, name } : p)))
   const removePerson = (personId: Id) => {
-    // One portion always stays.
-    if (inShares && people.length <= 1) return
+    // One portion always stays; the row comes back by itself.
+    if (!dish || (inShares && people.length <= 1)) return
+    const own = fixed[personId]
+    const name = people.find((p) => p.id === personId)?.name.trim()
+    // What «Отменить» puts back: the portions in «Доли», the lineup otherwise — never the other one.
+    const shares = inShares
     setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     leavePerson(personId)
+    // A swipe can remove by accident: the toast brings the person (or the portion) back with their share.
+    toast(name ? `Убрано: ${name}` : 'Человек убран', {
+      duration: 5000,
+      action: {
+        label: 'Отменить',
+        onClick: () => {
+          if (shares) setPortions(dish.id, portions)
+          else setLineup(dish.id, lineup)
+          // Today's own portion only while the same list is shown: switching clears them.
+          if (own && usePrefsStore.getState().splitMode === splitMode) setFixed((f) => ({ ...f, [personId]: own }))
+        },
+      },
+    })
   }
   // The slider splits what is left after own portions: it only shows the people who share.
   const sharing = people.filter((p) => fixed[p.id] === undefined)
