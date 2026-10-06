@@ -91,6 +91,12 @@ interface Company {
   members: { id: Id; name: string; weight: number }[]; // доля — любое положительное число, важно соотношение
 }
 
+// Состав «Кто ест» у блюда (с v9): выбранная компания — шаблон, правится только состав.
+interface Lineup {
+  companyId: Id | null;    // выбранная компания; null — не выбрана (удалена или состав из v8)
+  members: CompanyMember[]; // люди и доли этого блюда после ползунка, «+ Имя», ×
+}
+
 // Блюдо (рецепт): настраивается заранее, сохраняется кнопкой «Создать» / «Сохранить» (с v4).
 interface Dish {
   id: Id;
@@ -119,7 +125,7 @@ interface Cooking {
 }
 ```
 
-Связи: `Dish 1—N Cooking` (через `dishId`), `Dish —0..1→ Tare`, `Dish —0..1→ Company`, `Cooking 1—N Ingredient` (копия), `Cooking 1—N Weighing`, `Weighing 1—N Portion` (через `weighingId`), `Weighing —snapshot→ Tare`, `Portion —0..1→ Ingredient` (если `basis: 'raw'`).
+Связи: `Dish 1—N Cooking` (через `dishId`), `Dish —0..1→ Tare`, `Dish —0..1→ Lineup` (`lineups[dishId]`), `Lineup —0..1→ Company`, `Cooking 1—N Ingredient` (копия), `Cooking 1—N Weighing`, `Weighing 1—N Portion` (через `weighingId`), `Weighing —snapshot→ Tare`, `Portion —0..1→ Ingredient` (если `basis: 'raw'`).
 
 Почему этап привязан к взвешиванию, а не к дате: перевзвешивание и есть граница этапа. Новые порции всегда создаются на последнем взвешивании.
 
@@ -141,6 +147,7 @@ src/domain/
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
   keypad.ts         — applyKey (ввод с клавиатуры калькулятора), keypadKeyFromKeyboard
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
+  lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
   dates.ts          — dayLabel(at, now) → «сегодня» / «вчера» / «12 окт.»
   validation.ts     — warnings(cooking, result) → Warning[]
@@ -190,6 +197,7 @@ src/domain/
 | `dishKind(ingredients)` | Вид блюда по составу: один учитываемый продукт — простое |
 | `shareWeights(portions)`, `defaultShareWeight(weights)` | Доля нового человека — среднее долей остальных |
 | `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
+| `companyLineup(company)`, `dishLineup(lineups, dishId, companies)`, `lineupCompany(lineup, companies)` | Состав блюда из компании (её доли по умолчанию); состав блюда в калькуляторе (свой или первая компания); какая компания показана в списке (выбранная, если она ещё есть, иначе совпадающая) |
 | `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края |
 | `usualScaleGrams(cookings, dishId, tareId)` | Самый частый «Готовый» блюда с этой тарой — подстановка в калькулятор |
 | `applyKey`, `keypadKeyFromKeyboard` | Ввод цифр в калькуляторе: запятая, ⌫, C, замена при первом нажатии |
@@ -234,8 +242,8 @@ interface AppState {
   restorePortion(cookingId, portion, index): void; // «Отменить» в тосте удаления
   // настройки
   upsertTare / deleteTare
-  upsertCompany / deleteCompany   // удаление компании отвязывает её от блюд
-  lineup: CompanyMember[] | null; setLineup(members) // «Сегодня едят» — общий состав калькулятора (с v5)
+  upsertCompany / deleteCompany   // удаление компании не трогает составы блюд: она просто не показана выбранной («Отменить» возвращает её)
+  lineups: Record<Id, Lineup>; setLineup(dishId, lineup) // «Кто ест» у каждого блюда: выбранная компания и доли (с v9; удаление блюда убирает и его состав)
   holdMs: number; setHoldMs(ms)  // сколько держать «×», чтобы убрать человека; 0 — сразу (с v8)
 }
 ```
@@ -245,7 +253,7 @@ interface AppState {
 ### 5.2. Хранение: IndexedDB и копия в файле
 
 - Middleware `persist` от zustand, ключ `split-the-portion`, формат `{ state, version }`. Хранилище — IndexedDB (`idb-keyval`, база `keyval-store`), `src/store/idbStorage.ts`.
-- Сохраняется только ввод пользователя: `storedData(state)` в `createAppStore.ts` — `dishes`, `cookings`, `tares`, `companies`, `lineup`, `holdMs`. Та же функция собирает копию в файл.
+- Сохраняется только ввод пользователя: `storedData(state)` в `createAppStore.ts` — `dishes`, `cookings`, `tares`, `companies`, `lineups`, `holdMs`. Та же функция собирает копию в файл.
 - Запись при каждом изменении. Объём маленький (десятки КБ), троттлинг не нужен.
 - **Переезд из `localStorage`** (версии до 2026-10-06): если в IndexedDB ключа нет, читаем `localStorage`, сразу пишем в IndexedDB и только потом удаляем старую копию.
 - **Чтение асинхронное.** `createAppStore` возвращает стор с `ready` — промисом, который выполняется, когда данные прочитаны (или признаны нечитаемыми и сохранены в резервную копию). `main.tsx` рендерит приложение после `ready`: иначе ввод до загрузки перезаписал бы данные.
@@ -254,12 +262,13 @@ interface AppState {
 
 ### 5.3. Версия схемы и миграции
 
-- `src/store/migrations.ts`: `CURRENT_VERSION = 8` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
+- `src/store/migrations.ts`: `CURRENT_VERSION = 9` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
   - v1 → v2: пустые порции (`grams: null`) получают `basis: 'default'` — в v1 они и задумывались как «следуют за блюдом».
   - v2 → v3: у готовки появляется `kind`. Не больше одного ингредиента и он не «не учитывать» → `simple`, иначе `composite`.
   - v5 → v6: у блюд убран `companyId` — блюдо не привязано к людям.
   - v6 → v7: у готовок `keepPercent: null` — ничего не отложено «на завтра».
   - v7 → v8: `holdMs: 1500` — сколько держать «×», чтобы убрать человека (настройка).
+  - v8 → v9: общий состав `lineup` заменён составами блюд `lineups`. Сохранённый общий состав становится составом каждого блюда (компания не выбрана — в списке подсвечивается совпадающая); не было состава — `{}`.
   - v4 → v5: `lineup: null` — общий состав калькулятора ещё не выбран.
   - v3 → v4: блюда и компании. Старые готовки удаляются (согласовано: прототип, чистый лист), тара сохраняется, состав по умолчанию становится компанией «Обычно» с равными долями.
 - `persist({ version: CURRENT_VERSION, migrate })`: `migrate` по очереди применяет шаги от сохранённой версии до текущей.
@@ -294,7 +303,7 @@ src/
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
       TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
-    Settings/           — справочник тары (новая — TareForm) + компании (CompanyCard: полоса долей ShareSlider без «На завтра», «+ Имя»)
+    Settings/           — справочник тары (новая — TareForm) + компании (CompanyCard: правка на месте через CompanyForm)
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
@@ -303,6 +312,8 @@ src/
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
     ShareSlider.tsx     — полоса долей: сегменты, ручки границ, «− Ваня +», «Поровну»; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
+    CompanyForm.tsx     — компания: название, полоса долей ShareSlider без «На завтра», люди с × удержанием, «+ Имя»; одна форма для настроек и диалога
+    NewCompanyDialog.tsx — Dialog с CompanyForm и «Добавить компанию»: последний пункт списка компаний (CompanyPicker)
     TareGramsField.tsx  — вес тары: NumberField + Slider под ним, одно значение
     TareForm.tsx        — новая тара: название, TareGramsField, «Добавить тару»; одна форма для настроек, диалога и TarePicker
     NewTareDialog.tsx   — Dialog с TareForm: «+ Добавить тару» в списке тары калькулятора
@@ -327,6 +338,8 @@ src/
 | Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт открывает диалог, значение не меняет) |
 | Новая тара: форма (настройки, диалог, TarePicker) | `Field` + `Input` + `NumberField` + `Slider` (в `slider.tsx` добавлен проп `thumbLabel` — имя ручки для экранного диктора), кнопка `Button` |
 | Диалог «Новая тара» | `Dialog` |
+| Компания в калькуляторе и в готовке + «Добавить компанию» | `Select` (последний пункт открывает диалог, значение не меняет) |
+| Диалог «Новая компания» | `Dialog` |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки списка готовок | `Item` (ссылка растянута на всю строку, кнопка удаления поверх) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |

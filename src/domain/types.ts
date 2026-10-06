@@ -68,6 +68,16 @@ export interface Company {
   members: CompanyMember[]
 }
 
+/**
+ * «Кто ест» of one dish in the calculator: the company picked (a template, never changed from here)
+ * and the people with today's shares after the slider, «+ Имя» and × (docs/SPEC.md §3б).
+ */
+export interface Lineup {
+  /** null — none picked: the company was deleted, or the lineup came from v8. */
+  companyId: Id | null
+  members: CompanyMember[]
+}
+
 /** Recipe: what is cooked and how it usually goes. Cookings are started from it (docs/SPEC.md §3а). */
 export interface Dish {
   id: Id

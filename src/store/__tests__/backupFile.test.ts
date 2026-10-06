@@ -17,7 +17,8 @@ describe('backup file', () => {
   it('a file from an older version is migrated, user data kept', () => {
     const v7 = { dishes: [], cookings: [{ id: 'c', keepPercent: 20 }], tares: [tare], companies: [], lineup: null }
     const text = JSON.stringify({ app: STORAGE_KEY, version: 7, exportedAt: NOW.toISOString(), state: v7 })
-    expect(readBackupFile(text)).toEqual({ ...v7, holdMs: 1500 })
+    const { lineup: _lineup, ...rest } = v7
+    expect(readBackupFile(text)).toEqual({ ...rest, lineups: {}, holdMs: 1500 })
   })
 
   it.each([
