@@ -33,11 +33,3 @@ export function addPortion(list: readonly PortionShare[], id: Id): PortionShare[
 export function removeLastPortion(list: readonly PortionShare[]): PortionShare[] {
   return list.length > 1 ? list.slice(0, -1) : [...list]
 }
-
-const plural = new Intl.PluralRules('ru-RU')
-const PORTION_WORDS: Partial<Record<Intl.LDMLPluralRule, string>> = { one: 'порция', few: 'порции', many: 'порций' }
-
-/** «1 порция», «2 порции», «5 порций», «21 порция». */
-export function portionsLabel(n: number): string {
-  return `${n} ${PORTION_WORDS[plural.select(n)] ?? 'порции'}`
-}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
-import { addPortion, DEFAULT_PORTIONS, dishPortions, portionsLabel, removeLastPortion } from '../portions'
+import { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion } from '../portions'
 import { MAX_SPLIT_PORTIONS } from '../validation'
 import { buckwheat, share } from './fixtures'
 
@@ -81,17 +81,5 @@ describe('portions are split like people', () => {
       expect(p.cookedGrams).toBeCloseTo(560 / 6, 9)
       expect(p.raw[0].grams).toBeCloseTo(200 / 6, 9)
     }
-  })
-})
-
-describe('portionsLabel', () => {
-  it('agrees with the number', () => {
-    expect(portionsLabel(1)).toBe('1 порция')
-    expect(portionsLabel(2)).toBe('2 порции')
-    expect(portionsLabel(5)).toBe('5 порций')
-    expect(portionsLabel(11)).toBe('11 порций')
-    expect(portionsLabel(21)).toBe('21 порция')
-    expect(portionsLabel(22)).toBe('22 порции')
-    expect(portionsLabel(100)).toBe('100 порций')
   })
 })

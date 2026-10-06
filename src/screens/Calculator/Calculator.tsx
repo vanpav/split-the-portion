@@ -47,7 +47,7 @@ import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
 import { kText, portionName, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
-import { PortionCountRow } from './PortionCountRow'
+import { PortionStepper } from './PortionStepper'
 import { RawFoldTile } from './RawFoldTile'
 import { TareSelect } from './TareSelect'
 
@@ -193,11 +193,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
     [dish, texts, cookedTouched, cookedHere, tare, people, companyId, fixed, now],
   )
   // «На завтра» is cut from what the sharing people hold: with nothing set aside they hold all that is free.
-  // Own portions typed later may leave less, so the cut is held to what is possible now.
+  // Own portions typed later may leave less, so the cut is held to what is possible now. «Доли» have no
+  // «На завтра»: what was set aside for people does not touch the portions.
   const keepMost = useMemo(() => {
-    const phase = base && computeCooking(base).phases[0]
+    const phase = !inShares && base && computeCooking(base).phases[0]
     return phase ? keepLimit(phase, people.filter((p) => fixed[p.id] === undefined).map((p) => p.id)) : 0
-  }, [base, people, fixed])
+  }, [inShares, base, people, fixed])
   const keepNow = Math.min(keep, keepMost)
   const draft = useMemo(() => base && (keepNow > 0 ? { ...base, keepPercent: keepNow } : base), [base, keepNow])
   const result = useMemo(() => (draft ? computeCooking(draft) : undefined), [draft])
@@ -335,7 +336,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     }
     setLineup(dish.id, companyLineup(preset))
   }
-  // «− 6 порций +»: one portion more with the average share, or the last one away.
+  // «−» / «+» right of the bar: one portion more with the average share, or the last one away.
   const morePortions = () => {
     if (dish) setPortions(dish.id, addPortion(portions, newId()))
   }
@@ -492,9 +493,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
           onChange={setPercents}
           keep={keepNow}
           keepMost={keepMost}
-          onKeep={setKeep}
+          onKeep={inShares ? undefined : setKeep}
           unit={barUnit}
           onUnit={setBarUnit}
+          aside={inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
         />
         {Object.keys(fixed).length > 0 && (
           <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -536,11 +538,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
               }}
             />
           ))}
-          {inShares ? (
-            <PortionCountRow count={people.length} onRemove={fewerPortions} onAdd={morePortions} />
-          ) : (
-            <AddPersonRow onAdd={addPerson} />
-          )}
+          {!inShares && <AddPersonRow onAdd={addPerson} />}
         </ul>
         {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
         {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
