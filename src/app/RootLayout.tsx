@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
 import { HISTORY_PATH, isSettingsPath } from './paths'
 import { TabBar } from './TabBar'
+import { UpdatePrompt } from './UpdatePrompt'
 
 export function RootLayout() {
   const loadError = useAppStore((s) => s.loadError)
@@ -35,6 +36,7 @@ export function RootLayout() {
       {topLevel && <TabBar />}
       {/* Top: at the bottom a toast would cover the calculator keypad. */}
       <Toaster position="top-center" />
+      <UpdatePrompt />
     </div>
   )
 }

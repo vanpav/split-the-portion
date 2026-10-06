@@ -30,6 +30,8 @@
 | shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы |
 | `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
+| `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
+| `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
 
@@ -37,8 +39,6 @@
 
 | Добавляем | Тип | Зачем | Этап |
 |---|---|---|---|
-| `vite-plugin-pwa`, `workbox-window` | dev, prod | Манифест, Service Worker (Workbox precache) и `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. v2 поддерживает Vite 8 | 11 |
-| `@vite-pwa/assets-generator` | dev | Иконки PWA и `apple-touch-icon` из `favicon.svg` | 11 |
 | `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой ([CLOUDFLARE.md](CLOUDFLARE.md)) | 12 |
 | `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` — один dev-сервер на 5180 | 12 |
 | `better-auth` + плагин passkey (`@better-auth/passkey`, имя сверить при установке) | prod | Вход почта + пароль, Face ID (WebAuthn), сессии в D1, группы (плагин `organization`). Свою авторизацию не пишем: это безопасность. D1 поддерживается напрямую с 1.5 | 12 |
@@ -310,7 +310,8 @@ src/
   main.tsx
   index.css             — Tailwind + тема shadcn (CSS-переменные цветов, радиусы); свои токены — тоже здесь
   app/
-    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, TabBar на экранах верхнего уровня, <Toaster />
+    RootLayout.tsx      — оболочка: баннер ошибки чтения, <Outlet />, TabBar на экранах верхнего уровня, <Toaster />, <UpdatePrompt />
+    UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
     TabBar.tsx          — нижнее меню: «Простые», «Составные», «Добавить» (форма блюда), «История», «Настройки» (и все её подразделы); с lg — панель слева
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов
   screens/
@@ -429,7 +430,14 @@ Hash-маршруты выбраны потому, что работают на 
 - `pnpm lint` = oxlint.
 - Для проверки на телефоне: `pnpm dev --host`, открыть адрес из локальной сети. Помнить: у `localhost` и у LAN-адреса разные origin, поэтому и разные хранилища; перенести данные — «Копия данных» в настройках.
 - После `shadcn add` проверить, что сгенерированный код проходит `pnpm lint` и `pnpm build`.
-- **С этапа 11** проверка PWA — `pnpm build && pnpm preview` (Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone.
+- **С этапа 11** проверка PWA — `pnpm build`, затем конфигурация `preview` в `.claude/launch.json` (`pnpm preview`, порт 4180; Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone. После проверки Service Worker на `localhost:4180` лучше удалить (DevTools → Application или `navigator.serviceWorker.getRegistrations()`), чтобы он не перехватывал другой проект на том же порту.
+- **PWA (`vite.config.ts`, `VitePWA`):**
+  - `registerType: 'prompt'` — новая версия ждёт «Обновить»;
+  - манифест «Порции», `display: standalone`, цвет — `frosted-ground`;
+  - precache всей сборки, кроме арабского и иврита из Rubik;
+  - `navigateFallback: index.html`, `/api/*` мимо Service Worker;
+  - `public/_headers` отдаёт `sw.js` и манифест с `no-cache`.
+- **Иконка** — ланчбокс на `cobalt`, разделённый на два цвета крышек (`lid-sky` и `lid-sunflower`) 54 : 46, в `public/favicon.svg`. Рисунок помещается в безопасную зону maskable-иконки, поэтому одна картинка служит для всех размеров. После правки рисунка — `pnpm icons`.
 - **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
 
 ## 8. Открытые вопросы (решить с пользователем)
