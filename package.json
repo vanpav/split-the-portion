@@ -10,13 +10,20 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "db:auth-schema": "WRANGLER_LOG=error node --no-deprecation scripts/auth-schema.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply split-the-portion --local",
+    "db:migrate:remote": "wrangler d1 migrations apply split-the-portion --remote",
+    "deploy": "pnpm build && wrangler deploy"
   },
   "dependencies": {
+    "@better-auth/passkey": "^1.7.7",
     "@fontsource-variable/rubik": "^5.3.0",
+    "better-auth": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "cn": "^0.4.0",
+    "hono": "^4.13.13",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^1.49.0",
     "nanoid": "^6.0.1",
@@ -31,6 +38,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.5",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
@@ -44,6 +52,7 @@
     "vite": "^8.3.0",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3",
-    "workbox-build": "^7.4.1"
+    "workbox-build": "^7.4.1",
+    "wrangler": "^4.147.0"
   }
 }

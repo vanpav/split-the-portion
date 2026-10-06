@@ -31,6 +31,10 @@
 | `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
 | `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
+| `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой, типы окружения (`pnpm wrangler types`), `getPlatformProxy` для `pnpm db:auth-schema` ([CLOUDFLARE.md](CLOUDFLARE.md)). Согласовано 2026-10-06 |
+| `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` и `pnpm preview` — один dev-сервер на 5180; сборка воркера в `dist/split_the_portion`. Согласовано 2026-10-06 |
+| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
+| `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
@@ -39,10 +43,6 @@
 
 | Добавляем | Тип | Зачем | Этап |
 |---|---|---|---|
-| `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой ([CLOUDFLARE.md](CLOUDFLARE.md)) | 12 |
-| `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` — один dev-сервер на 5180 | 12 |
-| `better-auth` + плагин passkey (`@better-auth/passkey`, имя сверить при установке) | prod | Вход почта + пароль, Face ID (WebAuthn), сессии в D1, группы (плагин `organization`). Свою авторизацию не пишем: это безопасность. D1 поддерживается напрямую с 1.5 | 12 |
-| `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере; Better Auth подключается к нему штатно | 12 |
 | `@cloudflare/vitest-pool-workers` | dev | Тесты воркера с настоящей локальной D1. Если не совместим с Vitest 5 — проверка скриптом с `curl` | 13 |
 
 **Синхронизация — своя** (`src/sync`, §10), а не готовый движок (Firebase, Dexie Cloud, Replicache, PowerSync). Готовые движки заменяют Zustand persist своим хранилищем или тянут вторую систему. Нам нужны ~300 строк чистых функций с тестами поверх уже работающих стора, миграций и IndexedDB. Согласовано 2026-10-06.
@@ -325,7 +325,8 @@ src/
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
       TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
-    Settings/           — настройки по подразделам (docs/UX.md «Настройки»)
+    Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
+    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting — «Аккаунт»
       SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список, либо подраздел
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
@@ -350,10 +351,11 @@ src/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию и открытая (этап 12)
-  account/              — authClient.ts: клиент Better Auth (этап 12)
+  account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12)
   sync/                 — синхронизация, см. §10 (этап 13)
   domain/               — см. §4
-worker/                 — сервер, см. §9 (этап 12)
+worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, migrations/, __tests__/
+scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 ```
 
 ### Какие компоненты shadcn для чего
@@ -417,7 +419,8 @@ worker/                 — сервер, см. §9 (этап 12)
 | `#/c/:id` | Экран готовки (несуществующий id → `<Navigate to="/" />`) |
 | `#/settings` | Настройки: на телефоне — список подразделов, с `md` — меню слева и «Тара» справа |
 | `#/settings/:section` | Подраздел настроек: `tares`, `companies`, `presets`, `data`, `appearance`; с этапа 12 — `account`, с 14 — `group` (неизвестный → `#/settings`) |
-| `#/account` | Вход и регистрация (этап 12); после входа — назад, откуда пришли |
+| `#/account` | Вход и регистрация (этап 12); после входа — в Настройки → «Аккаунт» |
+| `#/account/reset` | Новый пароль по ссылке сброса (`token` — в строке запроса до `#`) |
 | `#/join/:code` | Вступить в группу по коду из ссылки (этап 14) |
 
 Hash-маршруты выбраны потому, что работают на любом статическом хостинге без настройки сервера. Неизвестный путь → `errorElement` / `*` с редиректом на список. Навигация — `<Link>` и `useNavigate()`, параметр — `useParams()`.
@@ -475,11 +478,13 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 
   Общие типы протокола — `src/sync/protocol.ts`, их импортируют обе стороны. Домен (`src/domain`) воркер не импортирует: сервер не считает и не разбирает блюда.
 - **Вход — Better Auth:**
-  - почта + пароль; хеш — нативный `node:crypto` scrypt (флаг `nodejs_compat`), потому что чистый JS не укладывается в 10 мс CPU бесплатного плана;
+  - адрес (`baseURL`, доверенный `Origin`, `rpID`) берётся из запроса: рабочий адрес, превью веток и `localhost` работают каждый под своим. Экземпляр Better Auth создаётся один раз на адрес в изоляте (`worker/index.ts`);
+  - почта + пароль; хеш — нативный `node:crypto` scrypt: Better Auth 1.7 выбирает его для workerd сам (флаг `nodejs_compat`), чистый JS не уложился бы в 10 мс CPU бесплатного плана;
   - passkey (Face ID); `rpID` — хост, при смене домена ключи добавляются заново;
+  - сброс пароля: пока писем нет, `sendResetPassword` пишет ссылку в лог воркера; экран `#/account/reset` берёт `token` из настоящей строки запроса (`/?token=…#/account/reset`);
   - сессия в cookie `HttpOnly; Secure; SameSite=Lax`, живёт 60 дней с продлением;
   - ограничение частоты хранится в D1.
-- **Группы — плагин `organization`:** группа = организация, участник = `member`, роли `owner` и `member`. При регистрации создаётся «Личная» и записывается в `user.defaultGroupId` (дополнительное поле). Приглашения Better Auth (по почте) не используем, у нас свои коды (`group_invite`).
+- **Группы — плагин `organization`:** группа = организация, участник = `member`, роли `owner` и `member`. При регистрации создаётся «Личная» (`databaseHooks.user.create.after`). Группа по умолчанию — `user.defaultGroupId` (дополнительное поле), пока человек в ней, иначе первая по дате вступления (`defaultGroupOf` в `worker/me.ts`). Приглашения Better Auth (по почте) не используем, у нас свои коды (`group_invite`).
 
 **Таблицы D1** (кроме таблиц Better Auth):
 

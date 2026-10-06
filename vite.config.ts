@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -12,6 +13,9 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // The worker (`/api/*`, worker/index.ts) and a local D1 run inside `pnpm dev` and `pnpm preview`
+    // (docs/CLOUDFLARE.md §7). Unit tests do not need a worker runtime.
+    !process.env.VITEST && cloudflare(),
     // Installable app that opens offline (docs/roadmap/11-pwa.md). A new version waits for
     // «Обновить» (src/app/UpdatePrompt.tsx): a silent reload could drop what is being typed.
     VitePWA({
@@ -52,6 +56,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'worker/**/*.test.ts'],
   },
 })

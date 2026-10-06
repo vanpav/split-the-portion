@@ -13,44 +13,31 @@
 - Группы — плагин `organization` Better Auth: личная группа создаётся при регистрации.
 
 ## Задачи
-- [ ] `pnpm add -D wrangler @cloudflare/vite-plugin` и `pnpm add better-auth hono` + пакет passkey (с Better Auth 1.4 — `@better-auth/passkey`, сверить при установке). Проверить, что `@cloudflare/vite-plugin` работает с Vite 8. Записать в ARCHITECTURE §2.
-- [ ] База и конфиг по [CLOUDFLARE.md §3–6](../CLOUDFLARE.md#3-создать-базу-d1):
-  - `wrangler d1 create`;
-  - `wrangler.jsonc`: `main`, `nodejs_compat`, `run_worker_first: ["/api/*"]`, `d1_databases`, `vars.BETTER_AUTH_URL`;
-  - секрет `BETTER_AUTH_SECRET`, `.dev.vars`; `.dev.vars*` и `.wrangler/` в `.gitignore`;
-  - скрипты `db:migrate:local`, `db:migrate:remote`, `deploy`.
-- [ ] `vite.config.ts` — плагин `cloudflare()`: воркер и локальная D1 внутри `pnpm dev` на 5180. `launch.json` не меняется.
-- [ ] `tsconfig.worker.json` (типы из `pnpm wrangler types` → `worker-configuration.d.ts`), ссылка из `tsconfig.json`: `pnpm build` проверяет типы и воркера.
-- [ ] `worker/index.ts` — Hono:
-  - `csrf()` на всё `/api/*`, кроме `/api/auth/*` (у Better Auth своя проверка `Origin`);
-  - `/api/auth/*` → `auth.handler`;
-  - `GET /api/me` → `{ user, groups: [{ id, name, role }], defaultGroupId }`;
-  - неизвестный `/api/*` → 404 JSON.
-- [ ] `worker/auth.ts` — `betterAuth({ database: env.DB, … })`:
-  - `emailAndPassword: { enabled: true, minPasswordLength: 8 }` со своими `password.hash/verify` на `node:crypto` `scrypt` с параметрами Better Auth (N 16384, r 16, p 1, ключ 64 байта): чистый JS scrypt не укладывается в 10 мс CPU бесплатного плана (better-auth#8860);
-  - `sendResetPassword` **временно** пишет ссылку в `console.log` — владелец пересылает её вручную ([CLOUDFLARE.md §10](../CLOUDFLARE.md#10-ручные-операции)), до рассылок;
-  - плагин passkey: `rpID` — хост из `BETTER_AUTH_URL`, `rpName: 'Порции'`;
-  - плагин `organization`: роли `owner` и `member`; создавать группы может любой пользователь;
-  - `user.additionalFields.defaultGroupId` (строка, может быть `null`);
-  - `databaseHooks.user.create.after` — создать организацию «Личная» (`auth.api.createOrganization` с `userId`; `slug` обязателен и уникален — случайный nanoid) и записать её id в `defaultGroupId`;
-  - `session: { expiresIn: 60 дней, updateAge: 1 день }` — телефон, неделю пролежавший без сети, не разлогинивается;
-  - `rateLimit: { storage: 'database' }` — в памяти воркера лимиты не общие;
-  - `trustedOrigins`: рабочий адрес и шаблон адресов превью.
-- [ ] `worker/migrations/0001_auth.sql` — SQL, сгенерированный CLI Better Auth, прочитан глазами; `pnpm db:migrate:local`.
-- [ ] Клиент `src/account/authClient.ts`: `createAuthClient` из `better-auth/react` (тот же origin), `organizationClient()`, `passkeyClient()`.
-- [ ] Стор аккаунта `src/store/account.ts` — отдельный маленький Zustand-стор с `persist` в IndexedDB (ключ `split-the-portion:account`): `user` (`id`, `email`), `groups`, `defaultGroupId`, `activeGroupId`. Это кэш ответа `/api/me` — без сети приложение знает, кто вошёл. Не попадает в копию данных.
-- [ ] Экран `#/account` (`src/screens/Account/`) — вкладки «Войти» и «Создать аккаунт» (shadcn `Tabs`, `Field`, `Input`, `Button`):
-  - поля с `autocomplete="email"`, `"current-password"` / `"new-password"`, `enterKeyHint`, чтобы iOS предлагала и сохраняла пароль в Связке ключей;
-  - «Войти с Face ID» (`signIn.passkey()`), подсказка passkey в поле почты (`autocomplete="username webauthn"`);
-  - «Забыли пароль?» → «Ссылку для сброса пришлёт владелец приложения» (временно);
-  - ошибки под полями: «Неверная почта или пароль», «Пароль — не короче 8 символов», «Такая почта уже зарегистрирована», «Нет сети — войти можно, когда она появится».
-- [ ] Настройки → новый подраздел «Аккаунт» (`#/settings/account`, первым в меню):
-  - не вошли — «Войти, чтобы данные были на всех устройствах и в общей группе» → `#/account`;
-  - вошли — почта, «Добавить вход по Face ID» (`passkey.addPasskey()`; если уже добавлен — «Face ID добавлен»), «Выйти».
-- [ ] Документы: ARCHITECTURE §2, §6 (маршруты, `src/account`), новый §9 «Сервер»; SPEC §2 («Аккаунт»); UX — экраны «Вход» и «Аккаунт», словарь; CLAUDE.md — команды и правила для `worker/`.
+- [x] `pnpm add -D wrangler @cloudflare/vite-plugin` и `pnpm add better-auth @better-auth/passkey hono`. `@cloudflare/vite-plugin` 1.62 поддерживает Vite 8. Записано в ARCHITECTURE §2.
+- [x] `wrangler.jsonc`: `main`, `nodejs_compat`, `assets.run_worker_first: ["/api/*"]`, `d1_databases` (binding `DB`, `migrations_dir: worker/migrations`). Вместо `database_id` пока заглушка: локально он не нужен, рабочий подставить после `wrangler d1 create` ([CLOUDFLARE.md §3](../CLOUDFLARE.md#3-создать-базу-d1)). `BETTER_AUTH_URL` не понадобился: адрес берётся из запроса, поэтому рабочий адрес, превью веток и localhost работают каждый под своим.
+- [x] Локальный секрет — `.dev.vars` (`.dev.vars*` и `.wrangler/` в `.gitignore`). Скрипты `db:migrate:local`, `db:migrate:remote`, `db:auth-schema`, `deploy`.
+- [x] `vite.config.ts` — плагин `cloudflare()`: воркер и локальная D1 внутри `pnpm dev` и `pnpm preview`; в тестах (`VITEST`) не подключается. Сборка: `dist/client` (статика и Service Worker) и `dist/split_the_portion` (воркер, 435 КБ gzip).
+- [x] `tsconfig.worker.json` (типы из `pnpm wrangler types` → `worker-configuration.d.ts`, коммитится: сборка в Cloudflare проверяет типы без `.dev.vars`), ссылка из `tsconfig.json`.
+- [x] `worker/index.ts` — Hono: `csrf()`, экземпляр Better Auth на адрес (создаётся один раз на изолят), `/api/auth/*` → `auth.handler`, `GET /api/me` → `{ user, groups, defaultGroupId }`, неизвестный `/api/*` → 404 JSON.
+- [x] `worker/auth.ts` — `authOptions(origin)` (общие с генератором схемы) и `createAuth(env, origin)`:
+  - почта + пароль, не короче 8 символов. **Свой хеш не понадобился:** Better Auth 1.7 (`@better-auth/utils` 0.4+) для workerd сам берёт нативный `node:crypto` scrypt — в сборке воркера `import { scrypt } from "node:crypto"`, чистого JS scrypt нет;
+  - `sendResetPassword` временно пишет ссылку в лог воркера;
+  - плагин passkey (`rpID` — хост из запроса, `rpName: 'Порции'`), `organization`, `user.additionalFields.defaultGroupId`;
+  - `databaseHooks.user.create.after` — группа «Личная» (`auth.api.createOrganization` с `userId`, `slug` — nanoid);
+  - сессия 60 дней с продлением раз в сутки, `rateLimit` в базе, телеметрия выключена.
+- [x] `worker/me.ts` — группы пользователя по дате вступления; группа по умолчанию — выбранная, пока человек в ней, иначе первая (`defaultGroupOf`, тест `worker/__tests__/me.test.ts`). Поэтому `defaultGroupId` при регистрации записывать не нужно.
+- [x] `worker/migrations/0001_auth.sql` — `pnpm -s db:auth-schema` (`scripts/auth-schema.mjs`: Better Auth `getMigrations` сравнивает конфиг с локальной D1 через `getPlatformProxy` и печатает недостающий SQL). `node:sqlite` в Node 22.12 для этого не годится. Применено `pnpm db:migrate:local`, повторный запуск схемы — пусто.
+- [x] Клиент: `src/account/authClient.ts` (`createAuthClient` с `organizationClient`, `passkeyClient`), `authErrors.ts` (тексты ошибок по словарю UX), `refreshAccount.ts`, `types.ts` (общий с воркером тип `Me`).
+- [x] `src/store/account.ts` — стор аккаунта с `persist` в IndexedDB (`split-the-portion:account`), `accountReady`. `main.tsx` рендерит после данных и аккаунта; если кто-то вошёл — переспрашивает `/api/me` (без сети остаётся кэш). `activeGroupId` — в этапе 13, когда понадобится.
+- [x] Экран `#/account` — `Tabs` (`shadcn add tabs`) «Войти / Создать аккаунт»; поля с `autocomplete` для Связки ключей; «Войти с Face ID»; «Забыли пароль?» → «Ссылку для нового пароля пришлёт владелец приложения». Свои русские ошибки вместо всплывающих подсказок браузера (`noValidate`).
+- [x] Экран `#/account/reset` — новый пароль по ссылке из лога. Better Auth кладёт `token` в настоящую строку запроса (`/?token=…#/account/reset`), экран берёт его оттуда и убирает из адреса после смены.
+- [x] Настройки → «Аккаунт» (`#/settings/account`, первым в меню; в меню на телефоне вместо подписи — почта): не вошли — «Войти»; вошли — почта, «Добавить вход по Face ID» / «Face ID добавлен» (`useListPasskeys`), «Выйти» (только с сетью: сессия должна закончиться на сервере).
+- [x] Документы: ARCHITECTURE §2, §6, §9; UX — «Настройки», «Вход», словарь; CLOUDFLARE.md — без `BETTER_AUTH_URL`, схема через `db:auth-schema`; CLAUDE.md — команды.
+- [ ] **Вам:** `pnpm wrangler login` → `pnpm wrangler d1 create split-the-portion` → `database_id` в `wrangler.jsonc` → `pnpm db:migrate:remote` → `pnpm wrangler secret put BETTER_AUTH_SECRET` ([CLOUDFLARE.md §2–6](../CLOUDFLARE.md)). Без этого превью-деплой этого PR не соберётся: в `wrangler.jsonc` заглушка вместо id базы.
+- [ ] На iPhone по превью-деплою: регистрация, Связка ключей предлагает сохранить пароль, «Добавить вход по Face ID», выход, «Войти с Face ID»; `pnpm wrangler tail` — `sign-up` и `sign-in` с исходом `Ok`.
 
 ## Файлы
-`package.json`, `wrangler.jsonc`, `vite.config.ts`, `tsconfig*.json`, `.gitignore`, `worker/**`, `src/account/**`, `src/store/account.ts`, `src/screens/Account/**`, `src/screens/Settings/**`, `src/app/router.tsx`, `docs/**`, `CLAUDE.md`.
+`package.json`, `wrangler.jsonc`, `worker-configuration.d.ts`, `vite.config.ts`, `tsconfig*.json`, `.gitignore`, `scripts/auth-schema.mjs`, `worker/**`, `src/account/**`, `src/store/account.ts`, `src/screens/Account/**`, `src/screens/Settings/**`, `src/components/ui/tabs.tsx`, `src/app/router.tsx`, `src/app/paths.ts`, `src/main.tsx`, `docs/**`, `CLAUDE.md`.
 
 ## Definition of Done
 - Регистрация создаёт пользователя и группу «Личная» с ним во владельцах; `defaultGroupId` указывает на неё.
@@ -66,3 +53,12 @@
 - Превью-деплой на iPhone: регистрация, Связка ключей предлагает сохранить пароль; «Добавить вход по Face ID»; выход; вход по Face ID. `pnpm wrangler tail` — запросы `sign-up` и `sign-in` с исходом `Ok`.
 - `curl -X POST` на `/api/auth/sign-in/email` с чужим `Origin` → 403: запрос с другого сайта не проходит.
 - 375 px и десктоп: экран входа без горизонтальной прокрутки, поля ≥ 44 px, шрифт ≥ 16 px; консоль чистая.
+
+## Проверено
+Локально (`pnpm dev`, воркер и D1 внутри Vite), 375 px и 1280 px:
+- `/api/auth/ok` → 200, `/api/me` без входа → 401, `/api/nope` → 404 JSON;
+- Настройки → «Аккаунт» → «Войти» → «Создать аккаунт»: пароль из 5 символов → «Пароль — не короче 8 символов»; нормальный → вернулись в «Аккаунт» с почтой; `/api/me` — группа «Личная», `owner`, она же по умолчанию; в D1 хеш `соль:ключ` в формате Better Auth;
+- «Выйти» → `/api/me` 401; неверный пароль → «Неверная почта или пароль»; «Забыли пароль?» → подпись про владельца, ссылка в логе воркера → «Новый пароль» → тост «Пароль изменён — войдите с ним» → вход с новым паролем → перезагрузка: вход сохранён;
+- горизонтальной прокрутки нет; в консоли только сетевые 401/404 от проверочных запросов.
+
+Face ID во встроенном браузере не проверялся — только на iPhone (задача выше).

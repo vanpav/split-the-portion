@@ -26,3 +26,7 @@ dist-ssr
 # Impeccable: review captures and hook cache are local
 .impeccable/review/
 .impeccable/hook.cache.json
+
+# Cloudflare: local secrets and local state of D1 and the worker
+.dev.vars*
+.wrangler/

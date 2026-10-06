@@ -1,4 +1,6 @@
 import { createHashRouter, Navigate } from 'react-router'
+import { AccountScreen } from '@/screens/Account/AccountScreen'
+import { ResetPasswordScreen } from '@/screens/Account/ResetPasswordScreen'
 import { CalculatorScreen } from '@/screens/Calculator/CalculatorScreen'
 import { CookingScreen } from '@/screens/Cooking/CookingScreen'
 import { DishScreen } from '@/screens/Dish/DishScreen'
@@ -22,6 +24,8 @@ export const router = createHashRouter([
       { path: 'history', element: <HistoryScreen /> },
       { path: 'settings', element: <SettingsScreen /> },
       { path: 'settings/:section', element: <SettingsScreen /> },
+      { path: 'account', element: <AccountScreen /> },
+      { path: 'account/reset', element: <ResetPasswordScreen /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

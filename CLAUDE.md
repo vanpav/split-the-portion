@@ -30,6 +30,8 @@ pnpm icons        # иконки PWA из public/favicon.svg (после пра�
 ```bash
 pnpm db:migrate:local    # миграции D1 в локальную базу
 pnpm db:migrate:remote   # миграции D1 в рабочую базу — до деплоя кода, которому они нужны
+pnpm -s db:auth-schema   # SQL недостающих таблиц Better Auth (после правки worker/auth.ts) → новая миграция
+pnpm wrangler types      # типы окружения воркера после правки wrangler.jsonc или .dev.vars
 pnpm run deploy          # сборка и wrangler deploy (`pnpm deploy` — встроенная команда pnpm)
 ```
 
