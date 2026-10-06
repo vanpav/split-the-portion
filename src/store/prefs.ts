@@ -1,35 +1,33 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import type { Id, SplitMode } from '@/domain'
+import type { Id, PortionShare, SplitMode } from '@/domain'
+import { newId } from './id'
 import { idbStorage } from './idbStorage'
+import { EMPTY_PREFS, migratePrefs, PREFS_KEY, PREFS_VERSION, type PersistedPrefs } from './prefsMigrations'
 
-interface PrefsState {
-  /** «Люди | Порции»: how the calculator splits every dish. */
-  splitMode: SplitMode
-  /** How many portions each dish is split into, by dish id; see `portionCount` for the default. */
-  portionCounts: Record<Id, number>
+interface PrefsState extends PersistedPrefs {
   setSplitMode(mode: SplitMode): void
-  setPortionCount(dishId: Id, n: number): void
+  setPortions(dishId: Id, portions: PortionShare[]): void
 }
 
 /**
- * Settings of this device (docs/ARCHITECTURE.md §5.2, docs/SPEC.md §3б «Режим порций»): apart from
+ * Settings of this device (docs/ARCHITECTURE.md §5.2, docs/SPEC.md §3б «Режим долей»): apart from
  * the app data, like the theme. Not synced with the group, not in the backup file, the same whichever
  * group is open. Kept in IndexedDB next to the data.
  */
 export const usePrefsStore = create<PrefsState>()(
   persist(
     (set) => ({
-      splitMode: 'people',
-      portionCounts: {},
+      ...EMPTY_PREFS,
       setSplitMode: (splitMode) => set({ splitMode }),
-      setPortionCount: (dishId, n) => set((s) => ({ portionCounts: { ...s.portionCounts, [dishId]: n } })),
+      setPortions: (dishId, portions) => set((s) => ({ portions: { ...s.portions, [dishId]: portions } })),
     }),
     {
-      name: 'split-the-portion:prefs',
-      version: 1,
+      name: PREFS_KEY,
+      version: PREFS_VERSION,
       storage: createJSONStorage(() => idbStorage(null)),
-      partialize: (s) => ({ splitMode: s.splitMode, portionCounts: s.portionCounts }),
+      partialize: (s): PersistedPrefs => ({ splitMode: s.splitMode, portions: s.portions }),
+      migrate: (state, version) => migratePrefs(state, version, newId),
     },
   ),
 )
