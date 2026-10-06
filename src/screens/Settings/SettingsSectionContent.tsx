@@ -2,6 +2,7 @@ import { AccountSection } from './AccountSection'
 import { AppearanceSection } from './AppearanceSection'
 import { CompaniesSection } from './CompaniesSection'
 import { DataSection } from './DataSection'
+import { GroupSection } from './GroupSection'
 import { HoldSection } from './HoldSection'
 import { PresetsSection } from './PresetsSection'
 import type { SettingsSectionId } from './sections'
@@ -12,6 +13,8 @@ export function SettingsSectionContent({ id }: { id: SettingsSectionId }) {
   switch (id) {
     case 'account':
       return <AccountSection />
+    case 'group':
+      return <GroupSection />
     case 'tares':
       return <TaresSection />
     case 'companies':

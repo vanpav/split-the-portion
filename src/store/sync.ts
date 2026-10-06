@@ -3,6 +3,8 @@ import type { SyncStatus } from '@/sync/engine'
 import type { PersistedState } from './migrations'
 
 interface SyncState {
+  /** The group whose data is on screen; null — the device's own data, without an account. */
+  groupId: string | null
   /** The open group's sync, for the settings and the tab bar. Not stored: it is about this session. */
   status: SyncStatus
   /**
@@ -12,7 +14,7 @@ interface SyncState {
   localData: PersistedState | null
 }
 
-export const useSyncStore = create<SyncState>()(() => ({ status: { kind: 'idle' }, localData: null }))
+export const useSyncStore = create<SyncState>()(() => ({ groupId: null, status: { kind: 'idle' }, localData: null }))
 
 /** Worth a dot on «Настройки»: the user has to act. Offline is normal and is not. */
 export const needsAttention = (status: SyncStatus) =>

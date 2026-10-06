@@ -2,6 +2,7 @@ import { Navigate, useParams } from 'react-router'
 import { SETTINGS_PATH } from '@/app/paths'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { cn } from '@/lib/utils'
+import { useSyncStore } from '@/store/sync'
 import { findSettingsSection, SETTINGS_SECTIONS } from './sections'
 import { SettingsMenu } from './SettingsMenu'
 import { SettingsSectionContent } from './SettingsSectionContent'
@@ -14,8 +15,12 @@ import { SettingsSectionContent } from './SettingsSectionContent'
  */
 export function SettingsScreen() {
   const { section: sectionParam } = useParams()
+  const inGroup = useSyncStore((s) => s.groupId !== null)
   const section = findSettingsSection(sectionParam)
-  if (sectionParam !== undefined && !section) return <Navigate to={SETTINGS_PATH} replace />
+  // «Группа» exists with an account only.
+  if (sectionParam !== undefined && (!section || (section.id === 'group' && !inGroup))) {
+    return <Navigate to={SETTINGS_PATH} replace />
+  }
 
   const shown = section ?? SETTINGS_SECTIONS[0]
 

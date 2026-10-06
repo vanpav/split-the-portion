@@ -322,8 +322,9 @@ src/
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
       TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
+    Join/               — вступить в группу по ссылке `#/join/:code` (этап 14)
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
-    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»
+    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, JoinByCodeDialog, LeaveGroupButton — «Группа»
       SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список, либо подраздел
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
@@ -349,10 +350,10 @@ src/
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию (этап 12)
     sync.ts             — статус синхронизации и данные устройства, ждущие «Перенести?» (этап 13)
-  account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12)
+  account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12); groupsApi.ts, inviteCode.ts, groupLabel.ts, networkText.ts (этап 14)
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
-worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, migrations/, __tests__/
+worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 ```
 
@@ -497,19 +498,20 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 | Метод и путь | Что делает |
 |---|---|
 | `* /api/auth/*` | Better Auth: регистрация, вход, passkey, выход, группы (`organization/*`) |
-| `GET /api/me` | Пользователь, его группы с участниками и ролями, `defaultGroupId` |
+| `GET /api/me` | Пользователь, его группы с участниками (`memberId`, почта, роль) и своей ролью, `defaultGroupId` |
 | `PUT /api/me/default-group` | Группа, которая открывается при запуске |
 | `POST /api/groups/:id/sync` | Push и pull изменений группы (§10) |
 | `POST /api/groups/:id/invites` | Код приглашения (действующий переиспользуется) |
 | `DELETE /api/groups/:id/invites/:code` | Отозвать код (владелец) |
-| `GET /api/invites/:code` | Название группы и кто пригласил — для подтверждения |
+| `GET /api/invites/:code` | Группа и кто пригласил — для подтверждения; **без входа** (экран по ссылке) |
 | `POST /api/invites/:code/accept` | Вступить в группу |
 
 **Безопасность:**
 - каждый запрос к группе проверяет сессию (иначе 401) и членство (иначе 403);
 - `csrf()` сверяет `Origin`;
 - тело sync проверяется: белый список типов, длина id, размер записи ≤ 64 КБ, ≤ 500 изменений;
-- ограничение частоты на вход, регистрацию и `accept`;
+- ограничение частоты на вход и регистрацию (Better Auth); на коды приглашений — нет: 31⁸ ≈ 8,5·10¹¹ кодов при 100 тыс. запросов в день не подобрать;
+- вступление — только по действующему коду: `auth.api.addMember` у Better Auth серверный, HTTP-маршрута у него нет; отзывает код и убирает людей только владелец, переименовывает группу тоже он (права Better Auth по умолчанию);
 - секреты — только `wrangler secret` и `.dev.vars` (не в git).
 
 Сервер доверяет данным участника группы, но не разбирает их: испортить можно только свою группу.
@@ -593,4 +595,6 @@ type SyncResponse = { cursor: number; changes: Change[]; more: boolean };
   - на сервере уже есть данные — вопрос «Перенести?» (`LocalDataDialog`, UX);
   - копия локальных данных до входа — `split-the-portion:backup:<ISO>`; данные другого аккаунта (после «Войти снова» под другой почтой) в группу не сливаются.
 - *Выход:* предупреждение, если outbox не пуст. Затем удаляются блобы групп, их outbox и кэш аккаунта.
+- *Другие группы аккаунта* (этап 14) синхронизируются фоном, по тем же поводам и по очереди, прямо в их сохранённой копии (`syncStoredGroup`): любая уже открывавшаяся на устройстве группа без сети открывается свежей, а правки, оставленные в ней перед переключением, уходят. Группу, которую здесь ещё не открывали, заранее не скачиваем. Открытие группы (`openGroup`) ждёт её фонового прогона.
+- *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Вы больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
 - *Несколько вкладок* одной группы на десктопе друг о друге не знают — в бэклоге.

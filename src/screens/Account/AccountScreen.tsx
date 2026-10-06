@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import { refreshAccount } from '@/account/refreshAccount'
 import { enterAccount } from '@/sync/session'
 import { settingsPath } from '@/app/paths'
@@ -18,13 +18,16 @@ export function AccountScreen() {
   const sessionGone = useSyncStore((s) => s.status.kind === 'needsLogin')
   const signedIn = hasAccount && !sessionGone
   const navigate = useNavigate()
-  if (signedIn) return <Navigate to={BACK} replace />
+  // Where to go after signing in: back to the settings, or to the join screen that sent us here.
+  const next = useSearchParams()[0].get('next')
+  const after = next?.startsWith('/') ? next : BACK
+  if (signedIn) return <Navigate to={after} replace />
 
   const done = async () => {
     await refreshAccount()
     // The data on the device moves into the group and sync starts (docs/SPEC.md §13.2).
     await enterAccount()
-    navigate(BACK, { replace: true })
+    navigate(after, { replace: true })
   }
 
   return (

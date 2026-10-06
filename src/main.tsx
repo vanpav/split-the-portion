@@ -2,9 +2,8 @@ import { ThemeProvider } from 'next-themes'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
-import { refreshAccount } from '@/account/refreshAccount'
 import { router } from '@/app/router'
-import { openStartData, resumeSync } from '@/sync/session'
+import { openStartData, refreshGroups, resumeSync } from '@/sync/session'
 import { accountReady, useAccountStore } from '@/store/account'
 import { askPersistentStorage } from '@/store/idbStorage'
 import { useAppStore } from '@/store/store'
@@ -18,7 +17,7 @@ void Promise.all([useAppStore.ready, accountReady]).then(async () => {
   await openStartData()
   // Still signed in? Offline the cached account stays; with nobody signed in there is nothing to ask.
   if (useAccountStore.getState().me) {
-    void refreshAccount()
+    void refreshGroups()
     resumeSync()
   }
   createRoot(document.getElementById('root')!).render(
