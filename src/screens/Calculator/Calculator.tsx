@@ -1,12 +1,11 @@
 import { ChevronDownIcon, ChevronUpIcon, PercentIcon } from 'lucide-react'
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState, type KeyboardEvent } from 'react'
 import { Navigate } from 'react-router'
 import { toast } from 'sonner'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
 import {
-  applyKey,
   baseRawGrams,
   clockTime,
   companyLineup,
@@ -20,28 +19,27 @@ import {
   formatPercent,
   keepLimit,
   ingredientDisplayName,
-  keypadKeyFromKeyboard,
   lineupCompany,
   lineupName,
   lineupPercents,
   liveTareId,
   matchingCompany,
   parseGrams,
+  portionGrams,
   portionIn,
   rawFold,
   toPercents,
+  typedGrams,
   type Company,
   type CompanyMember,
   type Dish,
   type Id,
-  type KeypadKey,
 } from '@/domain'
-import { cn } from '@/lib/utils'
+import { calculatorFieldId, focusOrBlur } from '@/lib/domIds'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
-import { Keypad } from './Keypad'
 import { kText, rawWord } from './messages'
 import { PersonResult } from './PersonResult'
 import { RawFoldTile } from './RawFoldTile'
@@ -49,7 +47,7 @@ import { TareSelect } from './TareSelect'
 
 /** Row id of the weight after cooking; the other rows are ingredient ids. */
 const COOKED = 'cooked'
-/** A person's own portion (cooked grams) is a keypad target too. */
+/** A person's own portion (cooked grams) is a field too. */
 const personKey = (personId: string) => `person:${personId}`
 const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('person:'.length) : null)
 
@@ -57,10 +55,20 @@ const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('pe
 interface Own {
   unit: 'g' | '%'
   value: number
+  /** Grams typed while «Сухой» was in focus: dry grams of this ingredient, not cooked. */
+  raw?: Id
 }
 
-const ownOf = (fixed: Record<string, Own>, unit: Own['unit']) =>
-  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === unit ? [[id, own.value]] : [])))
+const ownCooked = (fixed: Record<string, Own>) =>
+  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === 'g' && !own.raw ? [[id, own.value]] : [])))
+const ownRaw = (fixed: Record<string, Own>) =>
+  Object.fromEntries(
+    Object.entries(fixed).flatMap(([id, own]) =>
+      own.unit === 'g' && own.raw ? [[id, { ingredientId: own.raw, grams: own.value }]] : [],
+    ),
+  )
+const ownPercent = (fixed: Record<string, Own>) =>
+  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === '%' ? [[id, own.value]] : [])))
 
 const toNumber = (text: string) => {
   const parsed = parseGrams(text)
@@ -106,10 +114,17 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const foldable = shownIngredients.length > 1
   const [folded, setFolded] = useState(() => foldable && shownIngredients.every((i) => i.excluded || i.rawGrams !== null))
   const rows = [...(folded ? [] : shownIngredients.map((i) => i.id)), COOKED]
-  // Start where the number is missing: usually the weight after cooking.
-  const [active, setActive] = useState<string>(() => rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
-  // The first key after activating a row replaces its value, as on a calculator.
-  const [fresh, setFresh] = useState(true)
+  // Start where the number is missing: usually the weight after cooking. With a mouse that field is
+  // focused at once; on a phone the system keyboard waits for a tap, so it does not cover the answer.
+  const [start] = useState(() =>
+    window.matchMedia('(pointer: fine)').matches ? (rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED) : null,
+  )
+  // The field that has focus, if any.
+  const [active, setActive] = useState<string | null>(null)
+  // The weight field last in focus: «Сухой» shows the portions in dry grams, «Готовый» in cooked
+  // (docs/SPEC.md §3б). It stays when a person's field or nothing has focus. The dish opens where the
+  // number is missing, as the focus does with a mouse.
+  const [weightRow, setWeightRow] = useState(() => rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
   // Today's own portions, in cooked grams or in percent of the dish: these people get exactly that,
   // the rest split what is left by share.
   const [fixed, setFixed] = useState<Record<Id, Own>>({})
@@ -121,8 +136,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const [shown, setShown] = useState<Record<Id, Own['unit']>>({})
   // «На завтра»: percent of the dish set aside, pulled in from the bar's right edge.
   const [keep, setKeep] = useState(0)
-  // While a name is typed the system keyboard is up: our keypad steps aside.
-  const [editingName, setEditingName] = useState(false)
 
   // «Кто ест» is remembered per dish; before it is first changed, the first company.
   const lineup = useMemo(() => dishLineup(lineups, id ?? '', companies), [lineups, id, companies])
@@ -148,8 +161,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
           tare,
           people,
           companyId,
-          fixedCooked: ownOf(fixed, 'g'),
-          fixedPercent: ownOf(fixed, '%'),
+          fixedCooked: ownCooked(fixed),
+          fixedRaw: ownRaw(fixed),
+          fixedPercent: ownPercent(fixed),
         },
         now,
       ),
@@ -165,6 +179,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const draft = useMemo(() => base && (keepNow > 0 ? { ...base, keepPercent: keepNow } : base), [base, keepNow])
   const result = useMemo(() => (draft ? computeCooking(draft) : undefined), [draft])
   const phase = result?.phases[0]
+  // The dry view: only the ingredient k is counted by (one counted product) has a dry weight to split.
+  const rawOf = result && result.baseIngredientId !== null && weightRow === result.baseIngredientId ? weightRow : null
 
   // Own portions are remembered as each person's part of the dish: next time the same parts, by share.
   // Once typed, not on every key: a number typed and erased would leave its person with a sliver.
@@ -173,31 +189,31 @@ export function Calculator({ id }: { id: Id | undefined }) {
     const next = lineupPercents(people, phase.portions)
     if (next && next.some((p, i) => p.weight !== people[i]?.weight)) setLineup(dish.id, { companyId, members: next })
   })
-  const typingOwn = personTarget(active) !== null
+  const typingOwn = active !== null && personTarget(active) !== null
   useEffect(() => {
     if (!typingOwn) rememberOwn()
   }, [typingOwn, fixed, phase])
   // Leaving the dish while still typing an own portion.
   useEffect(() => () => rememberOwn(), [])
 
-  const press = (key: KeypadKey) => {
-    const next = applyKey(textOf(active), key, fresh)
-    setTexts((t) => ({ ...t, [active]: next }))
-    setFresh(false)
+  const type = (row: string, typed: string) => {
+    // Kept to a weight, as the keys allowed: digits, one comma, 99 999,9 at most.
+    const next = typedGrams(typed)
+    setTexts((t) => ({ ...t, [row]: next }))
     const grams = toNumber(next)
     // The cooked weight goes into the dish with the time: the group sees today's weighing.
-    if (dish && active === COOKED) {
+    if (dish && row === COOKED) {
       setCookedTouched(true)
       setCooked(dish.id, grams)
     }
     // A raw weight is the dish's own: typed today, it is there next time.
-    const ingredient = dish?.ingredients.find((i) => i.id === active)
+    const ingredient = dish?.ingredients.find((i) => i.id === row)
     if (dish && ingredient && grams !== null && grams > 0 && grams !== ingredient.rawGrams) {
-      remember({ ingredients: dish.ingredients.map((i) => (i.id === active ? { ...i, rawGrams: grams } : i)) })
+      remember({ ingredients: dish.ingredients.map((i) => (i.id === row ? { ...i, rawGrams: grams } : i)) })
     }
     // A person's number: a value makes it their own portion, an empty field gives them back to the shares.
-    const personId = personTarget(active)
-    if (personId) setOwn(personId, grams, unit)
+    const personId = personTarget(row)
+    if (personId) setOwn(personId, grams, unit, rawOf)
   }
   // The weight typed here now means the weight in the new tare. One from elsewhere was weighed in the
   // old tare: it no longer fits and is not shown.
@@ -205,34 +221,41 @@ export function Calculator({ id }: { id: Id | undefined }) {
     remember({ tareId: next, cooked: cookedTouched && dish?.cooked ? { ...dish.cooked, tareId: next } : (dish?.cooked ?? null) })
   const fold = () => {
     setFolded(true)
-    if (shownIngredients.some((i) => i.id === active)) activate(COOKED)
+    if (shownIngredients.some((i) => i.id === active)) setActive(null)
+    setWeightRow(COOKED)
   }
-  const activate = (row: string) => {
-    setActive(row)
-    setFresh(true)
+  const leave = () => setActive(null)
+  // Leaving a person's field from a button that changes them: what was typed is settled first.
+  const leavePerson = (personId: Id) => {
+    if (active === personKey(personId)) focusOrBlur(null)
   }
-  const setOwn = (personId: Id, value: number | null, ownUnit: Own['unit']) =>
+  const setOwn = (personId: Id, value: number | null, ownUnit: Own['unit'], raw: Id | null) =>
     setFixed((f) => {
       const { [personId]: _old, ...rest } = f
-      const valid = value !== null && value > 0 && (ownUnit === 'g' || value <= 100)
-      return valid ? { ...rest, [personId]: { unit: ownUnit, value } } : rest
+      if (value === null || value <= 0 || (ownUnit === '%' && value > 100)) return rest
+      const own: Own = ownUnit === 'g' && raw ? { unit: ownUnit, value, raw } : { unit: ownUnit, value }
+      return { ...rest, [personId]: own }
     })
   const activatePerson = (personId: Id) => {
     const key = personKey(personId)
     const own = fixed[personId]
-    setUnit(own?.unit ?? shown[personId] ?? barUnit)
-    setTexts((t) => ({ ...t, [key]: own ? formatInput(own.value) : '' }))
-    activate(key)
+    const ownUnit = own?.unit ?? shown[personId] ?? barUnit
+    // An own portion typed in the other view (dry ⇄ cooked) is shown in this one.
+    const computed = phase?.portions.find((p) => p.portionId === personId)
+    const sameView = own && (own.unit === '%' || (own.raw ?? null) === rawOf)
+    const value = !own ? null : sameView ? own.value : computed ? portionIn(computed, own.unit, rawOf) : null
+    setUnit(ownUnit)
+    setTexts((t) => ({ ...t, [key]: value !== null ? formatInput(value) : '' }))
+    setActive(key)
   }
   // г ⇄ %: the number typed so far is converted, so the person keeps the same portion.
   const switchUnit = (personId: Id, next: Own['unit']) => {
     if (next === unit) return
     const computed = phase?.portions.find((p) => p.portionId === personId)
-    const converted = fixed[personId] === undefined || !computed ? null : portionIn(computed, next)
+    const converted = fixed[personId] === undefined || !computed ? null : portionIn(computed, next, rawOf)
     setUnit(next)
-    setOwn(personId, converted, next)
+    setOwn(personId, converted, next, rawOf)
     setTexts((t) => ({ ...t, [personKey(personId)]: converted !== null ? formatInput(converted) : '' }))
-    setFresh(true)
   }
   // What a person's number is in: typed now, their own portion, their switch, or the bar's.
   const unitOf = (personId: Id): Own['unit'] =>
@@ -243,13 +266,33 @@ export function Calculator({ id }: { id: Id | undefined }) {
     setShown((s) => ({ ...s, [personId]: next }))
     if (active === personKey(personId)) return switchUnit(personId, next)
     const computed = phase?.portions.find((p) => p.portionId === personId)
-    if (fixed[personId] !== undefined && computed) setOwn(personId, portionIn(computed, next), next)
+    if (fixed[personId] !== undefined && computed) setOwn(personId, portionIn(computed, next, rawOf), next, rawOf)
   }
-  // ↓ walks the weights; from a person it goes back to «Готовый».
-  const move = (step: 1 | -1) => {
-    const index = rows.indexOf(active)
-    activate(index === -1 ? COOKED : rows[(index + step + rows.length) % rows.length])
+  // ↓ ↑ walk the weights; from a person they go back to «Готовый». Enter moves on to «Готовый»
+  // and there closes the keyboard: the answer is under it.
+  const fieldKeys = (row: string) => (e: KeyboardEvent<HTMLInputElement>) => {
+    const index = rows.indexOf(row)
+    const step = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0
+    if (step !== 0) {
+      e.preventDefault()
+      focusOrBlur(calculatorFieldId(index === -1 ? COOKED : rows[(index + step + rows.length) % rows.length]))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      focusOrBlur(index !== -1 && index < rows.length - 1 ? calculatorFieldId(rows[index + 1]) : null)
+    }
   }
+  const weightField = (row: string) => ({
+    id: calculatorFieldId(row),
+    active: active === row,
+    autoFocus: row === start,
+    onFocus: () => {
+      setActive(row)
+      setWeightRow(row)
+    },
+    onBlur: leave,
+    onText: (typed: string) => type(row, typed),
+    onKeyDown: fieldKeys(row),
+  })
 
   // A company brings its default shares; what was moved for this dish before is replaced.
   const choosePreset = (preset: Company) => {
@@ -264,7 +307,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const removePerson = (personId: Id) => {
     setPeople(people.filter((p) => p.id !== personId))
     setFixed(({ [personId]: _removed, ...rest }) => rest)
-    if (active === personKey(personId)) activate(COOKED)
+    leavePerson(personId)
   }
   // The slider splits what is left after own portions: it only shows the people who share.
   const sharing = people.filter((p) => fixed[p.id] === undefined)
@@ -279,7 +322,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // Back to shares. One person keeps their old share; «Всё в доли» keeps today's split as it is.
   const releaseOwn = (personId: Id) => {
     setFixed(({ [personId]: _released, ...rest }) => rest)
-    if (active === personKey(personId)) activate(COOKED)
+    leavePerson(personId)
   }
   const allToShares = () => {
     const shares = people.map((p) => Math.max(phase?.portions.find((x) => x.portionId === p.id)?.share ?? 0, 0))
@@ -288,7 +331,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
       setPeople(people.map((p, i) => ({ ...p, weight: percents[i] })))
     }
     setFixed({})
-    if (personTarget(active)) activate(COOKED)
+    if (active !== null && personTarget(active)) focusOrBlur(null)
   }
   const saveAsCompany = () => {
     const saved = upsertCompany({ name: lineupName(people), members: people.map((p) => ({ ...p })) })
@@ -305,36 +348,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
     place: placeOf(p.portionId),
     name: people.find((x) => x.id === p.portionId)?.name ?? '',
     share: Math.max(p.share ?? 0, 0),
-    label: gramsLabel(p.cookedGrams),
+    label: gramsLabel(portionGrams(p, rawOf)),
   }))
   const potRaw = result && phase ? baseRawGrams(result, phase.remainder.raw) : null
-
-  // A physical keyboard types into the display too (desktop, a phone with a keyboard).
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      // Keys inside a field, a list, a dialog or a menu are theirs: Esc closing the «⋯» menu must not clear the field.
-      if (e.defaultPrevented) return
-      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [role=listbox], [role=dialog], [role=menu]')) return
-      if (e.key === 'Enter' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        move(1)
-        return
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        move(-1)
-        return
-      }
-      const key = keypadKeyFromKeyboard(e.key)
-      if (key) {
-        e.preventDefault()
-        press(key)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  })
 
   if (!dish || !draft || !result || !phase) return <Navigate to="/" replace />
   const simple = dish.kind === 'simple'
@@ -349,7 +365,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 lg:max-w-2xl">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-3 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-2xl">
       <section aria-label="Вес" className="flex flex-col gap-1">
         {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
             unfolded, its products are small tiles two to a row and «Готовый» goes across. */}
@@ -360,22 +376,21 @@ export function Calculator({ id }: { id: Id | undefined }) {
             shownIngredients.map((i) => (
               <DisplayRow
                 key={i.id}
+                {...weightField(i.id)}
                 label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
                 text={texts[i.id] ?? ''}
-                active={active === i.id}
                 small={!tiles}
-                onActivate={() => activate(i.id)}
                 lids={people.length}
               />
             ))
           )}
           <DisplayRow
+            {...weightField(COOKED)}
+            last
             label={cookedHere !== null && dish.cooked ? `Готовый · ${clockTime(dish.cooked.at)}` : 'Готовый'}
             text={cookedText}
-            active={active === COOKED}
             className={tiles ? undefined : 'col-span-2'}
             invalid={tareExceeds}
-            onActivate={() => activate(COOKED)}
             lids={people.length}
           />
         </div>
@@ -419,7 +434,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
           own={segments.filter((x) => fixed[x.id] !== undefined)}
           rest={
             people.length > 0 && phase.remainder.state === 'some'
-              ? { share: phase.remainder.share, label: gramsLabel(phase.remainder.cookedGrams) }
+              ? { share: phase.remainder.share, label: gramsLabel(portionGrams(phase.remainder, rawOf)) }
               : null
           }
           onChange={setPercents}
@@ -448,23 +463,27 @@ export function Calculator({ id }: { id: Id | undefined }) {
               place={placeOf(p.portionId)}
               lids={people.length}
               computed={p}
+              dry={rawOf !== null}
               onRename={(name) => updatePerson(p.portionId, name)}
               onRemove={() => removePerson(p.portionId)}
               holdMs={holdMs}
-              onEditingName={setEditingName}
               onReleaseOwn={() => releaseOwn(p.portionId)}
               percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
               grams={{
+                id: calculatorFieldId(personKey(p.portionId)),
                 active: active === personKey(p.portionId),
                 text: texts[personKey(p.portionId)] ?? '',
                 own: fixed[p.portionId] !== undefined,
                 unit: unitOf(p.portionId),
                 onToggleUnit: () => toggleUnit(p.portionId),
-                onActivate: () => activatePerson(p.portionId),
+                onFocus: () => activatePerson(p.portionId),
+                onBlur: leave,
+                onText: (typed) => type(personKey(p.portionId), typed),
+                onKeyDown: fieldKeys(personKey(p.portionId)),
               }}
             />
           ))}
-          <AddPersonRow onAdd={addPerson} onEditingName={setEditingName} />
+          <AddPersonRow onAdd={addPerson} />
         </ul>
         {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
         {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
@@ -487,16 +506,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         )}
       </section>
 
-      <p className="hidden px-1 text-sm text-muted-foreground lg:block">Цифры — с клавиатуры, Enter или ↓ — следующее поле.</p>
-
-      <div
-        className={cn(
-          'sticky bottom-0 z-30 -mx-3 mt-auto border-t bg-background/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden',
-          editingName && 'hidden',
-        )}
-      >
-        <Keypad onKey={press} onNext={() => move(1)} />
-      </div>
+      <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
     </main>
   )
 }

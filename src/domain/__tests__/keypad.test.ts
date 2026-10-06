@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyKey, keypadKeyFromKeyboard, type KeypadKey } from '../keypad'
+import { applyKey, typedGrams, type KeypadKey } from '../keypad'
 
 const type = (keys: KeypadKey[], start = '') => keys.reduce((text, key) => applyKey(text, key), start)
 
@@ -33,14 +33,24 @@ describe('applyKey', () => {
   })
 })
 
-describe('keypadKeyFromKeyboard', () => {
-  it('maps digits, both decimal points, editing keys', () => {
-    expect(keypadKeyFromKeyboard('7')).toBe('7')
-    expect(keypadKeyFromKeyboard('.')).toBe(',')
-    expect(keypadKeyFromKeyboard(',')).toBe(',')
-    expect(keypadKeyFromKeyboard('Backspace')).toBe('back')
-    expect(keypadKeyFromKeyboard('Escape')).toBe('clear')
-    expect(keypadKeyFromKeyboard('a')).toBeNull()
-    expect(keypadKeyFromKeyboard('Enter')).toBeNull()
+describe('typedGrams', () => {
+  it('keeps digits and one comma; a dot is a comma', () => {
+    expect(typedGrams('1240')).toBe('1240')
+    expect(typedGrams('12.5')).toBe('12,5')
+    expect(typedGrams('12,5,')).toBe('12,5')
+    expect(typedGrams('')).toBe('')
+  })
+
+  it('drops anything else, pasted spaces included', () => {
+    expect(typedGrams('1 240 г')).toBe('1240')
+    expect(typedGrams('1\u00a0240')).toBe('1240')
+    expect(typedGrams('abc')).toBe('')
+  })
+
+  it('the same limits as the keys: five integer digits, one decimal, no leading zero', () => {
+    expect(typedGrams('123456')).toBe('12345')
+    expect(typedGrams('12,55')).toBe('12,5')
+    expect(typedGrams('07')).toBe('7')
+    expect(typedGrams(',5')).toBe('0,5')
   })
 })

@@ -28,7 +28,7 @@ A unit converter for one cooking, not a food database or a calorie counter. The 
 
 - Phone at the stove: kitchen scale, pot or container on it, often wet or busy hands, a glance of a few seconds. Kitchen light, day and evening; the theme follows the system setting by default and can be set to light or dark in Settings.
 - Desktop is secondary (planning, settings).
-- Daily loop: the app opens on the last dish (or one tap on the dish shelf) → type the cooked weight on the in-app keypad → read each person's portion → copy the raw weight into the tracker. Nothing to save: the dish remembers what was typed. Setup (dishes, containers, companies) is rare.
+- Daily loop: the app opens on the last dish (or one tap on the dish shelf) → type the cooked weight (the phone's own number keyboard) → read each person's portion → copy the raw weight into the tracker. Nothing to save: the dish remembers what was typed. Setup (dishes, containers, companies) is rare.
 - Works offline. Served from Cloudflare Workers over HTTPS; installable on the iPhone home screen as a PWA (stage 11). During development also opened over local Wi-Fi (no clipboard and no sign-in over http — fallback dialog for copying).
 
 ## Capabilities and Constraints
