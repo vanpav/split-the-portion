@@ -143,6 +143,7 @@ src/domain/
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
   dates.ts          — dayLabel(at, now) → «сегодня» / «вчера» / «12 окт.»
   validation.ts     — warnings(cooking, result) → Warning[]
+  tare.ts           — TARE_SLIDER (10–3 000 г, шаг 10), tareSliderPosition, tareGramsFromSlider
   index.ts          — публичный API
   __tests__/
     examples.test.ts  — эталонные примеры SPEC §11
@@ -178,6 +179,7 @@ src/domain/
 | `portionCopyText`, `rawAmountsCopyText` | Текст для трекера (SPEC §9) |
 | `cookingWarnings(cooking, result)` | Предупреждения SPEC §8 |
 | `isValidTareGrams(grams)` | Вес тары > 0 |
+| `TARE_SLIDER`, `tareSliderPosition(grams)`, `tareGramsFromSlider(position)` | Ползунок веса тары: где он стоит для введённого веса (в пределах диапазона) и какой вес даёт (ближайший шаг) |
 | `portionBasisOptions(result)`, `basisKey` | В каких единицах можно вводить порцию (по умолчанию — первым) |
 | `convertPortionInput(result, portionId, basis)` | Та же порция в других единицах (при смене единиц на строке) |
 | `isValidSplitN`, `MAX_SPLIT_PORTIONS` | N для «Разделить на N» |
@@ -290,8 +292,8 @@ src/
       WeighingSection.tsx     — «Сегодня»: сырой вес (TodayFields) и взвешивания, режим и тара свёрнуты в строку
       PeopleSection.tsx       — компания, люди, «Подробнее» (сверка, кастрюля, «Разделить на N», перевзвешивание)
       PersonRow.tsx           — «Ваня — 168 г», по нажатию: имя, доля или своя порция, убрать
-      TarePicker.tsx          — выбор тары и создание новой на месте
-    Settings/           — справочник тары + компании (CompanyCard: полоса долей ShareSlider без «На завтра», «+ Имя»)
+      TarePicker.tsx          — выбор тары и создание новой на месте (TareForm)
+    Settings/           — справочник тары (новая — TareForm) + компании (CompanyCard: полоса долей ShareSlider без «На завтра», «+ Имя»)
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
@@ -300,6 +302,9 @@ src/
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
     ShareSlider.tsx     — полоса долей: сегменты, ручки границ, «− Ваня +», «Поровну»; «На завтра» и «г | %» — необязательные пропсы (калькулятор, компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя»: Enter — человек добавлен, поле готово для следующего
+    TareGramsField.tsx  — вес тары: NumberField + Slider под ним, одно значение
+    TareForm.tsx        — новая тара: название, TareGramsField, «Добавить тару»; одна форма для настроек, диалога и TarePicker
+    NewTareDialog.tsx   — Dialog с TareForm: «+ Добавить тару» в списке тары калькулятора
   lib/
     utils.ts            — cn() от shadcn
   store/
@@ -317,7 +322,10 @@ src/
 | «Не учитывать» | `Checkbox` или `Switch` |
 | «Без тары / С тарой» | `ToggleGroup` (или `Tabs`) |
 | База порции «сырой / готовый / сырой: курица» | `Select` |
-| Выбор тары + «+ Новая тара» | `Popover` + `Command` (combobox) |
+| Выбор тары + «+ Новая тара» (экран готовки) | `Popover` + `Command` (combobox) |
+| Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт открывает диалог, значение не меняет) |
+| Новая тара: форма (настройки, диалог, TarePicker) | `Field` + `Input` + `NumberField` + `Slider` (в `slider.tsx` добавлен проп `thumbLabel` — имя ручки для экранного диктора), кнопка `Button` |
+| Диалог «Новая тара» | `Dialog` |
 | Секции экрана | Без карточек: `<section>` с заголовком `h2` и отступами, `Separator` между группами. Главная кнопка — `components/BottomBar` (на телефоне прилипает к низу, с `lg` — обычная строка) |
 | Строки списка готовок | `Item` (ссылка растянута на всю строку, кнопка удаления поверх) |
 | Подпись + поле + ошибка | `Field`, `FieldLabel`, `FieldError` |
