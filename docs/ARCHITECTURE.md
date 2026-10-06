@@ -348,6 +348,7 @@ src/
   domain/               — см. §4
 worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
+wrangler.preview-db.jsonc — только база превью, для `pnpm db:migrate:preview` (CLOUDFLARE §5)
 ```
 
 ### Какие компоненты shadcn для чего
@@ -438,7 +439,7 @@ Hash-маршруты выбраны потому, что работают на 
   - `navigateFallback: index.html`, `/api/*` мимо Service Worker;
   - `public/_headers` отдаёт `sw.js` и манифест с `no-cache`.
 - **Иконка** — стопка из трёх ланчбоксов на `navy-ink`, по корпусу на едока (`lid-sky`, `lid-sunflower`, `lid-mint`), крышки белые. Верхний открыт: каша, морковные палочки и брокколи, его крышка прислонена к стопке. Цвета еды есть только в иконке, в теме их нет. Рисунок — `public/favicon.svg`: плитка со скруглением, рисунок занимает её середину. На iPhone и во вкладке он крупный; maskable-иконке Android `pwa-assets.config.ts` даёт отступ, чтобы рисунок поместился в безопасный круг (80 % ширины), и заливает край тем же `navy-ink`. После правки рисунка — `pnpm icons`.
-- **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
+- **С этапа 12** `pnpm dev` поднимает и воркер с локальной D1 (`@cloudflare/vite-plugin`). Миграции — `pnpm db:migrate:local` / `pnpm db:migrate:preview` / `pnpm db:migrate:remote`, деплой — `pnpm run deploy` ([CLOUDFLARE.md](CLOUDFLARE.md)). Вход по `http://192.168…` не работает: cookie `Secure` и WebAuthn требуют HTTPS. Вход на телефоне проверяем на превью-деплое.
 
 ## 8. Открытые вопросы (решить с пользователем)
 
@@ -462,10 +463,12 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 │ src/sync: outbox + cursor    │              │ /api/groups/:id/invites, /invites │
 │ Service Worker (precache)    │              │ всё остальное → статика dist      │
 └──────────────────────────────┘              └───────────────┬──────────────────┘
-                                                              ▼
-                                                     D1 split-the-portion (SQLite)
+                                                              ▼  привязка DB
+                                         рабочий адрес: D1 split-the-portion (SQLite)
+                                       превью веток: D1 split-the-portion-preview
 ```
 
+- **Две базы D1 с одной схемой:** рабочий воркер пишет в `split-the-portion` (`d1_databases`), превью веток и PR — в `split-the-portion-preview` (`previews.d1_databases`). Код один, привязка в обоих случаях `DB`. Аккаунты и данные превью отдельные, с рабочей базы не копируются; миграции базы превью — руками `pnpm db:migrate:preview` ([CLOUDFLARE §5](CLOUDFLARE.md#5-миграции-базы)).
 - **Один воркер на всё:** статика (`assets`) и API на одном адресе. `assets.run_worker_first: ["/api/*"]` — код запускается только для API. Один origin — cookie сессии первого лица работают в установленной PWA на iOS, CORS не нужен.
 - **Код — в `worker/`**, отдельный от `src/`, со своим `tsconfig.worker.json`:
   - `index.ts` — Hono, `csrf()`, маршруты;
