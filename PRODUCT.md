@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Primary: the authors — a couple (Ваня и Ксюша) who cook at home and log what they eat in a calorie tracker. Later, if the hypothesis holds, other people with the same job: they cook for themselves or a household and want to log their portion in raw weight.
+Primary: the authors — a couple (Ваня и Ксюша) who cook at home, each with their own phone, and log what they eat in a calorie tracker. Later, if the hypothesis holds, other people with the same job: they cook for themselves or a household and want to log their portion in raw weight.
 
 The job: at the stove, after weighing the finished dish, find out in a couple of seconds how much cooked food goes on each plate and what that is in raw weight for the tracker.
 
@@ -29,12 +29,12 @@ A unit converter for one cooking, not a food database or a calorie counter. The 
 - Phone at the stove: kitchen scale, pot or container on it, often wet or busy hands, a glance of a few seconds. Kitchen light, day and evening; the theme follows the system setting by default and can be set to light or dark in Settings.
 - Desktop is secondary (planning, settings, history).
 - Daily loop: tap a dish → type the cooked weight on the in-app keypad → read each person's portion → copy the raw weight into the tracker. Setup (dishes, containers, companies) is rare.
-- Works offline in the browser; opened over local Wi-Fi on the phone during development (no clipboard over http — fallback dialog).
+- Works offline. Served from Cloudflare Workers over HTTPS; installable on the iPhone home screen as a PWA (stage 11). During development also opened over local Wi-Fi (no clipboard and no sign-in over http — fallback dialog for copying).
 
 ## Capabilities and Constraints
 
 - Simple dishes (one product) and composite dishes (several ingredients, some «не учитывать»); calculator, saved cookings, history, re-weighing leftovers, «Разделить на N», companies with shares, tare library, backup to a JSON file.
-- No backend, accounts, sync, product database or calorie counting. Data in IndexedDB.
+- Offline first: data lives in IndexedDB on the device. An account is optional (stages 12–14: email + password, Face ID on top); with it, data syncs through Cloudflare Workers + D1 and can be shared in a group joined by an invite code. One group is the default and opens on launch. No product database or calorie counting.
 - Interface in Russian. Numbers accept comma and dot. Grams fields open the decimal keyboard, font ≥ 16 px, height ≥ 44 px.
 - UI is built only from shadcn/ui primitives (radix-nova style) themed through CSS variables; Tailwind v4; lucide icons.
 - Terminology: «вес с тарой» / «вес без тары», never «нетто/брутто»; «сухой» for simple dishes, «сырой» for composite; k shown as «k = 2,4».
