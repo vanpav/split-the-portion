@@ -1,6 +1,6 @@
 import { PlusIcon } from 'lucide-react'
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { TareGramsField } from '@/components/TareGramsField'
+import { useId, useRef, useState, type FormEvent } from 'react'
+import { NumberField } from '@/components/NumberField'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -11,22 +11,22 @@ interface TareFormProps {
   /** The tare just written to the library. */
   onCreated?: (tare: Tare) => void
   autoFocus?: boolean
-  /** Next to «Добавить тару» (e.g. «К списку»). */
-  secondary?: ReactNode
 }
 
 /**
- * A new tare for the library: name and weight (field or slider). The same form in the settings,
- * in the calculator's «Добавить тару» dialog and in the cooking screen's tare picker.
- * After adding it is empty again, the name focused for the next one.
+ * A new tare for the library: big «Название» and «Вес» fields. The same form in the settings and
+ * in the calculator's «Добавить тару» dialog. Enter in the name goes to the weight, Enter in the
+ * weight adds. After adding it is empty again, the name focused for the next one.
  */
-export function TareForm({ onCreated, autoFocus, secondary }: TareFormProps) {
+export function TareForm({ onCreated, autoFocus }: TareFormProps) {
   const upsertTare = useAppStore((s) => s.upsertTare)
   const nameId = useId()
+  const gramsId = useId()
   const [name, setName] = useState('')
   const [grams, setGrams] = useState<number | null>(null)
   // Remounts the weight field after submit: a focused field keeps its typed text otherwise.
   const [round, setRound] = useState(0)
+  const formRef = useRef<HTMLFormElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
   const valid = name.trim() !== '' && isValidTareGrams(grams)
 
@@ -44,28 +44,44 @@ export function TareForm({ onCreated, autoFocus, secondary }: TareFormProps) {
   }
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={submit}>
+    <form ref={formRef} className="flex flex-col gap-4" onSubmit={submit}>
       <Field>
         <FieldLabel htmlFor={nameId}>Название</FieldLabel>
         <Input
           ref={nameRef}
           id={nameId}
+          className="h-14 text-lg md:text-lg"
           placeholder="Кастрюля 3 л"
           enterKeyHint="next"
           autoComplete="off"
           autoFocus={autoFocus}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            document.getElementById(gramsId)?.focus()
+          }}
         />
       </Field>
-      <TareGramsField key={round} label="Вес" value={grams} onValueChange={setGrams} />
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={!valid}>
-          <PlusIcon data-icon="inline-start" />
-          Добавить тару
-        </Button>
-        {secondary}
-      </div>
+      <NumberField
+        key={round}
+        id={gramsId}
+        size="lg"
+        label="Вес"
+        placeholder="850"
+        value={grams}
+        validate={(g) => (g === null || isValidTareGrams(g) ? null : 'Вес должен быть больше 0')}
+        onValueChange={setGrams}
+        onEnter={() => {
+          if (valid) formRef.current?.requestSubmit()
+          else if (name.trim() === '') nameRef.current?.focus()
+        }}
+      />
+      <Button type="submit" size="lg" className="w-full" disabled={!valid}>
+        <PlusIcon data-icon="inline-start" />
+        Добавить тару
+      </Button>
     </form>
   )
 }
