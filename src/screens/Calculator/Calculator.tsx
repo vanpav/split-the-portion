@@ -37,6 +37,7 @@ import {
   removeLastPortion,
   splitAmounts,
   splitSummary,
+  tileRows,
   typedGrams,
   type Company,
   type CompanyMember,
@@ -63,6 +64,8 @@ import { TareSelect } from './TareSelect'
 
 /** Row id of the weight after cooking; the other rows are ingredient ids. */
 const COOKED = 'cooked'
+// Six-column grid: a row of three tiles spans 2 each, of two spans 3, a lone one spans 6.
+const TILE_SPAN: Record<number, string> = { 1: 'col-span-6', 2: 'col-span-3', 3: 'col-span-2' }
 /** A person's own portion (cooked grams) is a field too. */
 const personKey = (personId: string) => `person:${personId}`
 const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('person:'.length) : null)
@@ -597,7 +600,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             </div>
           )}
           {inShares ? (
-            // «Доли»: what goes into each container said once, then the containers, three to a row.
+            // «Доли»: what goes into each container said once, then the containers, up to three to a row, stretched.
             <>
               <PortionSummary
                 cooking={draft}
@@ -608,10 +611,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 unit={barUnit}
                 numberOf={(portionId) => placeOf(portionId) + 1}
               />
-              <ul className="grid grid-cols-3 gap-2 max-[360px]:grid-cols-2 lg:grid-cols-4">
-                {phase.portions.map((p) => (
+              <ul className="grid grid-cols-6 gap-2">
+                {phase.portions.map((p, i) => (
                   <PortionTile
                     key={p.portionId}
+                    className={TILE_SPAN[tileRows(phase.portions.length).flatMap((n) => Array<number>(n).fill(n))[i]]}
                     cooking={draft}
                     result={result}
                     place={placeOf(p.portionId)}
