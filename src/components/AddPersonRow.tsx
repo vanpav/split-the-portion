@@ -1,8 +1,10 @@
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { cn } from '@/lib/utils'
 
 interface AddPersonRowProps {
+  className?: string
   onAdd: (name: string) => void
   /** Focus the field on mount: a new company starts with typing its first name. */
   autoFocus?: boolean
@@ -15,7 +17,7 @@ interface AddPersonRowProps {
  * the person is in (with an average share), and the field is ready for the next one.
  * No nameless rows to fix afterwards.
  */
-export function AddPersonRow({ onAdd, autoFocus, id }: AddPersonRowProps) {
+export function AddPersonRow({ onAdd, autoFocus, id, className }: AddPersonRowProps) {
   const [name, setName] = useState('')
 
   const add = () => {
@@ -27,7 +29,7 @@ export function AddPersonRow({ onAdd, autoFocus, id }: AddPersonRowProps) {
 
   return (
     // A field like every other with an icon (the dish menu's search): the whole width, «+» inside it.
-    <li className="py-2">
+    <li className={cn('py-2', className)}>
       <InputGroup>
         <InputGroupAddon>
           <PlusIcon />

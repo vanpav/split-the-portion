@@ -19,7 +19,7 @@ export interface DishSegment {
   name: string
   /** Part of the whole dish, 0..1. */
   share: number
-  /** Grams of the view once weighed; before that the segment is its name (or number) alone. */
+  /** Grams of the view once weighed: only for the segment's `aria-label`, the bar itself shows no grams. */
   label: string | null
 }
 
@@ -56,6 +56,9 @@ interface ShareSliderProps {
   empty?: { label: string; fieldId: string }
   /** `data-hint` of the bar: the calculator tour points at it (docs/UX.md §3б). */
   hint?: string
+  /** Who − and + adjust: one of `sharing`, or null (then the first one). Chosen by the screen, so rows can choose too. */
+  chosenId: Id | null
+  onChoose: (id: Id) => void
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -103,8 +106,7 @@ const gripRoom = (narrowest: number) => {
  * The whole dish as one bar (docs/SPEC.md §3б): a segment per person in the size of what they get,
  * own portions outlined, what stays in the pot hatched. Borders between people who split by share
  * can be dragged; ±1 % and «Поровну» below act on those people. The labels follow each segment's
- * width: name and grams, grams only, or nothing; never percent — before weighing a segment is its name
- * (or number) alone. A company in the settings uses it too, without «на завтра» and without grams
+ * width: a name (or number), or nothing; never grams and never percent. A company in the settings uses it too, without «на завтра» and without grams
  * (docs/UX.md §3).
  */
 export function ShareSlider({
@@ -119,14 +121,13 @@ export function ShareSlider({
   numbered = false,
   empty,
   hint,
+  chosenId,
+  onChoose,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
   const dragRef = useRef<number | null>(null)
   const [dragging, setDragging] = useState<number | null>(null)
-  // Who the ±1 % buttons adjust: always someone, the first sharing person (or portion) to start with — so the
-  // chosen one's grips and «− +» are always there.
-  const [chosenId, setChosenId] = useState<Id | null>(null)
   // A tap on the «на завтра» edge lights it up for a moment: touch has no hover to say «pull me».
   const [edgeLit, setEdgeLit] = useState(false)
   useEffect(() => {
@@ -223,32 +224,19 @@ export function ShareSlider({
     cn(index === 0 && 'rounded-l-xl', index === lastIndex && 'rounded-r-xl', index > 0 && 'shadow-[inset_2px_0_0_var(--color-background)]')
   // The title over the grams: a name, or in «Доли» the portion's number (its place in the lineup).
   const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
-  // The chosen segment and its neighbours have grips on their borders: narrower than 3.75rem, the grams would
-  // sit under them, so these show the number (or nothing) and the grams stay in the rows below.
-  const crowded = (index: number) => sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
-  const labels = (title: string, label: string | null, place: number | null = null, tight = false) => (
-    <>
-      {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
-          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first; a number
-          stays down to 1rem. Not weighed yet: the name alone, a step larger. */}
-      <span
-        className={cn(
-          'w-full truncate text-center font-medium',
-          label === null && 'text-sm font-semibold',
-          numbered && place !== null ? 'px-0.5 @max-[1rem]:hidden' : label === null ? 'px-2 @max-[2.5rem]:hidden' : 'px-3 @max-[4.5rem]:hidden',
-        )}
-      >
-        {titleOf(title, place)}
-      </span>
-      {label !== null && (
-        <span className={cn('px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden', tight && '@max-[3.75rem]:hidden')}>
-          {label}
-        </span>
+  // A segment says who it is, never how much: the width shows the share, the grams are in the row or container.
+  // A name is dropped from a segment narrower than 2.5rem, a number from one narrower than 1rem.
+  const labels = (title: string, place: number | null = null) => (
+    <span
+      className={cn(
+        'w-full truncate text-center text-sm font-semibold',
+        numbered && place !== null ? 'px-0.5 @max-[1rem]:hidden' : 'px-2 @max-[2.5rem]:hidden',
       )}
-    </>
+    >
+      {titleOf(title, place)}
+    </span>
   )
   const restTitle = keep > 0 ? 'На завтра' : 'Остаток'
-  const selected = segmentFor(sharing[selectedIndex]?.id ?? '')
 
   return (
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
@@ -263,7 +251,7 @@ export function ShareSlider({
                 type="button"
                 aria-pressed={sharing.length > 1 && index === selectedIndex}
                 aria-label={segment?.label ? `${name(index)}: ${segment.label}` : name(index)}
-                onClick={() => setChosenId(person.id)}
+                onClick={() => onChoose(person.id)}
                 // Placed by percent, not by flex: padding must not move a border away from its grip.
                 style={{ left: `${sharingStarts[index]}%`, width: `${sharingWidths[index]}%` }}
                 className={cn(
@@ -277,7 +265,7 @@ export function ShareSlider({
                   sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
                 )}
               >
-                {labels(name(index), segment?.label ?? null, segment?.place ?? index, crowded(index))}
+                {labels(name(index), segment?.place ?? index)}
               </button>
             )
           })}
@@ -297,7 +285,7 @@ export function ShareSlider({
                 rounding(sharing.length + i),
               )}
             >
-              {labels(segment.name.trim() || 'Без имени', segment.label, segment.place)}
+              {labels(segment.name.trim() || 'Без имени', segment.place)}
             </div>
           ))}
 
@@ -313,7 +301,7 @@ export function ShareSlider({
                 rounding(lastIndex),
               )}
             >
-              {labels(restTitle, rest.label)}
+              {labels(restTitle)}
             </div>
           )}
 
@@ -435,7 +423,7 @@ export function ShareSlider({
         equal={isEqualSplit(sharing.map((p) => p.weight))}
         selectedIndex={selectedIndex}
         onChange={onChange}
-        selectedLabel={selected?.label ?? null}
+        mark={{ place: segmentFor(sharing[selectedIndex]?.id ?? '')?.place ?? selectedIndex, numbered }}
       />
     </div>
   )

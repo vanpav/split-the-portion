@@ -49,6 +49,10 @@ interface PersonResultProps {
   onReleaseOwn: () => void
   /** «Состав»: a composite dish with the recipe toggle; `open` — it is on. */
   recipe?: { open: boolean; oneColumn: boolean }
+  /** The person ± adjusts: a frosted plate, the lid ringed. */
+  chosen?: boolean
+  /** A tap on the row (not on its field or buttons) chooses the person; absent for an own portion. */
+  onChoose?: () => void
 }
 
 /**
@@ -69,6 +73,8 @@ export function PersonResult({
   grams,
   onReleaseOwn,
   recipe,
+  chosen = false,
+  onChoose,
 }: PersonResultProps) {
   // Raw grams of the portion: the only counted ingredient's, or all counted ones together.
   const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
@@ -91,16 +97,24 @@ export function PersonResult({
       ref={rowRef}
       as="li"
       itemId={computed.portionId}
-      className="flex flex-col gap-1 py-3"
+      className={cn('flex flex-col gap-1 rounded-xl px-2 py-3 transition-colors', chosen && 'bg-[color-mix(in_oklab,var(--muted)_60%,var(--background))] dark:bg-[color-mix(in_oklab,var(--muted)_20%,var(--background))]', onChoose && 'cursor-pointer')}
       onRemove={onRemove}
       onCopy={computed.share !== null ? () => copyRef.current?.click() : null}
     >
-      <div className="flex items-center gap-2">
+      <div
+        className="flex items-center gap-2"
+        onClick={(e) => {
+          if (onChoose && !(e.target as HTMLElement).closest('input, button, label')) onChoose()
+        }}
+      >
         {/* The lid sits on the name's line, not on the row's top: with or without a line under the name, the
             two stay level, and the name block is centred on the answer. */}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <span aria-hidden className={cn('size-3.5 shrink-0 rounded-[5px]', lidFill(place))} />
+            <span
+              aria-hidden
+              className={cn('size-3.5 shrink-0 rounded-[5px]', lidFill(place), chosen && 'ring-2 ring-foreground ring-offset-2 ring-offset-background')}
+            />
             {onRename ? (
               <Input
                 aria-label="Имя"
@@ -109,11 +123,11 @@ export function PersonResult({
                 enterKeyHint="done"
                 onChange={(e) => onRename(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
+                className={cn('h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent', chosen && 'font-semibold')}
               />
             ) : (
               // The same place as the name field, without the field.
-              <span className="flex h-9 items-center px-1 text-base font-medium">{name}</span>
+              <span className={cn('flex h-9 items-center px-1 text-base font-medium', chosen && 'font-semibold')}>{name}</span>
             )}
           </div>
           {(subline.length > 0 || grams.own) && (

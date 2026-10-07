@@ -1,6 +1,8 @@
 import { MinusIcon, PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { equalSplit, nudgePercent } from '@/domain'
+import { cn } from '@/lib/utils'
+import { lidFill } from './lids'
 
 interface ShareControlsProps {
   /** Names of the people who split by share, in order. */
@@ -12,16 +14,16 @@ interface ShareControlsProps {
   /** Who ± adjusts. */
   selectedIndex: number
   onChange: (percents: number[]) => void
-  /** The chosen person's grams, «168 г», the same figure as their row; null before weighing. */
-  selectedLabel?: string | null
+  /** The chosen one's lid between the buttons: a plain square for a person, with the number in «Доли». */
+  mark: { place: number; numbered: boolean }
 }
 
 /**
- * Under a share bar, one line: − and + for the chosen person on the left, their name over their grams;
- * «Поровну» on the right. No percent (docs/SPEC.md §3б): each press moves 1 % of the dish, unseen.
+ * Under a share bar, one line: − and + for the chosen person on the left with their lid between them (no name,
+ * no grams: those are in the row); «Поровну» on the right. No percent (docs/SPEC.md §3б): each press moves 1 % of the dish, unseen.
  * Nothing to show for one person.
  */
-export function ShareControls({ names, percents, equal, selectedIndex, onChange, selectedLabel }: ShareControlsProps) {
+export function ShareControls({ names, percents, equal, selectedIndex, onChange, mark }: ShareControlsProps) {
   if (names.length < 2) return null
   const name = names[selectedIndex] ?? ''
 
@@ -37,11 +39,17 @@ export function ShareControls({ names, percents, equal, selectedIndex, onChange,
       >
         <MinusIcon />
       </Button>
-      {/* As wide as its text, so − and + hug it; on a narrow phone it gives way first. Who is also ringed on
-          the bar right above. */}
-      <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
-        <span className="w-full truncate text-muted-foreground">{name}</span>
-        {selectedLabel && <span className="w-full truncate font-semibold tabular-nums">{selectedLabel}</span>}
+      {/* Who is adjusted: their lid, the same mark as on the bar and in the row. */}
+      <span aria-hidden className="flex size-11 items-center justify-center max-[360px]:w-8">
+        <span
+          className={cn(
+            'flex items-center justify-center text-chart-foreground tabular-nums',
+            lidFill(mark.place),
+            mark.numbered ? 'size-7 rounded-lg text-sm font-semibold' : 'size-5.5 rounded-[7px]',
+          )}
+        >
+          {mark.numbered && mark.place + 1}
+        </span>
       </span>
       <Button
         variant="outline"

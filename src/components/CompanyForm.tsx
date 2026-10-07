@@ -1,5 +1,5 @@
 import { XIcon } from 'lucide-react'
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
@@ -26,6 +26,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   // «+ Имя» of this form: the empty bar puts the cursor there. Several forms can be open in the settings.
   const addPersonId = useId()
   const { members } = value
+  // Who − and + adjust: the first person until another segment is tapped.
+  const [chosenId, setChosenId] = useState<string | null>(null)
   const weights = members.map((m) => m.weight)
   // Each person's part, exact: «Поровну» on three is 33,3 % each, not 34, 33, 33. The bar shows percents only.
   const shares = exactPercents(weights).map((p) => p / 100)
@@ -55,6 +57,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         own={[]}
         rest={null}
         onChange={setPercents}
+        chosenId={chosenId}
+        onChoose={setChosenId}
         empty={{ label: 'Добавь людей', fieldId: addPersonId }}
       />
       <ul className="flex flex-col divide-y">

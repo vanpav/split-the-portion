@@ -407,6 +407,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
   }
   // The slider splits what is left after own portions: it only shows the people who share.
   const sharing = people.filter((p) => fixed[p.id] === undefined)
+  // Who − and + adjust: tapped on the bar, in a row or in a container; the first one who shares until then.
+  const [chosen, setChosen] = useState<Id | null>(null)
+  const chosenId = sharing.find((p) => p.id === chosen)?.id ?? sharing[0]?.id ?? null
   // The share slider works in whole percents: shares become them.
   const setPercents = (percents: number[]) =>
     setPeople(
@@ -462,6 +465,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // The same test as that line's, so the tiles hide their ⧉ before the dish is weighed too (then by shares, unseen).
   const sharingAmounts = splitAmounts((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined), rawOf, 'g')
   const sameShares = splitSummary(sharingAmounts.values, sharingAmounts.inPercent ? 1 : 0)?.same != null
+  // Equal portions, none own, weighed: the containers are numbers only, the grams are said once above them.
+  const compactTiles = sameShares && !sharingAmounts.inPercent && Object.keys(fixed).length === 0
   // The tour over this screen (docs/UX.md §3б): with the share bar on screen its third step points at it.
   useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
 
@@ -597,6 +602,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
             // a tap on it puts the cursor into «+ Имя».
             empty={{ label: 'Добавь людей', fieldId: ADD_PERSON_ID }}
             hint="bar"
+            chosenId={chosenId}
+            onChoose={setChosen}
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -619,11 +626,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 numberOf={(portionId) => placeOf(portionId) + 1}
                 recipe={recipe}
               />
-              <ul className="grid grid-cols-6 gap-2">
+              <ul className={cn('grid gap-2', compactTiles ? 'grid-cols-4' : 'grid-cols-6')}>
                 {phase.portions.map((p, i) => (
                   <PortionTile
                     key={p.portionId}
-                    className={tileSpans[i]}
+                    // Compact: four to a row; the one opened for typing takes a row of its own.
+                    className={compactTiles ? (active === personKey(p.portionId) ? 'col-span-4' : undefined) : tileSpans[i]}
                     cooking={draft}
                     result={result}
                     place={placeOf(p.portionId)}
@@ -631,6 +639,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
                     computed={p}
                     dry={rawOf !== null}
                     grams={amountField(p.portionId)}
+                    compact={compactTiles}
+                    chosen={p.portionId === chosenId}
+                    onChoose={fixed[p.portionId] === undefined ? () => setChosen(p.portionId) : undefined}
                     copyable={!sameShares || fixed[p.portionId] !== undefined}
                     // The recipe sits where ⧉ sits; a tile of its own row keeps two columns, the narrow ones one.
                     recipe={recipe && (!sameShares || fixed[p.portionId] !== undefined) ? { ...recipe, oneColumn: oneColumn || tileSpans[i] !== 'col-span-6' } : undefined}
@@ -639,7 +650,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
               </ul>
             </>
           ) : (
-            <ul className="flex flex-col divide-y" aria-live="polite">
+            // A row's plate reaches 8 px past the column; the rows' own padding keeps their content in line.
+            <ul className="-mx-2 flex flex-col gap-0.5" aria-live="polite">
               {phase.portions.map((p) => (
                 <PersonResult
                   key={p.portionId}
@@ -655,9 +667,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   onReleaseOwn={() => releaseOwn(p.portionId)}
                   recipe={recipe}
                   grams={amountField(p.portionId)}
+                  chosen={p.portionId === chosenId && sharing.length > 1}
+                  onChoose={fixed[p.portionId] === undefined ? () => setChosen(p.portionId) : undefined}
                 />
               ))}
-              <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} />
+              <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} className="px-2" />
             </ul>
           )}
           {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
