@@ -1,60 +1,53 @@
+import { PlusIcon, TicketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { GROUP_LIMIT_TEXT } from '@/account/networkText'
 import { MAX_GROUPS } from '@/account/types'
-import { JOIN_PATH, NEW_GROUP_PATH } from '@/app/paths'
-import { Button } from '@/components/ui/button'
+import { JOIN_PATH, NEW_GROUP_PATH, settingsPath } from '@/app/paths'
+import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
-import { GroupMembers } from './GroupMembers'
-import { GroupName } from './GroupName'
-import { GroupPicker } from './GroupPicker'
-import { InviteCard } from './InviteCard'
-import { LeaveGroupButton } from './LeaveGroupButton'
+import { GroupList } from './GroupList'
+
+const HEADING = 'px-1 text-sm font-medium text-muted-foreground'
+const ROW =
+  'flex min-h-14 items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60'
 
 /**
- * Settings → «Группа» (docs/UX.md «Аккаунт и группа»): which group is open and opens at launch,
- * its name and people, an invite, joining another one, leaving.
+ * Settings → «Группа» (docs/UX.md «Аккаунт и группа»): what a group is, the user's groups (each
+ * leads to its own screen: open it, its people, invite, leave), then a new group or joining one —
+ * screens of their own as well.
  */
 export function GroupSection() {
   const me = useAccountStore((s) => s.me)
   const openId = useSyncStore((s) => s.groupId)
-  const group = me?.groups.find((g) => g.id === openId)
-  if (!me || !group) return null
+  if (!me || !openId) return null
   const full = me.groups.length >= MAX_GROUPS
+  // At the limit the rows stay and say why, instead of vanishing.
+  const atLimit = (e: { preventDefault(): void }) => full && (e.preventDefault(), toast(GROUP_LIMIT_TEXT))
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1 px-1">
-          <h2 className="text-base font-semibold max-md:sr-only">Группа</h2>
-          <p className="text-sm text-muted-foreground">
-            Блюда, тара и компании — общие для всех в группе.
-          </p>
-        </div>
-        <GroupPicker groups={me.groups} openId={group.id} defaultId={me.defaultGroupId} />
-        {/* The owner renames it; for the others the picker above already says its name. */}
-        {(group.role === 'owner' || me.groups.length === 1) && <GroupName key={group.id + group.name} group={group} />}
+      <p className="px-1 text-sm text-muted-foreground">
+        С кем у тебя общие блюда, тара и компании: что поправит один, через минуту увидят все. Кто сколько ест — в{' '}
+        <Link to={settingsPath('companies')} className="text-foreground underline underline-offset-4">
+          Компаниях
+        </Link>
+        .
+      </p>
+      <div className="flex flex-col gap-2">
+        <h2 className={HEADING}>Твои группы</h2>
+        <GroupList groups={me.groups} openId={openId} myId={me.user.id} />
       </div>
-      <div className="flex flex-col gap-3">
-        <h3 className="px-1 text-sm font-semibold">Участники</h3>
-        <GroupMembers group={group} />
-        <InviteCard key={group.id} group={group} />
-      </div>
-      <div className="flex flex-col gap-1">
-        {/* A screen of its own (docs/UX.md §3а): the code is typed there. */}
-        {/* At the limit the buttons stay and say why, instead of vanishing. */}
-        <Button variant="ghost" className="self-start" asChild>
-          <Link to={NEW_GROUP_PATH} onClick={(e) => full && (e.preventDefault(), toast(GROUP_LIMIT_TEXT))}>
-            Создать группу
-          </Link>
-        </Button>
-        <Button variant="ghost" className="self-start" asChild>
-          <Link to={JOIN_PATH} onClick={(e) => full && (e.preventDefault(), toast(GROUP_LIMIT_TEXT))}>
-            Вступить по коду
-          </Link>
-        </Button>
-        <LeaveGroupButton group={group} />
+      <div className="divide-y overflow-hidden rounded-xl border bg-card">
+        <Link to={NEW_GROUP_PATH} onClick={atLimit} className={cn(ROW)}>
+          <PlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+          <span className="font-medium">Создать группу</span>
+        </Link>
+        <Link to={JOIN_PATH} onClick={atLimit} className={cn(ROW)}>
+          <TicketIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+          <span className="font-medium">Вступить по коду</span>
+        </Link>
       </div>
     </section>
   )

@@ -107,6 +107,7 @@ Wrangler напечатает блок с `database_id` и предложит с
 | `0001_auth.sql` | Таблицы Better Auth: `user`, `session`, `account`, `verification`, `passkey`, `organization`, `member`, `invitation`, лимиты частоты | 12 |
 | `0002_sync.sql` | `record`, `group_clock` | 13 |
 | `0003_invites.sql` | `group_invite` | 14 |
+| `0004_profile.sql` | `user.firstName`, `user.lastName`, `user.nickname`; `avatar` (фото в D1) | профиль |
 
 SQL для таблиц Better Auth печатает `pnpm -s db:auth-schema` (`scripts/auth-schema.mjs`). Скрипт сравнивает конфиг `worker/auth.ts` с локальной базой и выводит только недостающее. Поэтому сначала применить существующие миграции локально. Файл перед применением прочитать глазами.
 

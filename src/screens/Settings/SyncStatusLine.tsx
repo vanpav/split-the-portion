@@ -6,8 +6,11 @@ import { useSyncStore } from '@/store/sync'
 
 const time = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' })
 
-/** How the open group's sync is doing, in one line (docs/UX.md «Аккаунт и группа», словарь §6). */
-export function SyncStatusLine() {
+/**
+ * How the open group's sync is doing, in one line (docs/UX.md «Аккаунт и группа», словарь §6).
+ * `withAction={false}` inside a link (the hub's account card): «Войти снова» waits in «Аккаунт».
+ */
+export function SyncStatusLine({ withAction = true }: { withAction?: boolean }) {
   const status = useSyncStore((s) => s.status)
   const line = (Icon: typeof CheckIcon, text: string, warn = false) => (
     <p className={warn ? 'flex items-center gap-2 text-sm text-warning' : 'flex items-center gap-2 text-sm text-muted-foreground'}>
@@ -32,6 +35,7 @@ export function SyncStatusLine() {
     case 'needsUpdate':
       return line(TriangleAlertIcon, 'Обнови приложение, чтобы синхронизировать: закрой его и открой снова', true)
     case 'needsLogin':
+      if (!withAction) return line(TriangleAlertIcon, 'Войди снова, чтобы синхронизировать', true)
       return (
         <div className="flex flex-col gap-2">
           {line(TriangleAlertIcon, 'Войди снова, чтобы синхронизировать', true)}

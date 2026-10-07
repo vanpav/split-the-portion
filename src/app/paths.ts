@@ -14,6 +14,15 @@ export const FROM_SIMPLE_DISH = 'from-dish'
 export const NEW_TARE = 'tare/new'
 /** Relative to the calculator or a settings subsection: the text the clipboard refused, to copy by hand. */
 export const COPY_TEXT = 'copy'
+/** Under Settings → Группа: one group's screen — open it, its name, people, invite, leaving. */
+export const GROUP_SCREEN = ':groupId'
+export const groupPath = (groupId: string) => `${SETTINGS_PATH}/group/${groupId}`
+/** Relative to Settings → Аккаунт: the photo chosen for the avatar, cut to a circle (docs/UX.md «Аккаунт и группа»). */
+export const AVATAR_CROP = 'photo'
+/** The photo goes with the navigation to `photo` as an object URL: shown, not stored. */
+export interface AvatarCropState {
+  photo: string
+}
 /** The text goes with the navigation to `copy`: it is shown, not stored. */
 export interface CopyTextState {
   copyText: string

@@ -3,7 +3,6 @@ import { AppearanceSection } from './AppearanceSection'
 import { CompaniesSection } from './CompaniesSection'
 import { DataSection } from './DataSection'
 import { GroupSection } from './GroupSection'
-import { PresetsSection } from './PresetsSection'
 import type { SettingsSectionId } from './sections'
 import { TaresSection } from './TaresSection'
 
@@ -18,8 +17,6 @@ export function SettingsSectionContent({ id }: { id: SettingsSectionId }) {
       return <TaresSection />
     case 'companies':
       return <CompaniesSection />
-    case 'presets':
-      return <PresetsSection />
     case 'data':
       return <DataSection />
     case 'appearance':

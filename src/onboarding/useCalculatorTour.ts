@@ -55,7 +55,7 @@ export function useCalculatorTour({ paused, composite, people }: CalculatorTourP
       const before = usePrefsStore.getState().hints
       updateHints(skipHints)
       toast('Подсказки выключены', {
-        description: 'Включить снова — Настройки → Оформление',
+        description: 'Включить снова — в Настройках',
         action: { label: 'Вернуть', onClick: () => updateHints(() => before) },
       })
     }

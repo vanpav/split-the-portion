@@ -4,22 +4,13 @@ import { toast } from 'sonner'
 import { groupsApi } from '@/account/groupsApi'
 import { formatInviteCode, parseInviteCode } from '@/account/inviteCode'
 import { GROUP_LIMIT_TEXT, groupErrorText } from '@/account/networkText'
+import { customName } from '@/account/groupLabel'
 import { MAX_GROUPS, type InvitePreview } from '@/account/types'
 import { ACCOUNT_PATH, joinPath } from '@/app/paths'
 import { ScreenHeader } from '@/components/ScreenHeader'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
-import { joinGroup, makeDefaultGroup, openGroup } from '@/sync/session'
+import { joinGroup, switchGroup } from '@/sync/session'
 
 type Loaded = { kind: 'loading' } | { kind: 'found'; invite: InvitePreview } | { kind: 'gone' } | { kind: 'offline' }
 
@@ -28,8 +19,8 @@ const standalone = () =>
   window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
 
 /**
- * `#/join/:code` (docs/UX.md «Вступить по ссылке»): which group, who invites, «Вступить»;
- * afterwards — whether it opens at launch. In Safari the code is shown big as well: a link from
+ * `#/join/:code` (docs/UX.md «Вступить по ссылке»): which group, who invites, «Вступить»; the group
+ * joined opens, now and at launch. In Safari the code is shown big as well: a link from
  * a messenger never opens the app installed on the home screen.
  */
 export function JoinScreen() {
@@ -38,8 +29,6 @@ export function JoinScreen() {
   const me = useAccountStore((s) => s.me)
   const [loaded, setLoaded] = useState<Loaded>({ kind: 'loading' })
   const [busy, setBusy] = useState(false)
-  // Joined: asking whether this group opens at launch.
-  const [joined, setJoined] = useState<string | null>(null)
 
   useEffect(() => {
     if (!code) return
@@ -56,7 +45,7 @@ export function JoinScreen() {
     setBusy(true)
     try {
       const groupId = await joinGroup(code)
-      if (groupId) setJoined(groupId)
+      if (groupId) await open(groupId)
       else setLoaded({ kind: 'gone' })
     } catch (e) {
       toast(groupErrorText(e))
@@ -64,14 +53,9 @@ export function JoinScreen() {
       setBusy(false)
     }
   }
-  const open = async (groupId: string, asDefault: boolean) => {
-    setJoined(null)
-    try {
-      if (asDefault) await makeDefaultGroup(groupId)
-    } catch (e) {
-      toast(groupErrorText(e))
-    }
-    await openGroup(groupId)
+  // The group joined is the one opened, now and at launch (switchGroup).
+  const open = async (groupId: string) => {
+    await switchGroup(groupId)
     navigate('/', { replace: true })
   }
 
@@ -88,11 +72,21 @@ export function JoinScreen() {
         {state.kind === 'found' && (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1 px-1">
-              <p className="text-2xl font-medium">«{state.invite.groupName}»</p>
-              <p className="text-muted-foreground">Пригласил: {state.invite.invitedBy}</p>
+              {customName(state.invite.groupName) ? (
+                <>
+                  <p className="text-2xl font-medium">«{customName(state.invite.groupName)}»</p>
+                  <p className="text-muted-foreground">Пригласил: {state.invite.invitedBy}</p>
+                </>
+              ) : (
+                // Someone's own group has no name of its own: who invites says what it is.
+                <>
+                  <p className="text-2xl font-medium">{state.invite.invitedBy} зовёт тебя</p>
+                  <p className="text-muted-foreground">Блюда, тара и компании станут общими</p>
+                </>
+              )}
             </div>
             {already ? (
-              <Button size="lg" onClick={() => void open(state.invite.groupId, false)}>
+              <Button size="lg" onClick={() => void open(state.invite.groupId)}>
                 Ты уже в этой группе — открыть
               </Button>
             ) : me && me.groups.length >= MAX_GROUPS ? (
@@ -116,18 +110,6 @@ export function JoinScreen() {
         )}
       </main>
 
-      <AlertDialog open={joined !== null}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Открывать эту группу при запуске?</AlertDialogTitle>
-            <AlertDialogDescription>Это можно поменять: Настройки → Группа.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => void open(joined!, false)}>Не открывать</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void open(joined!, true)}>Открывать</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }

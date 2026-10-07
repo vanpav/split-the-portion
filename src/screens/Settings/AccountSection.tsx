@@ -19,7 +19,8 @@ import { useAccountStore } from '@/store/account'
 import { hasUnsentChanges } from '@/sync/runner'
 import { leaveAccount } from '@/sync/session'
 import { PasskeySetting } from './PasskeySetting'
-import { SyncStatusLine } from './SyncStatusLine'
+import { ProfileFields } from './ProfileFields'
+import { ProfileHeader } from './ProfileHeader'
 
 /** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, passkeys and «Выйти». */
 export function AccountSection() {
@@ -66,17 +67,28 @@ export function AccountSection() {
   const askSignOut = () => (hasUnsentChanges() ? setConfirming(true) : void signOut())
 
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold max-md:sr-only">Аккаунт</h2>
-        <p className="truncate text-base">{me.user.email}</p>
-        <SyncStatusLine />
+    <section className="flex flex-col gap-6">
+      <h2 className="sr-only">Аккаунт</h2>
+      <ProfileHeader user={me.user} />
+      <div className="flex flex-col gap-2">
+        <h3 className="px-1 text-sm font-medium text-muted-foreground">О себе</h3>
+        <ProfileFields key={me.user.id} user={me.user} />
       </div>
-      <PasskeySetting />
-      <Button variant="ghost" className="self-start" disabled={busy} onClick={askSignOut}>
-        <LogOutIcon data-icon="inline-start" />
-        Выйти
-      </Button>
+      <div className="flex flex-col gap-2">
+        <h3 className="px-1 text-sm font-medium text-muted-foreground">Вход</h3>
+        <div className="divide-y overflow-hidden rounded-xl border bg-card">
+          <PasskeySetting />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={askSignOut}
+            className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60 disabled:opacity-50"
+          >
+            <LogOutIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+            <span className="font-medium">Выйти</span>
+          </button>
+        </div>
+      </div>
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>

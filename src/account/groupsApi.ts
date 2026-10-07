@@ -12,19 +12,20 @@ export class GroupsApiError extends Error {
   }
 }
 
-async function call(path: string, init?: RequestInit): Promise<Response> {
+/** A request to the API; a string body is JSON, a Blob goes with its own type. */
+export async function call(path: string, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(path, {
       ...init,
       credentials: 'same-origin',
-      headers: init?.body ? { 'content-type': 'application/json' } : undefined,
+      headers: typeof init?.body === 'string' ? { 'content-type': 'application/json' } : undefined,
     })
   } catch {
     throw new OfflineError()
   }
 }
 
-async function json<T>(res: Response): Promise<T> {
+export async function json<T>(res: Response): Promise<T> {
   if (!res.ok) throw new GroupsApiError(res.status)
   return (await res.json()) as T
 }

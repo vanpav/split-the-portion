@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { withProfiles } from '@/account/profile'
 import type { Me } from '@/account/types'
 import { idbStorage } from './idbStorage'
 
@@ -18,6 +19,12 @@ export const useAccountStore = create<AccountState>()(
     name: 'split-the-portion:account',
     storage: createJSONStorage(() => idbStorage(null)),
     partialize: (s) => ({ me: s.me }),
+    // 1: profiles (name, nickname, photo) on the user and every member.
+    version: 1,
+    migrate: (persisted) => {
+      const { me } = (persisted ?? {}) as { me?: Me | null }
+      return { me: me ? withProfiles(me) : null } as AccountState
+    },
   }),
 )
 
