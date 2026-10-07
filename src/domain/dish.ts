@@ -3,8 +3,14 @@ import { formatGrams } from './numbers'
 import { toPercents } from './shares'
 import type { Company, CompanyMember, CookingKind, Dish, Id, Ingredient, Portion, Tare } from './types'
 
+/** What a dish and a popular dish have in common: a name and products («не учитывать» may be absent). */
+export interface Recipe {
+  name: string
+  ingredients: readonly { name: string; rawGrams: number | null; excluded?: boolean }[]
+}
+
 /** Shown name: the dish name, or its ingredients, or a placeholder. */
-export function dishTitle(dish: Pick<Dish, 'name' | 'ingredients'>): string {
+export function dishTitle(dish: Recipe): string {
   const name = dish.name.trim()
   if (name) return name
   const names = dish.ingredients

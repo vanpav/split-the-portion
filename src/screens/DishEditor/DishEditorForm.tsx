@@ -64,7 +64,7 @@ type CaretTarget = number | 'end'
 /**
  * Create or edit a dish (recipe), variant «Одной строкой» (docs/UX.md §3 «Редактор блюда»): the name,
  * «Что в блюде» as one phrase with its parse list, the tare. The kind follows the products. Nothing is
- * saved until «Создать» / «Сохранить». `/d/new[?from=<simple dish>]` or `/d/:id/edit`; the draft is
+ * saved until «Создать» / «Сохранить». `/d/new[?from=<simple dish>|?text=<first words>]` or `/d/:id/edit`; the draft is
  * taken from the route once, on mount.
  */
 export function DishEditorForm() {
@@ -94,7 +94,8 @@ export function DishEditorForm() {
       name: '',
       // Not everyone weighs in a pot: a new dish starts without tare.
       tareId: null,
-      text: source ? `${ingredientsToPhrase([source])}, ` : '',
+      // `?from=` — a simple dish to start with; `?text=` — what was typed in the search («Создать «…»»).
+      text: source ? `${ingredientsToPhrase([source])}, ` : (params.get('text') ?? ''),
       overrides: {},
     }
   })

@@ -1,6 +1,5 @@
 import { ListPlusIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { presetDishes } from '@/domain'
-import { newId } from '@/store/id'
+import { addAllPresets } from '@/lib/addAllPresets'
 import { useAppStore } from '@/store/store'
 
 /**
@@ -22,8 +21,6 @@ import { useAppStore } from '@/store/store'
  */
 export function PresetsSection() {
   const dishes = useAppStore((s) => s.dishes)
-  const addDishes = useAppStore((s) => s.addDishes)
-  const deleteDish = useAppStore((s) => s.deleteDish)
   // Counts shown in the dialog, kept while it closes (the list changes under it on «Добавить»).
   const [confirm, setConfirm] = useState({ open: false, simple: 0, composite: 0 })
 
@@ -32,19 +29,7 @@ export function PresetsSection() {
   const simple = missing.filter((d) => d.kind === 'simple').length
   const composite = missing.length - simple
 
-  const add = () => {
-    const added = presetDishes(useAppStore.getState().dishes, newId, new Date().toISOString())
-    if (added.length === 0) return
-    addDishes(added)
-    const addedSimple = added.filter((d) => d.kind === 'simple').length
-    toast('Блюда добавлены', {
-      description: `Простых: ${addedSimple}, составных: ${added.length - addedSimple}.`,
-      duration: 8000,
-      action: { label: 'Отменить', onClick: () => added.forEach((d) => deleteDish(d.id)) },
-    })
-  }
-
-  const press = () => (dishes.length > 0 ? setConfirm({ open: true, simple, composite }) : add())
+  const press = () => (dishes.length > 0 ? setConfirm({ open: true, simple, composite }) : addAllPresets())
 
   return (
     <section className="flex flex-col gap-3">
@@ -73,7 +58,7 @@ export function PresetsSection() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={add}>Добавить</AlertDialogAction>
+            <AlertDialogAction onClick={addAllPresets}>Добавить</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
