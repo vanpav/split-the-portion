@@ -32,6 +32,14 @@ export function recentDishes<T extends Pick<Dish, 'updatedAt'>>(dishes: T[]): T[
 }
 
 /**
+ * The dish `#/` opens: the one whose calculator was open last on this device, while it still exists;
+ * otherwise the latest used (docs/UX.md §3).
+ */
+export function startDish<T extends Pick<Dish, 'id' | 'updatedAt'>>(dishes: T[], lastId: Id | null): T | undefined {
+  return dishes.find((d) => d.id === lastId) ?? recentDishes(dishes)[0]
+}
+
+/**
  * The dish shelf while it is open: the chips keep the order they had when it opened (`order`, ids),
  * so a chip never moves away under the finger. Dishes that appeared since — added from the search,
  * or from another device of the group — go first, the latest first; deleted ones drop out.
