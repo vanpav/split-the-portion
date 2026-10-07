@@ -55,7 +55,8 @@ import { useAppStore } from '@/store/store'
 import type { CalculatorOutlet } from './calculatorOutlet'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
-import { kText, portionName, rawWord } from './messages'
+import { portionName, rawWord } from './messages'
+import { KHint } from './KHint'
 import { PersonResult } from './PersonResult'
 import { PortionStepper } from './PortionStepper'
 import { PortionSummary } from './PortionSummary'
@@ -494,9 +495,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const raw = rawFold(shownIngredients.map((i) => ({ ...i, rawGrams: toNumber(texts[i.id] ?? '') })))
 
   // Under the readouts, after the tare: the weight without it and k.
-  const note = [tare && phase.foodGrams !== null && `${formatGrams(phase.foodGrams)} г без тары`, phase.k && kText(phase.k, false)]
-    .filter((part): part is string => Boolean(part))
-    .join(' · ')
+  const tareNote = tare && phase.foodGrams !== null ? `${formatGrams(phase.foodGrams)} г без тары` : null
+  const note = tareNote !== null || phase.k !== null
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
   return (
@@ -543,7 +543,13 @@ export function Calculator({ id }: { id: Id | undefined }) {
             {tareExceeds ? (
               <span className="text-sm text-destructive">вес меньше тары</span>
             ) : (
-              note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
+              note && (
+                <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
+                  {tareNote}
+                  {tareNote !== null && phase.k && ' · '}
+                  {phase.k && <KHint k={phase.k} />}
+                </span>
+              )
             )}
             {foldable && (
               <Button

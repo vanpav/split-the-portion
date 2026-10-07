@@ -406,6 +406,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ (`InputGroupButton`), тип — `ToggleGroup`, сортировка — `Select` |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказка «Найти блюдо ⌘K /» | `Tooltip` + `Kbd` |
+| «k блюда» под показаниями (`KHint`) | Подпись с пунктирным подчёркиванием: `Tooltip` с `hover` + точная мышь, иначе тап открывает `Sheet` `side="bottom"` с тем же текстом |
 | «Что в блюде» в редакторе | `Textarea` (16 px, растёт по тексту — `field-sizing: content`); «Вставить», «Из блюда» — `Button` variant `ghost` над полем |
 | Микрофон в поле «Что в блюде» | `Button` size `icon`, круглый, в правом нижнем углу поля; при записи — variant `default` с пульсом (`motion-safe:animate-pulse`), распознавание — `lib/useSpeechRecognition` |
 | Разбор фразы | Список кнопок-строк на `bg-muted/60` (тап — учитывать или нет, фокус остаётся в поле), × — `Button` variant `ghost` size `icon`; строка с курсором — `bg-card`; пометки — `text-destructive` / `text-warning` |
