@@ -57,8 +57,6 @@ interface PersonResultProps {
   percent: string | null
   /** «своя ×»: the person goes back to splitting by share. */
   onReleaseOwn: () => void
-  /** The portion was copied for the tracker (the copy hint is done with). */
-  onCopied?: () => void
 }
 
 /**
@@ -81,7 +79,6 @@ export function PersonResult({
   grams,
   percent,
   onReleaseOwn,
-  onCopied,
 }: PersonResultProps) {
   const single = result.baseIngredientId !== null
   const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
@@ -225,7 +222,6 @@ export function PersonResult({
             label={`Скопировать для трекера: ${name}`}
             disabled={computed.share === null}
             getText={() => rawAmountsCopyText(cooking, computed.raw) || null}
-            onCopied={onCopied}
           />
           <HoldButton
             holdMs={holdMs}

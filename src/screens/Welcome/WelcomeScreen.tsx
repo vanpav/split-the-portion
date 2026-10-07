@@ -84,11 +84,10 @@ export function WelcomeScreen() {
             />
           ))}
         </div>
-        {!last && (
-          <Button variant="ghost" className="text-muted-foreground" onClick={() => (signedIn ? finish('/', true) : setStep(count - 1))}>
-            Пропустить
-          </Button>
-        )}
+        {/* On every step, the account one too: straight into the app, without an account. */}
+        <Button variant="ghost" className="text-muted-foreground" onClick={() => finish('/', true)}>
+          Пропустить
+        </Button>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 pt-4 lg:justify-center lg:pb-12">
         {/* Each step comes in afresh: its picture plays from the start. */}

@@ -2,7 +2,6 @@ import { BookOpenIcon, CookingPotIcon, PlusIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { newDishPath, settingsPath } from '@/app/paths'
 import { MoreMenu } from '@/components/MoreMenu'
-import { HintCard } from '@/components/HintCard'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
@@ -62,8 +61,6 @@ export function DishMenuScreen({ home }: { home?: boolean }) {
         ) : (
           <DishMenu />
         )}
-        {/* «На экран „Домой“» on an iPhone: best before there are dishes to lose (docs/UX.md §3в). */}
-        {home && <HintCard place="dishes" />}
       </main>
     </>
   )
