@@ -101,7 +101,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const lineups = useAppStore((s) => s.lineups)
   const setLineup = useAppStore((s) => s.setLineup)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
-  const holdMs = useAppStore((s) => s.holdMs)
   const setCooked = useAppStore((s) => s.setCooked)
   // «Доли» (docs/SPEC.md §3б): this device's choice for every dish; the portions are per dish, here only.
   const splitMode = usePrefsStore((s) => s.splitMode)
@@ -652,7 +651,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   dry={rawOf !== null}
                   onRename={(name) => updatePerson(p.portionId, name)}
                   onRemove={() => removePerson(p.portionId)}
-                  holdMs={holdMs}
                   onReleaseOwn={() => releaseOwn(p.portionId)}
                   percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
                   grams={{ ...amountField(p.portionId), onToggleUnit: () => toggleUnit(p.portionId) }}

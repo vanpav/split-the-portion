@@ -6,12 +6,10 @@ import { refreshAccount } from '@/account/refreshAccount'
 import type { AccountGroup } from '@/account/types'
 import { HoldButton } from '@/components/HoldButton'
 import { useAccountStore } from '@/store/account'
-import { useAppStore } from '@/store/store'
 
 /** Who keeps this group's records; the owner removes people by holding × (like people in a company). */
 export function GroupMembers({ group }: { group: AccountGroup }) {
   const myId = useAccountStore((s) => s.me?.user.id)
-  const holdMs = useAppStore((s) => s.holdMs)
 
   const remove = async (memberId: string, email: string) => {
     try {
@@ -32,9 +30,7 @@ export function GroupMembers({ group }: { group: AccountGroup }) {
           {m.role === 'owner' && <span className="text-sm text-muted-foreground">владелец</span>}
           {group.role === 'owner' && m.userId !== myId && (
             <HoldButton
-              holdMs={holdMs}
               label={`Убрать из группы: ${m.email}`}
-              hint="Удерживай ×, чтобы убрать из группы"
               onConfirm={() => void remove(m.memberId, m.email)}
             >
               <XIcon />
