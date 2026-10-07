@@ -1,9 +1,10 @@
-import { XIcon } from 'lucide-react'
+import { ChevronDownIcon, XIcon } from 'lucide-react'
 import { Fragment, useRef, type KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
 import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import {
   baseRawGrams,
@@ -34,7 +35,6 @@ interface PersonResultProps {
   onRename?: (name: string) => void
   onRemove: () => void
   /** «×» is held this long before the person is removed; 0 — a tap. */
-  holdMs: number
   /** The answer is a field: tap it and type the person's own portion. */
   grams: {
     id: string
@@ -72,7 +72,6 @@ export function PersonResult({
   dry,
   onRename,
   onRemove,
-  holdMs,
   grams,
   percent,
   onReleaseOwn,
@@ -221,10 +220,8 @@ export function PersonResult({
             getText={() => rawAmountsCopyText(cooking, computed.raw) || null}
           />
           <HoldButton
-            holdMs={holdMs}
             className="w-10 text-muted-foreground"
             label={name ? `Убрать: ${name}` : 'Убрать человека'}
-            hint="Удерживай ×, чтобы убрать"
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}
           >
@@ -232,7 +229,18 @@ export function PersonResult({
           </HoldButton>
         </div>
       </div>
-      {!single && computed.share !== null && <RawList cooking={cooking} raw={computed.raw} />}
+      {!single && computed.share !== null && (
+        // Not remembered: every row starts closed, the split by product is there on request.
+        <Collapsible className="group/raw">
+          <CollapsibleTrigger className="-my-3 flex min-h-11 items-center gap-1 px-1 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            Из чего
+            <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]/raw:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-1 pt-3">
+            <RawList cooking={cooking} raw={computed.raw} />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </SwipeRow>
   )
 }

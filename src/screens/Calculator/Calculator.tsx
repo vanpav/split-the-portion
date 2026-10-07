@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon, Undo2Icon } from 'lucide-react'
+import { ChevronUpIcon, Undo2Icon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
@@ -101,7 +101,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const lineups = useAppStore((s) => s.lineups)
   const setLineup = useAppStore((s) => s.setLineup)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
-  const holdMs = useAppStore((s) => s.holdMs)
   const setCooked = useAppStore((s) => s.setCooked)
   // «Доли» (docs/SPEC.md §3б): this device's choice for every dish; the portions are per dish, here only.
   const splitMode = usePrefsStore((s) => s.splitMode)
@@ -545,16 +544,15 @@ export function Calculator({ id }: { id: Id | undefined }) {
             ) : (
               note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
             )}
-            {foldable && (
+            {foldable && !folded && (
               <Button
                 variant="ghost"
-                aria-expanded={!folded}
-                // A quiet line: open or not, the button stays text, without the pressed fill.
-                className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
-                onClick={folded ? () => setFolded(false) : fold}
+                // A quiet line: the button stays text, without the pressed fill.
+                className="ml-auto px-2 text-muted-foreground"
+                onClick={fold}
               >
-                {folded ? 'Ингредиенты' : 'Свернуть'}
-                {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
+                Свернуть
+                <ChevronUpIcon data-icon="inline-end" />
               </Button>
             )}
           </div>
@@ -652,7 +650,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   dry={rawOf !== null}
                   onRename={(name) => updatePerson(p.portionId, name)}
                   onRemove={() => removePerson(p.portionId)}
-                  holdMs={holdMs}
                   onReleaseOwn={() => releaseOwn(p.portionId)}
                   percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
                   grams={{ ...amountField(p.portionId), onToggleUnit: () => toggleUnit(p.portionId) }}

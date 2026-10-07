@@ -360,7 +360,7 @@ src/
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
       sections.ts             — список подразделов: адрес, название, подпись, иконка
-      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), HoldSection, PresetsSection, DataSection
+      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), PresetsSection, DataSection
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)

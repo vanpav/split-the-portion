@@ -6,7 +6,6 @@ import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
 import { defaultShareWeight, exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
-import { useAppStore } from '@/store/store'
 
 /** What the form edits: a company without its id (a new one has none yet). */
 export type CompanyDraft = Pick<Company, 'name' | 'members'>
@@ -24,7 +23,6 @@ interface CompanyFormProps {
  * The same form in the settings and on the calculator's «Новая компания» screen.
  */
 export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
-  const holdMs = useAppStore((s) => s.holdMs)
   // «+ Имя» of this form: the empty bar puts the cursor there. Several forms can be open in the settings.
   const addPersonId = useId()
   const { members } = value
@@ -76,10 +74,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
               {formatPercent(shares[index])} %
             </span>
             <HoldButton
-              holdMs={holdMs}
               className="w-10 text-muted-foreground"
               label={m.name ? `Убрать: ${m.name}` : 'Убрать человека'}
-              hint="Удерживай ×, чтобы убрать"
               onConfirm={() => removeMember(m.id)}
             >
               <XIcon />
