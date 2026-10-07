@@ -7,13 +7,14 @@ import { settleHints } from '@/onboarding/hints'
 import { openStartData, refreshGroups, resumeSync } from '@/sync/session'
 import { accountReady, useAccountStore } from '@/store/account'
 import { askPersistentStorage } from '@/store/idbStorage'
+import { lastCalculatorReady } from '@/store/lastCalculator'
 import { prefsReady, usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 import './index.css'
 
 // Data lives in IndexedDB and is read asynchronously: render once it is in, so nothing typed
 // meanwhile can overwrite it. A few milliseconds; the page is blank until then.
-void Promise.all([useAppStore.ready, accountReady, prefsReady]).then(async () => {
+void Promise.all([useAppStore.ready, accountReady, prefsReady, lastCalculatorReady]).then(async () => {
   askPersistentStorage()
   // Signed in: the default group's data, also offline (docs/ARCHITECTURE.md §10).
   await openStartData()

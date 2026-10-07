@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights, shelfOrder } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights, shelfOrder, startDish } from '../dish'
 import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
 import { cooked, ingredient, share } from './fixtures'
@@ -88,6 +88,21 @@ describe('recentDishes', () => {
     expect(recentDishes(dishes).map((d) => d.id)).toEqual(['b', 'c', 'a'])
     expect(dishes.map((d) => d.id)).toEqual(['a', 'b', 'c'])
     expect(recentDishes([])).toEqual([])
+  })
+})
+
+describe('startDish', () => {
+  const a = dish({ id: 'a', updatedAt: '2026-10-01T10:00:00.000Z' })
+  const b = dish({ id: 'b', updatedAt: '2026-10-05T19:40:00.000Z' })
+
+  it('the dish open last, even if another was used later', () => {
+    expect(startDish([a, b], 'a')).toBe(a)
+  })
+
+  it('none open yet or it is gone: the latest used', () => {
+    expect(startDish([a, b], null)).toBe(b)
+    expect(startDish([a, b], 'deleted')).toBe(b)
+    expect(startDish([], 'a')).toBeUndefined()
   })
 })
 

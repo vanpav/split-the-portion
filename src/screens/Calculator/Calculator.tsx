@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils'
 import { useCalculatorTour } from '@/onboarding/useCalculatorTour'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
+import { endLaunch, launchInput, useLastCalculatorStore, type OwnPortion as Own } from '@/store/lastCalculator'
 import { useAppStore } from '@/store/store'
 import type { CalculatorOutlet } from './calculatorOutlet'
 import { CompanyPicker } from './CompanyPicker'
@@ -69,14 +70,6 @@ const TILE_SPAN: Record<number, string> = { 1: 'col-span-6', 2: 'col-span-3', 3:
 /** A person's own portion (cooked grams) is a field too. */
 const personKey = (personId: string) => `person:${personId}`
 const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('person:'.length) : null)
-
-/** An own portion typed in the calculator. */
-interface Own {
-  unit: 'g' | '%'
-  value: number
-  /** Grams typed while «Сухой» was in focus: dry grams of this ingredient, not cooked. */
-  raw?: Id
-}
 
 const ownCooked = (fixed: Record<string, Own>) =>
   Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === 'g' && !own.raw ? [[id, own.value]] : [])))
@@ -117,14 +110,17 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const setPortions = usePrefsStore((s) => s.setPortions)
   const inShares = splitMode === 'shares'
   const [now] = useState(() => new Date().toISOString())
+  // After a restart or a crash the first calculator comes back as it was left today (store/lastCalculator).
+  const [restored] = useState(() => launchInput(id, new Date(now)))
+  const rememberLast = useLastCalculatorStore((s) => s.remember)
 
   // Raw weights come from the dish (what was typed last time).
-  const [texts, setTexts] = useState<Record<string, string>>(() =>
-    Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, formatInput(i.rawGrams)])),
+  const [texts, setTexts] = useState<Record<string, string>>(
+    () => restored?.texts ?? Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, formatInput(i.rawGrams)])),
   )
   // «Готовый» is today's weighing of this dish, here or on another device of the group; once typed into
   // here, it is what is typed.
-  const [cookedTouched, setCookedTouched] = useState(false)
+  const [cookedTouched, setCookedTouched] = useState(restored?.cookedTouched ?? false)
   // The dish remembers the tare it is weighed in, as it does the raw weight. A tare deleted from the
   // library is no tare: weighed without it (docs/SPEC.md §8).
   const tareId = liveTareId(dish?.tareId ?? null, tares)
@@ -137,7 +133,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // A composite dish starts folded: its weights come from last time, only «Готовый» is new.
   // Unfolded when a counted product has no weight yet — it has to be typed.
   const foldable = shownIngredients.length > 1
-  const [folded, setFolded] = useState(() => foldable && shownIngredients.every((i) => i.excluded || i.rawGrams !== null))
+  const [folded, setFolded] = useState(
+    () => restored?.folded ?? (foldable && shownIngredients.every((i) => i.excluded || i.rawGrams !== null)),
+  )
   const rows = [...(folded ? [] : shownIngredients.map((i) => i.id)), COOKED]
   // Start where the number is missing: usually the weight after cooking. With a mouse that field is
   // focused at once; on a phone the system keyboard waits for a tap, so it does not cover the answer.
@@ -149,18 +147,29 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // The weight field last in focus: «Сухой» shows the portions in dry grams, «Готовый» in cooked
   // (docs/SPEC.md §3б). It stays when a person's field or nothing has focus. The dish opens where the
   // number is missing, as the focus does with a mouse.
-  const [weightRow, setWeightRow] = useState(() => rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
+  const [weightRow, setWeightRow] = useState(() => restored?.weightRow ?? rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED)
   // Today's own portions, in cooked grams or in percent of the dish: these people get exactly that,
   // the rest split what is left by share.
-  const [fixed, setFixed] = useState<Record<Id, Own>>({})
+  const [fixed, setFixed] = useState<Record<Id, Own>>(restored?.fixed ?? {})
   // The unit the active person's number is typed in.
-  const [unit, setUnit] = useState<Own['unit']>('g')
+  const [unit, setUnit] = useState<Own['unit']>(restored?.unit ?? 'g')
   // What the share bar shows: grams or percent; people show it too until switched one by one.
-  const [barUnit, setBarUnit] = useState<Own['unit']>('g')
+  const [barUnit, setBarUnit] = useState<Own['unit']>(restored?.barUnit ?? 'g')
   // A person's own «г / %» switch, by id.
-  const [shown, setShown] = useState<Record<Id, Own['unit']>>({})
+  const [shown, setShown] = useState<Record<Id, Own['unit']>>(restored?.shown ?? {})
   // «На завтра»: percent of the dish set aside, pulled in from the bar's right edge.
-  const [keep, setKeep] = useState(0)
+  const [keep, setKeep] = useState(restored?.keep ?? 0)
+  // Every change is written at once: a crash loses nothing typed. Only this calculator, no other screen.
+  const dishId = dish?.id
+  useEffect(() => {
+    if (!dishId) return
+    rememberLast({
+      dishId,
+      at: new Date().toISOString(),
+      input: { texts, cookedTouched, folded, weightRow, fixed, unit, barUnit, shown, keep },
+    })
+  }, [dishId, rememberLast, texts, cookedTouched, folded, weightRow, fixed, unit, barUnit, shown, keep])
+  useEffect(() => endLaunch(), [])
 
   // «Кто ест» is remembered per dish; before it is first changed, the first company.
   const lineup = useMemo(() => dishLineup(lineups, id ?? '', companies), [lineups, id, companies])

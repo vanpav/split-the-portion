@@ -14,6 +14,11 @@ export function dayLabel(at: string, now: Date): string {
   return dayMonth.format(date)
 }
 
+/** Whether `at` falls on the same local calendar day as `now`. */
+export function sameDay(at: string, now: Date): boolean {
+  return startOfDay(new Date(at)) === startOfDay(now)
+}
+
 /** «19:40» in local time: when a dish's cooked weight was typed. */
 export function clockTime(at: string): string {
   return clock.format(new Date(at))
@@ -25,5 +30,5 @@ export function clockTime(at: string): string {
  */
 export function cookedToday(cooked: CookedWeight | null, tareId: Id | null, now: Date): number | null {
   if (!cooked || cooked.tareId !== tareId) return null
-  return startOfDay(new Date(cooked.at)) === startOfDay(now) ? cooked.grams : null
+  return sameDay(cooked.at, now) ? cooked.grams : null
 }
