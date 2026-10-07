@@ -7,7 +7,6 @@ import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
 import { Input } from '@/components/ui/input'
 import {
   formatGrams,
-  formatPercent,
   portionRawGrams,
   rawAmountsCopyText,
   type Cooking,
@@ -41,17 +40,11 @@ interface PersonResultProps {
     active: boolean
     text: string
     own: boolean
-    /** What the number is in — shown and typed: cooked grams or percent of the dish. */
-    unit: 'g' | '%'
-    /** The «г / %» switch, always in the field. */
-    onToggleUnit: () => void
     onFocus: () => void
     onBlur: () => void
     onText: (text: string) => void
     onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void
   }
-  /** Part of the whole dish, «54» — so the split is readable even where the bar is too narrow. */
-  percent: string | null
   /** «своя ×»: the person goes back to splitting by share. */
   onReleaseOwn: () => void
   /** «Состав»: a composite dish with the recipe toggle; `open` — it is on. */
@@ -74,35 +67,22 @@ export function PersonResult({
   onRename,
   onRemove,
   grams,
-  percent,
   onReleaseOwn,
   recipe,
 }: PersonResultProps) {
   // Raw grams of the portion: the only counted ingredient's, or all counted ones together.
   const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
-  const inPercent = grams.unit === '%'
-  const rawText = baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
-  // Under the name: the other unit of the answer (percent under grams, grams under percent), then the
-  // other view — raw under cooked, cooked under dry.
+  // Under the name: the other view — raw under cooked, cooked under dry. Grams only, no percent.
   const subline = (
     dry
-      ? [
-          inPercent ? rawText : percent !== null && `${percent} %`,
-          computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`,
-        ]
-      : [
-          inPercent
-            ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г`
-            : percent !== null && `${percent} %`,
-          rawText,
-        ]
+      ? [computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`]
+      : [baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`]
   ).filter((part): part is string => Boolean(part))
 
-  // The answer in the person's unit and view.
+  // The answer in the view's grams. Not weighed yet: no answer at all, only the name (docs/SPEC.md §3б).
   const viewGrams = dry ? baseRaw : computed.cookedGrams
-  const shownNumber = inPercent
-    ? computed.share !== null ? formatPercent(computed.share) : null
-    : viewGrams !== null ? formatGrams(viewGrams) : null
+  const shownNumber = viewGrams !== null ? formatGrams(viewGrams) : null
+  const answered = shownNumber !== null || grams.own || grams.active
   const copyRef = useRef<HTMLButtonElement>(null)
   const rowRef = useRef<SwipeRowHandle>(null)
 
@@ -116,25 +96,29 @@ export function PersonResult({
       onCopy={computed.share !== null ? () => copyRef.current?.click() : null}
     >
       <div className="flex items-center gap-2">
-        <span aria-hidden className={cn('size-3.5 shrink-0 self-start mt-3 rounded-[5px]', lidFill(place))} />
+        {/* The lid sits on the name's line, not on the row's top: with or without a line under the name, the
+            two stay level, and the name block is centred on the answer. */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {onRename ? (
-            <Input
-              aria-label="Имя"
-              placeholder="Имя"
-              value={name}
-              enterKeyHint="done"
-              onChange={(e) => onRename(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-              className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
-            />
-          ) : (
-            // The same place as the name field, without the field.
-            <span className="flex h-9 items-center px-1 text-base font-medium">{name}</span>
-          )}
+          <div className="flex min-w-0 items-center gap-2">
+            <span aria-hidden className={cn('size-3.5 shrink-0 rounded-[5px]', lidFill(place))} />
+            {onRename ? (
+              <Input
+                aria-label="Имя"
+                placeholder="Имя"
+                value={name}
+                enterKeyHint="done"
+                onChange={(e) => onRename(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                className="h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
+              />
+            ) : (
+              // The same place as the name field, without the field.
+              <span className="flex h-9 items-center px-1 text-base font-medium">{name}</span>
+            )}
+          </div>
           {(subline.length > 0 || grams.own) && (
-            // Each part stays whole («13 г сухого»); the line wraps only between parts.
-            <span className="px-1 text-sm leading-snug text-muted-foreground tabular-nums">
+            // Each part stays whole («13 г сухого»); the line wraps only between parts. Under the name, past the lid.
+            <span className="pr-1 pl-[26px] text-sm leading-snug text-muted-foreground tabular-nums">
               {grams.own && (
                 <button
                   type="button"
@@ -161,25 +145,19 @@ export function PersonResult({
             </span>
           )}
         </div>
-        {/* Right: what to put on the plate. Tap the number to type an own portion; the unit next to it
-            is a switch, always there, so nothing moves when the field is chosen. */}
-        <div
-          className={cn(
-            'flex min-h-14 shrink-0 items-center rounded-xl border transition-colors',
-            grams.active ? 'border-border bg-card' : 'border-transparent',
-          )}
-        >
+        {/* Right: what to put on the plate, in grams. Tap the number to type an own portion. */}
+        {answered && (
           <label
             htmlFor={grams.id}
             className={cn(
-              'flex min-h-14 cursor-text items-center rounded-xl py-1 pl-2 transition-colors',
-              !grams.active && 'hover:bg-muted/50',
+              'flex min-h-14 shrink-0 cursor-text items-center rounded-xl border px-2 py-1 transition-colors',
+              grams.active ? 'border-border bg-card' : 'border-transparent hover:bg-muted/50',
             )}
           >
             <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
               <DigitsInput
                 id={grams.id}
-                aria-label={`${name || 'Человек'}: своя порция, ${inPercent ? 'проценты' : dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+                aria-label={`${name || 'Человек'}: своя порция, ${dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
                 enterKeyHint="done"
                 lids={lids}
                 // Until something is typed: today's number, faded — the field keeps its width.
@@ -190,27 +168,12 @@ export function PersonResult({
                 onChange={(e) => grams.onText(e.target.value)}
                 onKeyDown={grams.onKeyDown}
               />
+              <span aria-hidden className="ml-1 text-base font-normal text-muted-foreground">
+                г
+              </span>
             </span>
           </label>
-          <button
-            type="button"
-            aria-label={`${name || 'Человек'}: показывать в ${inPercent ? 'граммах' : 'процентах'}`}
-            onClick={grams.onToggleUnit}
-            // The number keeps focus: switched while typing, what is typed is converted.
-            onMouseDown={(e) => e.preventDefault()}
-            // Small to look at, 44 px to hit.
-            className="group/unit flex min-h-11 min-w-11 items-center justify-center rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          >
-            <span
-              className={cn(
-                'min-w-7 rounded-md border px-1.5 py-0.5 text-center text-base leading-tight text-muted-foreground tabular-nums transition-colors group-hover/unit:text-foreground',
-                grams.active ? 'border-border bg-background' : 'border-transparent bg-muted',
-              )}
-            >
-              {inPercent ? '%' : 'г'}
-            </span>
-          </button>
-        </div>
+        )}
         {/* Row actions, stacked: each half the row's height, so they stay out of the answer's way.
             On a touch screen the row is swiped instead; the buttons stay for the keyboard and a screen reader. */}
         <div className="flex shrink-0 flex-col pointer-coarse:sr-only">
@@ -233,7 +196,7 @@ export function PersonResult({
       </div>
       {recipe && computed.share !== null && (
         // From the name to the answer, not under the actions; always per person.
-        <PortionRecipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[22px]" />
+        <PortionRecipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[26px]" />
       )}
     </SwipeRow>
   )

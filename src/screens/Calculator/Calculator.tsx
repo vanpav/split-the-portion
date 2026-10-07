@@ -23,7 +23,6 @@ import {
   exactPercents,
   formatGrams,
   formatInput,
-  formatPercent,
   keepLimit,
   ingredientDisplayName,
   lineupCompany,
@@ -77,15 +76,11 @@ const personKey = (personId: string) => `person:${personId}`
 const personTarget = (row: string) => (row.startsWith('person:') ? row.slice('person:'.length) : null)
 
 const ownCooked = (fixed: Record<string, Own>) =>
-  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === 'g' && !own.raw ? [[id, own.value]] : [])))
+  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (!own.raw ? [[id, own.value]] : [])))
 const ownRaw = (fixed: Record<string, Own>) =>
   Object.fromEntries(
-    Object.entries(fixed).flatMap(([id, own]) =>
-      own.unit === 'g' && own.raw ? [[id, { ingredientId: own.raw, grams: own.value }]] : [],
-    ),
+    Object.entries(fixed).flatMap(([id, own]) => (own.raw ? [[id, { ingredientId: own.raw, grams: own.value }]] : [])),
   )
-const ownPercent = (fixed: Record<string, Own>) =>
-  Object.fromEntries(Object.entries(fixed).flatMap(([id, own]) => (own.unit === '%' ? [[id, own.value]] : [])))
 
 const toNumber = (text: string) => {
   const parsed = parseGrams(text)
@@ -159,15 +154,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
       ? restored.weightRow
       : (rows.find((r) => r !== COOKED && !texts[r]) ?? COOKED),
   )
-  // Today's own portions, in cooked grams or in percent of the dish: these people get exactly that,
-  // the rest split what is left by share.
+  // Today's own portions, in grams of the view they were typed in: these people get exactly that,
+  // the rest split what is left by share. No percent anywhere (docs/SPEC.md §3б).
   const [fixed, setFixed] = useState<Record<Id, Own>>(restored?.fixed ?? {})
-  // The unit the active person's number is typed in.
-  const [unit, setUnit] = useState<Own['unit']>(restored?.unit ?? 'g')
-  // What the share bar shows: grams or percent; people show it too until switched one by one.
-  const [barUnit, setBarUnit] = useState<Own['unit']>(restored?.barUnit ?? 'g')
-  // A person's own «г / %» switch, by id.
-  const [shown, setShown] = useState<Record<Id, Own['unit']>>(restored?.shown ?? {})
   // «На завтра»: percent of the dish set aside, pulled in from the bar's right edge.
   const [keep, setKeep] = useState(restored?.keep ?? 0)
   // Every change is written at once: a crash loses nothing typed. Only this calculator, no other screen.
@@ -177,9 +166,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
     rememberLast({
       dishId,
       at: new Date().toISOString(),
-      input: { texts, cookedTouched, weightRow, fixed, unit, barUnit, shown, keep },
+      input: { texts, cookedTouched, weightRow, fixed, keep },
     })
-  }, [dishId, rememberLast, texts, cookedTouched, weightRow, fixed, unit, barUnit, shown, keep])
+  }, [dishId, rememberLast, texts, cookedTouched, weightRow, fixed, keep])
   useEffect(() => endLaunch(), [])
 
   // «Кто ест» is remembered per dish; before it is first changed, the first company.
@@ -219,7 +208,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
           companyId,
           fixedCooked: ownCooked(fixed),
           fixedRaw: ownRaw(fixed),
-          fixedPercent: ownPercent(fixed),
         },
         now,
       ),
@@ -270,7 +258,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     }
     // A person's number: a value makes it their own portion, an empty field gives them back to the shares.
     const personId = personTarget(row)
-    if (personId) setOwn(personId, grams, unit, rawOf)
+    if (personId) setOwn(personId, grams, rawOf)
   }
   // The weight typed here now means the weight in the new tare. One from elsewhere was weighed in the
   // old tare: it no longer fits and is not shown.
@@ -281,44 +269,21 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const leavePerson = (personId: Id) => {
     if (active === personKey(personId)) focusOrBlur(null)
   }
-  const setOwn = (personId: Id, value: number | null, ownUnit: Own['unit'], raw: Id | null) =>
+  const setOwn = (personId: Id, value: number | null, raw: Id | null) =>
     setFixed((f) => {
       const { [personId]: _old, ...rest } = f
-      if (value === null || value <= 0 || (ownUnit === '%' && value > 100)) return rest
-      const own: Own = ownUnit === 'g' && raw ? { unit: ownUnit, value, raw } : { unit: ownUnit, value }
-      return { ...rest, [personId]: own }
+      if (value === null || value <= 0) return rest
+      return { ...rest, [personId]: raw ? { value, raw } : { value } }
     })
   const activatePerson = (personId: Id) => {
     const key = personKey(personId)
     const own = fixed[personId]
-    const ownUnit = own?.unit ?? shown[personId] ?? barUnit
     // An own portion typed in the other view (dry ⇄ cooked) is shown in this one.
     const computed = phase?.portions.find((p) => p.portionId === personId)
-    const sameView = own && (own.unit === '%' || (own.raw ?? null) === rawOf)
-    const value = !own ? null : sameView ? own.value : computed ? portionIn(computed, own.unit, rawOf) : null
-    setUnit(ownUnit)
+    const sameView = own && (own.raw ?? null) === rawOf
+    const value = !own ? null : sameView ? own.value : computed ? portionIn(computed, 'g', rawOf) : null
     setTexts((t) => ({ ...t, [key]: value !== null ? formatInput(value) : '' }))
     setActive(key)
-  }
-  // г ⇄ %: the number typed so far is converted, so the person keeps the same portion.
-  const switchUnit = (personId: Id, next: Own['unit']) => {
-    if (next === unit) return
-    const computed = phase?.portions.find((p) => p.portionId === personId)
-    const converted = fixed[personId] === undefined || !computed ? null : portionIn(computed, next, rawOf)
-    setUnit(next)
-    setOwn(personId, converted, next, rawOf)
-    setTexts((t) => ({ ...t, [personKey(personId)]: converted !== null ? formatInput(converted) : '' }))
-  }
-  // What a person's number is in: typed now, their own portion, their switch, or the bar's.
-  const unitOf = (personId: Id): Own['unit'] =>
-    active === personKey(personId) ? unit : (fixed[personId]?.unit ?? shown[personId] ?? barUnit)
-  // The «г / %» switch in a person's field: the same portion, shown (and typed) in the other unit.
-  const toggleUnit = (personId: Id) => {
-    const next = unitOf(personId) === 'g' ? '%' : 'g'
-    setShown((s) => ({ ...s, [personId]: next }))
-    if (active === personKey(personId)) return switchUnit(personId, next)
-    const computed = phase?.portions.find((p) => p.portionId === personId)
-    if (fixed[personId] !== undefined && computed) setOwn(personId, portionIn(computed, next, rawOf), next, rawOf)
   }
   // ↓ ↑ walk the weights; from a person they go back to «Готовый». Enter moves on to «Готовый»
   // and there closes the keyboard: the answer is under it.
@@ -351,7 +316,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
     if (mode === splitMode) return
     if (active !== null && personTarget(active)) focusOrBlur(null)
     setFixed({})
-    setShown({})
     setSplitMode(mode)
   }
   // A company brings its default shares; what was moved for this dish before is replaced. From «Доли»
@@ -477,7 +441,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
     active: active === personKey(personId),
     text: texts[personKey(personId)] ?? '',
     own: fixed[personId] !== undefined,
-    unit: unitOf(personId),
     onFocus: () => activatePerson(personId),
     onBlur: leave,
     onText: (typed: string) => type(personKey(personId), typed),
@@ -495,12 +458,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
     label: gramsLabel(portionGrams(p, rawOf)),
   }))
   const potRaw = result && phase ? portionRawGrams(result, phase.remainder.raw) : null
-  // What the people who split by share get together, in grams of the view: «17 % из 440 г».
-  const sharingGrams = (phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined).map((p) => portionGrams(p, rawOf))
-  const sharedGrams = sharingGrams.every((g) => g !== null) ? sharingGrams.reduce<number>((a, g) => a + (g ?? 0), 0) : null
   // «Доли»: the portions that split by share all get the same — one ⧉ above the grid copies any of them.
-  // The same test as that line's, so the tiles hide their ⧉ before the dish is weighed too.
-  const sharingAmounts = splitAmounts((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined), rawOf, barUnit)
+  // The same test as that line's, so the tiles hide their ⧉ before the dish is weighed too (then by shares, unseen).
+  const sharingAmounts = splitAmounts((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined), rawOf, 'g')
   const sameShares = splitSummary(sharingAmounts.values, sharingAmounts.inPercent ? 1 : 0)?.same != null
   // The tour over this screen (docs/UX.md §3б): with the share bar on screen its third step points at it.
   useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
@@ -632,13 +592,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
             keep={keepNow}
             keepMost={keepMost}
             onKeep={inShares ? undefined : setKeep}
-            unit={barUnit}
-            onUnit={setBarUnit}
             numbered={inShares}
             // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything;
             // a tap on it puts the cursor into «+ Имя».
             empty={{ label: 'Добавь людей', fieldId: ADD_PERSON_ID }}
-            sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
             hint="bar"
           />
           {Object.keys(fixed).length > 0 && (
@@ -659,7 +616,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 portions={phase.portions}
                 ownIds={Object.keys(fixed)}
                 rawOf={rawOf}
-                unit={barUnit}
                 numberOf={(portionId) => placeOf(portionId) + 1}
                 recipe={recipe}
               />
@@ -698,8 +654,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   onRemove={() => removePerson(p.portionId)}
                   onReleaseOwn={() => releaseOwn(p.portionId)}
                   recipe={recipe}
-                  percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
-                  grams={{ ...amountField(p.portionId), onToggleUnit: () => toggleUnit(p.portionId) }}
+                  grams={amountField(p.portionId)}
                 />
               ))}
               <AddPersonRow id={ADD_PERSON_ID} onAdd={addPerson} />

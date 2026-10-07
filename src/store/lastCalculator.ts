@@ -6,9 +6,8 @@ import { LAST_CALCULATOR_KEY, LAST_CALCULATOR_VERSION, migrateLastCalculator } f
 
 export { LAST_CALCULATOR_KEY, LAST_CALCULATOR_VERSION }
 
-/** An own portion typed in the calculator. */
+/** An own portion typed in the calculator: grams, cooked unless `raw` says otherwise. */
 export interface OwnPortion {
-  unit: 'g' | '%'
   value: number
   /** Grams typed while «Сухой» or «Сырой» was in focus: raw grams of this ingredient (`RAW_SUM`: of the counted ones together), not cooked. */
   raw?: Id
@@ -21,9 +20,6 @@ export interface CalculatorInput {
   cookedTouched: boolean
   weightRow: string
   fixed: Record<Id, OwnPortion>
-  unit: OwnPortion['unit']
-  barUnit: OwnPortion['unit']
-  shown: Record<Id, OwnPortion['unit']>
   keep: number
 }
 

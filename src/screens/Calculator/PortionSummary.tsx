@@ -1,7 +1,6 @@
 import { CopyButton } from '@/components/CopyButton'
 import {
   formatGrams,
-  formatPercent,
   portionGrams,
   portionRawGrams,
   rawAmountsCopyText,
@@ -25,8 +24,6 @@ interface PortionSummaryProps {
   ownIds: Id[]
   /** «Сухой» is in focus: dry grams of this ingredient. */
   rawOf: Id | null
-  /** The bar's unit: grams of the view or percent of the dish. */
-  unit: 'g' | '%'
   /** A portion's number: its place in the lineup. */
   numberOf: (id: Id) => number
   /** «Состав»: equal portions show one recipe under the line; `open` — the mode is on. */
@@ -38,33 +35,27 @@ interface PortionSummaryProps {
  * container, said once, with ⧉ for the tracker when they are all the same. Portions that differ get the
  * range; own ones are named under it.
  */
-export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit, numberOf, recipe }: PortionSummaryProps) {
+export function PortionSummary({ cooking, result, portions, ownIds, rawOf, numberOf, recipe }: PortionSummaryProps) {
   const sharing = portions.filter((p) => !ownIds.includes(p.portionId))
   const own = portions.filter((p) => ownIds.includes(p.portionId))
-  // Grams of the view once weighed; percent of the dish before that, or when asked for.
-  const { inPercent, values } = splitAmounts(sharing, rawOf, unit)
-  const amount = (p: PortionResult) => (inPercent ? (p.share !== null ? p.share * 100 : null) : portionGrams(p, rawOf))
-  const summary = splitSummary(values, inPercent ? 1 : 0)
+  // Grams of the view; not weighed yet, there is nothing to say — the tiles show their numbers.
+  const { inPercent, values } = splitAmounts(sharing, rawOf, 'g')
+  const summary = inPercent ? null : splitSummary(values)
   if (!summary) return null
 
-  const shown = (value: number) => (inPercent ? `${formatPercent(value / 100)} %` : `${formatGrams(value)} г`)
+  const shown = (value: number) => `${formatGrams(value)} г`
   const first = sharing[0]
   // Beside it: the other view of one of them, the way a portion's tile has it.
   const other = (() => {
     if (summary.same === null) return null
-    if (inPercent) {
-      // Grams of the view under percent, as in a portion's tile: dry ones with their word.
-      const grams = portionGrams(first, rawOf)
-      return grams !== null ? `${formatGrams(grams)} г${rawOf !== null ? ` ${rawWord(cooking.kind)}` : ''}` : null
-    }
     if (rawOf !== null) return first.cookedGrams !== null ? `${formatGrams(first.cookedGrams)} г готового` : null
     const raw = portionRawGrams(result, first.raw)
     return raw !== null ? `${formatGrams(raw)} г ${rawWord(cooking.kind)}` : null
   })()
-  const head = summary.same !== null ? `по ${shown(summary.same)}` : `${shown(summary.least).replace(/ [г%]$/, '')}–${shown(summary.most)}`
+  const head = summary.same !== null ? `по ${shown(summary.same)}` : `${formatGrams(summary.least)}–${shown(summary.most)}`
   const tail = summary.same !== null ? [`× ${summary.count}`, other].filter(Boolean).join(' · ') : `${summary.count} ${portionsWord(summary.count)} по долям`
   const ownAmount = (p: PortionResult) => {
-    const value = amount(p)
+    const value = portionGrams(p, rawOf)
     return value !== null ? shown(value) : '—'
   }
   const ownLine =

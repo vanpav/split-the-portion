@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { lidFill } from '@/components/lids'
-import { formatGrams, formatPercent, portionRawGrams, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
+import { formatGrams, portionRawGrams, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
@@ -23,8 +23,6 @@ interface PortionTileProps {
     active: boolean
     text: string
     own: boolean
-    /** What the number is in — the bar's unit, or what it was typed in. */
-    unit: 'g' | '%'
     onFocus: () => void
     onBlur: () => void
     onText: (text: string) => void
@@ -50,17 +48,26 @@ interface PortionTileProps {
 export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, recipe, className }: PortionTileProps) {
   const name = `Порция ${place + 1}`
   const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
-  const inPercent = grams.unit === '%'
   const viewGrams = dry ? baseRaw : computed.cookedGrams
-  const shownNumber = inPercent
-    ? computed.share !== null ? formatPercent(computed.share) : null
-    : viewGrams !== null ? formatGrams(viewGrams) : null
-  // Under the amount: grams under percent; otherwise the other view — raw under cooked, cooked under dry.
-  const subline = inPercent
-    ? viewGrams !== null && `${formatGrams(viewGrams)} г${dry ? ` ${rawWord(cooking.kind)}` : ''}`
-    : dry
-      ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
-      : baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+  const shownNumber = viewGrams !== null ? formatGrams(viewGrams) : null
+  // Under the amount, the other view: raw under cooked, cooked under dry.
+  const subline = dry
+    ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
+    : baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+
+  // Not weighed yet: a container is only its number, large — no grams to show and none to type.
+  if (shownNumber === null && !grams.own && !grams.active) {
+    return (
+      <li aria-label={name} className={cn('flex min-h-24 min-w-0 items-center rounded-xl bg-muted/60 px-3 dark:bg-muted/20', className)}>
+        <span
+          aria-hidden
+          className={cn('flex size-10 items-center justify-center rounded-[10px] text-xl font-semibold text-chart-foreground tabular-nums', lidFill(place))}
+        >
+          {place + 1}
+        </span>
+      </li>
+    )
+  }
 
   return (
     <li
@@ -101,7 +108,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         <span className="flex max-w-full items-baseline text-2xl leading-tight font-medium whitespace-nowrap tabular-nums">
           <DigitsInput
             id={grams.id}
-            aria-label={`${name}: своя порция, ${inPercent ? 'проценты' : dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+            aria-label={`${name}: своя порция, ${dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
             enterKeyHint="done"
             lids={lids}
             // Until something is typed: today's number, faded — the field keeps its width.
@@ -113,7 +120,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
             onKeyDown={grams.onKeyDown}
           />
           <span aria-hidden className="ml-0.5 text-sm font-normal text-muted-foreground">
-            {inPercent ? '%' : 'г'}
+            г
           </span>
         </span>
         {subline && <span className="truncate text-xs text-muted-foreground tabular-nums">{subline}</span>}

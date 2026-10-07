@@ -4,7 +4,7 @@ import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, exactPercents, lineupName, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
 
 /** What the form edits: a company without its id (a new one has none yet). */
@@ -69,10 +69,6 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
               className="h-11 border-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input"
             />
-            {/* The part of the dish, here too: on the bar a narrow segment has no room for it. */}
-            <span aria-hidden className="shrink-0 text-sm text-muted-foreground tabular-nums">
-              {formatPercent(shares[index])} %
-            </span>
             <HoldButton
               className="w-10 text-muted-foreground"
               label={m.name ? `Убрать: ${m.name}` : 'Убрать человека'}
