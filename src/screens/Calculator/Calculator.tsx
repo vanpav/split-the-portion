@@ -6,7 +6,6 @@ import { OverScreen } from '@/app/OverScreen'
 import { newCompanyPath, newTarePath } from '@/app/paths'
 import { useReturnAnimation } from '@/app/screenAnimation'
 import { AddPersonRow } from '@/components/AddPersonRow'
-import { HintCard } from '@/components/HintCard'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Button } from '@/components/ui/button'
 import {
@@ -45,7 +44,6 @@ import {
 } from '@/domain'
 import { ADD_PERSON_ID, calculatorFieldId, COMPANY_SELECT_ID, focusOrBlur, TARE_SELECT_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
-import { cardDone } from '@/onboarding/hints'
 import { useCalculatorTour } from '@/onboarding/useCalculatorTour'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
@@ -110,7 +108,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const setSplitMode = usePrefsStore((s) => s.setSplitMode)
   const storedPortions = usePrefsStore((s) => (id ? s.portions[id] : undefined))
   const setPortions = usePrefsStore((s) => s.setPortions)
-  const updateHints = usePrefsStore((s) => s.updateHints)
   const inShares = splitMode === 'shares'
   const [now] = useState(() => new Date().toISOString())
 
@@ -456,8 +453,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const potRaw = result && phase ? baseRawGrams(result, phase.remainder.raw) : null
   // The tour over this screen (docs/UX.md §3в): with the share bar on screen its third step points at it.
   useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
-  // The copy hint comes once there are portions to copy and no keyboard over them.
-  const portionsShown = active === null && (phase?.portions ?? []).some((p) => p.cookedGrams !== null)
 
   if (!dish || !draft || !result || !phase) return <Navigate to="/" replace />
   const simple = dish.kind === 'simple'
@@ -588,7 +583,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 removeLabel={inShares ? `Убрать порцию ${placeOf(p.portionId) + 1}` : undefined}
                 holdMs={holdMs}
                 onReleaseOwn={() => releaseOwn(p.portionId)}
-                onCopied={() => updateHints((hints) => cardDone(hints, 'copy'))}
                 percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
                 grams={{
                   id: calculatorFieldId(personKey(p.portionId)),
@@ -626,9 +620,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
             </p>
           )}
         </section>
-
-        {/* At the end, under the people: a hint never pushes the portions down. */}
-        <HintCard place="calculator" portions={portionsShown} />
 
         <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
       </main>

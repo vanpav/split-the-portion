@@ -33,7 +33,7 @@ describe('migratePrefs', () => {
     const v3 = {
       splitMode: 'shares',
       portions: { d1: [{ id: 'a', weight: 1 }] },
-      hints: { settled: true, off: true, welcome: true, tour: 2, done: ['copy'], shown: { install: 1 } },
+      hints: { settled: true, off: true, welcome: true, tour: 2 },
     }
     expect(migratePrefs(v3, PREFS_VERSION, counter())).toEqual(v3)
     expect(migratePrefs(null, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)

@@ -95,8 +95,6 @@
     --animate-rise: rise 0.45s ease-out both;
     --animate-share-tug: share-tug 3.2s ease-in-out infinite;
     --animate-sync-dash: sync-dash 1.2s linear infinite;
-    /* The copy hint (docs/UX.md §3в): a row swiped right, to the copy action, and back. */
-    --animate-swipe-hint: swipe-hint 3.2s ease-in-out infinite;
 
     @keyframes box-drop {
         from { transform: translateY(-1.5rem); opacity: 0; }
@@ -116,11 +114,6 @@
     }
     @keyframes sync-dash {
         to { stroke-dashoffset: -16; }
-    }
-    @keyframes swipe-hint {
-        0%, 18% { transform: translateX(0); }
-        42%, 70% { transform: translateX(5rem); }
-        92%, 100% { transform: translateX(0); }
     }
 }
 

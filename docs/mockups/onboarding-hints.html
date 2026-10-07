@@ -347,7 +347,7 @@ tr.group td { background: var(--muted); font-weight: 600; font-size: 13px; color
   <header class="top">
     <div>
       <h1>Подсказки для новых</h1>
-      <p class="lead">Макеты к этапу 17 (<a href="../roadmap/17-onboarding-hints.md">план</a>). Экраны — как в приложении на 375 px, подсказки нарисованы поверх. <strong>Выбрано 2026-10-07: A + C и приветственный экран.</strong> Короткий тур при первом открытии калькулятора, тихие карточки по месту, по одной, а перед ними — приветствие с предложением аккаунта (UX §3г). Статусы в каталоге — что берём, что под вопросом, что не делаем.</p>
+      <p class="lead">Макеты к этапу 17 (<a href="../roadmap/17-onboarding-hints.md">план</a>). Экраны — как в приложении на 375 px, подсказки нарисованы поверх. <strong>Выбрано 2026-10-07: A и приветственный экран.</strong> Короткий тур при первом открытии калькулятора, а перед ним — приветствие с предложением аккаунта (UX §3г). Карточки C сделали, посмотрели и убрали. Статусы в каталоге — что берём, что под вопросом, что не делаем.</p>
     </div>
     <div class="theme-switch" role="group" aria-label="Тема макетов">
       <button type="button" data-theme-set="system">Как в системе</button>
@@ -392,7 +392,7 @@ tr.group td { background: var(--muted); font-weight: 600; font-size: 13px; color
       <figure>
         <div class="phone" data-phone="v-c"></div>
         <figcaption>
-          <div class="cap-head"><span class="cap-title">C. Карточка в потоке</span><span class="badge rec">Для подсказок по месту</span></div>
+          <div class="cap-head"><span class="cap-title">C. Карточка в потоке</span><span class="badge no">Убрали</span></div>
           <ul>
             <li class="pro">Читается без тапа, вид родной, библиотека не нужна.</li>
             <li class="con">Занимает место, поэтому только в конце экрана, под порциями: числа не прыгают.</li>
@@ -548,8 +548,8 @@ const CATALOG = [
   { id: 'who', name: 'Шаг 3 · Кто ест', view: 'Тур', where: 'Калькулятор, «Кто ест» и «+ Имя» (если люди есть — полоса долей)', when: 'Там же', text: TOUR[2].text, status: 'yes' },
   { id: 'shelf', name: 'Шаг 4 · Другие блюда', view: 'Тур', where: 'Шапка: 🔍 и чипы блюд', when: 'Там же, последний шаг — «Готово»', text: TOUR[3].text, status: 'yes' },
   { group: 'Подсказки по месту (C)' },
-  { id: 'copy', phone: 'c-copy', name: 'Скопировать для трекера', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Первый расчёт с людьми: готовый вес введён, поле закрыто. Пропадает после первого копирования', text: CARDS.copy.text + ' <br><span style="color:var(--muted-foreground)">Десктоп: «⧉ у строки — скопировать сухой вес для трекера».</span>', status: 'yes' },
-  { id: 'install', phone: 'c-install', name: 'На экран «Домой»', view: 'Карточка', where: 'Пустой список блюд; калькулятор, под людьми', when: 'iPhone, Safari, не с экрана «Домой». Первый запуск (после тура). Пропадает, когда открыли с экрана «Домой»', text: CARDS.install.text, status: 'yes' },
+  { id: 'copy', phone: 'c-copy', name: 'Скопировать для трекера', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Первый расчёт с людьми: готовый вес введён, поле закрыто. Пропадает после первого копирования', text: CARDS.copy.text + ' <br><span style="color:var(--muted-foreground)">Десктоп: «⧉ у строки — скопировать сухой вес для трекера».</span>', status: 'no', note: 'карточки C сделали и убрали 2026-10-07 — не понравились' },
+  { id: 'install', phone: 'c-install', name: 'На экран «Домой»', view: 'Карточка', where: 'Пустой список блюд; калькулятор, под людьми', when: 'iPhone, Safari, не с экрана «Домой». Первый запуск (после тура). Пропадает, когда открыли с экрана «Домой»', text: CARDS.install.text, status: 'no', note: 'карточки C сделали и убрали 2026-10-07 — не понравились' },
   { id: 'own', phone: 'c-own', name: 'Своя порция', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Со 2-го запуска: есть люди и готовый вес. Пропадает, когда ввели свою порцию', text: CARDS.own.text, status: 'maybe' },
   { id: 'tomorrow', phone: 'c-tomorrow', name: 'На завтра', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'С 3-го запуска: есть люди и готовый вес. Пропадает, когда «На завтра» больше нуля', text: CARDS.tomorrow.text, status: 'maybe' },
   { id: 'products', phone: 'c-products', name: 'Продукты составного', view: 'Карточка', where: 'Калькулятор составного блюда, под людьми', when: 'Первое открытие составного блюда. Пропадает, когда развернули «Продукты»', text: CARDS.products.text, status: 'maybe' },
