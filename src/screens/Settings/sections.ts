@@ -30,7 +30,7 @@ export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]]
   { id: 'companies', title: 'Компании', description: 'Кто ест вместе', Icon: UsersIcon },
   { id: 'presets', title: 'Популярные блюда', description: 'Готовые рецепты для начала', Icon: BookOpenIcon },
   { id: 'data', title: 'Копия данных', description: 'Скачать или загрузить файл', Icon: HardDriveIcon },
-  { id: 'appearance', title: 'Оформление', description: 'Светлая или тёмная тема', Icon: SunMoonIcon },
+  { id: 'appearance', title: 'Оформление', description: 'Тема и подсказки', Icon: SunMoonIcon },
 ]
 
 export const findSettingsSection = (id: string | undefined): SettingsSection | undefined =>

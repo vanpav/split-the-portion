@@ -19,7 +19,10 @@ export function AccountScreen() {
   const signedIn = hasAccount && !sessionGone
   const navigate = useNavigate()
   // Where to go after signing in: back to the settings, or to the join screen that sent us here.
-  const next = useSearchParams()[0].get('next')
+  const [params] = useSearchParams()
+  const next = params.get('next')
+  // From the welcome screen: «Создать аккаунт» opens on its tab.
+  const tab = params.get('tab') === 'sign-up' ? 'sign-up' : 'sign-in'
   const after = next?.startsWith('/') ? next : BACK
   if (signedIn) return <Navigate to={after} replace />
 
@@ -38,7 +41,7 @@ export function AccountScreen() {
           С аккаунтом блюда есть на всех ваших устройствах, а вести их можно вместе с близкими. Без него всё
           хранится только здесь.
         </p>
-        <Tabs defaultValue="sign-in" className="gap-6">
+        <Tabs defaultValue={tab} className="gap-6">
           <TabsList className="h-11 w-full">
             <TabsTrigger value="sign-in" className="min-h-10">
               Войти

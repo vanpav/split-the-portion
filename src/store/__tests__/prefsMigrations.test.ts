@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { EMPTY_HINTS } from '@/onboarding/hints'
 import { EMPTY_PREFS, migratePrefs, PREFS_VERSION } from '../prefsMigrations'
 
 const counter = () => {
@@ -21,10 +22,21 @@ describe('migratePrefs', () => {
     expect(migratePrefs({ splitMode: 'people', portionCounts: {} }, 1, counter())).toEqual(EMPTY_PREFS)
   })
 
-  it('the current version is kept; junk becomes the defaults', () => {
+  it('v2 keeps «Доли» and gets hints with nothing shown', () => {
     const v2 = { splitMode: 'shares', portions: { d1: [{ id: 'a', weight: 1 }] } }
-    expect(migratePrefs(v2, PREFS_VERSION, counter())).toEqual(v2)
+    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS })
+    // A stray `hints` in a v2 record is not trusted.
+    expect(migratePrefs({ ...v2, hints: { off: true } }, 2, counter()).hints).toEqual(EMPTY_HINTS)
+  })
+
+  it('the current version is kept; junk becomes the defaults', () => {
+    const v3 = {
+      splitMode: 'shares',
+      portions: { d1: [{ id: 'a', weight: 1 }] },
+      hints: { settled: true, off: true, welcome: true, tour: 2 },
+    }
+    expect(migratePrefs(v3, PREFS_VERSION, counter())).toEqual(v3)
     expect(migratePrefs(null, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)
-    expect(migratePrefs({ splitMode: 'x', portions: [] }, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)
+    expect(migratePrefs({ splitMode: 'x', portions: [], hints: 'x' }, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)
   })
 })

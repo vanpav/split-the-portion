@@ -61,6 +61,8 @@ interface ShareSliderProps {
    * field (`fieldId`): a tap puts the cursor there. Without it — nothing.
    */
   empty?: { label: string; fieldId: string }
+  /** `data-hint` of the bar: the calculator tour points at it (docs/UX.md §3б). */
+  hint?: string
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -125,6 +127,7 @@ export function ShareSlider({
   numbered = false,
   sharedLabel = null,
   empty,
+  hint,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
@@ -260,7 +263,7 @@ export function ShareSlider({
   return (
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" data-hint={hint}>
         <div ref={barRef} className="@container/bar relative h-12 min-w-0 flex-1 touch-none select-none">
           {sharing.map((person, index) => {
             const segment = segmentFor(person.id)

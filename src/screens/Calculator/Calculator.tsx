@@ -45,6 +45,7 @@ import {
 } from '@/domain'
 import { ADD_PERSON_ID, calculatorFieldId, COMPANY_SELECT_ID, focusOrBlur, TARE_SELECT_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
+import { useCalculatorTour } from '@/onboarding/useCalculatorTour'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
@@ -467,6 +468,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const sharedGrams = sharingGrams.every((g) => g !== null) ? sharingGrams.reduce<number>((a, g) => a + (g ?? 0), 0) : null
   // «Доли»: the portions that split by share all get the same — one ⧉ above the grid copies any of them.
   const sameShares = splitSummary(sharingGrams)?.same != null
+  // The tour over this screen (docs/UX.md §3б): with the share bar on screen its third step points at it.
+  useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
 
   if (!dish || !draft || !result || !phase) return <Navigate to="/" replace />
   const simple = dish.kind === 'simple'
@@ -492,7 +495,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         <section aria-label="Вес" className="flex flex-col gap-1">
           {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a folded composite dish;
               unfolded, its products are small tiles two to a row and «Готовый» goes across. */}
-          <div className="grid grid-cols-2 gap-2">
+          <div data-hint="tiles" className="grid grid-cols-2 gap-2">
             {folded ? (
               <RawFoldTile total={raw.total} note={raw.note} onExpand={() => setFolded(false)} />
             ) : (
@@ -541,7 +544,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
           </div>
         </section>
 
-        <section aria-label="Кто ест" className="flex flex-col gap-2 px-1">
+        <section aria-label="Кто ест" data-hint="who" className="flex flex-col gap-2 px-1">
           {/* In «Доли» the number of portions sits beside the field: «Доли [− 7 +]», the bar below gets the width. */}
           <div className="flex items-center gap-2">
             <CompanyPicker
@@ -579,6 +582,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             // a tap on it puts the cursor into «+ Имя».
             empty={{ label: 'Добавьте людей', fieldId: ADD_PERSON_ID }}
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
+            hint="bar"
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">

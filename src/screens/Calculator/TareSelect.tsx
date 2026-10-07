@@ -39,6 +39,7 @@ export function TareSelect({ tares, tareId, onTare, onAdd }: TareSelectProps) {
     <Select value={tareId ?? NO_TARE} onValueChange={pick}>
       <SelectTrigger
         id={TARE_SELECT_ID}
+        data-hint="tare"
         aria-label="Тара"
         className="h-11 w-auto max-w-full min-w-0 gap-1 border-none bg-transparent px-1 text-sm text-muted-foreground shadow-none hover:text-foreground dark:bg-transparent dark:hover:bg-transparent"
       >
