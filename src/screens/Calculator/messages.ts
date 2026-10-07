@@ -31,3 +31,11 @@ export function portionsWord(count: number): string {
   if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return 'порции'
   return 'порций'
 }
+
+export const K_HINT_TITLE = 'Коэффициент выхода k'
+
+/** What k tells, shown in a tooltip (desktop) or a bottom sheet (touch). */
+export function kHint(k: YieldK, leftover: boolean): string {
+  const of = leftover ? 'остатка' : k.kind === 'dish' ? 'всего блюда' : 'продукта'
+  return `Во сколько раз готовый вес ${of} отличается от сырого. Больше 1 — продукт разварился или впитал воду, меньше 1 — ужарился или уварился. На порции не влияет: нужен, чтобы проверить, что веса введены верно.`
+}
