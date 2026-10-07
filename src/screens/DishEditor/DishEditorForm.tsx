@@ -44,9 +44,9 @@ import { PhraseList } from './PhraseList'
 import { TareChips } from './TareChips'
 
 const SPEECH_ERROR_TEXT: Record<SpeechError, string> = {
-  notAllowed: 'Нет доступа к микрофону — разрешите его в настройках браузера',
+  notAllowed: 'Нет доступа к микрофону — разреши его в настройках браузера',
   network: 'Нет сети — голос сейчас недоступен',
-  nothingHeard: 'Ничего не расслышал — попробуйте ещё раз',
+  nothingHeard: 'Ничего не слышно — попробуй ещё раз',
 }
 
 const canPaste = typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
@@ -210,7 +210,7 @@ export function DishEditorForm() {
     if (!item) return
     const before = text
     replaceText(removePhraseItem(text, index, { excluded: overrides }), item.start)
-    undoable(`Удалено: ${item.name || 'Без названия'}`, before)
+    undoable(`Убрано: ${item.name || 'Без названия'}`, before)
   }
   // Dictated with the phone keyboard's mic: brought to «продукт вес» on leaving the field.
   const leave = () => {
@@ -219,7 +219,7 @@ export function DishEditorForm() {
     if (next === text) return
     const before = text
     setText(next)
-    undoable('Привёл к виду «продукт вес»', before, () => (keptAsTyped.current = before))
+    undoable('Приведено к виду «ингредиент вес»', before, () => (keptAsTyped.current = before))
   }
   const paste = async () => {
     try {
@@ -238,10 +238,10 @@ export function DishEditorForm() {
   const firstError = items.flatMap((i) => i.issues).find((issue) => issue.level === 'error')
   const blocked =
     hasPhraseErrors(items) && firstError
-      ? `Проверьте разбор: ${phraseIssueText(firstError)}`
+      ? `Проверь разбор: ${phraseIssueText(firstError)}`
       : items.some((i) => i.name && !i.excluded)
         ? null
-        : 'Введите продукт'
+        : 'Введи ингредиент'
   // The name the dish gets when none is typed.
   const titlePlaceholder = dishTitle({
     name: '',
@@ -257,7 +257,7 @@ export function DishEditorForm() {
 
   const menu: MoreMenuItem[] = existing
     ? [
-        ...(existing.kind === 'simple' ? [{ label: 'Составное на основе', to: newDishPath(existing.id), icon: SoupIcon }] : []),
+        ...(existing.kind === 'simple' ? [{ label: 'Сделать составным', to: newDishPath(existing.id), icon: SoupIcon }] : []),
         { label: 'Удалить блюдо', icon: Trash2Icon, destructive: true, onSelect: () => setDeleting(true) },
       ]
     : []

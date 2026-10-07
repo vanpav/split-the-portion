@@ -49,7 +49,7 @@ export function DataSection() {
     try {
       setPending(readBackupFile(await file.text()))
     } catch {
-      toast('Файл не подошёл', { description: 'Нужна копия, скачанная здесь же, в настройках.' })
+      toast('Не тот файл', { description: 'Нужна копия, скачанная в этом приложении: Настройки → Копия данных.' })
     }
   }
 
@@ -67,15 +67,15 @@ export function DataSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold">Копия данных</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">Копия данных</h2>
         <p className="text-sm text-muted-foreground">
-          Всё хранится в этом браузере. Копия в файле выручит, если браузер очистит данные или вы смените телефон.
+          Всё хранится в этом браузере. Копия в файле выручит, если браузер очистит данные или ты сменишь телефон.
         </p>
         {/* Without an account a file is the only way across: an installed app does not share Safari's storage. */}
         {!groupName && (
           <p className="text-sm text-muted-foreground">
             У приложения на экране «Домой» iPhone своё хранилище, не общее с Safari. Проще всего войти в аккаунт и там, и
-            там. Без аккаунта — скачайте копию в Safari и загрузите её в приложении.
+            там. Без аккаунта — скачай копию в Safari и загрузи её в приложении.
           </p>
         )}
       </div>

@@ -23,7 +23,7 @@ export function GroupSection() {
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1 px-1">
-          <h2 className="text-base font-semibold">Группа</h2>
+          <h2 className="text-base font-semibold max-md:sr-only">Группа</h2>
           <p className="text-sm text-muted-foreground">
             Блюда, тара и компании — общие для всех в группе.
           </p>

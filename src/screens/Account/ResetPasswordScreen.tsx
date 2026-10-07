@@ -30,7 +30,7 @@ export function ResetPasswordScreen() {
     try {
       const { error } = await authClient.resetPassword({ newPassword: password, token })
       if (error) return setError(authErrorText(error))
-      toast('Пароль изменён — войдите с ним')
+      toast('Пароль изменён — войди с ним')
       // The used token leaves the address, so a reload does not try it again.
       window.history.replaceState(null, '', window.location.pathname + window.location.hash)
       navigate(ACCOUNT_PATH, { replace: true })

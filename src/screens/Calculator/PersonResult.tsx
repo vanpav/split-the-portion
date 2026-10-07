@@ -224,8 +224,8 @@ export function PersonResult({
           <HoldButton
             holdMs={holdMs}
             className="w-10 text-muted-foreground"
-            label={`Убрать ${name || 'человека'}`}
-            hint="Удерживайте ×, чтобы убрать"
+            label={name ? `Убрать: ${name}` : 'Убрать человека'}
+            hint="Удерживай ×, чтобы убрать"
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}
           >

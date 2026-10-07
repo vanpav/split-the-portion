@@ -58,7 +58,7 @@ export function JoinByCodeScreen() {
         </form>
         <BottomBar>
           <Button type="submit" form={formId} size="lg" className="flex-1 lg:flex-none">
-            Дальше
+            Проверить
           </Button>
         </BottomBar>
       </main>

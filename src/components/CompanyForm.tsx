@@ -57,7 +57,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         own={[]}
         rest={null}
         onChange={setPercents}
-        empty={{ label: 'Добавьте людей', fieldId: addPersonId }}
+        empty={{ label: 'Добавь людей', fieldId: addPersonId }}
       />
       <ul className="flex flex-col divide-y">
         {members.map((m, index) => (
@@ -78,8 +78,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
             <HoldButton
               holdMs={holdMs}
               className="w-10 text-muted-foreground"
-              label={`Убрать ${m.name || 'человека'}`}
-              hint="Удерживайте ×, чтобы убрать"
+              label={m.name ? `Убрать: ${m.name}` : 'Убрать человека'}
+              hint="Удерживай ×, чтобы убрать"
               onConfirm={() => removeMember(m.id)}
             >
               <XIcon />

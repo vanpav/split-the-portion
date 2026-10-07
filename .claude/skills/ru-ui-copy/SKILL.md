@@ -132,6 +132,19 @@ Russian text is 20–30% longer than English. If a string doesn't fit, cut meani
 - Letter «ё»: as accepted in the project, but consistently.
 - Abbreviations: «т. д.», «т. е.» with a non-breaking space; in UI better to avoid them.
 
+## Working with other skills
+
+If `ux-copy` and `humanizer` are installed, use them like this:
+
+1. `ux-copy`: structure and text options (what to say, in which element).
+2. `ru-ui-copy`: the Russian wording, by the rules of this file.
+3. `humanizer`: only a final check for AI patterns.
+
+When rules conflict for Russian strings, this file wins. In particular:
+- don't apply the `humanizer` advice to "add personality and opinion": UI needs brevity;
+- don't carry English norms (Title Case, "please", straight quotes) over from `ux-copy`;
+- English strings are edited by `ux-copy` and `humanizer`; this file does not apply to them.
+
 ## Checklist before handing off
 
 - [ ] Can one more word be removed without losing meaning?

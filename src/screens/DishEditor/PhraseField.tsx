@@ -134,13 +134,13 @@ export function PhraseField({
             </p>
           ) : said !== null ? (
             <>
-              <p className="line-clamp-2">Сказали: «{said.text}»</p>
+              <p className="line-clamp-2">Услышано: «{said.text}»</p>
               {said.skipped.length > 0 && (
-                <p className="truncate">Пропустил: {said.skipped.map((phrase) => `«${phrase}»`).join(', ')}</p>
+                <p className="truncate">Пропущено: {said.skipped.map((phrase) => `«${phrase}»`).join(', ')}</p>
               )}
             </>
           ) : (
-            <p>{voice ? 'Продукт и вес — через запятую, с новой строки или голосом.' : 'Продукт и вес — через запятую или с новой строки.'}</p>
+            <p>{voice ? 'Ингредиент и вес — через запятую, с новой строки или голосом.' : 'Ингредиент и вес — через запятую или с новой строки.'}</p>
           )}
         </div>
       </CollapsibleContent>

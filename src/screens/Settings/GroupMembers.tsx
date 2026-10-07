@@ -16,7 +16,7 @@ export function GroupMembers({ group }: { group: AccountGroup }) {
   const remove = async (memberId: string, email: string) => {
     try {
       const { error } = await authClient.organization.removeMember({ memberIdOrEmail: memberId, organizationId: group.id })
-      if (error) return void toast(error.status ? 'Не получилось — попробуйте ещё раз' : groupErrorText(null))
+      if (error) return void toast(groupErrorText(error))
       await refreshAccount()
       toast(`${email} больше не в группе`)
     } catch (e) {
@@ -33,8 +33,8 @@ export function GroupMembers({ group }: { group: AccountGroup }) {
           {group.role === 'owner' && m.userId !== myId && (
             <HoldButton
               holdMs={holdMs}
-              label={`Убрать ${m.email} из группы`}
-              hint="Удерживайте ×, чтобы убрать из группы"
+              label={`Убрать из группы: ${m.email}`}
+              hint="Удерживай ×, чтобы убрать из группы"
               onConfirm={() => void remove(m.memberId, m.email)}
             >
               <XIcon />
