@@ -65,20 +65,36 @@ const SEGMENT =
 
 /**
  * A grip covers about 2rem; next to a segment narrower than 4rem it hides the grams. For each border the
- * bar width (rem) under which it no longer fits, as literal container classes Tailwind can find: with
- * many people or portions only the chosen one's borders keep their grips (docs/UX.md §3).
+ * bar width (rem) under which it no longer fits, as literal container classes Tailwind can find, every
+ * 2rem: with many people or portions on a phone only the chosen one's borders keep their grips, on a wide
+ * bar all of them (docs/UX.md §3).
  */
 const GRIP_ROOM = [
-  [18, ''],
+  [16, ''],
+  [18, '@max-[18rem]/bar:hidden'],
+  [20, '@max-[20rem]/bar:hidden'],
   [22, '@max-[22rem]/bar:hidden'],
+  [24, '@max-[24rem]/bar:hidden'],
   [26, '@max-[26rem]/bar:hidden'],
+  [28, '@max-[28rem]/bar:hidden'],
   [30, '@max-[30rem]/bar:hidden'],
+  [32, '@max-[32rem]/bar:hidden'],
+  [34, '@max-[34rem]/bar:hidden'],
   [36, '@max-[36rem]/bar:hidden'],
+  [38, '@max-[38rem]/bar:hidden'],
+  [40, '@max-[40rem]/bar:hidden'],
+  [42, '@max-[42rem]/bar:hidden'],
   [44, '@max-[44rem]/bar:hidden'],
+  [46, '@max-[46rem]/bar:hidden'],
+  [48, '@max-[48rem]/bar:hidden'],
 ] as const
-/** `narrowest` — the narrower of the two segments by a border, in percent of the bar. */
+/**
+ * `narrowest` — the narrower of the two segments by a border, in percent of the bar. A hair of rounding
+ * must not move a border to the next width: nine equal portions need 36rem whether their parts add up to
+ * 99,999… or 100,000…, so all their grips show or hide together.
+ */
 const gripRoom = (narrowest: number) => {
-  const needed = narrowest > 0 ? 400 / narrowest : Infinity
+  const needed = narrowest > 0 ? 400 / narrowest - 0.01 : Infinity
   return GRIP_ROOM.find(([rem]) => needed <= rem)?.[1] ?? 'hidden'
 }
 
