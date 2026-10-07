@@ -18,6 +18,14 @@
       "migrations_dir": "worker/migrations"
     }
   ],
+  // Rate limits of the API (worker/index.ts): per-location counters of Workers Rate Limiting.
+  // Absent from previews (they only get the `previews` block), so the code treats them as optional.
+  "ratelimits": [
+    // Invite lookups before sign-in, per IP: stops guessing codes.
+    { "name": "INVITES_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
+    // Syncs, per user: a normal client syncs every few seconds at most.
+    { "name": "SYNC_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }
+  ],
   // Preview builds of branches and pull requests. A preview deployment gets only the bindings of this
   // block: its own D1 (never the production one) and the auth secret from the account's Secrets Store,
   // since `wrangler secret put` values never reach previews (docs/CLOUDFLARE.md §8).

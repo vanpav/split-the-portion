@@ -4,3 +4,11 @@
   Cache-Control: no-cache
 /manifest.webmanifest
   Cache-Control: no-cache
+
+# Security headers for every page and file. The app loads nothing from other hosts: scripts, fonts and
+# the API are all same-origin. `style-src 'unsafe-inline'` is for the inline styles React and Radix set.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
