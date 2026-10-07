@@ -369,6 +369,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const outlet = useOutlet({
     dishId: id ?? '',
     onTare: (picked) => changeTare(picked.id),
+    backLabel: 'Калькулятор',
     onCompany: (added) => {
       choosePreset(added)
       refocus.current = ADD_PERSON_ID

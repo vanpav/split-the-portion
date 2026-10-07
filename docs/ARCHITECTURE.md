@@ -43,6 +43,8 @@
 
 **Не подошло:** `@cloudflare/vitest-pool-workers` (этап 13) требует Vitest 4. Тесты воркера идут на настоящей локальной D1 через `getPlatformProxy` из `wrangler` (`worker/__tests__/localD1.ts`), новой зависимости не нужно.
 
+**Распознавание речи — свой хук** `lib/useSpeechRecognition.ts` поверх Web Speech API браузера (микрофон в редакторе блюда, этап 19): ~100 строк, типы API описаны в нём же (в DOM-типах TypeScript их нет), без новой зависимости. Готовые обёртки (`react-speech-recognition` и т. п.) тянут полифилы и облачные сервисы, а нам нужны старт, стоп, живой текст и три ошибки. Согласовано с пользователем 2026-10-07. Распознавание на своём сервере — в бэклог, если браузер не справится.
+
 **Синхронизация — своя** (`src/sync`, §10), а не готовый движок (Firebase, Dexie Cloud, Replicache, PowerSync). Готовые движки заменяют Zustand persist своим хранилищем или тянут вторую систему. Нам нужны ~300 строк чистых функций с тестами поверх уже работающих стора, миграций и IndexedDB. Согласовано 2026-10-06.
 
 **Не добавляем (пока):**
@@ -171,6 +173,10 @@ src/domain/
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
+  phrase.ts         — «Что в блюде» (этап 19): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
+  speech.ts         — сказанное → фраза: spokenToPhrase (числа словами, единицы, паразиты), looksSpoken
+  phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
+  phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
@@ -327,8 +333,11 @@ src/
     paths.ts            — адреса экранов
   screens/
     DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка, пустое состояние), DishMenu (поиск, тип, сортировка, список; состояние в адресе), DishMenuRow, OpenGroupLink
-    DishEditor/         — создание и правка блюда: DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`); черновик в состоянии формы, «Создать» / «Сохранить»
-      IngredientEditorRow.tsx, DishActions.tsx («Составное на основе», «Удалить блюдо»)
+    DishEditor/         — создание и правка блюда, вариант «Одной строкой» (этап 19): DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`, `tare/new`); черновик — название, фраза, свои «не учитывать», тара — в состоянии формы, «Создать» / «Сохранить»
+      PhraseField.tsx — «Что в блюде»: Textarea, «Вставить», «Из блюда», микрофон, подсказка / «Слушаю…» / «Сказали»
+      PhraseList.tsx, PhraseRow.tsx — разбор: строка на продукт (тап — учитывать или нет, × — убрать), пометки
+      TareChips.tsx — «В чём взвешиваете»: «+» (экран «Новая тара» поверх формы), «Без тары», тары
+      DeleteDishDialog.tsx — подтверждение «Удалить блюдо» из «⋯»
       FromSimpleDishScreen.tsx — экран «Из простого блюда» (`…/from-dish`): `Command` с поиском во весь экран; выбранное блюдо уходит в форму через `editorOutlet.ts`
     Calculator/         — главный экран (этап 15)
       DishShelf.tsx           — полка: 🔍 (меню блюд; ⌘K, «/»), чипы по последнему использованию (пересортировка при открытии и возврате в приложение), «⋯»; прокручивает к текущему чипу, только если он не виден; сообщает `CalculatorScreen` места чипов при тапе
@@ -337,7 +346,7 @@ src/
       CompanyPicker.tsx, PersonResult.tsx, RawList.tsx, messages.ts — «Кто ест» с пунктом «Доли»; строка человека или порции
       PortionStepper.tsx      — «− 7 +» справа от поля «Доли»: число порций между кнопками (`ButtonGroup`, этапы 16–17)
       PortionSummary.tsx, PortionTile.tsx — «Доли» (этап 17): ответ одной строкой «по 80 г × 7 · 29 г сухого» с ⧉ (`splitSummary`) и контейнер порции в сетке по три: номер в крышке, число-поле своей порции (`DigitsInput`), сухой вес, ⧉ — когда порции разные или своя
-      NewTareScreen.tsx       — экран «Новая тара» (`#/d/:id/tare/new`): TareForm, список «Добавлено» с выбранной, «Готово» в BottomBar
+      NewTareScreen.tsx       — экран «Новая тара» (`#/d/:id/tare/new`, и над редактором блюда: `#/d/:id/edit/tare/new`, `#/d/new/tare/new`): TareForm, список «Добавлено» с выбранной, «Готово» в BottomBar; тара уходит в экран под ним через `TareOutlet`
       NewCompanyScreen.tsx    — экран «Новая компания» (`#/d/:id/company/new`): CompanyForm, «Добавить компанию» в BottomBar
       calculatorOutlet.ts     — что калькулятор передаёт экранам над собой (`useOutletContext`): выбрать тару, выбрать компанию
     Copy/
@@ -366,6 +375,7 @@ src/
     TareForm.tsx        — новая тара: крупные «Название» и «Вес» (NumberField size="lg"), «Добавить тару» обычного размера справа; после добавления пустая, фокус в «Название»; одна форма для настроек и экрана «Новая тара»
   lib/
     utils.ts            — cn() от shadcn
+    useSpeechRecognition.ts — свой хук Web Speech API (§2): supported, listening, живой текст, start / stop, ошибки
   store/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
@@ -394,7 +404,11 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ (`InputGroupButton`), тип — `ToggleGroup`, сортировка — `Select` |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказка «Найти блюдо ⌘K /» | `Tooltip` + `Kbd` |
-| «Простое / Составное» в редакторе | `ToggleGroup` |
+| «Что в блюде» в редакторе | `Textarea` (16 px, растёт по тексту — `field-sizing: content`); «Вставить», «Из блюда» — `Button` variant `ghost` над полем |
+| Микрофон в поле «Что в блюде» | `Button` size `icon`, круглый, в правом нижнем углу поля; при записи — variant `default` с пульсом (`motion-safe:animate-pulse`), распознавание — `lib/useSpeechRecognition` |
+| Разбор фразы | Список кнопок-строк на `bg-muted/60` (тап — учитывать или нет, фокус остаётся в поле), × — `Button` variant `ghost` size `icon`; строка с курсором — `bg-card`; пометки — `text-destructive` / `text-warning` |
+| Тара в редакторе: «+», «Без тары», тары | Ряд чипов с прокруткой вбок, как полка блюд (`buttonVariants` secondary, выбранный — `bg-card` с `ring-foreground`); «+» — ссылка на экран «Новая тара» поверх формы |
+| «⋯» в редакторе: «Составное на основе», «Удалить блюдо» | `MoreMenu` (пункт-ссылка или пункт-действие) + `AlertDialog` |
 | «Из простого блюда» в редакторе | `Command` на экране во весь экран (`…/from-dish`), на всех ширинах (UX §3а) |
 | Тара в калькуляторе + «+ Добавить тару» | `Select` (последний пункт закрывает список и открывает экран «Новая тара», значение не меняет) |
 | Новая тара: форма (настройки, экран «Новая тара») | `Field` + `Input` (`h-14 text-lg`) + `NumberField size="lg"`, кнопка `Button` обычного размера справа под полями |

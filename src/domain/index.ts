@@ -37,3 +37,20 @@ export type { CalculatorInput } from './draft'
 export { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, splitAmounts, toPercents } from './shares'
 export { rubberBand, settleDuration, settleSwipe } from './swipe'
 export type { SwipeLimits, SwipeSettle } from './swipe'
+export {
+  appendToPhrase,
+  excludedOverrides,
+  hasPhraseErrors,
+  ingredientsToPhrase,
+  parsePhrase,
+  phraseIngredients,
+  phraseKey,
+  phraseSummary,
+  removePhraseItem,
+} from './phrase'
+export type { ExcludedOverrides, PhraseIssue, PhraseItem, PhraseOptions } from './phrase'
+export { looksSpoken, spokenToPhrase } from './speech'
+export type { SpokenPhrase } from './speech'
+export { DEFAULT_PHRASE_LANGUAGE, RU } from './phraseLanguage'
+export type { PhraseLanguage } from './phraseLanguage'
+export { phraseIssueText, phraseSummaryText, phraseWeightText } from './phraseText'
