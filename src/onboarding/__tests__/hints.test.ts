@@ -9,6 +9,7 @@ import {
   settleHints,
   showWelcome,
   skipHints,
+  stepAfterSwipe,
   tourAt,
   tourFrom,
   tourSteps,
@@ -34,6 +35,24 @@ describe('first launch', () => {
   it('the welcome is for a device without dishes, until it is gone through', () => {
     expect(showWelcome(EMPTY_HINTS, true)).toBe(false)
     expect(showWelcome(finishWelcome(EMPTY_HINTS), false)).toBe(false)
+  })
+})
+
+describe('welcome swipes', () => {
+  it('left goes on, right goes back', () => {
+    expect(stepAfterSwipe(1, 4, -80, 0)).toBe(2)
+    expect(stepAfterSwipe(1, 4, 80, 0)).toBe(0)
+  })
+
+  it('a short slow move stays, a flick moves at any length', () => {
+    expect(stepAfterSwipe(1, 4, -20, 0)).toBe(1)
+    expect(stepAfterSwipe(1, 4, -20, -1)).toBe(2)
+    expect(stepAfterSwipe(1, 4, 20, 1)).toBe(0)
+  })
+
+  it('stops at both ends', () => {
+    expect(stepAfterSwipe(0, 4, 120, 1)).toBe(0)
+    expect(stepAfterSwipe(3, 4, -120, -1)).toBe(3)
   })
 })
 

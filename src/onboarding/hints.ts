@@ -31,6 +31,19 @@ export const showWelcome = (hints: HintPrefs, hasDishes: boolean) => !hints.welc
 
 export const finishWelcome = (hints: HintPrefs): HintPrefs => ({ ...hints, welcome: true })
 
+/** A swipe this long moves the welcome screen a step, however slowly; a flick moves it at any length. */
+export const WELCOME_SWIPE_PX = 48
+
+/**
+ * The welcome step a horizontal swipe leads to (docs/UX.md §3в): to the left — the next one, to the
+ * right — back. `dx` is how far the finger went, `flick` the swipe direction by speed (−1, 0, 1).
+ * It stops at both ends: the last step is left only by its own buttons.
+ */
+export function stepAfterSwipe(step: number, count: number, dx: number, flick: number): number {
+  const way = flick !== 0 ? -Math.sign(flick) : Math.abs(dx) >= WELCOME_SWIPE_PX ? -Math.sign(dx) : 0
+  return Math.min(Math.max(step + way, 0), count - 1)
+}
+
 /** The step the calculator tour starts from; null — no tour. */
 export const tourFrom = (hints: HintPrefs): number | null => (hints.off || hints.tour === 'done' ? null : hints.tour)
 

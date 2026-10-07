@@ -9,8 +9,8 @@ const pop = 'motion-safe:animate-food-pop [transform-box:fill-box] origin-bottom
  */
 export function WelcomeBoxes() {
   return (
-    <svg viewBox="0 0 100 100" aria-hidden className="size-40">
-      <rect width="100" height="100" rx="21.9" fill="var(--chart-foreground)" />
+    <svg viewBox="0 0 100 100" aria-hidden className="size-48">
+      <rect width="100" height="100" rx="21.9" fill="var(--logo-ground)" />
       <g transform="translate(1.54 17.7) scale(0.86)">
         {/* Bottom box and the lid on it, then the middle one, then the open one on top. */}
         <g className={`${drop} [animation-delay:100ms]`}>

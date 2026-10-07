@@ -270,7 +270,9 @@
     --caret-10: oklch(0.62 0.13 342);
     /* The calculator tour's dim around the lit element (docs/UX.md §3б). */
     --scrim: oklch(0.2 0.045 268 / 0.58);
-    /* The logo's own colors besides the ink and the lids (public/favicon.svg): the same in both themes. */
+    /* The logo's own colors besides the lids (public/favicon.svg): the same in both themes, as the icon is.
+       Its ground is the light theme's ink — in the dark theme the ink is light, the ground must stay navy. */
+    --logo-ground: oklch(0.267 0.054 269.1);
     --logo-lid: oklch(1 0 0);
     --logo-carrot: oklch(0.73 0.15 49.9);
     --logo-leaf: oklch(0.721 0.15 145.1);

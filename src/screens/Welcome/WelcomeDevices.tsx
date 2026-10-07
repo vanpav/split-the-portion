@@ -14,7 +14,7 @@ const phone = (x: number) => (
  */
 export function WelcomeDevices() {
   return (
-    <svg viewBox="0 0 200 100" aria-hidden className="h-32 w-64">
+    <svg viewBox="0 0 200 100" aria-hidden className="h-36 w-72">
       <g fill="none" stroke="var(--muted-foreground)" strokeWidth="1.5" strokeDasharray="4 4" strokeLinecap="round">
         <path d="M86 50H64" className="motion-safe:animate-sync-dash" />
         <path d="M114 50H136" className="motion-safe:animate-sync-dash" />
