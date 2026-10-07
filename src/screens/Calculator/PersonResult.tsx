@@ -35,7 +35,6 @@ interface PersonResultProps {
   onRename?: (name: string) => void
   onRemove: () => void
   /** «×» is held this long before the person is removed; 0 — a tap. */
-  holdMs: number
   /** The answer is a field: tap it and type the person's own portion. */
   grams: {
     id: string
@@ -73,7 +72,6 @@ export function PersonResult({
   dry,
   onRename,
   onRemove,
-  holdMs,
   grams,
   percent,
   onReleaseOwn,
@@ -222,10 +220,8 @@ export function PersonResult({
             getText={() => rawAmountsCopyText(cooking, computed.raw) || null}
           />
           <HoldButton
-            holdMs={holdMs}
             className="w-10 text-muted-foreground"
             label={name ? `Убрать: ${name}` : 'Убрать человека'}
-            hint="Удерживай ×, чтобы убрать"
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}
           >
