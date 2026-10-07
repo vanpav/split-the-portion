@@ -21,7 +21,7 @@ import { leaveAccount } from '@/sync/session'
 import { PasskeySetting } from './PasskeySetting'
 import { SyncStatusLine } from './SyncStatusLine'
 
-/** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, Face ID and «Выйти». */
+/** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, passkeys and «Выйти». */
 export function AccountSection() {
   const me = useAccountStore((s) => s.me)
   const [busy, setBusy] = useState(false)

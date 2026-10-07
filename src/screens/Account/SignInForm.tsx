@@ -1,4 +1,4 @@
-import { ScanFaceIcon } from 'lucide-react'
+import { KeyRoundIcon } from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
 import { authClient } from '@/account/authClient'
 import { authErrorText } from '@/account/authErrors'
@@ -9,7 +9,7 @@ import { PASSWORD_RESET_PATH } from '@/app/paths'
 
 type AuthCall = () => Promise<{ error: { code?: string; status?: number } | null }>
 
-/** «Войти»: email and password, or Face ID (passkey); «Забыли пароль?» asks for a reset link. */
+/** «Войти»: email and password, or a passkey; «Забыли пароль?» asks for a reset link. */
 export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
   const emailId = useId()
   const passwordId = useId()
@@ -89,8 +89,8 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
         disabled={busy}
         onClick={() => void run(() => authClient.signIn.passkey(), onSignedIn)}
       >
-        <ScanFaceIcon data-icon="inline-start" />
-        Войти с Face ID
+        <KeyRoundIcon data-icon="inline-start" />
+        Войти с passkey
       </Button>
       <Button type="button" variant="link" className="self-start px-1" disabled={busy} onClick={askReset}>
         Забыли пароль?

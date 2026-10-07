@@ -33,7 +33,7 @@
 | `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
 | `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой, типы окружения (`pnpm wrangler types`), `getPlatformProxy` для `pnpm db:auth-schema` ([CLOUDFLARE.md](CLOUDFLARE.md)). Согласовано 2026-10-06 |
 | `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` и `pnpm preview` — один dev-сервер на 5180; сборка воркера в `dist/split_the_portion`. Согласовано 2026-10-06 |
-| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
+| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, passkey (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
 | `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
 | `driver.js` | prod | Подсказки для новых (этап 18): тур по калькулятору — затемнение с вырезом вокруг элемента, карточка у края экрана, прокрутка к элементу, Esc и ← / →, возврат фокуса после тура (`src/onboarding/useCalculatorTour.ts`). MIT, без зависимостей. Карточка не из shadcn — исключение, как `sonner`: оформлена переменными темы (`.hint-popover` в `index.css`). React Joyride (тяжелее), Shepherd.js и Intro.js (AGPL-3.0) не взяли. Согласовано 2026-10-07 |
@@ -355,7 +355,7 @@ src/
     Welcome/            — приветственный экран `#/welcome` (этап 18, UX §3в): WelcomeScreen — шаги внутри экрана, последний — аккаунт; иллюстрации из логотипа WelcomeBoxes, WelcomeTiles, WelcomeShares, WelcomeDevices (inline SVG, CSS-анимации под `motion-safe:`)
     Join/               — вступить в группу: JoinScreen по ссылке `#/join/:code` (этап 14), JoinByCodeScreen — код вручную `#/join`
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
-    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, LeaveGroupButton — «Группа» («Вступить по коду» — ссылка на `#/join`)
+    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting (список passkey, добавить, удалить) + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, LeaveGroupButton — «Группа» («Вступить по коду» — ссылка на `#/join`)
       SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список (ссылки добавляют запись в историю), либо подраздел; с `md` меню (ссылки заменяют адрес); анимация смены подраздела
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
@@ -544,7 +544,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 - **Вход — Better Auth:**
   - адрес (`baseURL`, доверенный `Origin`, `rpID`) берётся из запроса: рабочий адрес, превью веток и `localhost` работают каждый под своим. Экземпляр Better Auth создаётся один раз на адрес в изоляте (`worker/index.ts`);
   - почта + пароль; хеш — нативный `node:crypto` scrypt: Better Auth 1.7 выбирает его для workerd сам (флаг `nodejs_compat`), чистый JS не уложился бы в 10 мс CPU бесплатного плана;
-  - passkey (Face ID); `rpID` — хост, при смене домена ключи добавляются заново;
+  - passkey (Face ID, Chrome, Windows Hello); ключей на аккаунт сколько угодно — по одному на устройство или менеджер паролей, любой можно удалить из «Аккаунта» (`deletePasskey`). Имя ключа ставит after-хук `/passkey/verify-registration` в `worker/auth.ts` по AAGUID (`getAuthenticatorName`: «iCloud Keychain», «Google Password Manager»…); ключи без имени показываются как «Passkey». Добавить ключ можно только со свежей сессией (Better Auth `freshAge`, 24 ч), иначе — «выйдите и войдите снова». `rpID` — хост, при смене домена ключи добавляются заново;
   - сброс пароля: пока писем нет, `sendResetPassword` пишет ссылку в лог воркера; экран `#/account/reset` берёт `token` из настоящей строки запроса (`/?token=…#/account/reset`);
   - сессия в cookie `HttpOnly; Secure; SameSite=Lax`, живёт 60 дней с продлением;
   - ограничение частоты хранится в D1.

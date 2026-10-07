@@ -14,6 +14,11 @@ export function dayLabel(at: string, now: Date): string {
   return dayMonth.format(date)
 }
 
+/** «7 окт.» in local time: when a passkey was added. */
+export function shortDate(at: Date | string): string {
+  return dayMonth.format(new Date(at))
+}
+
 /** Whether `at` falls on the same local calendar day as `now`. */
 export function sameDay(at: string, now: Date): boolean {
   return startOfDay(new Date(at)) === startOfDay(now)
