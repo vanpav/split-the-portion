@@ -510,7 +510,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 <DisplayRow
                   key={i.id}
                   {...weightField(i.id)}
-                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
+                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не в счёт' : ''}`}
                   text={texts[i.id] ?? ''}
                   small={!tiles}
                   lids={people.length}

@@ -4,7 +4,7 @@ import { formatGrams } from '@/domain'
 interface RawFoldTileProps {
   /** Raw weight of what counts, summed; null — nothing weighed yet. */
   total: number | null
-  /** «не учит.: Вода 2 000 г, Соль 5 г»; empty — nothing to say. */
+  /** «не в счёт: Вода 2 000 г, Соль 5 г»; empty — nothing to say. */
   note: string
   /** Shows every product of the dish, each a readout of its own. */
   onExpand: () => void
