@@ -2,6 +2,7 @@ import { createHashRouter, Navigate } from 'react-router'
 import { AccountScreen } from '@/screens/Account/AccountScreen'
 import { ResetPasswordScreen } from '@/screens/Account/ResetPasswordScreen'
 import { CalculatorScreen } from '@/screens/Calculator/CalculatorScreen'
+import { IngredientsScreen } from '@/screens/Calculator/IngredientsScreen'
 import { NewCompanyScreen } from '@/screens/Calculator/NewCompanyScreen'
 import { NewTareScreen } from '@/screens/Calculator/NewTareScreen'
 import { CopyTextScreen } from '@/screens/Copy/CopyTextScreen'
@@ -17,7 +18,7 @@ import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
 import { PopularScreen } from '@/screens/Popular/PopularScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
-import { AVATAR_CROP, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, NEW_TARE } from './paths'
+import { AVATAR_CROP, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, INGREDIENTS, NEW_TARE } from './paths'
 import { RootLayout } from './RootLayout'
 
 // Screens opened over another one (docs/UX.md §3а) are its child routes: the screen under them stays
@@ -41,6 +42,7 @@ export const router = createHashRouter([
         element: <CalculatorScreen />,
         children: [
           newTare,
+          { path: INGREDIENTS, element: <IngredientsScreen /> },
           { path: 'company/new', element: <NewCompanyScreen /> },
           copyText,
         ],

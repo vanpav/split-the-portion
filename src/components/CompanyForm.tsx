@@ -1,10 +1,10 @@
 import { XIcon } from 'lucide-react'
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, exactPercents, lineupName, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
 
 /** What the form edits: a company without its id (a new one has none yet). */
@@ -26,6 +26,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   // «+ Имя» of this form: the empty bar puts the cursor there. Several forms can be open in the settings.
   const addPersonId = useId()
   const { members } = value
+  // Who − and + adjust: the first person until another segment is tapped.
+  const [chosenId, setChosenId] = useState<string | null>(null)
   const weights = members.map((m) => m.weight)
   // Each person's part, exact: «Поровну» on three is 33,3 % each, not 34, 33, 33. The bar shows percents only.
   const shares = exactPercents(weights).map((p) => p / 100)
@@ -55,6 +57,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         own={[]}
         rest={null}
         onChange={setPercents}
+        chosenId={chosenId}
+        onChoose={setChosenId}
         empty={{ label: 'Добавь людей', fieldId: addPersonId }}
       />
       <ul className="flex flex-col divide-y">
@@ -69,10 +73,6 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
               className="h-11 border-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input"
             />
-            {/* The part of the dish, here too: on the bar a narrow segment has no room for it. */}
-            <span aria-hidden className="shrink-0 text-sm text-muted-foreground tabular-nums">
-              {formatPercent(shares[index])} %
-            </span>
             <HoldButton
               className="w-10 text-muted-foreground"
               label={m.name ? `Убрать: ${m.name}` : 'Убрать человека'}

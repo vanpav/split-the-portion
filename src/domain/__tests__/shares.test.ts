@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { RAW_SUM } from '../types'
 import { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, splitAmounts, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
@@ -135,6 +136,12 @@ describe('portionGrams', () => {
   it('«Готовый» in focus → cooked grams, «Сухой» → raw grams, full precision', () => {
     expect(portionGrams(portion, null)).toBe(100)
     expect(portionGrams(portion, 'b')).toBe(37.6)
+  })
+
+  it('«Сырой» of a composite dish → the sum of the counted ingredients', () => {
+    const soup = { cookedGrams: 395, raw: [{ ingredientId: 'a', grams: 75 }, { ingredientId: 'b', grams: 50.5 }] }
+    expect(portionGrams(soup, RAW_SUM)).toBe(125.5)
+    expect(portionGrams({ cookedGrams: 395, raw: [] }, RAW_SUM)).toBeNull()
   })
 
   it('null when the ingredient has no raw amount or there is no cooked weight', () => {

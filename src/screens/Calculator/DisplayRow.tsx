@@ -17,8 +17,6 @@ interface DisplayRowProps {
   /** «Готовый»: Enter closes the keyboard instead of moving on. */
   last?: boolean
   autoFocus?: boolean
-  /** An ingredient of a composite dish: smaller digits, two tiles to a row. */
-  small?: boolean
   /** Something wrong with the weight («вес меньше тары»): an outline in the error color. */
   invalid?: boolean
   /** People eating today: the caret blinks through their lid colors. */
@@ -41,7 +39,6 @@ export function DisplayRow({
   onKeyDown,
   last,
   autoFocus,
-  small,
   invalid,
   lids,
   className,
@@ -51,7 +48,7 @@ export function DisplayRow({
       htmlFor={id}
       className={cn(
         'flex w-full min-w-0 cursor-text flex-col items-start justify-start gap-0.5 rounded-xl border px-4 text-left transition-colors max-[360px]:px-3',
-        small ? 'py-1.5' : 'py-2.5',
+        'py-2.5',
         // The one being typed into is the only raised box; in dark the idle tiles sink toward the ground.
         active ? 'border-border bg-card' : 'border-transparent bg-muted/60 hover:bg-card/60 dark:bg-muted/20 dark:hover:bg-card/60',
         invalid && 'border-destructive',
@@ -63,8 +60,7 @@ export function DisplayRow({
       </span>
       <span
         className={cn(
-          'flex max-w-full items-baseline leading-tight font-medium whitespace-nowrap tabular-nums',
-          small ? 'text-xl' : 'text-3xl max-[360px]:text-2xl',
+          'flex max-w-full items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl',
         )}
       >
         <DigitsInput

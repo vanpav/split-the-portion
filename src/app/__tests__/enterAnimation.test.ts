@@ -75,6 +75,7 @@ describe('screenKey', () => {
   it('keeps the screen under a screen opened over it, so it is not remounted', () => {
     expect(screenKey('/d/abc/tare/new')).toBe('/d/:id')
     expect(screenKey('/d/abc/company/new')).toBe('/d/:id')
+    expect(screenKey('/d/abc/ingredients')).toBe('/d/:id')
     expect(screenKey('/d/abc/copy')).toBe('/d/:id')
     expect(screenKey('/d/abc/edit/from-dish')).toBe('/d/abc/edit')
     expect(screenKey('/d/new/from-dish')).toBe('/d/new')

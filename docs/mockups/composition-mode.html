@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Режим «Состав»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). Desktop-only prototype. */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --chart-1: oklch(0.815 0.073 246.3);
+  --chart-2: oklch(0.871 0.14 91.6);
+  --chart-3: oklch(0.847 0.076 164.5);
+  --chart-4: oklch(0.81 0.075 301.4);
+  --chart-5: oklch(0.832 0.095 58.2);
+  --chart-foreground: oklch(0.267 0.054 269.1);
+  --chart-5-pale: color-mix(in srgb, var(--chart-5) 45%, var(--background));
+  --chart-5-pale-foreground: var(--foreground);
+  --own-edge: color-mix(in oklab, var(--foreground) 25%, transparent);
+  --caret-1: oklch(0.6 0.12 246.3);
+  --caret-2: oklch(0.66 0.13 85);
+  --idle: color-mix(in oklab, var(--muted) 60%, var(--background));
+  --radius: 0.875rem;
+  --radius-xl: 1.225rem;
+  --page: oklch(0.935 0.011 257);
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 22px 44px -24px oklch(0.267 0.054 269.1 / 0.45);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --chart-1: oklch(0.76 0.086 249);
+  --chart-2: oklch(0.827 0.139 90.3);
+  --chart-3: oklch(0.793 0.084 165.1);
+  --chart-4: oklch(0.751 0.087 299.6);
+  --chart-5: oklch(0.781 0.103 55.4);
+  --chart-foreground: oklch(0.212 0.035 268.5);
+  --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+  --chart-5-pale-foreground: var(--chart-5);
+  --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+  --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+  --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+  --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+  --page: oklch(0.175 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --chart-1: oklch(0.76 0.086 249);
+    --chart-2: oklch(0.827 0.139 90.3);
+    --chart-3: oklch(0.793 0.084 165.1);
+    --chart-4: oklch(0.751 0.087 299.6);
+    --chart-5: oklch(0.781 0.103 55.4);
+    --chart-foreground: oklch(0.212 0.035 268.5);
+    --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+    --chart-5-pale-foreground: var(--chart-5);
+    --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+    --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+    --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+    --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+    --page: oklch(0.175 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--page); color: var(--foreground); font: 400 16px/1.5 Rubik, system-ui, sans-serif; }
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in oklab, var(--primary) 50%, transparent); outline-offset: 1px; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ——— Page ——— */
+.page { width: 1300px; margin: 0 auto; padding: 48px 40px 80px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; }
+h1 { font-size: 1.75rem; line-height: 1.2; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lede { max-width: 72ch; margin: 0 0 10px; color: var(--muted-foreground); }
+.lede b { color: var(--foreground); font-weight: 500; }
+.side { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; flex: none; }
+.seg-ctl { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--muted); }
+.seg-ctl button { border: 0; background: none; padding: 6px 12px; border-radius: calc(var(--radius) - 2px); color: var(--muted-foreground); font-size: 0.875rem; }
+.seg-ctl button[aria-pressed="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.variants { display: grid; grid-template-columns: repeat(3, 375px); justify-content: space-between; margin-top: 40px; }
+.variant h2 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; margin: 0 0 4px; }
+.variant .thesis { margin: 0 0 20px; color: var(--muted-foreground); font-size: 0.9375rem; min-height: 3em; }
+.notes { margin-top: 28px; font-size: 0.9375rem; }
+.notes h3 { font-size: 0.8125rem; font-weight: 600; margin: 20px 0 6px; color: var(--muted-foreground); }
+.notes h3:first-child { margin-top: 0; }
+.notes ul { margin: 0; padding-left: 1.1em; }
+.notes li { margin: 0 0 6px; }
+.notes li::marker { color: var(--muted-foreground); }
+.notes p { margin: 0; }
+
+/* ——— Phone ——— */
+.phone { position: relative; width: 375px; height: 812px; overflow: hidden; border-radius: 40px; background: var(--background); box-shadow: var(--phone-shadow); }
+.scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.shelf { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 18px 12px 8px; background: color-mix(in oklab, var(--background) 95%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.round { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; border-radius: 999px; background: var(--secondary); }
+.round svg.i { width: 18px; height: 18px; }
+.chips { display: flex; gap: 6px; flex: 1; min-width: 0; overflow: hidden; mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.chip { height: 36px; flex: none; padding: 0 14px; border: 0; border-radius: 999px; background: var(--secondary); font-size: 0.875rem; font-weight: 500; }
+.chip.current { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); font-weight: 600; }
+main { display: flex; flex-direction: column; gap: 16px; padding: 8px 12px 32px; }
+
+/* Readouts: variant Б of composite-dish.html. */
+.weights { display: flex; flex-direction: column; gap: 4px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 10px 16px; border-radius: var(--radius-xl); border: 1px solid transparent; background: var(--idle); text-align: left; cursor: text; transition: background-color 150ms, border-color 150ms; }
+.tile:hover { background: color-mix(in oklab, var(--card) 60%, var(--idle)); }
+.tile.on { background: var(--card); border-color: var(--border); }
+.tile .lbl { font-size: 0.875rem; line-height: 1.25; color: var(--muted-foreground); padding-right: 36px; }
+.tile.on .lbl { color: var(--foreground); font-weight: 500; }
+.tile .val { display: flex; align-items: baseline; font-size: 1.875rem; line-height: 1.25; font-weight: 500; white-space: nowrap; }
+.tile .unit { margin-left: 4px; font-size: 1rem; font-weight: 400; color: var(--muted-foreground); }
+.tile .sub { font-size: 0.75rem; line-height: 1.3; color: var(--muted-foreground); }
+button.tile { cursor: pointer; }
+.knob { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 999px; background: var(--secondary); }
+input.digits { field-sizing: content; min-width: 1ch; padding: 0; border: 0; outline: 0; background: none; font-variant-numeric: tabular-nums; font-weight: 500; caret-color: var(--caret-1); animation: caret 2.12s steps(1) infinite; }
+@keyframes caret { 0% { caret-color: var(--caret-1); } 50% { caret-color: var(--caret-2); } }
+@media (prefers-reduced-motion: reduce) { input.digits { animation: none; caret-color: var(--primary); } }
+.quiet { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 0.875rem; color: var(--muted-foreground); }
+.ghost { display: inline-flex; align-items: center; gap: 4px; height: 44px; padding: 0 8px; border: 0; background: none; color: var(--muted-foreground); font-size: 0.875rem; }
+
+/* ——— Кто ест ——— */
+.who { display: flex; flex-direction: column; gap: 8px; padding: 0 4px; }
+.pickrow { display: flex; align-items: center; gap: 8px; }
+.picker { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; border-radius: var(--radius); border: 1px solid var(--input); font-size: 0.9375rem; min-width: 0; }
+.picker.grow { flex: 1; }
+.picker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker .chev { margin-left: auto; color: var(--muted-foreground); }
+.stepper { display: flex; height: 44px; border: 1px solid var(--input); border-radius: var(--radius); overflow: hidden; flex: none; }
+.stepper button, .stepper span { width: 44px; display: grid; place-items: center; border: 0; background: none; }
+.stepper span { border-inline: 1px solid var(--input); font-weight: 500; }
+
+/* The mode switch: one for the whole app. Off — an outline button; on — the white box ringed in ink. */
+.mode {
+  display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; flex: none;
+  border-radius: var(--radius); border: 1px solid var(--input); background: none; font-size: 0.9375rem; font-weight: 500;
+  transition: background-color 150ms, box-shadow 150ms, border-color 150ms;
+}
+.mode:hover { background: var(--idle); }
+.mode[aria-pressed="true"] { background: var(--card); border-color: transparent; box-shadow: inset 0 0 0 2px var(--foreground); }
+
+.bar { display: flex; height: 48px; border-radius: var(--radius-xl); overflow: hidden; position: relative; }
+.seg { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--chart-foreground); line-height: 1.15; min-width: 0; }
+.seg + .seg { box-shadow: inset 2px 0 0 var(--background); }
+.seg small { font-size: 0.75rem; font-weight: 500; }
+.seg b { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+.seg.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg.own { background: var(--chart-5-pale) !important; color: var(--chart-5-pale-foreground); outline: 1px dashed var(--own-edge); outline-offset: -3px; }
+.controls { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.ob { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); border: 1px solid var(--input); background: none; flex: none; }
+.chosen { display: flex; flex-direction: column; align-items: center; line-height: 1.2; font-size: 0.875rem; padding: 0 6px; min-width: 64px; }
+.chosen b { font-weight: 600; }
+.controls .right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.unitsw { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--muted); height: 44px; }
+.unitsw span { display: grid; place-items: center; width: 38px; border-radius: calc(var(--radius) - 2px); color: var(--muted-foreground); font-size: 0.875rem; }
+.unitsw span.on { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.1); }
+
+/* People */
+.people { list-style: none; margin: 0; padding: 0; }
+.person { display: grid; grid-template-columns: 14px 1fr auto 44px; align-items: center; column-gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+.person:first-child { border-top: 0; }
+.lid { width: 14px; height: 14px; border-radius: 5px; }
+.person .who-n b { display: block; font-weight: 400; }
+.person .who-n span { font-size: 0.8125rem; color: var(--muted-foreground); }
+.person .ans { font-size: 1.875rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.unit { margin-left: 4px; font-size: 1rem; font-weight: 400; color: var(--muted-foreground); }
+.copy { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; color: var(--muted-foreground); border-radius: 999px; }
+.copy:hover { background: var(--secondary); color: var(--foreground); }
+.addrow { display: flex; align-items: center; gap: 8px; height: 44px; margin-top: 4px; padding: 0 12px; border: 1px solid var(--input); border-radius: var(--radius); color: var(--muted-foreground); }
+
+/* The recipe of one portion: «name … grams», two columns while every name is short, like a card taped to the box. */
+.recipe {
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; row-gap: 4px; margin: 8px 0 0; padding: 0; list-style: none;
+  font-size: 0.875rem; line-height: 1.35;
+}
+/* A long name anywhere in the dish: one column for the whole recipe, so grams stay in one line down the right edge. */
+.recipe.one { grid-template-columns: 1fr; }
+.recipe li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+/* The name wraps to a second line; only past two lines it ends in «…» (the full name is in the title and the copied text). */
+.recipe .n { color: var(--muted-foreground); min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; hyphens: auto; }
+.recipe .g { flex: none; white-space: nowrap; }
+/* The mode reveals the recipe in place; nothing else moves sideways. */
+.reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms cubic-bezier(.2,.8,.2,1); }
+.reveal > * { overflow: hidden; min-height: 0; }
+.composed .reveal { grid-template-rows: 1fr; }
+.person .reveal { grid-column: 2 / 4; }
+@media (prefers-reduced-motion: reduce) { .reveal { transition: none; } }
+
+/* Доли */
+.summary { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 0; }
+.summary .line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.summary .big { font-size: 1.875rem; font-weight: 500; line-height: 1.2; }
+.summary .copy { margin-left: auto; align-self: center; }
+.summary .ownline { font-size: 0.875rem; color: var(--muted-foreground); }
+.summary .recipe { padding: 10px 14px; border-radius: var(--radius); background: var(--idle); margin-top: 6px; }
+.grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.ptile { position: relative; grid-column: span 2; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px 12px; border-radius: var(--radius-xl); background: var(--idle); border: 1px solid transparent; min-width: 0; }
+.ptile.span3 { grid-column: span 3; }
+.ptile.span6 { grid-column: span 6; }
+.ptile.own { border: 1px dashed var(--own-edge); }
+.ptile .lidno { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 0.75rem; font-weight: 600; color: var(--chart-foreground); }
+.ptile .amt { font-size: 1.5rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.ptile .amt .unit { font-size: 0.875rem; }
+.ptile .oth { font-size: 0.75rem; color: var(--muted-foreground); }
+.ptile .tcopy { position: absolute; top: 2px; right: 2px; width: 44px; height: 44px; }
+.ptile .recipe { font-size: 0.8125rem; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border); }
+.ptile.span3 .recipe { grid-template-columns: 1fr; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>Режим «Состав»</h1>
+      <p class="lede">
+        Сейчас «Из чего&nbsp;⌄» стоит под каждым человеком и открывается по одному: пять человек — пять одинаковых кнопок, а рецепт виден у одного за раз.
+        У долей рецепта нет совсем.
+      </p>
+      <p class="lede">
+        <b>Один переключатель «Состав» на весь калькулятор.</b> Выключен — экран как сейчас, только без «Из чего». Включён — рецепт порции в сыром виде,
+        «ингредиент — граммы»: то, что вносят в трекер. Режим помнится на устройстве для всех блюд; у простого блюда кнопки нет.
+      </p>
+      <p class="lede">
+        <b>Рецепт пишется один раз для одинаковых порций.</b> Он стоит ровно там, где ⧉: одинаковые доли — один рецепт под «по 690&nbsp;г&nbsp;×&nbsp;4»,
+        своя порция или доли по весу — у каждой свой. Люди — всегда у каждого: строка человека и есть его порция.
+      </p>
+      <p class="lede">Кнопка «Состав» общая для всех телефонов. Справа можно включить длинные названия ингредиентов.</p>
+    </div>
+    <div class="side">
+      <div class="seg-ctl" role="group" aria-label="Тема">
+        <button type="button" data-theme-set="light">Светлая</button>
+        <button type="button" data-theme-set="system" aria-pressed="true">Как в системе</button>
+        <button type="button" data-theme-set="dark">Тёмная</button>
+      </div>
+      <div class="seg-ctl" role="group" aria-label="Названия ингредиентов">
+        <button type="button" data-names="short" aria-pressed="true">Короткие названия</button>
+        <button type="button" data-names="long">Длинные</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="variants">
+    <section class="variant">
+      <h2>Люди</h2>
+      <p class="thesis">Рецепт под каждым человеком. Тап по «Сырому» меняет крупные числа на сырые, рецепт остаётся.</p>
+      <div class="phone" id="phone-people"></div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>«Из чего&nbsp;⌄» у каждого убрано. Вместо пяти кнопок одна, рядом с выбором компании; включённая — белая коробка с обводкой, как текущее блюдо на полке.</li>
+          <li>Пока все названия короткие, рецепт в две колонки: пять ингредиентов — три строки.</li>
+          <li>Кнопка «Состав» выше всего, что растёт, и не уезжает из-под пальца.</li>
+        </ul>
+        <h3>Длинные названия</h3>
+        <p>Если хоть одно название не влезает в полколонки, весь рецепт блюда становится одной колонкой — у всех одинаково. Название переносится на вторую строку, граммы стоят справа на первой. Длиннее двух строк — «…»; полное название в подсказке и в скопированном тексте.</p>
+      </div>
+    </section>
+
+    <section class="variant">
+      <h2>Доли поровну</h2>
+      <p class="thesis">Одинаковые доли — один рецепт под «по 690&nbsp;г&nbsp;×&nbsp;4». Своя порция — свой рецепт в её контейнере.</p>
+      <div class="phone" id="phone-equal"></div>
+      <div class="seg-ctl" role="group" aria-label="Своя порция" style="margin-top:20px">
+        <button type="button" data-own="off">Все поровну</button>
+        <button type="button" data-own="on" aria-pressed="true">Пятая — своя, 400&nbsp;г</button>
+      </div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>Четыре одинаковых контейнера не повторяют рецепт: он один, в сводке, рядом с ⧉ на всех.</li>
+          <li>Контейнеры поровну остаются маленькими, как без режима.</li>
+          <li>Своя порция в режиме растягивается на всю ширину, рецепт в ней в две колонки (с длинными названиями — в одну). Порядок номеров тот же.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="variant">
+      <h2>Доли по весу</h2>
+      <p class="thesis">Все доли разные — рецепт в каждом контейнере. Контейнеры по два в ряд.</p>
+      <div class="phone" id="phone-weights"></div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>Одинаковых нет, повторов тоже: у каждого контейнера свой рецепт и свой ⧉.</li>
+          <li>В режиме по два в ряд вместо трёх, рецепт — одной колонкой под тонкой линией.</li>
+          <li>Длинное название здесь переносится чаще: колонка узкая. Две строки — и «…».</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const NBSP = ' ';
+const ICONS = {
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  right: '<path d="m9 18 6-6-6-6"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  pie: '<path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>',
+  minus: '<path d="M5 12h14"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+// SPEC §11, example 2: what counts. Water and salt are «не в счёт» and never reach a portion.
+const GRAMS = [600, 400, 160, 120, 80];
+const NAMES = {
+  short: ['Курица', 'Картофель', 'Морковь', 'Лук', 'Рис'],
+  long: ['Куриное филе охлаждённое без кожи', 'Картофель молодой', 'Морковь', 'Лук репчатый', 'Рис круглозёрный «Кубанский» в варочных пакетиках, 5 шт.'],
+};
+const RAW = GRAMS.reduce((a, g) => a + g, 0);
+const grams = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+const pct = (x) => `${Math.round(x * 100)}${NBSP}%`;
+const esc = (t) => t.replace(/"/g, '&quot;');
+
+const state = {
+  composed: true,
+  names: 'short',
+  own: true,
+  view: { people: 'cooked', equal: 'cooked', weights: 'cooked' },
+  cooked: { people: '3160', equal: '3160', weights: '3160' },
+};
+
+// A name longer than half a column turns the whole recipe of the dish into one column.
+const longNames = () => NAMES[state.names].some((n) => n.length > 13);
+const recipe = (share, { oneColumn = longNames() } = {}) =>
+  `<ul class="recipe num ${oneColumn ? 'one' : ''}">${NAMES[state.names].map((n, i) =>
+    `<li><span class="n" title="${esc(n)}">${n}</span><span class="g">${grams(GRAMS[i] * share)}${NBSP}г</span></li>`).join('')}</ul>`;
+
+// Rows of tiles as in src/domain/portions.ts tileRows.
+function tileRows(count) {
+  if (count <= 0) return [];
+  if (count <= 3) return [count];
+  const rest = count % 3, threes = Math.floor(count / 3);
+  if (rest === 0) return Array(threes).fill(3);
+  if (rest === 2) return [...Array(threes).fill(3), 2];
+  return [...Array(threes - 1).fill(3), 2, 2];
+}
+const SPAN = { 1: 'span6', 2: 'span3', 3: '' };
+
+const shelf = () => `
+  <div class="shelf">
+    <button class="round" type="button" aria-label="Найти блюдо">${icon('search')}</button>
+    <button class="round" type="button" aria-label="Все блюда">${icon('grid')}</button>
+    <div class="chips"><button class="chip current" type="button">Суп</button><button class="chip" type="button">Гречка</button><button class="chip" type="button">Макароны</button></div>
+    <button class="round" type="button" aria-label="Ещё">${icon('more')}</button>
+  </div>`;
+
+const weights = (key) => `
+  <section class="weights" aria-label="Вес">
+    <div class="grid2">
+      <button class="tile" type="button" data-side="raw" aria-pressed="false">
+        <span class="lbl">Сырой</span>
+        <span class="val num">${grams(RAW)}<span class="unit">г</span></span>
+        <span class="sub">5 ингредиентов,<br>не в счёт: Вода, Соль</span>
+        <span class="knob" aria-hidden="true">${icon('right')}</span>
+      </button>
+      <label class="tile" data-side="cooked">
+        <span class="lbl">Готовый</span>
+        <span class="val"><input class="digits" inputmode="decimal" aria-label="Готовый, граммы" value="${grams(+state.cooked[key])}"><span class="unit">г</span></span>
+      </label>
+    </div>
+    <div class="quiet"><button class="ghost" type="button">Без тары ${icon('down')}</button><span class="num" data-k></span></div>
+  </section>`;
+
+const modeBtn = () => `<button class="mode" type="button" data-mode aria-pressed="${state.composed}">Состав</button>`;
+const controls = (who, value) => `
+  <div class="controls">
+    <button class="ob" type="button" aria-label="Меньше: ${who}">${icon('minus')}</button>
+    <span class="chosen">${value}</span>
+    <button class="ob" type="button" aria-label="Больше: ${who}">${icon('plus')}</button>
+    <span class="right"><button class="ghost" type="button">Поровну</button><span class="unitsw"><span class="on">г</span><span>%</span></span></span>
+  </div>`;
+
+/* ——— Люди ——— */
+const PEOPLE = [{ name: 'Ваня', lid: 1, share: 0.4 }, { name: 'Ксюша', lid: 2, share: 0.3 }, { name: 'Тёща', lid: 3, share: 0.3 }];
+function peopleBody(key) {
+  const cooked = +state.cooked[key] || 0;
+  const raw = state.view[key] === 'raw';
+  const big = (p) => (raw ? RAW : cooked) * p.share;
+  const sub = (p) => `${pct(p.share)} · ${grams((raw ? cooked : RAW) * p.share)} г ${raw ? 'готового' : 'сырого'}`;
+  return `
+    <section class="who" aria-label="Кто ест">
+      <div class="pickrow">
+        <div class="picker grow">${icon('users')}<span>С тёщей</span><span class="chev">${icon('down')}</span></div>
+        ${modeBtn()}
+      </div>
+      <div class="bar">${PEOPLE.map((p, i) => `<div class="seg ${i === 0 ? 'sel' : ''}" style="flex:${p.share};background:var(--chart-${p.lid})"><small>${p.name}</small><b class="num">${grams(big(p))}${NBSP}г</b></div>`).join('')}</div>
+      ${controls('Ваня', '<span>Ваня</span><b class="num">40 %</b>')}
+      <ul class="people" aria-live="polite">
+        ${PEOPLE.map((p) => `
+          <li class="person">
+            <span class="lid" style="background:var(--chart-${p.lid})"></span>
+            <span class="who-n"><b>${p.name}</b><span class="num">${sub(p)}</span></span>
+            <span class="ans num">${grams(big(p))}<span class="unit">г</span></span>
+            <button class="copy" type="button" aria-label="Скопировать: ${p.name}">${icon('copy')}</button>
+            <div class="reveal"><div>${recipe(p.share)}</div></div>
+          </li>`).join('')}
+      </ul>
+      <div class="addrow">${icon('plus')} Имя</div>
+    </section>`;
+}
+
+/* ——— Доли ——— */
+function sharesBody(key) {
+  const cooked = +state.cooked[key] || 0;
+  const raw = state.view[key] === 'raw';
+  const view = (s) => (raw ? RAW : cooked) * s;
+  const other = (s) => `${grams((raw ? cooked : RAW) * s)} г ${raw ? 'готового' : 'сырого'}`;
+
+  let portions;
+  if (key === 'weights') {
+    portions = [0.35, 0.3, 0.2, 0.15].map((share, i) => ({ no: i + 1, share, own: false }));
+  } else {
+    const own = state.own ? Math.min(400 / cooked || 0, 1) : 0;
+    const n = state.own ? 5 : 4;
+    const each = (1 - own) / 4;
+    portions = Array.from({ length: n }, (_, i) => ({ no: i + 1, share: i === 4 ? own : each, own: i === 4 }));
+  }
+  const sharing = portions.filter((p) => !p.own);
+  const same = sharing.every((p) => Math.round(view(p.share)) === Math.round(view(sharing[0].share)));
+  // The recipe sits where ⧉ sits: once in the summary for equal portions, in the tile for an own or a different one.
+  const inTile = (p) => p.own || !same;
+
+  // Tiles: without the mode as in the app; in the mode a tile with a recipe needs width — two to a row,
+  // and an own portion among equal ones takes the whole row.
+  const spans = (() => {
+    if (!state.composed) return tileRows(portions.length).flatMap((r) => Array(r).fill(SPAN[r]));
+    if (!same) return portions.map(() => 'span3');
+    const rows = tileRows(sharing.length).flatMap((r) => Array(r).fill(SPAN[r]));
+    let k = 0;
+    return portions.map((p) => (p.own ? 'span6' : rows[k++]));
+  })();
+
+  const lo = Math.min(...sharing.map((p) => view(p.share))), hi = Math.max(...sharing.map((p) => view(p.share)));
+  const summary = same
+    ? `<div class="line"><span class="big num">по ${grams(view(sharing[0].share))}<span class="unit">г</span></span><span class="muted num">× ${sharing.length} · ${other(sharing[0].share)}</span>
+         <button class="copy" type="button" aria-label="Скопировать: каждая порция">${icon('copy')}</button></div>`
+    : `<div class="line"><span class="big num">${grams(lo)}–${grams(hi)}<span class="unit">г</span></span><span class="muted">${sharing.length} порции по долям</span></div>`;
+  const ownLine = portions.filter((p) => p.own).map((p) => `<span class="ownline num">своя: ${p.no} — ${grams(view(p.share))} г</span>`).join('');
+
+  return `
+    <section class="who" aria-label="Кто ест">
+      <div class="pickrow">
+        <div class="picker grow">${icon('pie')}<span>Доли</span><span class="chev">${icon('down')}</span></div>
+        <div class="stepper"><button type="button" aria-label="Меньше порций">${icon('minus')}</button><span class="num">${portions.length}</span><button type="button" aria-label="Больше порций">${icon('plus')}</button></div>
+        ${modeBtn()}
+      </div>
+      <div class="bar">${portions.map((p) => `<div class="seg ${p.no === 1 ? 'sel' : ''} ${p.own ? 'own' : ''}" style="flex:${p.share};background:var(--chart-${p.no})"><small>${p.no}</small><b class="num">${grams(view(p.share))}${NBSP}г</b></div>`).join('')}</div>
+      ${controls('порция 1', state.own && key === 'equal'
+        ? `<span class="num">из ${grams(view(1 - portions[4].share))} г</span><b class="num">${pct(1 - portions[4].share)}</b>`
+        : `<span>Порция 1</span><b class="num">${pct(portions[0].share)}</b>`)}
+      <div class="summary">${summary}${ownLine}${same ? `<div class="reveal"><div>${recipe(sharing[0].share)}</div></div>` : ''}</div>
+      <ul class="grid6">
+        ${portions.map((p, i) => `
+          <li class="ptile ${spans[i]} ${p.own ? 'own' : ''}">
+            <span class="lidno" style="background:var(--chart-${p.no})">${p.no}</span>
+            <span class="amt num">${grams(view(p.share))}<span class="unit">г</span></span>
+            <span class="oth num">${other(p.share)}</span>
+            ${inTile(p) ? `<button class="copy tcopy" type="button" aria-label="Скопировать: порция ${p.no}">${icon('copy')}</button>
+            <div class="reveal"><div>${recipe(p.share, { oneColumn: spans[i] !== 'span6' || longNames() })}</div></div>` : ''}
+          </li>`).join('')}
+      </ul>
+    </section>`;
+}
+
+const PHONES = { people: peopleBody, equal: sharesBody, weights: sharesBody };
+
+const kLine = (key) => { const c = +state.cooked[key] || 0; return c ? `· k блюда = ${(c / (RAW + 2016)).toFixed(2).replace('.', ',')}` : ''; };
+const markSide = (phone, key) => {
+  const raw = state.view[key] === 'raw';
+  phone.querySelectorAll('[data-side]').forEach((el) => el.classList.toggle('on', (el.dataset.side === 'raw') === raw));
+  phone.querySelector('[data-side="raw"]').setAttribute('aria-pressed', String(raw));
+  phone.querySelector('[data-k]').textContent = kLine(key);
+};
+
+function render(key) {
+  const phone = document.getElementById(`phone-${key}`);
+  phone.innerHTML = `<div class="scroll ${state.composed ? 'composed' : ''}">${shelf()}<main>${weights(key)}<div data-body>${PHONES[key](key)}</div></main></div>`;
+  markSide(phone, key);
+  const input = phone.querySelector('input.digits');
+  input.addEventListener('focus', () => { input.value = state.cooked[key]; input.select(); if (state.view[key] !== 'cooked') { state.view[key] = 'cooked'; renderBody(key); } });
+  input.addEventListener('blur', () => { input.value = grams(+state.cooked[key] || 0); });
+  input.addEventListener('input', () => { state.cooked[key] = input.value.replace(',', '.').replace(/[^\d.]/g, ''); renderBody(key); });
+  phone.querySelector('[data-side="raw"]').addEventListener('click', () => { state.view[key] = 'raw'; renderBody(key); });
+  bindMode(phone);
+}
+
+// Only the people part re-renders while typing, so the field keeps its focus and caret.
+function renderBody(key) {
+  const phone = document.getElementById(`phone-${key}`);
+  phone.querySelector('[data-body]').innerHTML = PHONES[key](key);
+  markSide(phone, key);
+  bindMode(phone);
+}
+
+function bindMode(phone) {
+  phone.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+    state.composed = !state.composed;
+    // One switch for the whole app: every phone follows.
+    Object.keys(PHONES).forEach((k) => {
+      document.getElementById(`phone-${k}`).querySelector('.scroll').classList.toggle('composed', state.composed);
+      renderBody(k);
+    });
+  }));
+}
+
+Object.keys(PHONES).forEach(render);
+
+const pressGroup = (sel, pick) => document.querySelectorAll(sel).forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll(sel).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  pick(b);
+}));
+pressGroup('[data-theme-set]', (b) => {
+  const t = b.dataset.themeSet;
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = t;
+});
+pressGroup('[data-names]', (b) => { state.names = b.dataset.names; Object.keys(PHONES).forEach(renderBody); });
+pressGroup('[data-own]', (b) => { state.own = b.dataset.own === 'on'; renderBody('equal'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Граммы в строке</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). Desktop-only prototype. */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --chart-1: oklch(0.815 0.073 246.3);
+  --chart-2: oklch(0.871 0.14 91.6);
+  --chart-3: oklch(0.847 0.076 164.5);
+  --chart-4: oklch(0.81 0.075 301.4);
+  --chart-5: oklch(0.832 0.095 58.2);
+  --chart-foreground: oklch(0.267 0.054 269.1);
+  --chart-5-pale: color-mix(in srgb, var(--chart-5) 45%, var(--background));
+  --chart-5-pale-foreground: var(--foreground);
+  --own-edge: color-mix(in oklab, var(--foreground) 25%, transparent);
+  --caret-1: oklch(0.6 0.12 246.3);
+  --caret-2: oklch(0.66 0.13 85);
+  --idle: color-mix(in oklab, var(--muted) 60%, var(--background));
+  --radius: 0.875rem;
+  --radius-xl: 1.225rem;
+  --page: oklch(0.935 0.011 257);
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 22px 44px -24px oklch(0.267 0.054 269.1 / 0.45);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --chart-1: oklch(0.76 0.086 249);
+  --chart-2: oklch(0.827 0.139 90.3);
+  --chart-3: oklch(0.793 0.084 165.1);
+  --chart-4: oklch(0.751 0.087 299.6);
+  --chart-5: oklch(0.781 0.103 55.4);
+  --chart-foreground: oklch(0.212 0.035 268.5);
+  --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+  --chart-5-pale-foreground: var(--chart-5);
+  --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+  --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+  --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+  --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+  --page: oklch(0.175 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --chart-1: oklch(0.76 0.086 249);
+    --chart-2: oklch(0.827 0.139 90.3);
+    --chart-3: oklch(0.793 0.084 165.1);
+    --chart-4: oklch(0.751 0.087 299.6);
+    --chart-5: oklch(0.781 0.103 55.4);
+    --chart-foreground: oklch(0.212 0.035 268.5);
+    --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+    --chart-5-pale-foreground: var(--chart-5);
+    --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+    --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+    --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+    --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+    --page: oklch(0.175 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--page); color: var(--foreground); font: 400 16px/1.5 Rubik, system-ui, sans-serif; }
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in oklab, var(--primary) 50%, transparent); outline-offset: 1px; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ——— Page ——— */
+.page { width: 1300px; margin: 0 auto; padding: 48px 40px 80px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; }
+h1 { font-size: 1.75rem; line-height: 1.2; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lede { max-width: 74ch; margin: 0 0 10px; color: var(--muted-foreground); }
+.lede b { color: var(--foreground); font-weight: 500; }
+.seg-ctl { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--muted); }
+.seg-ctl button { border: 0; background: none; padding: 6px 12px; border-radius: calc(var(--radius) - 2px); color: var(--muted-foreground); font-size: 0.875rem; }
+.seg-ctl button[aria-pressed="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.variants { display: grid; grid-template-columns: repeat(3, 375px); justify-content: space-between; margin-top: 40px; }
+.variant h2 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+.variant h2 .letter { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--foreground); color: var(--background); font-size: 0.875rem; }
+.pick { margin-left: auto; font-size: 0.75rem; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--foreground); }
+.variant .thesis { margin: 0 0 14px; color: var(--muted-foreground); font-size: 0.9375rem; min-height: 3em; }
+.phonebar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.count { font-size: 0.8125rem; color: var(--muted-foreground); }
+.count b { color: var(--foreground); font-weight: 600; }
+.notes { margin-top: 24px; font-size: 0.9375rem; }
+.notes h3 { font-size: 0.8125rem; font-weight: 600; margin: 18px 0 6px; color: var(--muted-foreground); }
+.notes h3:first-child { margin-top: 0; }
+.notes ul { margin: 0; padding-left: 1.1em; }
+.notes li { margin: 0 0 6px; }
+.notes li::marker { color: var(--muted-foreground); }
+.notes p { margin: 0; }
+
+/* ——— Phone ——— */
+.phone { position: relative; width: 375px; height: 740px; overflow: hidden; border-radius: 40px; background: var(--background); box-shadow: var(--phone-shadow); }
+.scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+main { display: flex; flex-direction: column; gap: 16px; padding: 20px 12px 32px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-radius: var(--radius-xl); background: var(--idle); border: 1px solid transparent; }
+.tile.on { background: var(--card); border-color: var(--border); }
+.tile .lbl { font-size: 0.875rem; color: var(--muted-foreground); }
+.tile.on .lbl { color: var(--foreground); font-weight: 500; }
+.tile .val { font-size: 1.875rem; line-height: 1.25; font-weight: 500; }
+.unit { margin-left: 4px; font-size: 1rem; font-weight: 400; color: var(--muted-foreground); }
+.quiet { display: flex; gap: 8px; align-items: center; min-height: 32px; margin-top: -10px; padding: 0 4px; font-size: 0.875rem; color: var(--muted-foreground); }
+.who { display: flex; flex-direction: column; gap: 10px; padding: 0 4px; }
+.pickrow { display: flex; align-items: center; gap: 8px; }
+.picker { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: var(--radius); border: 1px solid var(--input); font-size: 0.9375rem; }
+.picker .chev { margin-left: auto; color: var(--muted-foreground); }
+.stepper { display: flex; height: 44px; border: 1px solid var(--input); border-radius: var(--radius); overflow: hidden; flex: none; }
+.stepper button, .stepper span { width: 44px; display: grid; place-items: center; border: 0; background: none; }
+.stepper span { border-inline: 1px solid var(--input); font-weight: 500; }
+.ob { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); border: 1px solid var(--input); background: none; flex: none; }
+.ob:hover { background: var(--idle); }
+.ghost { display: inline-flex; align-items: center; height: 44px; padding: 0 8px; border: 0; background: none; color: var(--muted-foreground); font-size: 0.9375rem; font-weight: 500; }
+.ghost:hover:not(:disabled) { color: var(--foreground); }
+.ghost:disabled { opacity: 0.5; cursor: default; }
+.copy { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; color: var(--muted-foreground); border-radius: 999px; flex: none; }
+.copy:hover { background: var(--secondary); color: var(--foreground); }
+.lid { width: 14px; height: 14px; border-radius: 5px; flex: none; }
+.lidno { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: var(--chart-foreground); flex: none; }
+.l1 { background: var(--chart-1); } .l2 { background: var(--chart-2); } .l3 { background: var(--chart-3); } .l4 { background: var(--chart-4); } .l5 { background: var(--chart-5); }
+
+/* The share bar */
+.bar { position: relative; display: flex; height: 48px; border-radius: var(--radius-xl); overflow: hidden; }
+.bar.tall { height: 60px; }
+.seg { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; color: var(--chart-foreground); line-height: 1.15; border: 0; padding: 0; transition: flex-grow 200ms ease-out; }
+.seg + .seg { box-shadow: inset 2px 0 0 var(--background); }
+.seg.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg + .seg.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg small { font-size: 0.75rem; font-weight: 500; }
+.seg .t { font-size: 0.875rem; font-weight: 600; }
+.seg b { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+.bar.tall .seg b { font-size: 1.25rem; }
+.grip { position: absolute; top: 50%; translate: -50% -50%; width: 32px; height: 32px; border-radius: 999px; background: var(--foreground); box-shadow: 0 2px 6px rgb(0 0 0 / 0.18); display: grid; place-items: center; pointer-events: none; }
+.grip::before { content: ""; width: 8px; height: 12px; background: radial-gradient(circle, var(--background) 1.4px, transparent 1.6px) 0 0 / 4px 4px; }
+.controls { display: flex; align-items: center; gap: 6px; }
+.chosen { display: flex; flex-direction: column; align-items: center; min-width: 64px; padding: 0 4px; font-size: 0.875rem; line-height: 1.2; color: var(--muted-foreground); }
+.chosen b { color: var(--foreground); font-weight: 600; }
+.caption { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.caption .big { font-size: 1.5rem; font-weight: 500; }
+
+/* People rows */
+.rows { list-style: none; margin: 0; padding: 0; }
+.row { display: flex; align-items: center; gap: 10px; min-height: 72px; border-top: 1px solid var(--border); }
+.row:first-child { border-top: 0; }
+.row .who-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.row .sub { padding-left: 22px; font-size: 0.8125rem; color: var(--muted-foreground); }
+.ans { font-size: 1.875rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+
+/* Доли */
+.summary { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.summary .big { font-size: 1.875rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.summary .rest { font-size: 0.875rem; color: var(--muted-foreground); flex: 1; min-width: 0; }
+.grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.ptile { position: relative; grid-column: span 3; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--radius-xl); background: var(--idle); min-width: 0; }
+.ptile .amt { font-size: 1.5rem; font-weight: 500; line-height: 1.2; white-space: nowrap; margin-top: 4px; }
+.ptile .oth { font-size: 0.75rem; color: var(--muted-foreground); }
+.ptile .tcopy { position: absolute; top: 2px; right: 2px; }
+.ptile.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+/* Equal portions in А: a container is its lid, nothing more — the amount is said once above. */
+.boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.box { display: grid; place-items: center; width: 100%; height: 64px; border-radius: var(--radius-xl); background: var(--idle); border: 0; }
+.box .lidno { width: 34px; height: 34px; border-radius: 9px; font-size: 1.0625rem; }
+.box.sel { box-shadow: inset 0 0 0 2px var(--foreground); background: var(--card); }
+
+/* Б: the list is the bar — each row carries its share as a track */
+.meter { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mrow { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px 14px; border-radius: var(--radius-xl); background: var(--idle); border: 1px solid transparent; cursor: pointer; text-align: left; width: 100%; }
+.mrow.sel { background: var(--card); border-color: var(--border); }
+.mrow .line { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.mrow .who-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mrow .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.mrow .sub { padding-left: 22px; font-size: 0.8125rem; color: var(--muted-foreground); }
+.mrow .lids { display: flex; gap: 4px; }
+.mrow .lids button { border: 0; padding: 0; background: none; border-radius: 7px; }
+.mrow .lids button:hover .lidno { outline: 2px solid var(--foreground); outline-offset: 1px; }
+.track { position: relative; height: 10px; border-radius: 999px; background: color-mix(in oklab, var(--muted-foreground) 18%, transparent); overflow: hidden; display: flex; }
+.track span { height: 100%; transition: width 200ms ease-out; }
+.track span + span { box-shadow: inset 2px 0 0 var(--background); }
+.mrow.sel .track span + span { box-shadow: inset 2px 0 0 var(--card); }
+.mhead { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; font-size: 0.875rem; color: var(--muted-foreground); }
+
+/* В: the bar is the answer; rows below are what it is made of */
+.vrows { list-style: none; margin: 0; padding: 0; }
+.vrow { display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid var(--border); }
+.vrow:first-child { border-top: 0; }
+.vrow .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; flex: 1; min-width: 0; }
+.vrow .raw { font-size: 0.9375rem; color: var(--muted-foreground); white-space: nowrap; }
+.vrow .raw b { color: var(--foreground); font-weight: 500; }
+
+/* ——— Вариант А, подробно ——— */
+.variants { grid-template-columns: repeat(3, 375px); }
+/* ± without a name: the chosen one's lid between the buttons, the same mark as on the bar and in the row. */
+.mark { display: grid; place-items: center; width: 44px; height: 44px; }
+.mark .lid { width: 22px; height: 22px; border-radius: 7px; }
+.mark .lidno { width: 28px; height: 28px; border-radius: 8px; font-size: 0.875rem; }
+/* The chosen row: a frosted plate and a ring round its lid. */
+.row { border-radius: var(--radius-xl); padding: 0 6px 0 10px; margin: 0 -10px 0 -10px; cursor: pointer; transition: background-color 150ms; flex-wrap: wrap; }
+.row + .row { border-top: 0; }
+.rows { display: flex; flex-direction: column; gap: 2px; }
+.row.sel { background: var(--idle); }
+.row.sel .nm .lid, .box.sel .lidno, .ptile.sel .lidno { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground); }
+.row.sel .nm { font-weight: 600; }
+.row .line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 72px; }
+.ptile { cursor: pointer; }
+.ptile.sel { box-shadow: none; background: var(--card); border: 1px solid var(--border); }
+.box.sel { box-shadow: none; }
+.mode { display: inline-flex; align-items: center; height: 44px; padding: 0 12px; flex: none; border-radius: var(--radius); border: 1px solid var(--input); background: none; font-size: 0.9375rem; font-weight: 500; }
+.mode[aria-pressed="true"] { background: var(--card); border-color: transparent; box-shadow: inset 0 0 0 2px var(--foreground); }
+/* «Состав»: the recipe of a portion */
+.recipe { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; row-gap: 4px; margin: 0; padding: 0 0 12px 22px; list-style: none; font-size: 0.875rem; line-height: 1.35; width: 100%; }
+.recipe li { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.recipe .n { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recipe .gr { white-space: nowrap; }
+.recipe.one { grid-template-columns: 1fr; }
+.summary-wrap { display: flex; flex-direction: column; gap: 6px; }
+.summary-wrap .recipe { padding: 10px 14px; border-radius: var(--radius); background: var(--idle); }
+.ptile .recipe { padding: 8px 0 0; margin-top: 6px; border-top: 1px solid var(--border); font-size: 0.8125rem; }
+.ptile.full { grid-column: span 6; }
+.ptile.full .recipe { grid-template-columns: 1fr 1fr; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>Вариант А: граммы в строке, с «Составом»</h1>
+      <p class="lede">
+        Полоса показывает доли шириной, граммы каждого — один раз, в его строке или контейнере.
+        <b>«− +» без имени:</b> между кнопками — крышка выбранного, тот же цветной квадратик, что на полосе и у строки.
+        Выбранная строка (или контейнер) подсвечена фоном, у её крышки — обводка. Тап по сегменту полосы, по строке или по контейнеру выбирает.
+      </p>
+      <p class="lede">Кнопка «Состав» общая для всех телефонов, как в приложении.</p>
+    </div>
+    <div class="seg-ctl" role="group" aria-label="Тема">
+      <button type="button" data-theme-set="light">Светлая</button>
+      <button type="button" data-theme-set="system" aria-pressed="true">Как в системе</button>
+      <button type="button" data-theme-set="dark">Тёмная</button>
+    </div>
+  </div>
+  <div class="variants">
+    <section class="variant">
+      <h2>Люди</h2>
+      <p class="thesis">Рецепт под каждым человеком. Число — только справа в строке.</p>
+      <div class="phone" id="phone-people"></div>
+    </section>
+    <section class="variant">
+      <h2>Доли поровну</h2>
+      <p class="thesis">«по 790 г» и рецепт — один раз. Контейнеры — только номера.</p>
+      <div class="phone" id="phone-equal"></div>
+    </section>
+    <section class="variant">
+      <h2>Доли разные</h2>
+      <p class="thesis">Порции отличаются: граммы и рецепт в каждом контейнере, по два в ряд.</p>
+      <div class="phone" id="phone-unequal"></div>
+    </section>
+  </div>
+  <div class="notes" style="max-width:74ch">
+    <h3>Что меняется по сравнению с PR #72</h3>
+    <ul>
+      <li>На полосе нет граммов: имена у людей, номера у долей.</li>
+      <li>Под полосой «−&nbsp;■&nbsp;+»: крышка выбранного вместо имени и граммов.</li>
+      <li>Выбранная строка или контейнер подсвечены; тап по строке тоже выбирает.</li>
+      <li>Доли поровну: контейнеры без граммов, «по 790&nbsp;г» и рецепт — над ними один раз.</li>
+    </ul>
+  </div>
+</div>
+<script>
+const NBSP = '\u00a0';
+const ICONS = {
+  down: '<path d="m6 9 6 6 6-6"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  pie: '<path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>',
+  minus: '<path d="M5 12h14"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+// SPEC §11, example 2.
+const ING = [['Курица', 600], ['Картофель', 400], ['Морковь', 160], ['Лук', 120], ['Рис', 80]];
+const RAW = ING.reduce((a, [, x]) => a + x, 0), COOKED = 3160;
+const g = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+const plural = (n, one, few, many) => (n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
+const equalSplit = (n) => Array(n).fill(100 / n);
+const NAMES = ['Ваня', 'Ксюша', 'Тёща'];
+const state = {
+  composed: true,
+  people: { mode: 'people', ws: [54, 46], sel: 0 },
+  equal: { mode: 'shares', ws: equalSplit(4), sel: 0 },
+  unequal: { mode: 'shares', ws: [35, 30, 20, 15], sel: 0 },
+};
+function nudge(ws, i, d) {
+  const next = ws.slice();
+  if (d < 0 && next[i] <= 1) return next;
+  const others = next.map((w, j) => [w, j]).filter(([, j]) => j !== i);
+  const pick = d > 0 ? others.filter(([w]) => w > 1).sort((x, y) => y[0] - x[0])[0] : others.sort((x, y) => x[0] - y[0])[0];
+  if (!pick) return next;
+  next[i] += d; next[pick[1]] -= d;
+  return next;
+}
+const parts = (st) => st.ws.map((w, i) => ({ i, no: i + 1, share: w / 100, cooked: COOKED * w / 100, raw: RAW * w / 100, name: st.mode === 'people' ? NAMES[i] : `Порция ${i + 1}` }));
+const allEqual = (ps) => ps.every((p) => Math.round(p.cooked) === Math.round(ps[0].cooked));
+const recipe = (share, one = false) => `<ul class="recipe num ${one ? 'one' : ''}">${ING.map(([n, x]) => `<li><span class="n">${n}</span><span class="gr">${g(x * share)}${NBSP}г</span></li>`).join('')}</ul>`;
+const copyBtn = (label, cls = '') => `<button class="copy ${cls}" type="button" aria-label="Скопировать для трекера: ${label}">${icon('copy')}</button>`;
+const mark = (st, p) => st.mode === 'people' ? `<span class="lid l${p.no}"></span>` : `<span class="lidno l${p.no}">${p.no}</span>`;
+
+function who(st) {
+  const ps = parts(st), sel = ps[st.sel], people = st.mode === 'people';
+  let at = 0;
+  const grips = ps.slice(0, -1).map((p) => { at += p.share * 100; return `<span class="grip" style="left:${at}%"></span>`; }).join('');
+  const bar = `<div class="bar">${ps.map((p) => `<button type="button" class="seg l${p.no} ${p.i === st.sel ? 'sel' : ''}" style="flex:${p.share} 1 0" data-sel="${p.i}" aria-label="${p.name}"><span class="t">${people ? p.name : p.no}</span></button>`).join('')}${grips}</div>`;
+  const pick = people
+    ? `<div class="pickrow"><div class="picker">${icon('users')}<span>Ваня и Ксюша</span><span class="chev">${icon('down')}</span></div><button class="mode" type="button" data-mode aria-pressed="${state.composed}">Состав</button></div>`
+    : `<div class="pickrow"><div class="picker">${icon('pie')}<span>Доли</span><span class="chev">${icon('down')}</span></div><div class="stepper"><button type="button" data-act="fewer" aria-label="Убрать порцию">${icon('minus')}</button><span class="num">${ps.length}</span><button type="button" data-act="more" aria-label="Добавить порцию">${icon('plus')}</button></div><button class="mode" type="button" data-mode aria-pressed="${state.composed}">Состав</button></div>`;
+  const controls = `<div class="controls">
+    <button class="ob" type="button" data-act="minus" aria-label="${sel.name}: меньше">${icon('minus')}</button>
+    <span class="mark" aria-hidden="true">${mark(st, sel)}</span>
+    <button class="ob" type="button" data-act="plus" aria-label="${sel.name}: больше">${icon('plus')}</button>
+    <button class="ghost" type="button" data-act="equal" style="margin-left:auto" ${allEqual(ps) ? 'disabled' : ''}>Поровну</button>
+  </div>`;
+  let body;
+  if (people) {
+    body = `<ul class="rows">${ps.map((p) => `
+      <li class="row ${p.i === st.sel ? 'sel' : ''}" data-sel="${p.i}">
+        <div class="line"><div class="who-n"><span class="nm">${mark(st, p)}${p.name}</span><span class="sub num">${g(p.raw)} г сырого</span></div>
+          <span class="ans num">${g(p.cooked)}<span class="unit">г</span></span>${copyBtn(p.name)}</div>
+        ${state.composed ? recipe(p.share) : ''}
+      </li>`).join('')}</ul>`;
+  } else if (allEqual(ps)) {
+    body = `<div class="summary-wrap"><div class="summary"><span class="big num">по ${g(ps[0].cooked)}<span class="unit">г</span></span><span class="rest num">× ${ps.length} · ${g(ps[0].raw)} г сырого</span>${copyBtn('одна порция')}</div>${state.composed ? recipe(ps[0].share) : ''}</div>
+      <ul class="boxes">${ps.map((p) => `<li><button type="button" class="box ${p.i === st.sel ? 'sel' : ''}" data-sel="${p.i}" aria-label="${p.name}"><span class="lidno l${p.no}">${p.no}</span></button></li>`).join('')}</ul>`;
+  } else {
+    const lo = Math.min(...ps.map((p) => p.cooked)), hi = Math.max(...ps.map((p) => p.cooked));
+    body = `<div class="summary"><span class="big num">${g(lo)}–${g(hi)}<span class="unit">г</span></span><span class="rest">${ps.length} ${plural(ps.length, 'порция', 'порции', 'порций')} по долям</span></div>
+      <ul class="grid6">${ps.map((p) => `
+        <li class="ptile ${p.i === st.sel ? 'sel' : ''}" data-sel="${p.i}"><span class="lidno l${p.no}">${p.no}</span>${copyBtn(p.name, 'tcopy')}
+          <span class="amt num">${g(p.cooked)}<span class="unit">г</span></span><span class="oth num">${g(p.raw)} г сырого</span>
+          ${state.composed ? recipe(p.share, true) : ''}</li>`).join('')}</ul>`;
+  }
+  return `${pick}${bar}${controls}${body}`;
+}
+
+const header = () => `
+  <div class="grid2">
+    <div class="tile"><span class="lbl">Сырой</span><span class="val num">${g(RAW)}<span class="unit">г</span></span></div>
+    <div class="tile on"><span class="lbl">Готовый</span><span class="val num">${g(COOKED)}<span class="unit">г</span></span></div>
+  </div>
+  <div class="quiet">Без тары ${icon('down')} · k блюда = 0,94</div>`;
+
+function render(key) {
+  const st = state[key];
+  const phone = document.getElementById(`phone-${key}`);
+  const top = phone.querySelector('.scroll')?.scrollTop ?? 0;
+  phone.innerHTML = `<div class="scroll"><main>${header()}<section class="who" aria-label="Кто ест">${who(st)}</section></main></div>`;
+  phone.querySelector('.scroll').scrollTop = top;
+  phone.querySelectorAll('[data-sel]').forEach((el) => el.addEventListener('click', (e) => {
+    if (e.target.closest('.copy')) return;
+    e.stopPropagation(); st.sel = +el.dataset.sel; render(key);
+  }));
+  phone.querySelectorAll('[data-act]').forEach((el) => el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const act = el.dataset.act;
+    if (act === 'plus' || act === 'minus') st.ws = nudge(st.ws, st.sel, act === 'plus' ? 1 : -1);
+    if (act === 'equal') st.ws = equalSplit(st.ws.length);
+    if (act === 'more' && st.ws.length < 5) st.ws = equalSplit(st.ws.length + 1);
+    if (act === 'fewer' && st.ws.length > 2) { st.ws = equalSplit(st.ws.length - 1); st.sel = Math.min(st.sel, st.ws.length - 1); }
+    render(key);
+  }));
+  phone.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { state.composed = !state.composed; Object.keys(state).filter((k) => k !== 'composed').forEach(render); }));
+}
+['people', 'equal', 'unequal'].forEach(render);
+
+const themeButtons = document.querySelectorAll('[data-theme-set]');
+themeButtons.forEach((b) => b.addEventListener('click', () => {
+  const t = b.dataset.themeSet;
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = t;
+  themeButtons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+}));
+</script>
+</body>
+</html>

@@ -1,16 +1,17 @@
 import { reconcilePhase } from './reconcile'
 import { SHARE_EPSILON } from './tolerance'
-import type {
-  Cooking,
-  CookingResult,
-  Id,
-  Ingredient,
-  PhaseResult,
-  Portion,
-  PortionResult,
-  RawAmount,
-  ResolvedPortionInput,
-  YieldK,
+import {
+  RAW_SUM,
+  type Cooking,
+  type CookingResult,
+  type Id,
+  type Ingredient,
+  type PhaseResult,
+  type Portion,
+  type PortionResult,
+  type RawAmount,
+  type ResolvedPortionInput,
+  type YieldK,
 } from './types'
 import { foodGrams } from './weighing'
 
@@ -31,6 +32,11 @@ export function ingredientDisplayName(ingredient: Ingredient): string {
 /** id → display name for all ingredients of a cooking. */
 export function ingredientNames(cooking: Cooking): Map<Id, string> {
   return new Map(cooking.ingredients.map((i) => [i.id, ingredientDisplayName(i)]))
+}
+
+/** Raw grams of a portion: the base ingredient's, or for several counted ingredients their sum; null when none. */
+export function portionRawGrams(result: CookingResult, raw: RawAmount[]): number | null {
+  return result.baseIngredientId !== null ? baseRawGrams(result, raw) : raw.length > 0 ? raw.reduce((sum, r) => sum + r.grams, 0) : null
 }
 
 /** Raw grams of the base ingredient in a list of raw amounts; null for composite dishes. */
@@ -152,9 +158,12 @@ function yieldK(
 export function computeCooking(cooking: Cooking): CookingResult {
   const counted = countedIngredients(cooking)
   const base = counted.length === 1 ? counted[0] : null
+  // A portion «in raw grams of the sum» (RAW_SUM) is read against all counted ingredients together.
+  const rawById = new Map<Id, number>(counted.map((i) => [i.id, i.rawGrams]))
+  if (counted.length > 0) rawById.set(RAW_SUM, counted.reduce((sum, i) => sum + i.rawGrams, 0))
   const ctx: Context = {
     counted,
-    rawById: new Map(counted.map((i) => [i.id, i.rawGrams])),
+    rawById,
     baseId: base?.id ?? null,
   }
   const rawTotal = cooking.ingredients.filter(hasRaw).reduce((sum, i) => sum + i.rawGrams, 0)

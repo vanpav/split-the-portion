@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights, shelfOrder, startDish } from '../dish'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, ingredientsCount, recipeInOneColumn, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawTileLines, recentDishes, shareWeights, shelfOrder, startDish } from '../dish'
 import { formatGrams } from '../numbers'
 import type { Dish } from '../types'
 import { cooked, ingredient, share } from './fixtures'
@@ -54,28 +54,50 @@ describe('asSimple', () => {
   })
 })
 
-describe('rawFold', () => {
-  it('counted weights summed; what is not counted named with its weight', () => {
-    const soup = [
-      ingredient('a', 600, false, 'Курица'),
-      ingredient('b', 400, false, 'Картофель'),
-      ingredient('c', 80, false, 'Рис'),
-      ingredient('w', 2000, true, 'Вода'),
-      ingredient('s', 5, true, 'Соль'),
-    ]
-    expect(rawFold(soup)).toEqual({ total: 1080, note: `не в счёт: Вода ${formatGrams(2000)} г, Соль 5 г` })
+describe('rawTileLines', () => {
+  const soup = [
+    ingredient('a', 600, false, 'Курица'),
+    ingredient('b', 400, false, 'Картофель'),
+    ingredient('c', 80, false, 'Рис'),
+    ingredient('w', 2000, true, 'Вода'),
+    ingredient('s', 5, true, 'Соль'),
+  ]
+
+  it('counted weights summed; how many count, then what is not counted', () => {
+    expect(rawTileLines(soup)).toEqual({ total: 1080, lines: ['3 ингредиента,', 'не в счёт: Вода, Соль'] })
   })
 
-  it('counted products without a weight are named first; nothing weighed — no total', () => {
-    expect(rawFold([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
+  it('counted ingredients without a weight are named instead of what is not counted; nothing weighed — no total', () => {
+    expect(rawTileLines([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
       total: 300,
-      note: 'без веса: Шампиньоны · не в счёт: Специи',
+      lines: ['2 ингредиента,', 'без веса: Шампиньоны'],
     })
-    expect(rawFold([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, note: 'без веса: Фарш' })
+    expect(rawTileLines([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, lines: ['1 ингредиент,', 'без веса: Фарш'] })
   })
 
-  it('nameless rows are left out; nothing to note — an empty note', () => {
-    expect(rawFold([ingredient('a', 200, false, 'Рис'), ingredient('b', 50, false, ' ')])).toEqual({ total: 200, note: '' })
+  it('nameless rows are left out; nothing to note — one line', () => {
+    expect(rawTileLines([ingredient('a', 200, false, 'Рис'), ingredient('b', 50, false, ' ')])).toEqual({ total: 200, lines: ['1 ингредиент'] })
+  })
+})
+
+describe('ingredientsCount', () => {
+  it('Russian plural for 1, 2, 5, 11, 21, 22', () => {
+    expect([1, 2, 5, 11, 21, 22].map(ingredientsCount)).toEqual([
+      '1 ингредиент',
+      '2 ингредиента',
+      '5 ингредиентов',
+      '11 ингредиентов',
+      '21 ингредиент',
+      '22 ингредиента',
+    ])
+  })
+})
+
+describe('recipeInOneColumn', () => {
+  it('one column once any name is longer than half a column', () => {
+    expect(recipeInOneColumn(['Курица', 'Картофель', 'Лук репчатый'])).toBe(false)
+    expect(recipeInOneColumn(['Курица', 'Лук репчатый красный'])).toBe(true)
+    expect(recipeInOneColumn([])).toBe(false)
   })
 })
 

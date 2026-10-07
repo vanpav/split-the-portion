@@ -1,10 +1,12 @@
+import { flushSync } from 'react-dom'
 import type { KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { lidFill } from '@/components/lids'
-import { baseRawGrams, formatGrams, formatPercent, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
+import { formatGrams, portionRawGrams, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
+import { PortionRecipe } from './PortionRecipe'
 
 interface PortionTileProps {
   cooking: Cooking
@@ -22,8 +24,6 @@ interface PortionTileProps {
     active: boolean
     text: string
     own: boolean
-    /** What the number is in — the bar's unit, or what it was typed in. */
-    unit: 'g' | '%'
     onFocus: () => void
     onBlur: () => void
     onText: (text: string) => void
@@ -34,6 +34,17 @@ interface PortionTileProps {
    * «по 80 г × 7» above.
    */
   copyable: boolean
+  /** «Состав»: this tile carries the recipe under a hairline; `open` — the mode is on. */
+  recipe?: { open: boolean; oneColumn: boolean }
+  /** The portion ± adjusts: the white lidded box, the lid ringed. */
+  chosen?: boolean
+  /** A tap on the tile outside its field chooses the portion; absent for an own one. */
+  onChoose?: () => void
+  /**
+   * Equal portions, none own: the container is its number alone, grams are said once above the grid. A tap
+   * chooses it, a tap on the chosen one opens its own-portion field.
+   */
+  compact?: boolean
   className?: string
 }
 
@@ -44,30 +55,77 @@ interface PortionTileProps {
  * is erased. No swipe here: portions are numbered by place,
  * so «−» beside «Доли» takes one away; ⧉ copies this one for the tracker when it differs from the rest.
  */
-export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, className }: PortionTileProps) {
+export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, recipe, chosen = false, onChoose, compact = false, className }: PortionTileProps) {
   const name = `Порция ${place + 1}`
-  const single = result.baseIngredientId !== null
-  const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
-  const inPercent = grams.unit === '%'
+  const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
   const viewGrams = dry ? baseRaw : computed.cookedGrams
-  const shownNumber = inPercent
-    ? computed.share !== null ? formatPercent(computed.share) : null
-    : viewGrams !== null ? formatGrams(viewGrams) : null
-  // Under the amount: grams under percent; otherwise the other view — raw under cooked, cooked under dry.
-  const subline = inPercent
-    ? viewGrams !== null && `${formatGrams(viewGrams)} г${dry ? ` ${rawWord(cooking.kind)}` : ''}`
-    : dry
-      ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
-      : single
-        ? baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
-        : computed.share !== null && `${formatPercent(computed.share)} %`
+  const shownNumber = viewGrams !== null ? formatGrams(viewGrams) : null
+  // Under the amount, the other view: raw under cooked, cooked under dry.
+  const subline = dry
+    ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
+    : baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+
+  // The chosen one's lid wears a ring: 2 px of ground, then 2 px of ink.
+  const ring = chosen && 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
+
+  if (compact && shownNumber !== null && !grams.active) {
+    return (
+      <li className={cn('min-w-0', className)}>
+        <button
+          type="button"
+          aria-pressed={chosen}
+          aria-label={`${name}: ${shownNumber} г`}
+          onClick={() => {
+            if (!chosen) return onChoose?.()
+            // Tapped again: the own-portion field. The field is on the screen before the focus moves into it, in
+            // the same tap — a phone opens its keyboard only for a focus made inside the gesture.
+            flushSync(grams.onFocus)
+            document.getElementById(grams.id)?.focus()
+          }}
+          className={cn(
+            'flex h-16 w-full items-center justify-center rounded-xl border transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+            chosen ? 'border-border bg-card' : 'border-transparent bg-muted/60 dark:bg-muted/20',
+          )}
+        >
+          <span
+            aria-hidden
+            className={cn(
+              'flex size-[34px] items-center justify-center rounded-[9px] text-[1.0625rem] font-semibold text-chart-foreground tabular-nums',
+              lidFill(place),
+              ring,
+            )}
+          >
+            {place + 1}
+          </span>
+        </button>
+      </li>
+    )
+  }
+
+  // Not weighed yet: a container is only its number, large — no grams to show and none to type.
+  if (shownNumber === null && !grams.own && !grams.active) {
+    return (
+      <li aria-label={name} className={cn('flex min-h-24 min-w-0 items-center rounded-xl bg-muted/60 px-3 dark:bg-muted/20', className)}>
+        <span
+          aria-hidden
+          className={cn('flex size-10 items-center justify-center rounded-[10px] text-xl font-semibold text-chart-foreground tabular-nums', lidFill(place))}
+        >
+          {place + 1}
+        </span>
+      </li>
+    )
+  }
 
   return (
     <li
+      onClick={(e) => {
+        if (onChoose && !(e.target as HTMLElement).closest('input, button, label')) onChoose()
+      }}
       className={cn(
         'flex min-w-0 flex-col rounded-xl border transition-colors',
+        onChoose && 'cursor-pointer',
         className,
-        grams.active
+        grams.active || (chosen && !grams.own)
           ? 'border-border bg-card'
           : grams.own
             ? // Own: outlined dashed, the same mark as its segment on the bar.
@@ -78,7 +136,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
       <div className="flex items-center gap-1 pl-2">
         <span
           aria-hidden
-          className={cn('flex size-5.5 shrink-0 items-center justify-center rounded-[6px] text-xs font-semibold text-chart-foreground tabular-nums', lidFill(place))}
+          className={cn('flex size-5.5 shrink-0 items-center justify-center rounded-[6px] text-xs font-semibold text-chart-foreground tabular-nums', lidFill(place), ring)}
         >
           {place + 1}
         </span>
@@ -101,7 +159,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         <span className="flex max-w-full items-baseline text-2xl leading-tight font-medium whitespace-nowrap tabular-nums">
           <DigitsInput
             id={grams.id}
-            aria-label={`${name}: своя порция, ${inPercent ? 'проценты' : dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+            aria-label={`${name}: своя порция, ${dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
             enterKeyHint="done"
             lids={lids}
             // Until something is typed: today's number, faded — the field keeps its width.
@@ -113,11 +171,22 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
             onKeyDown={grams.onKeyDown}
           />
           <span aria-hidden className="ml-0.5 text-sm font-normal text-muted-foreground">
-            {inPercent ? '%' : 'г'}
+            г
           </span>
         </span>
         {subline && <span className="truncate text-xs text-muted-foreground tabular-nums">{subline}</span>}
       </label>
+      {recipe && computed.share !== null && (
+        <div className="px-2.5">
+          <PortionRecipe
+            cooking={cooking}
+            raw={computed.raw}
+            open={recipe.open}
+            oneColumn={recipe.oneColumn}
+            className={cn(recipe.open && 'mb-2.5 border-t')}
+          />
+        </div>
+      )}
     </li>
   )
 }

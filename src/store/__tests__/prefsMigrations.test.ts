@@ -24,7 +24,7 @@ describe('migratePrefs', () => {
 
   it('v2 keeps «Доли» and gets hints with nothing shown', () => {
     const v2 = { splitMode: 'shares', portions: { d1: [{ id: 'a', weight: 1 }] } }
-    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS, dishesByCategory: false })
+    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS, dishesByCategory: false, composition: false })
     // A stray `hints` in a v2 record is not trusted.
     expect(migratePrefs({ ...v2, hints: { off: true } }, 2, counter()).hints).toEqual(EMPTY_HINTS)
   })
@@ -36,12 +36,20 @@ describe('migratePrefs', () => {
     expect(migratePrefs({ ...v3, dishesByCategory: 'yes' }, 4, counter()).dishesByCategory).toBe(false)
   })
 
+  it('v4 gets «Состав» off and keeps «По категориям»', () => {
+    const v4 = { splitMode: 'shares', portions: {}, hints: { settled: true, off: false, welcome: true, tour: 'done' }, dishesByCategory: true }
+    expect(migratePrefs(v4, 4, counter())).toMatchObject({ splitMode: 'shares', dishesByCategory: true, composition: false })
+    // A stray `composition` in an older record is not trusted.
+    expect(migratePrefs({ ...v4, composition: true }, 4, counter()).composition).toBe(false)
+  })
+
   it('the current version is kept; junk becomes the defaults', () => {
     const v3 = {
       splitMode: 'shares',
       portions: { d1: [{ id: 'a', weight: 1 }] },
       hints: { settled: true, off: true, welcome: true, tour: 2 },
       dishesByCategory: true,
+      composition: true,
     }
     expect(migratePrefs(v3, PREFS_VERSION, counter())).toEqual(v3)
     expect(migratePrefs(null, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)
