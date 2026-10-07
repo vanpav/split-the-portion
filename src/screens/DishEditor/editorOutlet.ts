@@ -5,7 +5,7 @@ import type { TareOutlet } from '@/screens/Calculator/calculatorOutlet'
 export type DishSourceIngredient = NonNullable<ReturnType<typeof dishSource>>
 
 /**
- * What the dish editor gives the screens opened over it («Из простого блюда», `…/from-dish`;
+ * What the dish editor gives the screens opened over it («Из блюда», `…/from-dish`;
  * «Новая тара», `…/tare/new`). The form stays mounted under them, hidden, so its draft is there on the way back.
  */
 export interface EditorOutlet extends TareOutlet {

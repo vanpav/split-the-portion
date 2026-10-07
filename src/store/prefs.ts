@@ -11,6 +11,8 @@ interface PrefsState extends PersistedPrefs {
   setPortions(dishId: Id, portions: PortionShare[]): void
   /** Hints for new people change only through the pure steps of `onboarding/hints`. */
   updateHints(step: (hints: HintPrefs) => HintPrefs): void
+  /** «По категориям» in the dish menu. */
+  setDishesByCategory(on: boolean): void
 }
 
 /**
@@ -25,12 +27,13 @@ export const usePrefsStore = create<PrefsState>()(
       setSplitMode: (splitMode) => set({ splitMode }),
       setPortions: (dishId, portions) => set((s) => ({ portions: { ...s.portions, [dishId]: portions } })),
       updateHints: (step) => set((s) => ({ hints: step(s.hints) })),
+      setDishesByCategory: (dishesByCategory) => set({ dishesByCategory }),
     }),
     {
       name: PREFS_KEY,
       version: PREFS_VERSION,
       storage: createJSONStorage(() => idbStorage(null)),
-      partialize: (s): PersistedPrefs => ({ splitMode: s.splitMode, portions: s.portions, hints: s.hints }),
+      partialize: (s): PersistedPrefs => ({ splitMode: s.splitMode, portions: s.portions, hints: s.hints, dishesByCategory: s.dishesByCategory }),
       migrate: (state, version) => migratePrefs(state, version, newId),
     },
   ),

@@ -296,6 +296,13 @@ export const PRESET_DISHES: PresetDish[] = [
   },
 ]
 
+/** What a simple popular dish brings into a composite one: its first counted product and the usual raw weight; null for a composite. */
+export function presetSource(preset: PresetDish): { name: string; rawGrams: number | null } | null {
+  const counted = preset.ingredients.filter((i) => !i.excluded && i.name.trim())
+  if (counted.length !== 1) return null
+  return { name: counted[0].name.trim(), rawGrams: counted[0].rawGrams }
+}
+
 const key = (name: string) => name.trim().toLowerCase()
 
 /** Popular dishes the user does not have yet: one with the same title (ignoring case) is theirs already. */
@@ -312,7 +319,7 @@ export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dis
     rawGrams: i.rawGrams,
     excluded: i.excluded ?? false,
   }))
-  return { id: newId(), kind: dishKind(ingredients), name: preset.name, createdAt: at, updatedAt: at, ingredients, tareId: null, cooked: null, usedOn: [] }
+  return { id: newId(), kind: dishKind(ingredients), name: preset.name, category: null, createdAt: at, updatedAt: at, ingredients, tareId: null, cooked: null, usedOn: [] }
 }
 
 /**

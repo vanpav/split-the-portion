@@ -1,6 +1,6 @@
 import type { Id } from '@/domain'
 
-/** The dish menu: search, kind, sort (`?q=…&kind=…&sort=…`), from 🔍 on the dish shelf. */
+/** The dish menu: one list with a search (`?q=…`), from 🔍 on the dish shelf. */
 export const DISHES_PATH = '/dishes'
 /** Opening a dish shows its calculator (docs/SPEC.md §3б). */
 export const dishPath = (id: Id) => `/d/${id}`
@@ -8,7 +8,7 @@ export const dishEditPath = (id: Id) => `/d/${id}/edit`
 /** Screens over the calculator (docs/UX.md §3а): it stays mounted under them, so «назад» finds it as it was. */
 export const newTarePath = (id: Id) => `/d/${id}/tare/new`
 export const newCompanyPath = (id: Id) => `/d/${id}/company/new`
-/** Relative to the dish editor: «Из простого блюда», a screen over the form. */
+/** Relative to the dish editor: «Из блюда», a screen over the form. */
 export const FROM_SIMPLE_DISH = 'from-dish'
 /** Relative to the dish editor: «Новая тара» from «+» in the tare chips. */
 export const NEW_TARE = 'tare/new'
@@ -29,6 +29,8 @@ export interface CopyTextState {
 }
 /** One form for both kinds; from — a simple dish to start a composite one with. */
 export const newDishPath = (from?: Id) => (from ? `/d/new?from=${from}` : '/d/new')
+/** «Создать «Хачапури»» in the dish search: the form starts with this text in «Что в блюде». */
+export const newDishWithTextPath = (text: string) => `/d/new?${new URLSearchParams({ text })}`
 /** Settings: on a phone the list of subsections, from `md` the menu with the first one open. */
 export const SETTINGS_PATH = '/settings'
 export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`

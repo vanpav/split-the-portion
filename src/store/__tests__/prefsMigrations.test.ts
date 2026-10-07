@@ -24,9 +24,16 @@ describe('migratePrefs', () => {
 
   it('v2 keeps «Доли» and gets hints with nothing shown', () => {
     const v2 = { splitMode: 'shares', portions: { d1: [{ id: 'a', weight: 1 }] } }
-    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS })
+    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS, dishesByCategory: false })
     // A stray `hints` in a v2 record is not trusted.
     expect(migratePrefs({ ...v2, hints: { off: true } }, 2, counter()).hints).toEqual(EMPTY_HINTS)
+  })
+
+  it('v3 starts with the flat dish list; v4 keeps the choice', () => {
+    const v3 = { splitMode: 'people', portions: {}, hints: EMPTY_HINTS, dishesByCategory: true }
+    expect(migratePrefs(v3, 3, counter()).dishesByCategory).toBe(false)
+    expect(migratePrefs(v3, 4, counter()).dishesByCategory).toBe(true)
+    expect(migratePrefs({ ...v3, dishesByCategory: 'yes' }, 4, counter()).dishesByCategory).toBe(false)
   })
 
   it('the current version is kept; junk becomes the defaults', () => {
@@ -34,6 +41,7 @@ describe('migratePrefs', () => {
       splitMode: 'shares',
       portions: { d1: [{ id: 'a', weight: 1 }] },
       hints: { settled: true, off: true, welcome: true, tour: 2 },
+      dishesByCategory: true,
     }
     expect(migratePrefs(v3, PREFS_VERSION, counter())).toEqual(v3)
     expect(migratePrefs(null, PREFS_VERSION, counter())).toEqual(EMPTY_PREFS)

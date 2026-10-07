@@ -27,7 +27,7 @@ describe('backup file', () => {
     const v10 = { dishes: [dish], cookings: [{ id: 'c', dishId: 'd' }], tares: [tare], companies: [], lineups: {}, holdMs: 1500 }
     const text = JSON.stringify({ app: STORAGE_KEY, version: 10, exportedAt: NOW.toISOString(), state: v10 })
     expect(readBackupFile(text)).toEqual({
-      dishes: [{ ...dish, cooked: null, usedOn: [localDay(NOW)] }],
+      dishes: [{ ...dish, category: null, cooked: null, usedOn: [localDay(NOW)] }],
       tares: [tare],
       companies: [],
       lineups: {},
