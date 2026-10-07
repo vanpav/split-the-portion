@@ -23,9 +23,9 @@ export function CopyTextScreen() {
 
   return (
     <>
-      <ScreenHeader title="Скопируйте вручную" back backTo={from} />
+      <ScreenHeader title="Скопируй вручную" back backTo={from} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4">
-        <p className="px-1 text-sm text-muted-foreground">Браузер не дал доступ к буферу обмена. Текст уже выделен.</p>
+        <p className="px-1 text-sm text-muted-foreground">Браузер не дал скопировать. Текст уже выделен.</p>
         <Textarea
           readOnly
           // Selected as it opens, and again on every tap.

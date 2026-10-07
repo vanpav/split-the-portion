@@ -28,13 +28,13 @@ export function SyncStatusLine() {
     case 'failed':
       return line(CloudOffIcon, 'Не удалось синхронизировать — попробуем ещё раз')
     case 'forbidden':
-      return line(TriangleAlertIcon, 'Нет доступа к группе', true)
+      return line(TriangleAlertIcon, 'Нет доступа к группе — попроси новое приглашение', true)
     case 'needsUpdate':
-      return line(TriangleAlertIcon, 'Обновите приложение, чтобы синхронизировать: закройте его и откройте снова', true)
+      return line(TriangleAlertIcon, 'Обнови приложение, чтобы синхронизировать: закрой его и открой снова', true)
     case 'needsLogin':
       return (
         <div className="flex flex-col gap-2">
-          {line(TriangleAlertIcon, 'Войдите снова, чтобы синхронизировать', true)}
+          {line(TriangleAlertIcon, 'Войди снова, чтобы синхронизировать', true)}
           <Button asChild variant="outline" className="self-start">
             <Link to={ACCOUNT_PATH}>Войти снова</Link>
           </Button>

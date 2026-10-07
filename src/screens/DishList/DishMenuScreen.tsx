@@ -40,20 +40,20 @@ export function DishMenuScreen({ home }: { home?: boolean }) {
               </EmptyMedia>
               <EmptyTitle>Пока нет блюд</EmptyTitle>
               <EmptyDescription>
-                Гречка, макароны, суп. Добавьте блюдо один раз — дальше у плиты вводите только готовый вес.
+                Гречка, макароны, суп. Добавь блюдо один раз — дальше у плиты вводи только готовый вес.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="flex-row flex-wrap justify-center">
               <Button size="lg" asChild>
                 <Link to={newDishPath()}>
                   <PlusIcon data-icon="inline-start" />
-                  Блюдо
+                  Добавить блюдо
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to={settingsPath('presets')}>
                   <BookOpenIcon data-icon="inline-start" />
-                  Популярные блюда
+                  Добавить популярные
                 </Link>
               </Button>
             </EmptyContent>

@@ -29,7 +29,7 @@ export function LocalDataDialog() {
           <AlertDialogDescription>
             {localData &&
               `На этом устройстве блюд: ${localData.dishes.length}. ` +
-                `В группе «${groupName}» уже есть свои. Перенести эти в группу? Одинаковые блюда могут задвоиться.`}
+                `В группе «${groupName}» уже есть другие блюда. Перенести эти в группу? Одинаковые могут продублироваться.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { csrf } from 'hono/csrf'
 import { parseInviteCode } from '../src/account/inviteCode'
+import { MAX_GROUP_NAME } from '../src/account/types'
 import { SYNC_LIMITS } from '../src/sync/protocol'
 import { type Auth, createAuth } from './auth'
-import { acceptInvite, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
+import { acceptInvite, createGroup, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
 import { getMe, setDefaultGroup } from './me'
 import { isMember, syncGroup } from './sync'
 import { parseSyncRequest } from './syncRequest'
@@ -15,7 +17,11 @@ type Session = NonNullable<Awaited<ReturnType<Auth['api']['getSession']>>>
  * (`assets.run_worker_first`); everything else is served as static files.
  */
 /** Previews also have the Secrets Store binding of the `previews` block (wrangler.jsonc). */
-type Bindings = Env & { PREVIEW_AUTH_SECRET?: SecretsStoreSecret }
+type Bindings = Env & {
+  PREVIEW_AUTH_SECRET?: SecretsStoreSecret
+  INVITES_LIMITER?: RateLimit
+  SYNC_LIMITER?: RateLimit
+}
 
 const app = new Hono<{ Bindings: Bindings; Variables: { auth: Auth; session: Session } }>().basePath('/api')
 
@@ -48,7 +54,10 @@ app.get('/me', async (c) => {
 })
 
 // A code's group and who invited: shown before «Вступить», also before signing in.
+// Limited per IP so that codes cannot be guessed (no session to key the limit on).
 app.get('/invites/:code', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') ?? 'unknown'
+  if (c.env.INVITES_LIMITER && !(await c.env.INVITES_LIMITER.limit({ key: ip })).success) return c.json({ error: 'rate_limited' }, 429)
   const code = parseInviteCode(c.req.param('code'))
   const invite = code && (await previewInvite(c.env.DB, code, new Date()))
   return invite ? c.json(invite) : c.json({ error: 'not_found' }, 404)
@@ -73,7 +82,16 @@ app.put('/me/default-group', async (c) => {
 app.post('/invites/:code/accept', async (c) => {
   const code = parseInviteCode(c.req.param('code'))
   const groupId = code && (await acceptInvite(c.get('auth'), c.env.DB, code, c.get('session').user.id, new Date()))
+  if (groupId === 'limit') return c.json({ error: 'group_limit' }, 409)
   return groupId ? c.json({ groupId }) : c.json({ error: 'not_found' }, 404)
+})
+
+app.post('/groups', async (c) => {
+  const { name } = await c.req.json<{ name?: unknown }>().catch(() => ({ name: undefined }))
+  const trimmed = typeof name === 'string' ? name.trim() : ''
+  if (!trimmed || trimmed.length > MAX_GROUP_NAME) return c.json({ error: 'bad_name' }, 400)
+  const groupId = await createGroup(c.get('auth'), c.env.DB, c.get('session').user.id, trimmed)
+  return groupId === 'limit' ? c.json({ error: 'group_limit' }, 409) : c.json({ groupId })
 })
 
 app.post('/groups/:id/invites', async (c) => {
@@ -90,11 +108,14 @@ app.delete('/groups/:id/invites/:code', async (c) => {
   return code && (await revokeInvite(c.env.DB, groupId, code)) ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
 })
 
-app.post('/groups/:id/sync', async (c) => {
+// Checks the bytes actually read, not the `Content-Length` header: chunked bodies have none.
+const syncBodyLimit = bodyLimit({ maxSize: SYNC_LIMITS.requestBytes, onError: (c) => c.json({ error: 'too_large' }, 413) })
+
+app.post('/groups/:id/sync', syncBodyLimit, async (c) => {
   const groupId = c.req.param('id')
   const userId = c.get('session').user.id
+  if (c.env.SYNC_LIMITER && !(await c.env.SYNC_LIMITER.limit({ key: userId })).success) return c.json({ error: 'rate_limited' }, 429)
   if (!(await isMember(c.env.DB, groupId, userId))) return c.json({ error: 'forbidden' }, 403)
-  if (Number(c.req.header('content-length') ?? 0) > SYNC_LIMITS.requestBytes) return c.json({ error: 'too_large' }, 413)
   const req = parseSyncRequest(await c.req.json().catch(() => null))
   if (typeof req === 'string') return c.json({ error: req }, 400)
   const body = await syncGroup(c.env.DB, groupId, userId, req, new Date().toISOString())

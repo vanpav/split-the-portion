@@ -35,7 +35,7 @@ export function FromSimpleDishScreen() {
         <Command className="bg-transparent">
           <CommandInput autoFocus placeholder="Найти блюдо" className="text-base" />
           <CommandList className="max-h-none">
-            <CommandEmpty>{sources.length === 0 ? 'Простых блюд пока нет' : 'Ничего не нашлось'}</CommandEmpty>
+            <CommandEmpty>{sources.length === 0 ? 'Простых блюд пока нет. Сначала добавь простое блюдо.' : 'Ничего не нашлось'}</CommandEmpty>
             <CommandGroup>
               {sources.map(({ id, source }) => (
                 <CommandItem

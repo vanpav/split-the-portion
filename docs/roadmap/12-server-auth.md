@@ -69,4 +69,4 @@ Face ID на iPhone и passkey в Chrome на ноутбуке — у одног
 - [x] Docs: UX «Аккаунт и группа», словарь §6 («Face ID» → «passkey»), ARCHITECTURE §9.
 - [x] Воркер: after-хук `/passkey/verify-registration` ставит имя ключа по AAGUID (`getAuthenticatorName`).
 - [x] «Аккаунт»: список passkey (имя или «Passkey», «Добавлен 7 окт.», «Удалить» с `AlertDialog`), «Добавить passkey» видна всегда.
-- [x] Тексты ошибок: «Passkey…», `SESSION_NOT_FRESH` → «Чтобы добавить passkey, выйдите и войдите снова»; «Войти с passkey» на экране входа.
+- [x] Тексты ошибок: «Passkey…», `SESSION_NOT_FRESH` → «Чтобы добавить passkey, выйди и войди снова»; «Войти с passkey» на экране входа.

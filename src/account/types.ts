@@ -36,3 +36,9 @@ export interface InvitePreview {
 
 /** The group every account gets at sign-up (docs/SPEC.md §13.2). */
 export const PERSONAL_GROUP_NAME = 'Личная'
+
+/** How many groups one account may be in, its own and joined ones together (docs/SPEC.md §13.3). */
+export const MAX_GROUPS = 3
+
+/** Longest group name; the personal one and typed ones are cut the same way. */
+export const MAX_GROUP_NAME = 40
