@@ -13,3 +13,4 @@ Full loop: `docs/issue-loop.md`, command `/poll-issues`.
 - Determine each task's type (bug, feature, design, docs, chore) and label both issue and PR.
 - Branch `<type>/<number>-<slug>`, PR with `Closes #N`; PR title says briefly what the change does.
 - Commits and PR titles: `type: what was done` (`feat`, `fix`, `design`, `refactor`, `docs`, `chore`).
+- **Draft PRs are off limits.** Never touch a draft PR: no commits, pushes, edits, comments, review requests, "ready for review" and above all no merge. Leave it until the user takes it out of draft themselves.
