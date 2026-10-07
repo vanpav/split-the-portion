@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подсказки для новых</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --accent: oklch(0.938 0.018 261.3);
+  --destructive: oklch(0.556 0.183 29.1);
+  --warning: oklch(0.531 0.119 65.1);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --chart-1: oklch(0.815 0.073 246.3);
+  --chart-2: oklch(0.871 0.14 91.6);
+  --chart-3: oklch(0.847 0.076 164.5);
+  --chart-4: oklch(0.81 0.075 301.4);
+  --chart-5: oklch(0.832 0.095 58.2);
+  --chart-foreground: oklch(0.267 0.054 269.1);
+  --radius: 0.875rem;
+  /* Mockup page only. */
+  --page: oklch(0.935 0.011 257);
+  --scrim: oklch(0.2 0.045 268 / 0.58);
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 18px 40px -22px oklch(0.267 0.054 269.1 / 0.45);
+  --pop-shadow: 0 2px 6px oklch(0.267 0.054 269.1 / 0.08), 0 14px 32px -12px oklch(0.267 0.054 269.1 / 0.4);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --popover: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --primary-foreground: oklch(0.21 0.052 270.1);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --accent: oklch(0.321 0.055 266.3);
+  --destructive: oklch(0.715 0.178 28);
+  --warning: oklch(0.819 0.124 75.6);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --chart-1: oklch(0.76 0.086 249);
+  --chart-2: oklch(0.827 0.139 90.3);
+  --chart-3: oklch(0.793 0.084 165.1);
+  --chart-4: oklch(0.751 0.087 299.6);
+  --chart-5: oklch(0.781 0.103 55.4);
+  --chart-foreground: oklch(0.212 0.035 268.5);
+  --page: oklch(0.17 0.03 268.5);
+  --scrim: oklch(0.08 0.02 268 / 0.72);
+  --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+  --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --popover: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --destructive: oklch(0.715 0.178 28);
+    --warning: oklch(0.819 0.124 75.6);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --chart-1: oklch(0.76 0.086 249);
+    --chart-2: oklch(0.827 0.139 90.3);
+    --chart-3: oklch(0.793 0.084 165.1);
+    --chart-4: oklch(0.751 0.087 299.6);
+    --chart-5: oklch(0.781 0.103 55.4);
+    --chart-foreground: oklch(0.212 0.035 268.5);
+    --page: oklch(0.17 0.03 268.5);
+    --scrim: oklch(0.08 0.02 268 / 0.72);
+    --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+    --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--foreground);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+button { font: inherit; color: inherit; }
+code { font-family: ui-monospace, monospace; font-size: 0.86em; background: var(--secondary); padding: 0.05em 0.35em; border-radius: 6px; }
+a { color: var(--primary); }
+
+/* ---------- Page ---------- */
+.wrap { max-width: 1260px; margin: 0 auto; padding: 40px 24px 96px; }
+.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-start; justify-content: space-between; }
+.top h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.01em; }
+.lead { max-width: 64ch; margin: 0; color: var(--muted-foreground); }
+.lead strong { color: var(--foreground); font-weight: 500; }
+.theme-switch { display: inline-flex; padding: 3px; gap: 2px; background: var(--secondary); border-radius: 14px; }
+.theme-switch button { border: 0; background: transparent; padding: 0 12px; height: 36px; border-radius: 11px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.theme-switch button[aria-pressed="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 28px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.toc a { color: var(--muted-foreground); text-decoration: none; }
+.toc a:hover { color: var(--foreground); }
+.toc b { color: var(--foreground); font-weight: 600; margin-right: 4px; }
+
+section.block { margin-top: 64px; }
+section.block > h2 { font-size: 22px; line-height: 1.3; font-weight: 600; margin: 0 0 8px; }
+.intro { max-width: 72ch; margin: 0 0 8px; color: var(--muted-foreground); }
+.rules { max-width: 80ch; margin: 12px 0 0; padding-left: 20px; color: var(--muted-foreground); font-size: 15px; }
+.rules li { margin: 4px 0; }
+.rules b { color: var(--foreground); font-weight: 500; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 44px 28px; margin-top: 28px; align-items: start; }
+figure { margin: 0; max-width: 375px; width: 100%; }
+figcaption { margin-top: 14px; font-size: 15px; color: var(--muted-foreground); }
+figcaption .cap-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+figcaption .cap-title { color: var(--foreground); font-weight: 600; font-size: 16px; }
+figcaption p { margin: 4px 0 0; }
+figcaption ul { margin: 6px 0 0; padding-left: 18px; }
+figcaption li { margin: 2px 0; }
+.pro::marker { content: '+  '; color: var(--primary); font-weight: 600; }
+.con::marker { content: '−  '; color: var(--destructive); font-weight: 600; }
+.doc-btn { margin-top: 10px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); border-radius: 10px; height: 34px; padding: 0 12px; font-size: 14px; cursor: pointer; }
+
+.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.badge.yes { background: color-mix(in oklab, var(--primary) 14%, transparent); color: var(--primary); }
+.badge.maybe { background: color-mix(in oklab, var(--warning) 16%, transparent); color: var(--warning); }
+.badge.no { background: var(--secondary); color: var(--muted-foreground); }
+.badge.rec { background: var(--primary); color: var(--primary-foreground); }
+.badge.tag { background: var(--secondary); color: var(--foreground); }
+
+/* ---------- Phone ---------- */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 375px;
+  height: 812px;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--phone-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+.scr { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.i { width: 20px; height: 20px; flex: none; }
+.i.sm { width: 16px; height: 16px; }
+.i.lg { width: 22px; height: 22px; }
+
+/* Header with the dish shelf. */
+.hdr { display: flex; align-items: center; gap: 8px; padding: 10px 4px 10px 8px; border-bottom: 1px solid var(--border); flex: none; }
+.shelf { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+.rbtn { width: 44px; height: 44px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; flex: none; }
+.chips { display: flex; gap: 6px; min-width: 0; overflow: hidden; mask-image: linear-gradient(to right, #000 78%, transparent); -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); }
+.chip { height: 36px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--secondary); font-weight: 600; font-size: 15px; white-space: nowrap; }
+.chip.cur { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); }
+.hdr2 { display: flex; align-items: center; gap: 12px; height: 65px; padding: 0 12px 0 14px; border-bottom: 1px solid var(--border); flex: none; }
+.h-title { font-size: 19px; font-weight: 600; flex: 1; }
+.hdr2.end { justify-content: flex-end; border-bottom: 0; }
+
+.body { padding: 8px 12px 24px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+/* Calculator. */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { background: var(--muted); border-radius: 20px; padding: 10px 16px 12px; min-height: 76px; }
+.tl { font-size: 15px; color: var(--muted-foreground); display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.tv { font-size: 30px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.tv.ph { color: color-mix(in oklab, var(--muted-foreground) 60%, transparent); }
+.u { font-size: 16px; font-weight: 500; color: var(--muted-foreground); margin-left: 6px; }
+.tnote { font-size: 12.5px; line-height: 1.35; color: var(--muted-foreground); margin-top: 2px; }
+.under { display: flex; align-items: center; gap: 16px; min-height: 44px; padding: 0 8px; font-size: 15px; color: var(--muted-foreground); }
+.under .tare, .under .prod { display: inline-flex; align-items: center; gap: 4px; }
+.under .prod { margin-left: auto; font-weight: 600; }
+.who { display: flex; flex-direction: column; margin-top: 14px; }
+.sel { height: 46px; border: 1px solid var(--input); border-radius: 14px; display: flex; align-items: center; gap: 10px; padding: 0 12px; color: var(--muted-foreground); font-size: 16px; }
+.sel .grow { flex: 1; }
+.bar { position: relative; display: flex; height: 50px; margin-top: 8px; border-radius: 20px; overflow: visible; }
+.seg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; color: var(--chart-foreground); }
+.seg:first-child { border-radius: 20px 0 0 20px; }
+.seg:last-child { border-radius: 0 20px 20px 0; }
+.seg.on { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg small { font-size: 12.5px; font-weight: 600; }
+.seg b { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.grip { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); display: grid; place-items: center; color: var(--foreground); }
+.ctrl { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.sq { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--border); display: grid; place-items: center; flex: none; }
+.ctrl-mid { text-align: center; line-height: 1.2; font-size: 14px; color: var(--muted-foreground); min-width: 46px; }
+.ctrl-mid b { display: block; color: var(--foreground); font-size: 14px; font-weight: 600; }
+.ctrl .eq { margin-left: auto; color: var(--muted-foreground); font-weight: 500; font-size: 15px; }
+.tg2 { display: flex; background: var(--muted); border-radius: 14px; padding: 3px; }
+.tg2 span { width: 34px; height: 38px; display: grid; place-items: center; border-radius: 11px; font-weight: 600; color: var(--muted-foreground); }
+.tg2 .on { background: var(--card); color: var(--foreground); }
+.person { display: flex; align-items: flex-start; gap: 14px; padding: 16px 4px 14px; border-bottom: 1px solid var(--border); }
+.lid { width: 14px; height: 14px; border-radius: 5px; margin-top: 6px; flex: none; }
+.p-main { flex: 1; min-width: 0; }
+.p-name { font-size: 18px; font-weight: 600; line-height: 1.4; }
+.p-sub { font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-g { font-size: 34px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 4px; letter-spacing: -0.01em; }
+.p-u { width: 32px; height: 32px; border-radius: 10px; background: var(--secondary); display: grid; place-items: center; color: var(--muted-foreground); font-size: 15px; margin-top: 4px; }
+.addname { display: flex; align-items: center; gap: 12px; padding: 14px 6px; font-size: 18px; color: var(--muted-foreground); }
+
+/* Inline hint card (variant C) — shadcn Alert. */
+.hint { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin-top: 14px; padding: 12px 40px 12px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+.hint-ico { color: var(--primary); padding-top: 1px; grid-row: span 3; }
+.hint-title { font-size: 15px; font-weight: 600; line-height: 1.35; }
+.hint-text { font-size: 14px; line-height: 1.45; color: var(--muted-foreground); }
+.hint-text b { color: var(--foreground); font-weight: 500; }
+.hint-actions { display: flex; gap: 8px; margin-top: 10px; }
+.hint-x { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted-foreground); display: grid; place-items: center; border-radius: 10px; cursor: pointer; }
+.inline-i { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; }
+
+/* Swipe demo inside the copy hint. */
+.demo { position: relative; height: 46px; margin-top: 10px; border-radius: 12px; overflow: hidden; background: var(--primary); color: var(--primary-foreground); }
+.demo-act { position: absolute; inset: 0 auto 0 0; width: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11.5px; }
+.demo-row { position: absolute; inset: 0; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; animation: swipe 3.2s ease-in-out infinite; }
+.demo-row .lid { margin-top: 0; }
+.demo-row b { font-weight: 600; flex: 1; }
+.demo-row span { font-weight: 600; font-variant-numeric: tabular-nums; }
+@keyframes swipe { 0%, 18% { transform: translateX(0); } 42%, 70% { transform: translateX(84px); } 92%, 100% { transform: translateX(0); } }
+
+/* Buttons (shadcn Button look). */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn.sm { height: 36px; padding: 0 12px; border-radius: 12px; font-size: 14px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); }
+.btn.ghost { background: transparent; color: var(--muted-foreground); }
+.btn.secondary { background: var(--secondary); color: var(--foreground); }
+.btn.outline { background: var(--card); border-color: var(--border); color: var(--foreground); }
+.btn.dark { background: var(--foreground); color: var(--background); }
+.btn.wide { width: 100%; }
+
+/* Tour (variant A) and hint popover (variant B) — driver.js popover themed with the tokens. */
+.ov { position: absolute; inset: 0; z-index: 5; }
+.stage { position: absolute; border-radius: 20px; box-shadow: 0 0 0 2000px var(--scrim); pointer-events: none; transition: all 0.25s ease; }
+.pop { position: absolute; z-index: 6; width: min(306px, calc(100% - 24px)); background: var(--popover); color: var(--foreground); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px 12px; box-shadow: var(--pop-shadow); --ax: 50%; }
+.pop::before { content: ''; position: absolute; left: calc(var(--ax) - 7px); top: -8px; width: 14px; height: 14px; background: var(--popover); border: 1px solid var(--border); border-right: 0; border-bottom: 0; transform: rotate(45deg); border-radius: 3px 0 0 0; }
+.pop.above::before { top: auto; bottom: -8px; border: 1px solid var(--border); border-left: 0; border-top: 0; border-radius: 0 0 3px 0; }
+.pop-title { font-size: 16px; font-weight: 600; line-height: 1.35; padding-right: 4px; }
+.pop-text { font-size: 15px; line-height: 1.45; color: var(--muted-foreground); margin-top: 4px; }
+.pop-text b { color: var(--foreground); font-weight: 500; }
+.pop-foot { display: flex; align-items: center; gap: 4px; margin-top: 12px; }
+.pop-prog { font-size: 13px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; margin-right: auto; }
+.pop .btn { height: 40px; }
+
+/* Beacon (variant B). */
+.beacon { position: absolute; z-index: 4; width: 16px; height: 16px; border-radius: 999px; background: var(--primary); border: 2px solid var(--background); cursor: pointer; padding: 0; }
+.beacon::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; background: var(--primary); animation: pulse 1.8s ease-out infinite; z-index: -1; }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(2.8); opacity: 0; } }
+
+/* Toast (sonner look). */
+.toast { position: absolute; z-index: 7; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--pop-shadow); }
+.toast-t { font-size: 14px; font-weight: 600; }
+.toast-d { font-size: 14px; color: var(--muted-foreground); }
+.toast > div { flex: 1; }
+
+/* Empty dish list. */
+.empty { flex: 1; min-height: 0; border: 1.5px dashed var(--border); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; gap: 10px; margin-top: 4px; }
+.empty-ico { width: 44px; height: 44px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; }
+.empty h4 { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+.empty p { margin: 0; font-size: 15px; color: var(--muted-foreground); max-width: 28ch; }
+
+/* Editor. */
+.segctl { display: flex; background: var(--muted); border-radius: 14px; padding: 3px; margin-top: 8px; }
+.segctl span { flex: 1; height: 40px; display: grid; place-items: center; border-radius: 11px; font-weight: 600; color: var(--muted-foreground); font-size: 15px; }
+.segctl .on { background: var(--card); color: var(--foreground); }
+.sec { font-size: 16px; font-weight: 600; margin: 18px 4px 8px; }
+.ing { display: flex; gap: 8px; align-items: center; }
+.inp { height: 44px; border: 1px solid var(--input); border-radius: 14px; background: var(--card); display: flex; align-items: center; padding: 0 12px; font-size: 16px; flex: 1; min-width: 0; }
+.inp.num { flex: none; width: 96px; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.inp.num i { font-style: normal; color: var(--muted-foreground); }
+.ing .xbtn { width: 32px; display: grid; place-items: center; color: var(--muted-foreground); }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted-foreground); margin: 6px 4px 10px; }
+.chk::before { content: ''; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--input); background: var(--card); }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.bottombar { flex: none; padding: 12px 12px 22px; border-top: 1px solid var(--border); background: var(--background); }
+
+/* Settings. */
+.set h3 { font-size: 16px; font-weight: 600; margin: 0 4px; }
+.set p { font-size: 14.5px; color: var(--muted-foreground); margin: 2px 4px 12px; line-height: 1.45; }
+.set section { margin-top: 18px; }
+.tgo { display: flex; gap: 6px; }
+.tgo span { flex: 1; height: 44px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 14px; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.2; padding: 0 2px; white-space: nowrap; }
+.tgo .on { background: var(--secondary); }
+.new { position: relative; outline: 2px dashed color-mix(in oklab, var(--primary) 55%, transparent); outline-offset: 8px; border-radius: 6px; }
+.new::after { content: 'новое'; position: absolute; top: -21px; right: -4px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; color: var(--primary); background: var(--background); padding: 0 6px; }
+
+/* Welcome (variant D). */
+.welcome { flex: 1; padding: 8px 24px 0; display: flex; flex-direction: column; }
+.w-mark { display: flex; gap: 6px; margin: 28px 0 22px; }
+.w-mark span { width: 28px; height: 28px; border-radius: 9px; background: var(--secondary); }
+.w-mark span:first-child { background: var(--primary); }
+.w-title { font-size: 27px; line-height: 1.2; font-weight: 600; margin: 0 0 26px; letter-spacing: -0.01em; }
+.w-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
+.w-list li { display: flex; gap: 14px; }
+.w-n { width: 32px; height: 32px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; font-weight: 600; flex: none; }
+.w-list b { display: block; font-size: 17px; font-weight: 600; }
+.w-list span { font-size: 15px; color: var(--muted-foreground); }
+
+/* Catalog. */
+.table-wrap { margin-top: 24px; overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 880px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+th { font-size: 13px; font-weight: 600; color: var(--muted-foreground); background: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.t-name b { display: block; font-weight: 600; }
+td.t-name code { margin-top: 4px; display: inline-block; }
+td.t-text { color: var(--foreground); max-width: 40ch; }
+td.t-when { color: var(--muted-foreground); max-width: 30ch; }
+tr.is-no td { color: var(--muted-foreground); }
+tr.group td { background: var(--muted); font-weight: 600; font-size: 13px; color: var(--muted-foreground); padding-top: 8px; padding-bottom: 8px; }
+.foot { margin-top: 56px; font-size: 14px; color: var(--muted-foreground); max-width: 80ch; }
+
+@media (max-width: 640px) {
+  .wrap { padding: 24px 16px 72px; }
+  .top h1 { font-size: 26px; }
+  section.block { margin-top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-row { animation: none; transform: translateX(84px); }
+  .beacon::after { animation: none; opacity: 0; }
+  .stage { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Подсказки для новых</h1>
+      <p class="lead">Макеты к этапу 17 (<a href="../roadmap/17-onboarding-hints.md">план</a>). Экраны — как в приложении на 375 px, подсказки нарисованы поверх. <strong>Выбрано 2026-10-07: A + C и приветственный экран.</strong> Короткий тур при первом открытии калькулятора, тихие карточки по месту, по одной, а перед ними — приветствие с предложением аккаунта (UX §3г). Статусы в каталоге — что берём, что под вопросом, что не делаем.</p>
+    </div>
+    <div class="theme-switch" role="group" aria-label="Тема макетов">
+      <button type="button" data-theme-set="system">Как в системе</button>
+      <button type="button" data-theme-set="light">Светлая</button>
+      <button type="button" data-theme-set="dark">Тёмная</button>
+    </div>
+  </header>
+  <ol class="toc">
+    <li><a href="#variants"><b>1</b>Как показывать</a></li>
+    <li><a href="#tour"><b>2</b>Тур при первом запуске</a></li>
+    <li><a href="#cards"><b>3</b>Подсказки по месту</a></li>
+    <li><a href="#settings"><b>4</b>Вернуть подсказки</a></li>
+    <li><a href="#catalog"><b>5</b>Каталог и статусы</a></li>
+  </ol>
+
+  <section class="block" id="variants">
+    <h2>1. Как показывать подсказку</h2>
+    <p class="intro">Четыре вида на одном экране — калькулятор нового человека. Можно нажимать: в A листаются шаги, в B открываются маячки, в C закрывается карточка. A и B — <code>driver.js</code> 1.9 (MIT, без зависимостей): тур и маячки из одной библиотеки. C — shadcn <code>Alert</code>, он уже есть в проекте.</p>
+    <div class="grid">
+      <figure>
+        <div class="phone" data-phone="v-a"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">A. Тур с затемнением</span><span class="badge rec">Для первого запуска</span></div>
+          <ul>
+            <li class="pro">Главное — за 4 тапа. Вырез, прокрутка, карточка у края экрана, Esc и ← / → — из коробки.</li>
+            <li class="con">Закрывает экран: показываем, только когда человек ничего не вводит.</li>
+          </ul>
+          <button class="doc-btn" type="button" data-reset="v-a">Сначала</button>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="v-b"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">B. Маячки</span><span class="badge tag">Запасной для карточек</span></div>
+          <ul>
+            <li class="pro">Ничего не закрывают, человек открывает сам.</li>
+            <li class="con">Пульсирующие точки спорят с числами и цветами людей. Маячок легко не заметить.</li>
+          </ul>
+          <button class="doc-btn" type="button" data-reset="v-b">Сначала</button>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="v-c"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">C. Карточка в потоке</span><span class="badge rec">Для подсказок по месту</span></div>
+          <ul>
+            <li class="pro">Читается без тапа, вид родной, библиотека не нужна.</li>
+            <li class="con">Занимает место, поэтому только в конце экрана, под порциями: числа не прыгают.</li>
+          </ul>
+          <button class="doc-btn" type="button" data-reset="v-c">Сначала</button>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="v-d"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">D. Приветственный экран</span><span class="badge rec">Делаем, с аккаунтом</span></div>
+          <ul>
+            <li class="pro">Один раз сказали, что это за приложение. Последний шаг — аккаунт или это устройство.</li>
+            <li class="con">Его редко читают, поэтому коротко: три экрана с анимацией из логотипа и экран аккаунта. Сделан в приложении (`#/welcome`), макет здесь — первый набросок.</li>
+          </ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block" id="tour">
+    <h2>2. Первый запуск: тур из четырёх шагов (A)</h2>
+    <p class="intro">Начинается, когда калькулятор открыт впервые: у нового человека — сразу после «Популярных блюд» или «Создать». Экран здесь как у нового: готового веса и людей ещё нет.</p>
+    <ul class="rules">
+      <li><b>Старт</b> — после перехода экрана и после тоста «Блюда добавлены»; пока открыта клавиатура, тур ждёт.</li>
+      <li><b>Тап по затемнению</b> — «Далее». Выделенный элемент во время тура не нажимается.</li>
+      <li><b>«Пропустить»</b> (и Esc) выключает все подсказки, в тосте — «Вернуть».</li>
+      <li><b>Системный «назад»</b> закрывает тур; в следующий раз он продолжится с того же шага.</li>
+    </ul>
+    <div class="grid">
+      <figure>
+        <div class="phone" data-phone="t-1"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Шаг 1 · плитки</span><span class="badge" data-status="tiles"></span></div>
+          <p>У составного блюда: «<b>Сырой</b> — все продукты блюда, <b>готовый</b> — вес после готовки. Обычно вводите только готовый».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="t-2"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Шаг 2 · тара</span><span class="badge" data-status="tare"></span></div>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="t-3"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Шаг 3 · кто ест</span><span class="badge" data-status="who"></span></div>
+          <p>Если люди у блюда уже есть, выделяем полосу долей: «Тяните границу — доли запомнятся у этого блюда».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="t-4"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Шаг 4 · полка блюд</span><span class="badge" data-status="shelf"></span></div>
+          <p>Последний шаг: вместо «Далее» — «Готово». Тур пройден, карточки по месту остаются.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-phone="t-skip"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">После «Пропустить»</span></div>
+          <p>Тур закрыт, подсказки выключены. «Вернуть» — тур с начала, обычный тост закрывается сам.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block" id="cards">
+    <h2>3. Подсказки по месту (C)</h2>
+    <p class="intro">Короткие карточки в тот момент, когда они пригодятся. Статус у каждой — предложение, правим вместе.</p>
+    <ul class="rules">
+      <li><b>По одной</b> и никогда в один запуск с туром.</li>
+      <li><b>Не при открытой клавиатуре.</b></li>
+      <li><b>Место</b> — под блоком, о котором речь. В калькуляторе это всегда конец экрана: над порциями ничего не вставляем.</li>
+      <li><b>Пропадает</b> по «Понятно» или ×, после действия, к которому зовёт, или после трёх показов.</li>
+      <li><b>Цвета крышек</b> — только у людей. В подсказках — основной цвет и нейтральные.</li>
+    </ul>
+    <div class="grid" id="card-grid"></div>
+  </section>
+
+  <section class="block" id="settings">
+    <h2>4. Вернуть подсказки</h2>
+    <p class="intro">Настройки → «Оформление»: подсказки — настройка этого устройства, как тема. Подпись в меню настроек — «Тема и подсказки».</p>
+    <div class="grid">
+      <figure>
+        <div class="phone" data-phone="s-appearance"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Оформление → Подсказки</span></div>
+          <p>«Показать заново» включает подсказки и сбрасывает пройденные: тур начнётся с первого шага при следующем открытии калькулятора.</p>
+          <p>Другой вариант — пункт «Как пользоваться» в «⋯». Не рекомендую: меню «⋯» короткое, а пункт нужен один раз.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block" id="catalog">
+    <h2>5. Каталог и статусы</h2>
+    <p class="intro">Все подсказки — и те, что предлагаю не делать. Статус меняем здесь (массив <code>CATALOG</code> в коде страницы): значки у макетов обновятся сами.</p>
+    <div class="table-wrap"><table id="catalog-table"></table></div>
+  </section>
+
+  <p class="foot">Макеты собраны вручную по экрану приложения на 6 октября 2026 (калькулятор «Гречки» на чистом origin). Цвета — токены «Ланчбокса» из <code>src/index.css</code>, светлая и тёмная тема. Карточка тура — так будет выглядеть карточка driver.js с нашим <code>popoverClass</code>.</p>
+</div>
+
+<script>
+// ---------- Icons (lucide paths) ----------
+const P = {
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  chev: '<path d="m6 9 6 6 6-6"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  minus: '<path d="M5 12h14"/>',
+  grip: '<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  back: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/>',
+  pot: '<path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>',
+  book: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  rotate: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+};
+const ico = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const inl = (n) => `<svg class="inline-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+
+// ---------- Content: one place to edit texts and statuses ----------
+const STATUS = { yes: 'Будет', maybe: 'Под вопросом', no: 'Не будет' };
+
+const TOUR = [
+  { id: 'tiles', target: 'tiles', title: 'Два веса', text: '<b>Сухой</b> — сколько продукта взяли. <b>Готовый</b> — сколько вышло после готовки: его и вводите каждый раз. Сухой вес блюдо запомнит.' },
+  { id: 'tare', target: 'tare', title: 'В чём взвешиваете?', text: 'Если в кастрюле — выберите её здесь. Вес пустой посуды вычтем сами.' },
+  { id: 'who', target: 'who', title: 'Кто ест', text: 'Впишите имя и нажмите Enter — и так каждого. Готовое разделим поровну, доли потом можно поменять.' },
+  { id: 'shelf', target: 'shelf', title: 'Другие блюда', text: `Тап по названию — открыть. ${inl('search')} — найти своё или добавить популярное с обычным весом.` },
+];
+
+const CARDS = {
+  copy: { title: 'Скопировать для трекера', text: 'Смахните строку вправо — сухой вес попадёт в буфер. Влево — убрать человека на сегодня.', demo: true },
+  install: { title: 'Добавьте на экран «Домой»', text: `Поделиться ${inl('share')} → «На экран „Домой“». Так приложение откроется сразу и будет работать без сети. <b>Лучше сейчас:</b> данные из Safari туда не переедут.` },
+  own: { title: 'Кому-то меньше?', text: 'Тапните по его граммам и введите свою порцию — остальные поделят то, что осталось.' },
+  tomorrow: { title: 'Часть на завтра?', text: 'Потяните правый край полосы влево — покажем, сколько останется в кастрюле.' },
+  products: { title: 'Продукты сегодня другие?', text: 'Разверните «Продукты» под плитками и поправьте вес — блюдо запомнит.' },
+  ignore: { title: 'Вода, соль, специи', text: 'Отметьте «не учитывать»: k посчитаем по продуктам, а блюдо из одного продукта останется простым.' },
+  account: { title: 'Считаете вдвоём?', text: 'Войдите — блюда и готовый вес будут на обоих телефонах.', action: 'Войти' },
+  shares: { title: 'Готовите на несколько дней?', text: 'В «Кто ест» есть «Доли» — блюдо делится на порции без имён.' },
+};
+
+// The catalog: status here drives the badges next to the mockups.
+const CATALOG = [
+  { group: 'Тур при первом запуске (A)' },
+  { id: 'tiles', name: 'Шаг 1 · Два веса', view: 'Тур', where: 'Калькулятор, плитки «Сухой | Готовый»', when: 'Первое открытие калькулятора', text: TOUR[0].text, status: 'yes' },
+  { id: 'tare', name: 'Шаг 2 · Тара', view: 'Тур', where: 'Калькулятор, «Без тары ⌄»', when: 'Там же', text: TOUR[1].text, status: 'yes' },
+  { id: 'who', name: 'Шаг 3 · Кто ест', view: 'Тур', where: 'Калькулятор, «Кто ест» и «+ Имя» (если люди есть — полоса долей)', when: 'Там же', text: TOUR[2].text, status: 'yes' },
+  { id: 'shelf', name: 'Шаг 4 · Другие блюда', view: 'Тур', where: 'Шапка: 🔍 и чипы блюд', when: 'Там же, последний шаг — «Готово»', text: TOUR[3].text, status: 'yes' },
+  { group: 'Подсказки по месту (C)' },
+  { id: 'copy', phone: 'c-copy', name: 'Скопировать для трекера', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Первый расчёт с людьми: готовый вес введён, поле закрыто. Пропадает после первого копирования', text: CARDS.copy.text + ' <br><span style="color:var(--muted-foreground)">Десктоп: «⧉ у строки — скопировать сухой вес для трекера».</span>', status: 'yes' },
+  { id: 'install', phone: 'c-install', name: 'На экран «Домой»', view: 'Карточка', where: 'Пустой список блюд; калькулятор, под людьми', when: 'iPhone, Safari, не с экрана «Домой». Первый запуск (после тура). Пропадает, когда открыли с экрана «Домой»', text: CARDS.install.text, status: 'yes' },
+  { id: 'own', phone: 'c-own', name: 'Своя порция', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Со 2-го запуска: есть люди и готовый вес. Пропадает, когда ввели свою порцию', text: CARDS.own.text, status: 'maybe' },
+  { id: 'tomorrow', phone: 'c-tomorrow', name: 'На завтра', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'С 3-го запуска: есть люди и готовый вес. Пропадает, когда «На завтра» больше нуля', text: CARDS.tomorrow.text, status: 'maybe' },
+  { id: 'products', phone: 'c-products', name: 'Продукты составного', view: 'Карточка', where: 'Калькулятор составного блюда, под людьми', when: 'Первое открытие составного блюда. Пропадает, когда развернули «Продукты»', text: CARDS.products.text, status: 'maybe' },
+  { id: 'ignore', phone: 'c-ignore', name: '«Не учитывать»', view: 'Карточка', where: 'Редактор блюда, под продуктами', when: 'Первый раз в редакторе выбрано «Составное» или добавлен второй продукт', text: CARDS.ignore.text, status: 'maybe' },
+  { id: 'account', phone: 'c-account', name: 'Вдвоём — войти', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'Без аккаунта, в «Кто ест» двое и больше, с 3-го запуска', text: CARDS.account.text, status: 'maybe' },
+  { id: 'shares', phone: 'c-shares', name: '«Доли» для meal prep', view: 'Карточка', where: 'Калькулятор, под людьми', when: 'С 5-го запуска', text: CARDS.shares.text, status: 'no', note: '«Доли» и так видны в списке «Кто ест»: кто готовит на неделю, найдёт' },
+  { group: 'Не нужны — уже объяснено в интерфейсе' },
+  { id: 'empty', name: 'Пустой список блюд', view: '—', where: '#/ без блюд', when: '—', text: 'Пустое состояние уже говорит: «Добавьте блюдо один раз — дальше у плиты вводите только готовый вес».', status: 'no' },
+  { id: 'menu', name: 'Популярные в меню блюд', view: '—', where: '#/dishes', when: '—', text: 'Раздел уже подписан «Популярные — добавить».', status: 'no' },
+  { id: 'hold', name: '× удержанием', view: '—', where: 'Строки людей на десктопе', when: '—', text: 'Если отпустить рано, тост уже подсказывает, что нужно держать.', status: 'no' },
+  { id: 'kbd', name: '⌘K и «/»', view: '—', where: '🔍 на полке', when: '—', text: 'Уже есть подсказка при наведении: «Найти блюдо ⌘K /».', status: 'no' },
+];
+const statusOf = (id) => (CATALOG.find((c) => c.id === id) || {}).status;
+
+// ---------- Screens ----------
+function shelf(chips) {
+  return `<div class="hdr">
+    <div class="shelf" data-hint="shelf">
+      <span class="rbtn">${ico('search')}</span>
+      <div class="chips">${chips.map((c, i) => `<span class="chip${i === 0 ? ' cur' : ''}">${c}</span>`).join('')}</div>
+    </div>
+    <span class="rbtn">${ico('more')}</span>
+  </div>`;
+}
+
+function hintCard(c, key) {
+  if (!c) return '';
+  const demo = c.demo ? `<div class="demo" aria-hidden="true"><div class="demo-act">${ico('copy', 'sm')}<span>Копировать</span></div><div class="demo-row"><span class="lid" style="background:var(--chart-1)"></span><b>Ваня</b><span>280 г</span></div></div>` : '';
+  return `<div class="hint" data-hint="card" data-card="${key || ''}">
+    <div class="hint-ico">${ico('bulb')}</div>
+    <div class="hint-title">${c.title}</div>
+    <div class="hint-text">${c.text}</div>
+    <div>${demo}<div class="hint-actions"><button type="button" class="btn sm secondary" data-act="ok">Понятно</button>${c.action ? `<button type="button" class="btn sm outline">${c.action}</button>` : ''}</div></div>
+    <button type="button" class="hint-x" aria-label="Скрыть подсказку" data-act="ok">${ico('x', 'sm')}</button>
+  </div>`;
+}
+
+function people(o) {
+  const comp = o.dish === 'composite';
+  const g = comp ? '1 175' : '280';
+  const sub = comp ? '50 % · Курица 400 г · Рис 300 г · Морковь 150 г · Лук 90 г' : '50 % · 100 г сухого';
+  return `
+    <div class="bar" data-hint="bar">
+      <div class="seg on" style="background:var(--chart-1)"><small>Ваня</small><b>${g} г</b></div>
+      <div class="seg" style="background:var(--chart-2)"><small>Ксюша</small><b>${g} г</b></div>
+      <span class="grip">${ico('grip', 'sm')}</span>
+    </div>
+    <div class="ctrl">
+      <span class="sq">${ico('minus')}</span>
+      <span class="ctrl-mid">Ваня<b>50 %</b></span>
+      <span class="sq">${ico('plus')}</span>
+      <span class="eq">Поровну</span>
+      <span class="tg2"><span class="on">г</span><span>%</span></span>
+    </div>
+    <div class="person" data-hint="person">
+      <span class="lid" style="background:var(--chart-1)"></span>
+      <div class="p-main"><div class="p-name">Ваня</div><div class="p-sub">${sub}</div></div>
+      <span class="p-g">${g}</span><span class="p-u">г</span>
+    </div>
+    <div class="person">
+      <span class="lid" style="background:var(--chart-2)"></span>
+      <div class="p-main"><div class="p-name">Ксюша</div><div class="p-sub">${sub}</div></div>
+      <span class="p-g">${g}</span><span class="p-u">г</span>
+    </div>`;
+}
+
+function calc(o = {}) {
+  const comp = o.dish === 'composite';
+  const filled = o.state === 'filled';
+  const chips = comp ? ['Плов с курицей', 'Гречка', 'Рис', 'Макароны'] : ['Гречка', 'Рис', 'Макароны', 'Булгур', 'Плов'];
+  const dry = comp
+    ? `<div class="tile"><div class="tl">Сырой ${ico('chev', 'sm')}</div><div class="tv">1 880<span class="u">г</span></div><div class="tnote">не учит.: Вода 600 г, Специи 5 г, Соль 10 г</div></div>`
+    : `<div class="tile"><div class="tl">Сухой</div><div class="tv">200<span class="u">г</span></div></div>`;
+  const cooked = `<div class="tile"><div class="tl">Готовый${filled ? ' · 19:40' : ''}</div><div class="tv${filled ? '' : ' ph'}">${filled ? (comp ? '2 350' : '560') : '0'}<span class="u">г</span></div></div>`;
+  const k = filled ? `<span>${comp ? 'k блюда = 1,25' : 'k = 2,8'}</span>` : '';
+  const count = filled ? 2 : 0;
+  return `${shelf(chips)}
+  <div class="body">
+    <div class="tiles" data-hint="tiles">${dry}${cooked}</div>
+    <div class="under"><span class="tare" data-hint="tare">Без тары ${ico('chev', 'sm')}</span>${k}${comp ? `<span class="prod">Продукты ${ico('chev', 'sm')}</span>` : ''}</div>
+    <div class="who">
+      <div data-hint="who">
+        <div class="sel">${ico('users')}<span class="grow">Свой состав · ${count}</span>${ico('chev')}</div>
+        ${filled ? '' : `<div class="addname">${ico('plus')}<span>Имя</span></div>`}
+      </div>
+      ${filled ? people(o) + `<div class="addname">${ico('plus')}<span>Имя</span></div>` : ''}
+      ${hintCard(o.card, o.cardKey)}
+    </div>
+  </div>
+  ${o.toast ? toast(o.toast) : ''}`;
+}
+
+function toast(t) {
+  return `<div class="toast" role="status"><div><div class="toast-t">${t.title}</div>${t.text ? `<div class="toast-d">${t.text}</div>` : ''}</div>${t.action ? `<button type="button" class="btn sm dark" data-act="restore">${t.action}</button>` : ''}</div>`;
+}
+
+function emptyList(o = {}) {
+  return `<div class="hdr2"><span class="h-title">Блюда</span><span class="rbtn">${ico('more')}</span></div>
+  <div class="body">
+    <div class="empty">
+      <span class="empty-ico">${ico('pot')}</span>
+      <h4>Пока нет блюд</h4>
+      <p>Гречка, макароны, суп. Добавьте блюдо один раз — дальше у плиты вводите только готовый вес.</p>
+      <span class="btn primary" style="margin-top:6px">${ico('plus')} Блюдо</span>
+      <span class="btn outline">${ico('book')} Популярные блюда</span>
+    </div>
+    ${hintCard(o.card, o.cardKey)}
+  </div>`;
+}
+
+function editor(o = {}) {
+  const ing = (name, g) => `<div class="ing"><span class="inp">${name}</span><span class="inp num">${g}<i>г</i></span><span class="xbtn">${ico('x', 'sm')}</span></div><div class="chk">не учитывать</div>`;
+  return `<div class="hdr2">${ico('back')}<span class="h-title">Добавить блюдо</span></div>
+  <div class="body" style="overflow:hidden">
+    <div class="segctl"><span>Простое</span><span class="on">Составное</span></div>
+    <div class="sec">Продукты</div>
+    ${ing('Курица', '800')}${ing('Рис', '600')}${ing('Вода', '600')}
+    <div class="row-btns"><span class="btn sm outline">${ico('plus', 'sm')} Ингредиент</span><span class="btn sm outline">Из простого блюда</span></div>
+    ${hintCard(o.card, o.cardKey)}
+    <div class="sec">Название</div>
+    <span class="inp">Плов</span>
+  </div>
+  <div class="bottombar"><span class="btn primary wide">Создать</span></div>`;
+}
+
+function appearance() {
+  return `<div class="hdr2">${ico('back')}<span class="h-title">Оформление</span></div>
+  <div class="body set">
+    <section style="margin-top:8px">
+      <h3>Тема</h3>
+      <p>По умолчанию — как в настройках телефона или компьютера.</p>
+      <div class="tgo"><span class="on">Как в системе</span><span>Светлая</span><span>Тёмная</span></div>
+    </section>
+    <section class="new" style="margin-top:40px">
+      <h3>Подсказки</h3>
+      <p>Короткие подсказки для новых: какой вес вводить, тара, кто ест.</p>
+      <div class="tgo"><span>Показывать</span><span class="on">Не показывать</span></div>
+      <span class="btn outline wide" style="margin-top:10px">${ico('rotate', 'sm')} Показать заново</span>
+    </section>
+  </div>`;
+}
+
+function welcome() {
+  return `<div class="hdr2 end"><span class="btn ghost sm">Пропустить</span></div>
+  <div class="welcome">
+    <div class="w-mark"><span></span><span></span><span></span></div>
+    <h3 class="w-title">Сколько положить каждому — за пару секунд</h3>
+    <ol class="w-list">
+      <li><span class="w-n">1</span><div><b>Выберите блюдо</b><span>Сухой вес и кто ест оно помнит с прошлого раза.</span></div></li>
+      <li><span class="w-n">2</span><div><b>Взвесьте готовое</b><span>Введите вес — порции посчитаются сразу.</span></div></li>
+      <li><span class="w-n">3</span><div><b>Скопируйте в трекер</b><span>Сухой вес своей порции — одним свайпом.</span></div></li>
+    </ol>
+  </div>
+  <div class="bottombar" style="border-top:0"><span class="btn primary wide">Начать</span></div>`;
+}
+
+// ---------- Overlays ----------
+function tourPop(step, i, n, opts = {}) {
+  const last = i === n - 1;
+  return `<div class="ov" data-ov="tour"><div class="stage"></div>
+    <div class="pop" role="dialog" aria-label="${step.title}" data-target="${step.target}">
+      <div class="pop-title">${step.title}</div>
+      <div class="pop-text">${step.text}</div>
+      <div class="pop-foot">
+        <span class="pop-prog">${i + 1} из ${n}</span>
+        ${last ? '' : '<button type="button" class="btn ghost sm" data-act="skip">Пропустить</button>'}
+        <button type="button" class="btn primary sm" data-act="next">${last ? 'Готово' : 'Далее'}</button>
+      </div>
+    </div></div>`;
+}
+
+const BEACONS = [
+  { target: 'tiles', title: 'Два веса', text: TOUR[0].text },
+  { target: 'tare', title: 'В чём взвешиваете?', text: TOUR[1].text },
+  { target: 'who', title: 'Кто ест', text: TOUR[2].text },
+];
+function beaconLayer(state) {
+  const open = BEACONS.find((b) => b.target === state.open);
+  return BEACONS.filter((b) => !state.done.includes(b.target))
+    .map((b) => `<button type="button" class="beacon" aria-label="Подсказка: ${b.title}" data-target="${b.target}" data-act="beacon"></button>`).join('')
+    + (open ? `<div class="pop" role="dialog" aria-label="${open.title}" data-target="${open.target}">
+        <div class="pop-title">${open.title}</div>
+        <div class="pop-text">${open.text}</div>
+        <div class="pop-foot"><span class="pop-prog"></span><button type="button" class="btn primary sm" data-act="got">Понятно</button></div>
+      </div>` : '');
+}
+
+// ---------- Phones ----------
+const state = {
+  'v-a': { step: 0, skipped: false, done: false },
+  'v-b': { open: 'tiles', done: [] },
+  'v-c': { hidden: false },
+};
+
+const PHONES = {
+  'v-a': () => {
+    const s = state['v-a'];
+    if (s.skipped) return calc({ state: 'fresh', toast: { title: 'Подсказки выключены', text: 'Вернуть — Настройки → Оформление', action: 'Вернуть' } });
+    if (s.done) return calc({ state: 'fresh' });
+    return calc({ state: 'fresh' }) + tourPop(TOUR[s.step], s.step, TOUR.length);
+  },
+  'v-b': () => calc({ state: 'fresh' }) + beaconLayer(state['v-b']),
+  'v-c': () => calc({ state: 'filled', card: state['v-c'].hidden ? null : CARDS.copy }),
+  'v-d': () => welcome(),
+  't-1': () => calc({ state: 'fresh' }) + tourPop(TOUR[0], 0, 4),
+  't-2': () => calc({ state: 'fresh' }) + tourPop(TOUR[1], 1, 4),
+  't-3': () => calc({ state: 'fresh' }) + tourPop(TOUR[2], 2, 4),
+  't-4': () => calc({ state: 'fresh' }) + tourPop(TOUR[3], 3, 4),
+  't-skip': () => calc({ state: 'fresh', toast: { title: 'Подсказки выключены', text: 'Вернуть — Настройки → Оформление', action: 'Вернуть' } }),
+  'c-copy': () => calc({ state: 'filled', card: CARDS.copy }),
+  'c-install': () => emptyList({ card: CARDS.install }),
+  'c-own': () => calc({ state: 'filled', card: CARDS.own }),
+  'c-tomorrow': () => calc({ state: 'filled', card: CARDS.tomorrow }),
+  'c-products': () => calc({ state: 'filled', dish: 'composite', card: CARDS.products }),
+  'c-ignore': () => editor({ card: CARDS.ignore }),
+  'c-account': () => calc({ state: 'filled', card: CARDS.account }),
+  'c-shares': () => calc({ state: 'filled', card: CARDS.shares }),
+  's-appearance': () => appearance(),
+};
+
+// Section 3 is generated from the catalog, in catalog order.
+function buildCardGrid() {
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = CATALOG.filter((c) => c.phone).map((c) => `
+    <figure>
+      <div class="phone" data-phone="${c.phone}"></div>
+      <figcaption>
+        <div class="cap-head"><span class="cap-title">${c.name}</span><span class="badge" data-status="${c.id}"></span></div>
+        <p>${c.when}.</p>
+        ${c.note ? `<p><b style="color:var(--foreground);font-weight:500">Почему нет:</b> ${c.note}.</p>` : ''}
+      </figcaption>
+    </figure>`).join('');
+}
+
+function buildCatalog() {
+  const rows = CATALOG.map((c) => c.group
+    ? `<tr class="group"><td colspan="5">${c.group}</td></tr>`
+    : `<tr class="${c.status === 'no' ? 'is-no' : ''}">
+        <td class="t-name"><b>${c.name}</b><code>${c.id}</code></td>
+        <td>${c.where}</td>
+        <td class="t-when">${c.when}</td>
+        <td class="t-text">${c.text}${c.note ? `<br><span style="color:var(--muted-foreground)">Почему нет: ${c.note}.</span>` : ''}</td>
+        <td><span class="badge ${c.status}">${STATUS[c.status]}</span></td>
+      </tr>`).join('');
+  document.getElementById('catalog-table').innerHTML =
+    '<thead><tr><th>Подсказка</th><th>Где</th><th>Когда показываем</th><th>Текст</th><th>Статус</th></tr></thead><tbody>' + rows + '</tbody>';
+}
+
+function paintBadges() {
+  document.querySelectorAll('[data-status]').forEach((b) => {
+    const s = statusOf(b.dataset.status);
+    if (!s) return;
+    b.className = `badge ${s}`;
+    b.textContent = STATUS[s];
+  });
+}
+
+function render(id) {
+  const el = document.querySelector(`[data-phone="${id}"]`);
+  if (!el || !PHONES[id]) return;
+  el.innerHTML = `<div class="scr">${PHONES[id]()}</div>`;
+  layout(el);
+}
+
+// Places the spotlight, the popover with its arrow, and the beacons over their targets.
+function layout(phone) {
+  const scr = phone.querySelector('.scr');
+  if (!scr) return;
+  const S = scr.getBoundingClientRect();
+  const rel = (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left - S.left, y: r.top - S.top, w: r.width, h: r.height };
+  };
+  const find = (name) => scr.querySelector(`[data-hint="${name}"]`);
+
+  scr.querySelectorAll('.beacon').forEach((b) => {
+    const t = find(b.dataset.target);
+    if (!t) return;
+    const r = rel(t);
+    b.style.left = `${r.x + r.w - 14}px`;
+    b.style.top = `${r.y - 6}px`;
+  });
+
+  const pop = scr.querySelector('.pop');
+  if (!pop) return;
+  const stage = scr.querySelector('.stage');
+  // The tour points at the element (A); a hint points at its beacon (B).
+  const t = stage ? find(pop.dataset.target) : scr.querySelector(`.beacon[data-target="${pop.dataset.target}"]`);
+  if (!t) return;
+  const r = rel(t);
+  const pad = stage ? 6 : 2;
+  const R = { x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad };
+  if (stage) Object.assign(stage.style, { left: `${R.x}px`, top: `${R.y}px`, width: `${R.w}px`, height: `${R.h}px` });
+
+  const gap = 12, m = 12;
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  const below = R.y + R.h + gap;
+  const above = R.y - gap - ph;
+  const useAbove = below + ph > S.height - m && above >= m;
+  const left = Math.min(Math.max(R.x + R.w / 2 - pw / 2, m), S.width - pw - m);
+  pop.style.left = `${left}px`;
+  pop.style.top = `${useAbove ? above : below}px`;
+  pop.classList.toggle('above', useAbove);
+  pop.style.setProperty('--ax', `${Math.min(Math.max(R.x + R.w / 2 - left, 22), pw - 22)}px`);
+}
+
+function renderAll() {
+  Object.keys(PHONES).forEach(render);
+}
+
+// ---------- Interactions (variants A, B, C) ----------
+document.addEventListener('click', (e) => {
+  const phone = e.target.closest('[data-phone]');
+  const reset = e.target.closest('[data-reset]');
+  if (reset) {
+    const id = reset.dataset.reset;
+    if (id === 'v-a') state['v-a'] = { step: 0, skipped: false, done: false };
+    if (id === 'v-b') state['v-b'] = { open: 'tiles', done: [] };
+    if (id === 'v-c') state['v-c'] = { hidden: false };
+    render(id);
+    return;
+  }
+  if (!phone) return;
+  const id = phone.dataset.phone;
+  const act = e.target.closest('[data-act]')?.dataset.act;
+
+  if (id === 'v-a') {
+    const s = state['v-a'];
+    if (act === 'skip') s.skipped = true;
+    else if (act === 'restore') Object.assign(s, { step: 0, skipped: false, done: false });
+    else if (act === 'next' || (e.target.closest('.ov') && !e.target.closest('.pop'))) {
+      if (s.step < TOUR.length - 1) s.step += 1; else s.done = true;
+    } else return;
+    render(id);
+  }
+  if (id === 'v-b') {
+    const s = state['v-b'];
+    if (act === 'beacon') {
+      const target = e.target.closest('.beacon').dataset.target;
+      s.open = s.open === target ? null : target;
+    } else if (act === 'got') {
+      s.done.push(s.open);
+      s.open = null;
+    } else if (!e.target.closest('.pop')) s.open = null;
+    else return;
+    render(id);
+  }
+  if (id === 'v-c' && act === 'ok') {
+    state['v-c'].hidden = true;
+    render(id);
+  }
+});
+
+// ---------- Theme ----------
+const root = document.documentElement;
+function setTheme(t) {
+  if (t === 'system') delete root.dataset.theme; else root.dataset.theme = t;
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)));
+  try { localStorage.setItem('hints-mockups-theme', t); } catch (_) { /* storage may be blocked */ }
+}
+document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeSet)));
+let saved = 'system';
+try { saved = localStorage.getItem('hints-mockups-theme') || 'system'; } catch (_) { /* default */ }
+setTheme(saved);
+
+// ---------- Boot ----------
+buildCardGrid();
+buildCatalog();
+paintBadges();
+renderAll();
+document.fonts && document.fonts.ready.then(renderAll);
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => document.querySelectorAll('[data-phone]').forEach(layout), 80);
+});
+</script>
+</body>
+</html>
