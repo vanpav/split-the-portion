@@ -559,9 +559,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
             />
             {inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
           </div>
-          {!inShares && people.length === 0 && (
-            <p className="px-1 text-sm text-muted-foreground">Впишите имя или выберите «Доли», чтобы поделить на порции.</p>
-          )}
           <ShareSlider
             sharing={sharing}
             sharingSegments={segments.filter((x) => fixed[x.id] === undefined)}
@@ -578,6 +575,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
             unit={barUnit}
             onUnit={setBarUnit}
             numbered={inShares}
+            // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything.
+            empty="Добавьте людей"
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
           />
           {Object.keys(fixed).length > 0 && (

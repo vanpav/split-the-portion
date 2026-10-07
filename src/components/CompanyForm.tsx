@@ -48,7 +48,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         value={value.name}
         onChange={(e) => onChange({ ...value, name: e.target.value })}
       />
-      <ShareSlider sharing={members} sharingSegments={segments} own={[]} rest={null} onChange={setPercents} />
+      <ShareSlider sharing={members} sharingSegments={segments} own={[]} rest={null} onChange={setPercents} empty="Добавьте людей" />
       <ul className="flex flex-col divide-y">
         {members.map((m, index) => (
           <li key={m.id} className="flex items-center gap-2 py-1">

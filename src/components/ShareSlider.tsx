@@ -55,6 +55,11 @@ interface ShareSliderProps {
   numbered?: boolean
   /** What the sharing people split, «440 г», for «17 % из 440 г» under the bar. */
   sharedLabel?: string | null
+  /**
+   * Nobody yet: an empty bar with this text keeps the bar's place (and the «г | %» row under it), so the
+   * screen does not jump when the first person comes or «Доли» is picked. Without it — nothing.
+   */
+  empty?: string
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -118,6 +123,7 @@ export function ShareSlider({
   onUnit,
   numbered = false,
   sharedLabel = null,
+  empty,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
@@ -136,6 +142,16 @@ export function ShareSlider({
 
   const total =
     sharingSegments.reduce((a, s) => a + s.share, 0) + own.reduce((a, s) => a + s.share, 0) + (rest?.share ?? 0)
+  if (sharingSegments.length + own.length === 0 && empty) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex h-12 items-center justify-center rounded-xl border-2 border-dashed border-border px-3 text-sm text-muted-foreground">
+          {empty}
+        </div>
+        <ShareControls names={[]} percents={[]} equal selectedIndex={0} onChange={onChange} unit={unit} onUnit={onUnit} />
+      </div>
+    )
+  }
   if (total <= 0 || sharingSegments.length + own.length === 0) return null
 
   // Bar geometry in percent of its width: sharing people first (a block whose inside is draggable),
