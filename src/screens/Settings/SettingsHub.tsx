@@ -1,5 +1,6 @@
 import { HardDriveIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AppVersion } from './AppVersion'
 import { HintsSetting } from './HintsSetting'
 import { HubAccountCard } from './HubAccountCard'
 import { HubCluster } from './HubCluster'
@@ -22,7 +23,7 @@ export function SettingsHub({ className }: { className?: string }) {
         <HubCompanies />
         <HubTares />
       </HubCluster>
-      <HubCluster title={CLUSTER_TITLES.app}>
+      <HubCluster title={CLUSTER_TITLES.app} footer={<AppVersion />}>
         <div className="flex flex-col gap-2 px-3 pt-3 pb-2">
           <h3 className="px-1 font-medium">Тема</h3>
           <ThemeSetting />
