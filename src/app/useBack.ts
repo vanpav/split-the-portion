@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router'
 
 /** Marks an entry opened in place of a missing previous screen: there is no screen of the app before it either. */
-const NO_PREVIOUS = { noPrevious: true }
+export const NO_PREVIOUS = { noPrevious: true }
 
 function marked(state: unknown): boolean {
   return typeof state === 'object' && state !== null && 'noPrevious' in state

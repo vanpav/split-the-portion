@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { dishErrors, dishKind } from '../dish'
-import { missingPresets, PRESET_DISHES, presetDish, presetDishes } from '../presets'
+import { dishCountText, missingPresets, pickedDishes, PRESET_DISHES, presetDish, presetDishes, presetWeight, scalePreset } from '../presets'
+import { shelfOrder } from '../dish'
 import type { Dish } from '../types'
 
 const ids = () => {
@@ -91,5 +92,109 @@ describe('presetDish', () => {
       ['Вода', 300, true],
     ])
     expect(new Set([dish.id, ...dish.ingredients.map((i) => i.id)]).size).toBe(3)
+  })
+})
+
+const preset = (name: string) => PRESET_DISHES.find((p) => p.name === name)!
+const grams = (p: { ingredients: { name: string; rawGrams: number | null }[] }) => p.ingredients.map((i) => [i.name, i.rawGrams])
+
+describe('presetWeight', () => {
+  it('simple: the counted product; composite: the sum of the counted ones; none weighed: null', () => {
+    expect(presetWeight(preset('Гречка'))).toBe(200)
+    expect(presetWeight(preset('Рис'))).toBe(180)
+    expect(presetWeight(preset('Борщ'))).toBe(600 + 400 + 400 + 400 + 150 + 150 + 40 + 30)
+    expect(presetWeight(preset('Шампиньоны'))).toBeNull()
+  })
+})
+
+describe('scalePreset', () => {
+  it('simple: the counted product gets the typed weight as it is, the rest stays', () => {
+    expect(grams(scalePreset(preset('Рис'), 250.5))).toEqual([['Рис', 250.5], ['Вода', 400], ['Соль', 5]])
+  })
+
+  it('composite: everything, «не учитывать» too, times new ÷ catalogue weight, whole grams', () => {
+    const borsch = preset('Борщ')
+    const base = presetWeight(borsch)!
+    const scaled = scalePreset(borsch, base / 2)
+    expect(grams(scaled)).toEqual(borsch.ingredients.map((i) => [i.name, Math.round(i.rawGrams! / 2)]))
+    expect(scaled.ingredients.find((i) => i.name === 'Вода')?.rawGrams).toBe(1500)
+    expect(scaled.ingredients.every((i, n) => i.excluded === borsch.ingredients[n].excluded)).toBe(true)
+  })
+
+  it('composite: the same weight changes nothing; an ingredient without a weight stays without', () => {
+    const pasta = preset('Паста болоньезе')
+    expect(scalePreset(pasta, presetWeight(pasta))).toEqual(pasta)
+    expect(scalePreset(pasta, 2 * presetWeight(pasta)!).ingredients.find((i) => i.name === 'Пармезан')?.rawGrams).toBeNull()
+  })
+
+  it('composite: the counted whole grams add up to the typed weight, each within a gram of exact', () => {
+    for (const name of ['Борщ', 'Плов с курицей', 'Котлеты домашние']) {
+      const base = presetWeight(preset(name))!
+      for (const typed of [1000, 777, 1234.6]) {
+        const scaled = scalePreset(preset(name), typed)
+        expect(presetWeight(scaled)).toBe(Math.round(typed))
+        scaled.ingredients.forEach((i, n) => {
+          const exact = preset(name).ingredients[n].rawGrams! * (typed / base)
+          expect(Number.isInteger(i.rawGrams)).toBe(true)
+          expect(Math.abs(i.rawGrams! - exact)).toBeLessThan(1)
+        })
+      }
+    }
+  })
+
+  it('empty field: no weights, the recipe stays', () => {
+    for (const name of ['Гречка', 'Борщ']) {
+      const scaled = scalePreset(preset(name), null)
+      expect(scaled.ingredients.every((i) => i.rawGrams === null)).toBe(true)
+      expect(scaled.ingredients.map((i) => [i.name, i.excluded])).toEqual(preset(name).ingredients.map((i) => [i.name, i.excluded]))
+    }
+  })
+
+  it('a simple dish with no usual weight takes the typed one', () => {
+    expect(grams(scalePreset(preset('Шампиньоны'), 300))).toEqual([['Шампиньоны', 300]])
+  })
+
+  it('does not touch the catalogue', () => {
+    const before = JSON.stringify(PRESET_DISHES)
+    scalePreset(preset('Борщ'), 1000)
+    expect(JSON.stringify(PRESET_DISHES)).toBe(before)
+  })
+})
+
+describe('pickedDishes', () => {
+  const picked = (...names: string[]) => names.map((n) => ({ preset: preset(n), grams: presetWeight(preset(n)) }))
+
+  it('in the order ticked, with the weight typed', () => {
+    const dishes = pickedDishes([], [{ preset: preset('Борщ'), grams: 1000 }, { preset: preset('Гречка'), grams: 150 }], ids(), AT)
+    expect(dishes.map((d) => d.name)).toEqual(['Борщ', 'Гречка'])
+    expect(dishes[1].ingredients[0].rawGrams).toBe(150)
+    expect(Math.abs(dishes[0].ingredients.find((i) => i.name === 'Говядина')!.rawGrams! - (600 * 1000) / 2170)).toBeLessThan(1)
+    expect(dishes[0].ingredients.filter((i) => !i.excluded).reduce((sum, i) => sum + i.rawGrams!, 0)).toBe(1000)
+    expect(dishes.every((d) => d.createdAt === AT && d.tareId === null && d.cooked === null)).toBe(true)
+  })
+
+  it('the first ticked is first on the shelf', () => {
+    const dishes = pickedDishes([], picked('Гречка', 'Рис', 'Борщ'), ids(), AT)
+    expect(shelfOrder(dishes, []).map((d) => d.name)).toEqual(['Гречка', 'Рис', 'Борщ'])
+    expect(dishes[0].updatedAt).toBe(AT)
+  })
+
+  it('skips titles the user has, ignoring case and «ё», and repeats', () => {
+    const own: Pick<Dish, 'name' | 'ingredients'>[] = [{ name: 'гречка', ingredients: [] }, { name: 'свёкла запечённая', ingredients: [] }]
+    const names = pickedDishes(own, picked('Гречка', 'Свёкла запечённая', 'Рис', 'Рис'), ids(), AT).map((d) => d.name)
+    expect(names).toEqual(['Рис'])
+  })
+
+  it('fresh ids', () => {
+    const all = pickedDishes([], picked('Борщ', 'Гречка'), ids(), AT).flatMap((d) => [d.id, ...d.ingredients.map((i) => i.id)])
+    expect(new Set(all).size).toBe(all.length)
+  })
+})
+
+describe('dishCountText', () => {
+  it('Russian plural of «блюдо»', () => {
+    expect([1, 2, 3, 5, 11, 12, 21, 22, 25].map(dishCountText)).toEqual([
+      '1 блюдо', '2 блюда', '3 блюда', '5 блюд', '11 блюд', '12 блюд', '21 блюдо', '22 блюда', '25 блюд',
+    ])
   })
 })

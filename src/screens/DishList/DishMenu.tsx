@@ -1,7 +1,7 @@
-import { ListPlusIcon, PlusIcon } from 'lucide-react'
+import { ListChecksIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { dishPath, newDishPath, newDishWithTextPath } from '@/app/paths'
+import { dishPath, newDishPath, newDishWithTextPath, POPULAR_PATH } from '@/app/paths'
 import { useBack } from '@/app/useBack'
 import { DishSearch } from '@/components/DishSearch/DishSearch'
 import { DishSearchGroup } from '@/components/DishSearch/DishSearchGroup'
@@ -20,7 +20,6 @@ import {
   presetDish,
   type PresetDish,
 } from '@/domain'
-import { addAllPresets } from '@/lib/addAllPresets'
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
@@ -35,7 +34,7 @@ const nowIso = () => new Date().toISOString()
  * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовишь», the other own dishes
  * (or, with «По категориям», the own dishes in sections by category),
  * the popular ones to add, «Создать «…»» while something is typed. With no dishes it is the first
- * screen: «Добавить блюдо» and the whole catalogue at once.
+ * screen: «Добавить блюдо», the catalogue and «Выбрать из популярных» (the picker screen).
  */
 export function DishMenu() {
   const navigate = useNavigate()
@@ -116,9 +115,11 @@ export function DishMenu() {
         noDishes &&
         !typed &&
         popular.length > 0 && (
-          <Button variant="outline" size="lg" className="mt-2 h-12 w-full text-base" onClick={addAllPresets}>
-            <ListPlusIcon data-icon="inline-start" />
-            {`Добавить все ${popular.length}`}
+          <Button variant="outline" size="lg" className="mt-2 h-12 w-full text-base" asChild>
+            <Link to={POPULAR_PATH}>
+              <ListChecksIcon data-icon="inline-start" />
+              Выбрать из популярных
+            </Link>
           </Button>
         )
       }

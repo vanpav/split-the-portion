@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { compareNames, createDishText, dishMenu, dishPicks, matchRank, type DishMenuOptions } from '../menu'
-import { missingPresets, type PresetDish } from '../presets'
+import { compareNames, createDishText, dishMenu, dishPicks, matchRank, popularView, type DishMenuOptions } from '../menu'
+import { missingPresets, PRESET_DISHES, type PresetDish } from '../presets'
 import type { Dish, DishCategory } from '../types'
 
 const TODAY = '2026-10-06'
@@ -299,5 +299,45 @@ describe('dishMenu by category', () => {
 
   it('with a query and nothing found: no sections', () => {
     expect(dishMenu(own, [], options({ query: 'zzz', byCategory: true })).categories).toEqual([])
+  })
+})
+
+describe('popularView', () => {
+  const none = new Set<string>()
+  const names = (v: ReturnType<typeof popularView>) => v.sections.flatMap((s) => s.presets.map((p) => p.name))
+
+  it('«Все» without text: sections by category in display order, the whole catalogue', () => {
+    const v = popularView('', 'all', none)
+    expect(v.sections.every((s) => s.category !== null && s.presets.length > 0)).toBe(true)
+    expect(v.sections[0].category).toBe('first')
+    expect(names(v)).toHaveLength(PRESET_DISHES.length)
+    expect(v.counts.all).toBe(PRESET_DISHES.length)
+    expect(v.counts.categories.reduce((n, c) => n + c.count, 0)).toBe(PRESET_DISHES.length)
+  })
+
+  it('a text: one list without headings, the best match first, counts follow what is found', () => {
+    const v = popularView('рис', 'all', none)
+    expect(v.sections).toHaveLength(1)
+    expect(v.sections[0].category).toBeNull()
+    expect(names(v)[0]).toBe('Рис')
+    expect(v.counts.all).toBe(names(v).length)
+    expect(popularView('рис', 'sides', none).counts.categories.find((c) => c.category === 'first')?.count).toBe(0)
+  })
+
+  it('a category: only its dishes, under its heading', () => {
+    const v = popularView('', 'sides', none)
+    expect(v.sections).toHaveLength(1)
+    expect(v.sections[0].category).toBe('sides')
+    expect(names(v)).toContain('Гречка')
+    expect(names(v)).not.toContain('Борщ')
+  })
+
+  it('«Отмечено»: only the ticked ones, no heading; the count follows the search', () => {
+    const picked = new Set(['Гречка', 'Борщ'])
+    const v = popularView('', 'picked', picked)
+    expect(v.sections).toEqual([{ category: null, presets: expect.any(Array) }])
+    expect(names(v).sort()).toEqual(['Борщ', 'Гречка'])
+    expect(popularView('греч', 'all', picked).counts.picked).toBe(1)
+    expect(names(popularView('', 'picked', none))).toEqual([])
   })
 })

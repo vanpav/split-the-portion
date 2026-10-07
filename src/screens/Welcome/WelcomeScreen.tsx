@@ -2,13 +2,15 @@ import { useDrag } from '@use-gesture/react'
 import { CheckIcon, SmartphoneIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { accountPath } from '@/app/paths'
+import { accountPath, POPULAR_PATH } from '@/app/paths'
+import { NO_PREVIOUS } from '@/app/useBack'
 import { BottomBar } from '@/components/BottomBar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { finishWelcome, stepAfterSwipe } from '@/onboarding/hints'
 import { useAccountStore } from '@/store/account'
 import { usePrefsStore } from '@/store/prefs'
+import { useAppStore } from '@/store/store'
 import { WelcomeBoxes } from './WelcomeBoxes'
 import { WelcomeDevices } from './WelcomeDevices'
 import { WelcomeShares } from './WelcomeShares'
@@ -99,9 +101,11 @@ export function WelcomeScreen() {
 
   // Into the app, or on to signing in; «назад» from there does not bring the welcome back.
   const finish = (to: string, replace: boolean) => {
-    navigate(to, { replace })
+    navigate(to, { replace, state: to === POPULAR_PATH ? NO_PREVIOUS : undefined })
     updateHints(finishWelcome)
   }
+  // Without an account, with nothing on the device: first the popular dishes (docs/UX.md §3в «Куда дальше»).
+  const start = () => finish(useAppStore.getState().dishes.length === 0 ? POPULAR_PATH : '/', true)
   const about = ABOUT[step]
 
   return (
@@ -132,7 +136,7 @@ export function WelcomeScreen() {
           </nav>
         )}
         {/* On every step, the account one too: straight into the app, without an account. */}
-        <Button variant="ghost" className="text-muted-foreground" onClick={() => finish('/', true)}>
+        <Button variant="ghost" className="text-muted-foreground" onClick={() => start()}>
           Пропустить
         </Button>
       </header>
@@ -192,15 +196,15 @@ export function WelcomeScreen() {
         <BottomBar className={onAccount ? 'flex-col' : undefined}>
           {onAccount ? (
             <>
-              <Button size="lg" onClick={() => finish(accountPath({ signUp: true, next: '/' }), false)}>
+              <Button size="lg" onClick={() => finish(accountPath({ signUp: true, next: POPULAR_PATH }), false)}>
                 Создать аккаунт
               </Button>
-              <Button size="lg" variant="outline" onClick={() => finish('/', true)}>
+              <Button size="lg" variant="outline" onClick={() => start()}>
                 Без аккаунта
               </Button>
             </>
           ) : (
-            <Button size="lg" className="flex-1" onClick={() => (last ? finish('/', true) : go(step + 1))}>
+            <Button size="lg" className="flex-1" onClick={() => (last ? start() : go(step + 1))}>
               {last ? 'Начать' : 'Далее'}
             </Button>
           )}

@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Где «Добавить»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --accent: oklch(0.938 0.018 261.3);
+  --destructive: oklch(0.556 0.183 29.1);
+  --warning: oklch(0.531 0.119 65.1);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --field: transparent;
+  --radius: 0.875rem;
+  /* Mockup page only. */
+  --page: oklch(0.935 0.011 257);
+  --kb: 320px;
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 18px 40px -22px oklch(0.267 0.054 269.1 / 0.45);
+  --pop-shadow: 0 2px 6px oklch(0.267 0.054 269.1 / 0.08), 0 14px 32px -12px oklch(0.267 0.054 269.1 / 0.4);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --popover: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --primary-foreground: oklch(0.21 0.052 270.1);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --accent: oklch(0.321 0.055 266.3);
+  --destructive: oklch(0.715 0.178 28);
+  --warning: oklch(0.819 0.124 75.6);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+  --page: oklch(0.17 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+  --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --popover: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --destructive: oklch(0.715 0.178 28);
+    --warning: oklch(0.819 0.124 75.6);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+    --page: oklch(0.17 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+    --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--foreground);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  caret-color: var(--primary);
+}
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+code { font-family: ui-monospace, monospace; font-size: 0.86em; background: var(--secondary); padding: 0.05em 0.35em; border-radius: 6px; }
+a { color: var(--primary); text-underline-offset: 3px; }
+
+/* ---------- Page ---------- */
+.wrap { max-width: 1260px; margin: 0 auto; padding: 40px 24px 96px; }
+.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-start; justify-content: space-between; }
+.top h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.01em; }
+.lead { max-width: 66ch; margin: 0; color: var(--muted-foreground); }
+.lead strong { color: var(--foreground); font-weight: 500; }
+.theme-switch { display: inline-flex; padding: 3px; gap: 2px; background: var(--secondary); border-radius: 14px; }
+.theme-switch button { border: 0; background: transparent; padding: 0 12px; height: 36px; border-radius: 11px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.theme-switch button[aria-pressed="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 28px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.toc a { color: var(--muted-foreground); text-decoration: none; }
+.toc a:hover { color: var(--foreground); }
+.toc b { color: var(--foreground); font-weight: 600; margin-right: 5px; }
+
+section.block { margin-top: 72px; }
+section.block > h2 { font-size: 24px; line-height: 1.3; font-weight: 600; margin: 0 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.intro { max-width: 72ch; margin: 0 0 8px; color: var(--muted-foreground); }
+.intro b { color: var(--foreground); font-weight: 500; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 44px 28px; margin-top: 28px; align-items: start; }
+figure { margin: 0; max-width: 375px; width: 100%; }
+figcaption { margin-top: 14px; font-size: 15px; color: var(--muted-foreground); }
+figcaption .cap-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+figcaption .cap-title { color: var(--foreground); font-weight: 600; font-size: 16px; }
+figcaption p { margin: 4px 0 0; }
+figcaption b { color: var(--foreground); font-weight: 500; }
+
+.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.badge.rec { background: var(--primary); color: var(--primary-foreground); }
+.badge.live { background: color-mix(in oklab, var(--primary) 14%, transparent); color: var(--primary); }
+.badge.tag { background: var(--secondary); color: var(--foreground); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px 40px; margin-top: 24px; max-width: 1060px; }
+.pc h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.pc ul { margin: 0; padding-left: 20px; color: var(--muted-foreground); font-size: 15px; }
+.pc li { margin: 4px 0; }
+.pc li b { color: var(--foreground); font-weight: 500; }
+.pro::marker { content: '+  '; color: var(--primary); font-weight: 600; }
+.con::marker { content: '−  '; color: var(--destructive); font-weight: 600; }
+
+.cmp-wrap { margin-top: 24px; overflow-x: auto; max-width: 1180px; }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 15px; }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); }
+.cmp thead th { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.cmp tbody th { font-weight: 500; width: 17%; }
+.cmp td { color: var(--muted-foreground); width: 27.6%; }
+.cmp td b { color: var(--foreground); font-weight: 500; }
+
+.next { margin-top: 28px; max-width: 72ch; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--border); }
+.next p { margin: 0; }
+.next p + p { margin-top: 8px; color: var(--muted-foreground); }
+
+/* ---------- Phone ---------- */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 375px;
+  height: 812px;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--phone-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+.scr { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.hdr2 { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 4px; border-bottom: 1px solid var(--border); flex: none; }
+.ibtn { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; flex: none; }
+.ibtn.sec { background: var(--secondary); }
+.ibtn + .ibtn.sec { margin-left: 2px; }
+.h-title { font-size: 18px; font-weight: 600; flex: 1; min-width: 0; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-pad { width: 10px; flex: none; }
+
+.topz { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 10px; flex: none; }
+.field { position: relative; display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 4px 0 12px; border: 1px solid var(--input); border-radius: 14px; background: var(--field); cursor: text; }
+.field.focus, .field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.field > .i { color: var(--muted-foreground); }
+.field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--foreground); padding: 0; }
+.field input::placeholder { color: var(--muted-foreground); opacity: 1; }
+.field input:focus-visible { box-shadow: none; }
+.fv { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; }
+.fv .ph { color: var(--muted-foreground); }
+.fx { width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted-foreground); cursor: pointer; flex: none; }
+.fx[hidden] { display: none; }
+.caret { display: inline-block; width: 2px; height: 20px; background: var(--primary); vertical-align: -4px; margin: 0 1px 0 0; animation: blink 1.06s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.fhint { margin: -2px 2px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.list { flex: 1; min-height: 0; overflow: auto; padding: 0 6px 16px; scrollbar-width: thin; scrollbar-color: var(--input) transparent; }
+.phone.kb .list { padding-bottom: calc(var(--kb) + 16px); }
+.phone.kb.with-bar .list { padding-bottom: calc(var(--kb) + 92px); }
+.grp { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 10px 6px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.grp .n { font-variant-numeric: tabular-nums; font-weight: 400; }
+.row { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 6px 6px 10px; border-radius: 14px; cursor: pointer; }
+.row:hover { background: color-mix(in oklab, var(--accent) 70%, transparent); }
+.row.sel { background: var(--accent); }
+.r-main { flex: 1; min-width: 0; }
+.r-name, .r-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-name { font-size: 16px; line-height: 1.3; }
+.r-sub { font-size: 13px; line-height: 1.35; color: var(--muted-foreground); margin-top: 1px; }
+.r-w { flex: none; font-size: 14px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.r-add { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; color: var(--foreground); transition: background-color 0.15s ease-out, color 0.15s ease-out; }
+.r-add .i { width: 18px; height: 18px; }
+.r-add.on { background: var(--foreground); color: var(--background); }
+.row.create { color: var(--primary); }
+.row.create .r-name { font-weight: 500; }
+.row.create .r-add { background: transparent; border: 1.5px dashed currentColor; color: var(--primary); }
+.row.more { color: var(--primary); font-weight: 500; min-height: 44px; }
+.row.more .i { margin-left: auto; width: 18px; height: 18px; }
+mark { background: color-mix(in oklab, var(--primary) 18%, transparent); color: inherit; border-radius: 4px; padding: 0 1px; font-weight: 500; }
+.nothing { padding: 18px 10px 6px; color: var(--muted-foreground); font-size: 15px; margin: 0; }
+.lhead { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 0 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.sortb { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border: 0; background: transparent; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.sortb:hover { background: var(--muted); }
+.sortb .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.addall { padding: 18px 4px 8px; }
+.addall p { margin: 8px 6px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--muted); border-radius: 14px; padding: 3px; }
+.seg2 button { height: 40px; border: 0; border-radius: 11px; background: transparent; font-size: 15px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.seg2 button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.12); }
+.seg2 .n { font-variant-numeric: tabular-nums; font-weight: 400; color: var(--muted-foreground); }
+
+.kbzone { position: absolute; left: 0; right: 0; bottom: 0; height: var(--kb); z-index: 3; pointer-events: none; background: color-mix(in oklab, var(--page) 74%, transparent); border-top: 2px dashed color-mix(in oklab, var(--muted-foreground) 70%, transparent); }
+.kbzone span { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 500; color: var(--muted-foreground); background: var(--secondary); padding: 2px 9px; border-radius: 999px; }
+
+.bbar { flex: none; border-top: 1px solid var(--border); background: var(--background); padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.bbar.float { position: absolute; left: 0; right: 0; bottom: var(--kb); z-index: 4; padding-bottom: 10px; }
+.added { font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 21px; }
+.added b { color: var(--foreground); font-weight: 500; }
+
+.toast { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--pop-shadow); font-size: 14px; line-height: 1.35; animation: toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.phone.kb .toast { bottom: calc(var(--kb) + 12px); }
+.phone.kb.with-bar .toast { bottom: calc(var(--kb) + 80px); }
+.toast[hidden] { display: none; }
+.toast .t-main { flex: 1; min-width: 0; }
+.toast b { display: block; font-weight: 600; }
+.toast span { color: var(--muted-foreground); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Buttons (shadcn Button look). */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.lg { height: 48px; }
+.btn.sm { height: 36px; padding: 0 12px; border-radius: 12px; font-size: 14px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); }
+.btn.secondary { background: var(--secondary); color: var(--foreground); }
+.btn.outline { background: var(--background); border-color: var(--border); color: var(--foreground); }
+.btn.ghost { background: transparent; color: var(--foreground); }
+.btn.wide { width: 100%; }
+.btn .i { width: 18px; height: 18px; }
+
+/* ---------- Popular dishes at the start ---------- */
+.entry { list-style: none; margin: 24px 0 0; padding: 0; max-width: 1060px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px; }
+.entry li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 15px; color: var(--muted-foreground); }
+.entry li b { color: var(--foreground); font-weight: 500; }
+.entry .mk { position: static; box-shadow: none; margin-top: 1px; }
+
+.lead2 { margin: 0; padding: 12px 14px 2px; font-size: 15px; line-height: 1.4; color: var(--muted-foreground); flex: none; }
+.lead2 b { color: var(--foreground); font-weight: 500; }
+.topz.tight { padding-top: 10px; gap: 8px; }
+
+/* Category filter chips: the shelf chip, the current one ringed in ink. */
+.chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -12px; padding: 4px 12px; scrollbar-width: none; flex: none; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.chips::-webkit-scrollbar { display: none; }
+.chip { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 13px; border-radius: 999px; border: 0; background: var(--secondary); font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.chip::after { content: ''; position: absolute; inset: -4px 0; }
+.chip:hover { background: var(--accent); }
+.chip .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.chip .n { font-weight: 400; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); font-weight: 600; }
+.chip[aria-pressed="true"] .i { color: var(--foreground); }
+.chip:disabled { opacity: 0.45; cursor: default; }
+
+/* Section heading with a bulk action. */
+.grp2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 4px 0 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.grp2 .n { font-variant-numeric: tabular-nums; font-weight: 400; margin-left: 6px; }
+.grp2 .all { height: 44px; padding: 0 8px; border: 0; background: transparent; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--primary); cursor: pointer; }
+.grp2 .all:hover { background: var(--muted); }
+
+/* A: one list, the weight in the row. */
+.pick { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 4px 6px 10px; border-radius: 14px; cursor: pointer; }
+.pick:hover { background: color-mix(in oklab, var(--accent) 70%, transparent); }
+.pick .cat { width: 18px; height: 18px; color: var(--muted-foreground); }
+.pick.on .cat { color: var(--foreground); }
+.pick .r-name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.pick.on .r-name { font-weight: 500; }
+
+.wf { flex: none; display: flex; align-items: center; gap: 4px; width: 88px; height: 44px; padding: 0 10px 0 6px; border: 1px solid var(--input); border-radius: 14px; background: var(--card); cursor: text; transition: background-color 0.15s ease-out, border-color 0.15s ease-out; }
+.wf input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; padding: 0; font: inherit; font-size: 16px; font-weight: 500; text-align: right; color: var(--foreground); font-variant-numeric: tabular-nums; }
+.wf input::placeholder { color: var(--muted-foreground); opacity: 1; font-weight: 400; }
+.wf input:focus-visible { box-shadow: none; }
+.wf .u { font-size: 14px; color: var(--muted-foreground); }
+.wf:focus-within, .wf.ff { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.wf.idle { background: transparent; border-color: transparent; }
+.wf.idle input { color: var(--muted-foreground); font-weight: 400; font-size: 14px; }
+.wf.idle .u { font-size: 13px; }
+.wf.idle:hover { border-color: var(--input); }
+.wf.lg { width: 112px; height: 48px; }
+.wf.lg input { font-size: 20px; }
+.wf.bad { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 20%, transparent); }
+
+.tg { position: relative; flex: none; width: 32px; height: 32px; border-radius: 999px; border: 0; background: var(--secondary); color: var(--foreground); display: grid; place-items: center; cursor: pointer; transition: background-color 0.15s ease-out, color 0.15s ease-out; }
+.tg::after { content: ''; position: absolute; inset: -6px; }
+.tg .i { width: 18px; height: 18px; }
+.tg[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
+.pick .tg { margin: 0 2px; }
+
+.sumline { font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 21px; }
+.sumline b { color: var(--foreground); font-weight: 500; }
+
+/* B: tiles and the shelf being filled. */
+.shelfp { flex: none; display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 12px; border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--background) 95%, transparent); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.shelfp::-webkit-scrollbar { display: none; }
+.shelfp .ph { flex: 1; display: flex; align-items: center; justify-content: center; height: 36px; border: 1.5px dashed var(--input); border-radius: 999px; font-size: 14px; color: var(--muted-foreground); white-space: nowrap; }
+.dchip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px 0 12px; border-radius: 999px; background: var(--secondary); border: 0; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.dchip.new { animation: chip-in 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+.dchip .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.dchip .i.xx { width: 14px; height: 14px; }
+.dchip:hover { background: var(--accent); }
+.dchip .w { font-weight: 400; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+@keyframes chip-in { from { opacity: 0; transform: translateX(-10px) scale(0.92); } }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px 6px 0; }
+.tgrp { grid-column: 1 / -1; }
+.tgrp.grp2 { padding-left: 4px; }
+.tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 108px; padding: 10px 12px 10px; border-radius: 1.225rem; background: color-mix(in oklab, var(--muted) 60%, transparent); cursor: pointer; transition: background-color 0.15s ease-out, box-shadow 0.15s ease-out; }
+:root[data-theme="dark"] .tile { background: color-mix(in oklab, var(--muted) 20%, transparent); }
+.tile:hover { background: var(--card); }
+.tile.on { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); }
+.tile .th { display: flex; align-items: flex-start; gap: 6px; padding-right: 30px; }
+.tile .th .i { width: 16px; height: 16px; color: var(--muted-foreground); margin-top: 2px; }
+.tile.on .th .i { color: var(--foreground); }
+.tile .tn { font-size: 15px; line-height: 1.3; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tile .tg { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; }
+.tile .tg .i { width: 16px; height: 16px; }
+.tile .tg[aria-pressed="false"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--input); color: var(--muted-foreground); }
+.tw { display: flex; align-items: baseline; gap: 4px; border-radius: 10px; margin: 0 -6px; padding: 0 6px; cursor: text; }
+.tw input { field-sizing: content; min-width: 1ch; max-width: 6ch; border: 0; outline: 0; background: transparent; padding: 0; font: inherit; font-size: 24px; line-height: 1.25; font-weight: 500; color: var(--foreground); font-variant-numeric: tabular-nums; }
+.tw input::placeholder { color: var(--muted-foreground); opacity: 1; }
+.tw input:focus-visible { box-shadow: none; }
+.tw .u { font-size: 14px; color: var(--muted-foreground); }
+.tile:not(.on) .tw input { color: var(--muted-foreground); }
+.tw:focus-within, .tw.ff { box-shadow: 0 0 0 1px var(--primary), 0 0 0 4px color-mix(in oklab, var(--primary) 40%, transparent); background: var(--card); }
+.tile .tsub { font-size: 12px; line-height: 1.3; color: var(--muted-foreground); margin-top: -6px; }
+
+/* C: pick, then the weights. */
+.pick .wt { flex: none; font-size: 14px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wrow { display: flex; align-items: center; gap: 8px; min-height: 64px; padding: 8px 0 8px 10px; border-bottom: 1px solid var(--border); }
+.wrow:last-child { border-bottom: 0; }
+.wrow .r-name { font-weight: 500; }
+.wrow .r-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wrow .x { position: relative; flex: none; width: 36px; height: 44px; border: 0; background: transparent; border-radius: 12px; display: grid; place-items: center; color: var(--muted-foreground); cursor: pointer; }
+.wrow .x:hover { background: var(--muted); color: var(--foreground); }
+.wrow .x .i { width: 18px; height: 18px; }
+.wbox { margin: 8px 6px 0; padding: 0 6px 0 0; background: var(--card); border-radius: 1.225rem; border: 1px solid var(--border); }
+.steps { display: flex; gap: 4px; padding: 0 2px 0 0; }
+.steps i { width: 18px; height: 4px; border-radius: 2px; background: var(--input); }
+.steps i.on { background: var(--foreground); }
+.ghost-btn { height: 44px; padding: 0 10px; border: 0; background: transparent; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.ghost-btn:hover { background: var(--muted); }
+
+/* The result: the calculator opened on the first dish. */
+.res-shelf { flex: none; display: flex; align-items: center; gap: 6px; height: 60px; padding: 0 8px; border-bottom: 1px solid var(--border); overflow: hidden; }
+.res-shelf .scroll { flex: 1; min-width: 0; display: flex; gap: 6px; overflow: hidden; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.res-shelf .dchip { padding: 0 14px 0 12px; animation-delay: calc(var(--k) * 40ms); animation-fill-mode: backwards; }
+.res-shelf .dchip.cur { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); font-weight: 600; }
+.res-shelf .dchip.cur .i { color: var(--foreground); }
+.res-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.rtiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rt { border-radius: 1.225rem; padding: 10px 16px; background: color-mix(in oklab, var(--muted) 60%, transparent); }
+.rt.act { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+.rt .l { font-size: 14px; color: var(--muted-foreground); }
+.rt.act .l { color: var(--foreground); font-weight: 500; }
+.rt .v { font-size: 30px; line-height: 1.25; font-weight: 500; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 4px; }
+.rt .v small { font-size: 16px; font-weight: 400; color: var(--muted-foreground); }
+.rt .v .caret { height: 30px; vertical-align: 0; }
+.res-note { margin: 4px 2px 0; font-size: 14px; color: var(--muted-foreground); }
+.res-note b { color: var(--foreground); font-weight: 500; }
+.empty-res { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted-foreground); font-size: 15px; }
+.empty-res b { display: block; color: var(--foreground); font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.again { position: absolute; left: 12px; right: 12px; bottom: 14px; }
+
+.mono-note { font-size: 13px; color: var(--muted-foreground); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dchip, .res-shelf .dchip { animation: none; }
+}
+
+.phone:not(.kb) .kbzone { display: none; }
+.list { position: relative; }
+.phone.kb .list { padding-bottom: calc(var(--kb) + 110px); }
+.phone.kb .bbar { position: absolute; left: 0; right: 0; bottom: var(--kb); z-index: 4; padding-bottom: 10px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tile { background: color-mix(in oklab, var(--muted) 20%, transparent); } }
+:root[data-theme="dark"] .tile:hover, :root[data-theme="dark"] .tile.on { background: var(--card); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tile:hover, :root:not([data-theme="light"]) .tile.on { background: var(--card); } }
+
+
+/* Header action: «Пропустить» muted, «Добавить» primary. */
+.hact { flex: none; height: 44px; padding: 0 12px; border: 0; background: transparent; border-radius: 12px; font-size: 16px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; white-space: nowrap; }
+.hact:hover { background: var(--muted); color: var(--foreground); }
+.hact.add { color: var(--primary); font-weight: 600; }
+.hact.add:hover { background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+.phone.top .list { padding-bottom: 16px; }
+.phone.kb.top .list { padding-bottom: calc(var(--kb) + 16px); }
+.cmp td { width: 41%; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-updown" viewBox="0 0 24 24"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-pot" viewBox="0 0 24 24"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M16 4h2a2 2 0 0 1 2 2v4"/><path d="M21 14H11"/><path d="m15 10-4 4 4 4"/></symbol>
+  <symbol id="i-listplus" viewBox="0 0 24 24"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol>
+<symbol id="i-soup" viewBox="0 0 24 24"><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/></symbol>
+<symbol id="i-cup-soda" viewBox="0 0 24 24"><path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"/><path d="M5 8h14"/><path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/><path d="m12 8 1-6h2"/></symbol>
+<symbol id="i-salad" viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-2.77 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1"/><path d="m13 12 4-4"/><path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2"/></symbol>
+<symbol id="i-egg-fried" viewBox="0 0 24 24"><circle cx="11.5" cy="12.5" r="3.5"/><path d="M3 8c0-3.5 2.5-6 6.5-6 5 0 4.83 3 7.5 5s5 2 5 6c0 4.5-2.5 6.5-7 6.5-2.5 0-2.5 2.5-6 2.5s-7-2-7-5.5c0-3 1.5-3 1.5-5C3.5 10 3 9 3 8Z"/></symbol>
+<symbol id="i-cake-slice" viewBox="0 0 24 24"><path d="M16 13H3"/><path d="M16 17H3"/><path d="m7.2 7.9-3.388 2.5A2 2 0 0 0 3 12.01V20a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-8.654c0-2-2.44-6.026-6.44-8.026a1 1 0 0 0-1.082.057L10.4 5.6"/><circle cx="9" cy="7" r="2"/></symbol>
+<symbol id="i-drumstick" viewBox="0 0 24 24"><path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"/><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"/></symbol>
+<symbol id="i-wheat" viewBox="0 0 24 24"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/></symbol>
+<symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol>
+<symbol id="i-list-tree" viewBox="0 0 24 24"><path d="M8 5h13"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="M3 10a2 2 0 0 0 2 2h3"/><path d="M3 5v12a2 2 0 0 0 2 2h3"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Популярные блюда: где «Добавить»</h1>
+      <p class="lead">Выбран вариант A — список с весом в строке. Здесь сравниваем, где стоит главное действие: <strong>внизу</strong>, большой кнопкой «Добавить 2 блюда», как сейчас, или <strong>в шапке</strong> — серое «Пропустить», пока ничего не отмечено, и синее «Добавить», когда отмечено. Три одинаковых состояния рядом, все экраны работают.</p>
+    </div>
+    <div class="theme-switch" role="group" aria-label="Тема макетов">
+      <button type="button" data-theme-set="system">Как в системе</button>
+      <button type="button" data-theme-set="light">Светлая</button>
+      <button type="button" data-theme-set="dark">Тёмная</button>
+    </div>
+  </header>
+  <ol class="toc">
+    <li><a href="#bottom"><b>1</b>Внизу</a></li>
+    <li><a href="#header"><b>2</b>В шапке</a></li>
+    <li><a href="#compare"><b>3</b>Сравнение</a></li>
+  </ol>
+
+  <section class="block" id="bottom">
+    <h2>1. Внизу</h2>
+    <p class="intro">Как в первом макете: полоса внизу со строкой «что отмечено» и кнопкой. Пока ничего не отмечено — «Начать с чистого листа».</p>
+    <div class="grid">
+      <figure><div class="phone" data-screen="b-new"></div><figcaption><div class="cap-head"><span class="cap-title">Ничего не отмечено</span><span class="badge live">можно потрогать</span></div></figcaption></figure>
+      <figure><div class="phone" data-screen="b-edit"></div><figcaption><div class="cap-head"><span class="cap-title">Правка веса, клавиатура</span><span class="badge live">можно потрогать</span></div><p>Над клавиатурой — три строки: полоса с кнопкой едет вместе с ней.</p></figcaption></figure>
+      <figure><div class="phone" data-screen="b-group"></div><figcaption><div class="cap-head"><span class="cap-title">Новая группа, «Отмечено»</span><span class="badge live">можно потрогать</span></div></figcaption></figure>
+    </div>
+    <div class="two">
+      <div class="pc"><h3>Плюсы</h3><ul>
+        <li class="pro"><b>Под пальцем</b> — на большом телефоне до кнопки достаёт большой палец.</li>
+        <li class="pro"><b>Заметно и с числом</b>: «Добавить 2 блюда» и строка «Гречка, Рис…» над ней.</li>
+        <li class="pro"><b>Как в остальном приложении</b>: главное действие экрана — в полосе снизу (DESIGN.md, Layout).</li>
+      </ul></div>
+      <div class="pc"><h3>Минусы</h3><ul>
+        <li class="con"><b>Съедает ~110 px</b> — две строки списка, а с клавиатурой это треть оставшегося места.</li>
+        <li class="con"><b>Пропуск — большая кнопка</b>, которая тянет нажать её раньше, чем человек посмотрит список.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section class="block" id="header">
+    <h2>2. В шапке</h2>
+    <p class="intro">Справа в шапке одно текстовое действие: <b>«Пропустить»</b> приглушённым, пока ничего не отмечено, и <b>«Добавить»</b> основным цветом, как только отмечено хоть одно. Сколько отмечено — в чипе «Отмечено 2». Полосы внизу нет.</p>
+    <div class="grid">
+      <figure><div class="phone" data-screen="h-new"></div><figcaption><div class="cap-head"><span class="cap-title">Ничего не отмечено</span><span class="badge live">можно потрогать</span></div><p>«Пропустить» — там же, где на приветствии.</p></figcaption></figure>
+      <figure><div class="phone" data-screen="h-edit"></div><figcaption><div class="cap-head"><span class="cap-title">Правка веса, клавиатура</span><span class="badge live">можно потрогать</span></div><p>Над клавиатурой — пять строк. «Добавить» видно и с открытой клавиатурой.</p></figcaption></figure>
+      <figure><div class="phone" data-screen="h-group"></div><figcaption><div class="cap-head"><span class="cap-title">Новая группа, «Отмечено»</span><span class="badge live">можно потрогать</span></div></figcaption></figure>
+    </div>
+    <div class="two">
+      <div class="pc"><h3>Плюсы</h3><ul>
+        <li class="pro"><b>Весь экран — списку</b>: без клавиатуры на две строки больше, с клавиатурой — пять строк вместо трёх.</li>
+        <li class="pro"><b>Как на приветствии</b>, откуда сюда приходят: там «Пропустить» тоже в шапке справа.</li>
+        <li class="pro"><b>Одно место</b> для обоих действий: пропустить и добавить не спорят друг с другом.</li>
+      </ul></div>
+      <div class="pc"><h3>Минусы</h3><ul>
+        <li class="con"><b>Дальше от пальца</b>: правый верхний угол на большом телефоне — двумя руками.</li>
+        <li class="con"><b>Без числа на кнопке</b>: сколько добавится — только в чипе «Отмечено».</li>
+        <li class="con"><b>Исключение из правила</b> «главное действие внизу» — записать в DESIGN.md и UX §3а.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section class="block" id="compare">
+    <h2>3. Сравнение</h2>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead><tr><th></th><th>Внизу</th><th>В шапке</th></tr></thead>
+        <tbody>
+          <tr><th>Строк списка без клавиатуры</th><td>~9</td><td><b>~11</b></td></tr>
+          <tr><th>Строк над клавиатурой</th><td>3</td><td><b>5</b></td></tr>
+          <tr><th>Достать пальцем</th><td><b>легко</b></td><td>угол сверху</td></tr>
+          <tr><th>Сколько добавится</th><td><b>на кнопке и строкой над ней</b></td><td>в чипе «Отмечено»</td></tr>
+          <tr><th>Пропустить</th><td>большая кнопка, когда пусто</td><td><b>тихий текст, как на приветствии</b></td></tr>
+          <tr><th>Правило «главное внизу»</th><td><b>соблюдено</b></td><td>исключение для этого экрана</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="next">
+      <p><b>Советую «В шапке».</b> Экран открывается один раз, на нём долго листают и правят вес, поэтому место под список важнее, чем кнопка под пальцем. Он продолжает приветствие с «Пропустить» на том же месте, а большая кнопка пропуска не подталкивает уйти, не посмотрев список.</p>
+      <p>Если выберем его — запишу исключение в UX §3а и DESIGN.md: для экрана-выбора действие в шапке, как «Готово» в системных списках iOS.</p>
+    </div>
+  </section>
+</div>
+<script>
+/* ---------- Data: the popular catalogue, exported from src/domain/presets.ts (+ detectCategory). ---------- */
+const RAW = [{"n":"Гречка","c":"sides","k":"s","g":200},{"n":"Рис","c":"sides","k":"s","g":180},{"n":"Рис бурый","c":"sides","k":"s","g":160},{"n":"Булгур","c":"sides","k":"s","g":150},{"n":"Перловка","c":"sides","k":"s","g":150},{"n":"Пшено","c":"sides","k":"s","g":150},{"n":"Овсянка на воде","c":"breakfast","k":"s","g":80},{"n":"Кускус","c":"sides","k":"s","g":150},{"n":"Киноа","c":"sides","k":"s","g":120},{"n":"Макароны","c":"sides","k":"s","g":250},{"n":"Спагетти","c":"sides","k":"s","g":200},{"n":"Чечевица красная","c":"sides","k":"s","g":150},{"n":"Нут","c":"sides","k":"s","g":200},{"n":"Фасоль красная","c":"sides","k":"s","g":200},{"n":"Картофель отварной","c":"sides","k":"s","g":800},{"n":"Картофель запечённый","c":"sides","k":"s","g":700},{"n":"Батат запечённый","c":"sides","k":"s","g":500},{"n":"Куриная грудка","c":"mains","k":"s","g":500},{"n":"Куриные бёдра","c":"mains","k":"s","g":600},{"n":"Индейка","c":"mains","k":"s","g":500},{"n":"Говядина отварная","c":"mains","k":"s","g":700},{"n":"Свиная шея запечённая","c":"other","k":"s","g":800},{"n":"Лосось запечённый","c":"mains","k":"s","g":400},{"n":"Треска","c":"mains","k":"s","g":500},{"n":"Минтай","c":"mains","k":"s","g":500},{"n":"Креветки","c":"mains","k":"s","g":300},{"n":"Яйца варёные","c":"other","k":"s","g":300},{"n":"Брокколи","c":"sides","k":"s","g":400},{"n":"Цветная капуста","c":"sides","k":"s","g":500},{"n":"Кабачки на гриле","c":"sides","k":"s","g":600},{"n":"Свёкла запечённая","c":"sides","k":"s","g":500},{"n":"Шампиньоны","c":"sides","k":"s","g":null},{"n":"Борщ","c":"first","k":"c","g":2170,"i":[["Говядина",600],["Свёкла",400],["Капуста белокочанная",400],["Картофель",400],["Морковь",150],["Лук репчатый",150],["Томатная паста",40],["Масло подсолнечное",30]]},{"n":"Щи из свежей капусты","c":"first","k":"c","g":1500,"i":[["Свинина",500],["Капуста белокочанная",500],["Картофель",300],["Морковь",100],["Лук репчатый",100]]},{"n":"Куриный суп с лапшой","c":"first","k":"c","g":1080,"i":[["Куриное бедро",500],["Лапша",100],["Картофель",300],["Морковь",100],["Лук репчатый",80]]},{"n":"Гороховый суп","c":"first","k":"c","g":1150,"i":[["Горох колотый",250],["Копчёные рёбрышки",400],["Картофель",300],["Морковь",100],["Лук репчатый",100]]},{"n":"Плов с курицей","c":"mains","k":"c","g":1830,"i":[["Рис",400],["Куриное филе",800],["Морковь",250],["Лук репчатый",250],["Масло подсолнечное",90],["Чеснок",40]]},{"n":"Плов со свининой","c":"mains","k":"c","g":2000,"i":[["Рис",500],["Свинина",700],["Морковь",500],["Лук репчатый",200],["Масло подсолнечное",100]]},{"n":"Макароны по-флотски","c":"sides","k":"c","g":770,"i":[["Макароны",250],["Фарш говяжий",400],["Лук репчатый",100],["Масло подсолнечное",20]]},{"n":"Гуляш из говядины","c":"mains","k":"c","g":950,"i":[["Говядина",600],["Лук репчатый",150],["Морковь",100],["Томатная паста",50],["Мука пшеничная",20],["Масло подсолнечное",30]]},{"n":"Гречка с грибами","c":"sides","k":"c","g":620,"i":[["Гречка",200],["Шампиньоны",300],["Лук репчатый",100],["Масло сливочное",20]]},{"n":"Курица с рисом","c":"mains","k":"c","g":615,"i":[["Рис",200],["Куриное филе",400],["Масло подсолнечное",15]]},{"n":"Омлет","c":"breakfast","k":"c","g":350,"i":[["Яйца",240],["Молоко 2,5 %",100],["Масло сливочное",10]]},{"n":"Сырники","c":"other","k":"c","g":580,"i":[["Творог 5 %",400],["Яйца",60],["Мука пшеничная",60],["Сахар",30],["Масло подсолнечное",30]]},{"n":"Творожная запеканка","c":"baking","k":"c","g":780,"i":[["Творог 5 %",500],["Яйца",120],["Манка",50],["Сахар",60],["Сметана 15 %",50]]},{"n":"Овсянка с бананом","c":"breakfast","k":"c","g":400,"i":[["Овсяные хлопья",80],["Молоко 2,5 %",200],["Банан",120]]},{"n":"Котлеты домашние","c":"mains","k":"c","g":760,"i":[["Фарш свино-говяжий",500],["Лук репчатый",100],["Хлеб белый",60],["Яйца",60],["Масло подсолнечное",40]]},{"n":"Ленивые голубцы","c":"mains","k":"c","g":1350,"i":[["Фарш свино-говяжий",500],["Капуста белокочанная",400],["Рис",100],["Лук репчатый",100],["Морковь",100],["Сметана 15 %",100],["Томатная паста",50]]},{"n":"Овощное рагу","c":"mains","k":"c","g":1580,"i":[["Кабачки",400],["Картофель",400],["Морковь",150],["Перец болгарский",200],["Лук репчатый",100],["Помидоры",300],["Масло подсолнечное",30]]},{"n":"Тушёная капуста с курицей","c":"mains","k":"c","g":1610,"i":[["Капуста белокочанная",800],["Куриное бедро без кости",500],["Морковь",150],["Лук репчатый",100],["Томатная паста",30],["Масло подсолнечное",30]]},{"n":"Шакшука","c":"mains","k":"c","g":990,"i":[["Яйца",240],["Помидоры",500],["Перец болгарский",150],["Лук репчатый",80],["Масло оливковое",20]]},{"n":"Чили кон карне","c":"mains","k":"c","g":1620,"i":[["Фарш говяжий",500],["Фасоль красная консервированная",400],["Помидоры в собственном соку",400],["Лук репчатый",150],["Перец болгарский",150],["Масло подсолнечное",20]]},{"n":"Паста болоньезе","c":"sides","k":"c","g":1300,"i":[["Спагетти",300],["Фарш говяжий",400],["Помидоры в собственном соку",400],["Лук репчатый",100],["Морковь",80],["Масло оливковое",20],["Пармезан",null]]}];
+const CATS = ['first', 'mains', 'sides', 'salads', 'breakfast', 'baking', 'drinks', 'other'];
+const LABEL = { first: 'Первые', mains: 'Вторые', sides: 'Гарниры', salads: 'Салаты', breakfast: 'Завтраки', baking: 'Выпечка и сладкое', drinks: 'Напитки', other: 'Другое' };
+const ICON = { first: 'i-soup', mains: 'i-drumstick', sides: 'i-wheat', salads: 'i-salad', breakfast: 'i-egg-fried', baking: 'i-cake-slice', drinks: 'i-cup-soda', other: 'i-utensils' };
+const DISHES = RAW.map((d, id) => ({ id, name: d.n, cat: d.c, kind: d.k, grams: d.g, ings: d.i || null }));
+const byId = new Map(DISHES.map((d) => [d.id, d]));
+const ids = (...names) => names.map((n) => DISHES.find((d) => d.name === n).id);
+
+/* ---------- Helpers (in the app these live in src/domain). ---------- */
+const fold = (s) => s.toLowerCase().replace(/ё/g, 'е');
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const wordsOf = (s) => fold(s).split(/[^\p{L}]+/u).filter(Boolean);
+function rank(d, q) {
+  if (!q) return 0;
+  const n = fold(d.name);
+  if (n.startsWith(q)) return 1;
+  if (wordsOf(d.name).some((w) => w.startsWith(q))) return 2;
+  if (n.includes(q)) return 3;
+  if (d.ings && d.ings.some(([i]) => wordsOf(i).some((w) => w.startsWith(q)))) return 4;
+  return -1;
+}
+function hl(text, q) {
+  if (!q) return esc(text);
+  const i = fold(text).indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+}
+const fmt = (g) => (g == null || Number.isNaN(g) ? '' : String(Math.round(g)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+function parse(s) {
+  const t = s.replace(/[\s ]/g, '').replace(',', '.');
+  if (!t) return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : NaN;
+}
+function plural(n, one, few, many) {
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return one;
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return few;
+  return many;
+}
+const dishesN = (n) => `${n} ${plural(n, 'блюдо', 'блюда', 'блюд')}`;
+const ingNames = (d) => d.ings.map(([n], i) => (i ? n.toLowerCase() : n)).join(', ');
+function ingScaled(d, g) {
+  const f = d.grams && g != null && !Number.isNaN(g) ? g / d.grams : 1;
+  return d.ings.map(([n, w], i) => `${i ? n.toLowerCase() : n}${w == null ? '' : ' ' + fmt(w * f)}`).join(', ');
+}
+const icon = (id, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+/* ---------- State per phone. ---------- */
+function makeState(o = {}) {
+  return { sel: new Set(o.sel || []), w: new Map(), q: '', qf: '', cat: o.cat || 'all', ff: o.ff ?? null, mode: o.mode || 'new', step: o.step || 1, last: null };
+}
+const weightOf = (st, d) => (st.w.has(d.id) ? st.w.get(d.id) : d.grams);
+function visible(st) {
+  let list = DISHES.map((d) => [d, rank(d, st.qf)]).filter(([, r]) => r >= 0);
+  if (st.cat === 'picked') list = list.filter(([d]) => st.sel.has(d.id));
+  else if (st.cat !== 'all') list = list.filter(([d]) => d.cat === st.cat);
+  if (st.qf) list.sort((a, b) => a[1] - b[1] || a[0].id - b[0].id);
+  return list.map(([d]) => d);
+}
+function chipsHTML(st) {
+  const matching = DISHES.filter((d) => rank(d, st.qf) >= 0);
+  const chip = (cat, label, n, ic = '') =>
+    `<button type="button" class="chip" data-cat="${cat}" aria-pressed="${st.cat === cat}"${n === 0 && st.cat !== cat ? ' disabled' : ''}>${ic}${label}<span class="n">${n}</span></button>`;
+  let h = chip('all', 'Все', matching.length);
+  if (st.sel.size || st.cat === 'picked') h += chip('picked', 'Отмечено', matching.filter((d) => st.sel.has(d.id)).length, icon('i-check'));
+  for (const c of CATS) {
+    const total = DISHES.filter((d) => d.cat === c).length;
+    if (total) h += chip(c, LABEL[c], matching.filter((d) => d.cat === c).length, icon(ICON[c]));
+  }
+  return h;
+}
+function sections(st, list) {
+  // Grouped by category only when nothing narrows the list; a category alone keeps its heading for «Отметить все».
+  if (st.qf || st.cat === 'picked') return [{ head: null, items: list }];
+  if (st.cat !== 'all') return [{ head: LABEL[st.cat], items: list }];
+  return CATS.map((c) => ({ head: LABEL[c], items: list.filter((d) => d.cat === c) })).filter((s) => s.items.length);
+}
+function headHTML(st, s, extra = '') {
+  const allOn = s.items.every((d) => st.sel.has(d.id));
+  return `<div class="grp2${extra}"><span>${s.head}<span class="n">${s.items.length}</span></span><button type="button" class="all" data-bulk="${s.items.map((d) => d.id).join(',')}">${allOn ? 'Снять все' : 'Отметить все'}</button></div>`;
+}
+function badWeight(st) {
+  return [...st.sel].map((id) => byId.get(id)).find((d) => Number.isNaN(weightOf(st, d)));
+}
+function barHTML(st, act, label) {
+  const n = st.sel.size;
+  if (!n) return `<div class="sumline">Блюда можно добавить и потом — через поиск</div><button type="button" class="btn outline lg wide" data-act="skip">Начать с чистого листа</button>`;
+  const bad = badWeight(st);
+  const names = [...st.sel].map((id) => byId.get(id).name);
+  const line = bad
+    ? `<span style="color:var(--destructive)">Проверь вес: ${esc(bad.name)}</span>`
+    : `<b>${esc(names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} и ещё ${names.length - 3}`)}</b>`;
+  return `<div class="sumline">${line}</div><button type="button" class="btn primary lg wide" data-act="${act}">${label(n)}</button>`;
+}
+const hdr = (title, right = '<span class="h-pad"></span>', back = '') =>
+  `<div class="hdr2"><button type="button" class="ibtn" style="border:0;background:transparent;cursor:pointer" aria-label="Назад"${back}>${icon('i-back')}</button><span class="h-title">${title}</span>${right}</div>`;
+const searchHTML = () =>
+  `<label class="field">${icon('i-search')}<input type="search" placeholder="Гречка, суп…" aria-label="Найти блюдо" enterkeyhint="search"><button type="button" class="fx" data-act="clear" aria-label="Очистить" hidden>${icon('i-x')}</button></label>`;
+const LEAD = {
+  a: 'Отметь, что готовишь. Справа обычный вес на раз — его можно поправить.',
+  b: 'Отметь, что готовишь. Вес правится прямо в плитке.',
+  c: 'Отметь, что готовишь. Вес проверим на следующем шаге.',
+  group: 'В новой группе блюд пока нет. Отметь, что готовишь: блюда будут общими.',
+};
+const KB = '<div class="kbzone"><span>клавиатура</span></div>';
+
+/* ---------- Rows. ---------- */
+function weightField(st, d, on, cls = 'wf') {
+  const g = weightOf(st, d);
+  return `<label class="${cls}${on || cls !== 'wf' ? '' : ' idle'}${st.ff === d.id ? ' ff' : ''}${Number.isNaN(g) ? ' bad' : ''}"><input inputmode="decimal" enterkeyhint="next" value="${fmt(g)}" placeholder="—" aria-label="Вес: ${esc(d.name)}"><span class="u">г</span></label>`;
+}
+const toggle = (d, on) =>
+  `<button type="button" class="tg" aria-pressed="${on}" aria-label="${on ? 'Снять' : 'Отметить'}: ${esc(d.name)}">${icon(on ? 'i-check' : 'i-plus')}</button>`;
+function rowA(st, d) {
+  const on = st.sel.has(d.id);
+  return `<div class="pick${on ? ' on' : ''}" data-id="${d.id}">${icon(ICON[d.cat], 'i cat')}<div class="r-main"><div class="r-name">${hl(d.name, st.qf)}</div>${d.ings ? `<div class="r-sub">${hl(ingNames(d), st.qf)}</div>` : ''}</div>${weightField(st, d, on)}${toggle(d, on)}</div>`;
+}
+function rowC(st, d) {
+  const on = st.sel.has(d.id), g = weightOf(st, d);
+  return `<div class="pick${on ? ' on' : ''}" data-id="${d.id}">${icon(ICON[d.cat], 'i cat')}<div class="r-main"><div class="r-name">${hl(d.name, st.qf)}</div>${d.ings ? `<div class="r-sub">${hl(ingNames(d), st.qf)}</div>` : ''}</div><span class="wt">${g == null ? 'без веса' : fmt(g) + ' г'}</span>${toggle(d, on)}</div>`;
+}
+function tileB(st, d) {
+  const on = st.sel.has(d.id), g = weightOf(st, d), v = fmt(g);
+  return `<div class="tile${on ? ' on' : ''}" data-id="${d.id}"><div class="th">${icon(ICON[d.cat])}<span class="tn">${hl(d.name, st.qf)}</span></div>${toggle(d, on)}<label class="tw${st.ff === d.id ? ' ff' : ''}"><input inputmode="decimal" enterkeyhint="next" value="${v}" placeholder="—" aria-label="Вес: ${esc(d.name)}"><span class="u">г</span></label></div>`;
+}
+function wrowC(st, d) {
+  const g = weightOf(st, d);
+  const sub = d.ings ? `сырой · ${ingScaled(d, g)}` : g == null ? 'без веса — введёшь у плиты' : 'сухой вес';
+  return `<div class="wrow" data-id="${d.id}"><div class="r-main"><div class="r-name">${esc(d.name)}</div><div class="r-sub" data-sub>${esc(sub)}</div></div>${weightField(st, d, true, 'wf lg')}<button type="button" class="x" data-unpick="${d.id}" aria-label="Убрать: ${esc(d.name)}">${icon('i-x')}</button></div>`;
+}
+
+/* ---------- Result: the calculator opened on the first picked dish. ---------- */
+function resultHTML(st) {
+  const picked = [...st.sel].map((id) => byId.get(id));
+  if (!picked.length)
+    return `<div class="scr"><div class="res-shelf"><span class="ibtn sec">${icon('i-search')}</span><div class="scroll"></div><span class="ibtn sec">${icon('i-more')}</span></div><div class="empty-res"><div><b>Начали с чистого листа</b>Дальше — пустое приложение, как сейчас.<br>Популярные блюда остаются в поиске.</div></div><div class="again"><button type="button" class="btn outline wide" data-act="again">Вернуться к выбору (макет)</button></div></div>`;
+  const first = picked[0], g = weightOf(st, first);
+  const chips = picked.map((d, k) => `<span class="dchip new${k ? '' : ' cur'}" style="--k:${k}">${icon(ICON[d.cat])}${esc(d.name)}</span>`).join('');
+  return `<div class="scr"><div class="res-shelf"><span class="ibtn sec">${icon('i-search')}</span><div class="scroll">${chips}</div><span class="ibtn sec">${icon('i-more')}</span></div>
+    <div class="res-body"><div class="rtiles"><div class="rt"><div class="l">${first.kind === 'c' ? 'Сырой' : 'Сухой'}</div><div class="v">${g == null ? '—' : fmt(g)}<small>г</small></div></div><div class="rt act"><div class="l">Готовый</div><div class="v"><span class="caret"></span><small>г</small></div></div></div>
+    <p class="res-note">Добавлено ${dishesN(picked.length)}. Калькулятор открыт на первом отмеченном, полка уже заполнена. Дальше — тур по калькулятору (этап 18).</p></div>
+    <div class="again"><button type="button" class="btn outline wide" data-act="again">Вернуться к выбору (макет)</button></div></div>`;
+}
+
+function topActHTML(st) {
+  const n = st.sel.size;
+  return n
+    ? `<button type="button" class="hact add" data-act="add" aria-label="Добавить ${dishesN(n)}">Добавить</button>`
+    : '<button type="button" class="hact" data-act="skip">Пропустить</button>';
+}
+
+/* ---------- One controller for all three variants. ---------- */
+function mount(el, variant, o = {}) {
+  const st = makeState(o);
+  st.top = !!o.top;
+  if (st.top) el.classList.add('top');
+  const kb0 = o.ff != null;
+  if (kb0) el.classList.add('kb');
+
+  function shell() {
+    if (variant === 'c' && st.step === 2) {
+      el.innerHTML = `<div class="scr">${hdr('Проверь вес', '<span class="steps" aria-label="Шаг 2 из 2"><i class="on"></i><i class="on"></i></span><span class="h-pad"></span>', ' data-act="back"')}
+        <p class="lead2">Столько обычно берёшь на раз. Если не знаешь, оставь: вес можно поправить у плиты.</p>
+        <div class="list" data-list></div><div class="bbar" data-bar></div></div>${KB}`;
+    } else {
+      const right = st.top ? '<span data-top></span>' : variant === 'c' ? '<span class="steps" aria-label="Шаг 1 из 2"><i class="on"></i><i></i></span><span class="h-pad"></span>' : undefined;
+      el.innerHTML = `<div class="scr">${hdr('Популярные блюда', right)}
+        ${variant === 'b' ? '<div class="shelfp" data-shelf></div>' : ''}
+        <p class="lead2">${st.mode === 'group' ? LEAD.group : LEAD[variant]}</p>
+        <div class="topz tight">${searchHTML()}<div class="chips" data-chips></div></div>
+        <div class="list" data-list></div>${st.top ? '' : '<div class="bbar" data-bar></div>'}</div>${KB}`;
+      const inp = el.querySelector('input[type=search]');
+      inp.value = st.q;
+      el.querySelector('[data-act=clear]').hidden = !st.q;
+    }
+    render();
+  }
+
+  function render() {
+    const list = el.querySelector('[data-list]');
+    if (variant === 'c' && st.step === 2) {
+      const picked = [...st.sel].map((id) => byId.get(id));
+      list.innerHTML = picked.length
+        ? `<div class="wbox">${picked.map((d) => wrowC(st, d)).join('')}</div>`
+        : '<p class="nothing">Ничего не отмечено. Вернись к списку или начни с чистого листа.</p>';
+      el.querySelector('[data-bar]').innerHTML = barHTML(st, 'add', (n) => `Добавить ${dishesN(n)}`);
+      return;
+    }
+    el.querySelector('[data-chips]').innerHTML = chipsHTML(st);
+    const vis = visible(st);
+    if (!vis.length) list.innerHTML = `<p class="nothing">${st.cat === 'picked' ? 'Пока ничего не отмечено' : 'Ничего не нашлось'}</p>`;
+    else if (variant === 'b')
+      list.innerHTML = `<div class="tiles">${sections(st, vis).map((s) => (s.head ? headHTML(st, s, ' tgrp') : '') + s.items.map((d) => tileB(st, d)).join('')).join('')}</div>`;
+    else {
+      const row = variant === 'a' ? rowA : rowC;
+      list.innerHTML = sections(st, vis).map((s) => (s.head ? headHTML(st, s) : '') + s.items.map((d) => row(st, d)).join('')).join('');
+    }
+    renderBar();
+    if (variant === 'b') renderShelf();
+  }
+  function renderBar() {
+    if (st.top) { el.querySelector('[data-top]').innerHTML = topActHTML(st); return; }
+    const bar = el.querySelector('[data-bar]');
+    if (variant === 'c' && st.step === 2) bar.innerHTML = barHTML(st, 'add', (n) => `Добавить ${dishesN(n)}`);
+    else if (variant === 'c') bar.innerHTML = barHTML(st, 'next', (n) => `Дальше: ${dishesN(n)}`);
+    else bar.innerHTML = barHTML(st, 'add', (n) => `Добавить ${dishesN(n)}`);
+    if (variant === 'b' && st.sel.size) bar.querySelector('.sumline').innerHTML = 'Полка как в калькуляторе: тап по чипу — убрать';
+  }
+  function renderShelf() {
+    const sh = el.querySelector('[data-shelf]');
+    if (!sh) return;
+    sh.innerHTML = st.sel.size
+      ? [...st.sel].map((id) => { const d = byId.get(id); return `<button type="button" class="dchip${id === st.last ? ' new' : ''}" data-unpick="${id}" aria-label="Убрать: ${esc(d.name)}">${icon(ICON[d.cat])}${esc(d.name)}${icon('i-x', 'i xx')}</button>`; }).join('')
+      : '<span class="ph">Отмеченные встанут сюда</span>';
+    if (st.last != null) sh.scrollLeft = sh.scrollWidth;
+    st.last = null;
+  }
+  function chipsOnly() { const c = el.querySelector('[data-chips]'); if (c) c.innerHTML = chipsHTML(st); }
+
+  // Mark a row picked without re-rendering it (keeps the focus in its weight field).
+  function pickInPlace(id) {
+    st.sel.add(id);
+    st.last = id;
+    const r = el.querySelector(`[data-id="${id}"]`);
+    if (r) {
+      r.classList.add('on');
+      r.querySelector('.wf')?.classList.remove('idle');
+      const t = r.querySelector('.tg');
+      if (t) { t.setAttribute('aria-pressed', 'true'); t.setAttribute('aria-label', `Снять: ${byId.get(id).name}`); t.innerHTML = icon('i-check'); }
+    }
+    renderBar(); chipsOnly(); if (variant === 'b') renderShelf();
+    el.querySelectorAll('[data-bulk]').forEach((b) => { b.textContent = b.dataset.bulk.split(',').every((x) => st.sel.has(Number(x))) ? 'Снять все' : 'Отметить все'; });
+  }
+  function dropStatic() {
+    if (el.classList.contains('kb') && kb0) { el.classList.remove('kb'); }
+    if (st.ff != null) { st.ff = null; el.querySelectorAll('.ff').forEach((n) => n.classList.remove('ff')); }
+  }
+  function toggleId(id) {
+    if (st.sel.has(id)) st.sel.delete(id); else { st.sel.add(id); st.last = id; }
+    render();
+  }
+
+  el.addEventListener('pointerdown', dropStatic);
+  el.addEventListener('click', (e) => {
+    const t = e.target;
+    const act = t.closest('[data-act]')?.dataset.act;
+    if (act === 'clear') { st.q = st.qf = ''; const i = el.querySelector('input[type=search]'); i.value = ''; t.closest('[data-act]').hidden = true; render(); i.focus(); return; }
+    if (act === 'add' || act === 'next') {
+      const bad = badWeight(st);
+      if (bad && act === 'add') { (el.querySelector(`[data-id="${bad.id}"] input`))?.focus(); return; }
+      if (act === 'next') { st.step = 2; shell(); return; }
+      el.classList.remove('kb'); el.innerHTML = resultHTML(st); return;
+    }
+    if (act === 'skip') { el.classList.remove('kb'); const keep = st.sel; st.sel = new Set(); el.innerHTML = resultHTML(st); st.sel = keep; return; }
+    if (act === 'again') { shell(); return; }
+    if (act === 'back') { st.step = 1; shell(); return; }
+    const chip = t.closest('[data-cat]');
+    if (chip) { st.cat = chip.dataset.cat; render(); el.querySelector('[data-list]').scrollTop = 0; return; }
+    const bulk = t.closest('[data-bulk]');
+    if (bulk) { const list = bulk.dataset.bulk.split(',').map(Number); const allOn = list.every((x) => st.sel.has(x)); list.forEach((x) => (allOn ? st.sel.delete(x) : st.sel.add(x))); st.last = allOn ? null : list[list.length - 1]; render(); return; }
+    const un = t.closest('[data-unpick]');
+    if (un) { st.sel.delete(Number(un.dataset.unpick)); render(); return; }
+    if (t.closest('label')) return; // the weight field: focus does the picking
+    const row = t.closest('[data-id]');
+    if (row && !row.classList.contains('wrow')) toggleId(Number(row.dataset.id));
+  });
+  el.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.type === 'search') {
+      st.q = t.value; st.qf = fold(t.value.trim());
+      el.querySelector('[data-act=clear]').hidden = !t.value;
+      if (st.cat === 'picked' && !st.sel.size) st.cat = 'all';
+      render();
+      return;
+    }
+    const row = t.closest('[data-id]');
+    if (!row) return;
+    const id = Number(row.dataset.id), d = byId.get(id), g = parse(t.value);
+    st.w.set(id, g);
+    t.closest('label').classList.toggle('bad', Number.isNaN(g));
+    const sub = row.querySelector('[data-sub]');
+    if (sub && d.ings) sub.textContent = `сырой · ${ingScaled(d, g)}`;
+    renderBar();
+  });
+  el.addEventListener('focusin', (e) => {
+    const t = e.target;
+    if (t.type === 'search' || !t.closest('label')) return;
+    const row = t.closest('[data-id]');
+    if (!row) return;
+    const id = Number(row.dataset.id);
+    t.value = t.value.replace(/ /g, '');
+    setTimeout(() => t.select()); // typing replaces the usual weight
+    if (!st.sel.has(id)) pickInPlace(id);
+  });
+  el.addEventListener('focusout', (e) => {
+    const t = e.target;
+    const row = t.closest?.('[data-id]');
+    if (!row || t.type === 'search') return;
+    const g = weightOf(st, byId.get(Number(row.dataset.id)));
+    if (!Number.isNaN(g)) t.value = fmt(g);
+  });
+  el.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (e.key !== 'Enter' || t.type === 'search' || !t.closest('label')) return;
+    e.preventDefault();
+    const fields = [...el.querySelectorAll('[data-id] label input')].filter((i) => st.sel.has(Number(i.closest('[data-id]').dataset.id)));
+    const next = fields[fields.indexOf(t) + 1];
+    if (next) { next.focus(); next.select(); } else t.blur();
+  });
+
+  shell();
+  // Static «keyboard open» states: bring the focused row up under the filters.
+  if (st.ff != null) {
+    const list = el.querySelector('[data-list]');
+    const r = el.querySelector(`[data-id="${st.ff}"]`);
+    if (r) list.scrollTop = r.offsetTop - (variant === 'c' ? 8 : 52);
+  }
+}
+
+/* ---------- Mount every phone. ---------- */
+const PICKED = ids('Борщ', 'Куриная грудка', 'Гречка', 'Рис', 'Овсянка на воде');
+const GROUP = ids('Плов с курицей', 'Гречка', 'Куриные бёдра', 'Брокколи', 'Сырники');
+const SCREENS = {
+  'b-new': (el) => mount(el, 'a'),
+  'b-edit': (el) => mount(el, 'a', { sel: PICKED, ff: ids('Рис')[0] }),
+  'b-group': (el) => mount(el, 'a', { mode: 'group', sel: GROUP, cat: 'picked' }),
+  'h-new': (el) => mount(el, 'a', { top: true }),
+  'h-edit': (el) => mount(el, 'a', { top: true, sel: PICKED, ff: ids('Рис')[0] }),
+  'h-group': (el) => mount(el, 'a', { top: true, mode: 'group', sel: GROUP, cat: 'picked' }),
+};
+document.querySelectorAll('[data-screen]').forEach((el) => SCREENS[el.dataset.screen](el));
+
+/* ---------- Theme switch for the mockups. ---------- */
+const root = document.documentElement;
+function setTheme(t) {
+  if (t === 'system') delete root.dataset.theme; else root.dataset.theme = t;
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)));
+  try { localStorage.setItem('popular-start-action-theme', t); } catch (_) { /* storage may be blocked */ }
+}
+document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeSet)));
+let savedTheme = 'system';
+try { savedTheme = localStorage.getItem('popular-start-action-theme') || 'system'; } catch (_) { /* default */ }
+setTheme(savedTheme);
+
+</script>
+</body>
+</html>

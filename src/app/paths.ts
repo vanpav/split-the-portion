@@ -50,3 +50,9 @@ export const JOIN_PATH = '/join'
 export const joinPath = (code: string) => `/join/${code}`
 /** «Создать группу»: the name typed on a screen of its own, from Settings → «Группа». */
 export const NEW_GROUP_PATH = '/groups/new'
+/**
+ * «Популярные блюда» (docs/UX.md §3г): pick from the whole catalogue, set the weight, add at once.
+ * `?group=1` — just after «Создать группу»: the lead text is about the new group and «Пропустить» leads to its settings.
+ */
+export const POPULAR_PATH = '/popular'
+export const popularPath = ({ group }: { group?: boolean } = {}) => (group ? `${POPULAR_PATH}?group=1` : POPULAR_PATH)
