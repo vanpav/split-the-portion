@@ -12,6 +12,7 @@ import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
+import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
 import { COPY_TEXT, FROM_SIMPLE_DISH, NEW_TARE } from './paths'
 import { RootLayout } from './RootLayout'
 
@@ -27,6 +28,7 @@ export const router = createHashRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomeScreen /> },
+      { path: 'welcome', element: <WelcomeScreen /> },
       { path: 'dishes', element: <DishMenuScreen /> },
       { path: 'd/new', element: <DishEditorScreen />, children: [fromSimpleDish, newTare] },
       {

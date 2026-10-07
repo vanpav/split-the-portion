@@ -25,6 +25,13 @@ export const SETTINGS_PATH = '/settings'
 export const settingsPath = (section: string) => `${SETTINGS_PATH}/${section}`
 /** Sign-in and sign-up (docs/UX.md «Вход»); `reset` — a new password by the link from the owner. */
 export const ACCOUNT_PATH = '/account'
+/** The sign-in screen with «Создать аккаунт» open, or with where to go after signing in. */
+export const accountPath = ({ signUp, next }: { signUp?: boolean; next?: string }) => {
+  const query = new URLSearchParams({ ...(signUp ? { tab: 'sign-up' } : {}), ...(next ? { next } : {}) }).toString()
+  return query ? `${ACCOUNT_PATH}?${query}` : ACCOUNT_PATH
+}
+/** The welcome screen of a new device (docs/UX.md §3в). */
+export const WELCOME_PATH = '/welcome'
 export const PASSWORD_RESET_PATH = '/account/reset'
 /** «Вступить по коду»: the code typed by hand, from Settings → «Группа». */
 export const JOIN_PATH = '/join'

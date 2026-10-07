@@ -36,13 +36,14 @@
 | `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
 | `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
+| `driver.js` | prod | Подсказки для новых (этап 18): тур по калькулятору — затемнение с вырезом вокруг элемента, карточка у края экрана, прокрутка к элементу, Esc и ← / →, возврат фокуса после тура (`src/onboarding/useCalculatorTour.ts`). MIT, без зависимостей. Карточка не из shadcn — исключение, как `sonner`: оформлена переменными темы (`.hint-popover` в `index.css`). React Joyride (тяжелее), Shepherd.js и Intro.js (AGPL-3.0) не взяли. Согласовано 2026-10-07 |
 | `@use-gesture/react` | prod | Свайп строк на сенсорном экране (`components/SwipeRow`, хук `useDrag`: `axis: 'x'`, отмена при вертикальной прокрутке, скорость для «смахнуть»). В shadcn/ui такого компонента нет; распознавание жестов руками не пишем. Согласовано 2026-10-06 (#27) |
 
 Для shadcn нужен алиас `@/` → `src/` в `tsconfig.app.json` и `vite.config.ts`. Его настраивает `shadcn init`, но на этапе 01 нужно проверить, что CLI совместим с Vite 8 и TypeScript 6.
 
 **Не подошло:** `@cloudflare/vitest-pool-workers` (этап 13) требует Vitest 4. Тесты воркера идут на настоящей локальной D1 через `getPlatformProxy` из `wrangler` (`worker/__tests__/localD1.ts`), новой зависимости не нужно.
 
-**Распознавание речи — свой хук** `lib/useSpeechRecognition.ts` поверх Web Speech API браузера (микрофон в редакторе блюда, этап 18): ~100 строк, типы API описаны в нём же (в DOM-типах TypeScript их нет), без новой зависимости. Готовые обёртки (`react-speech-recognition` и т. п.) тянут полифилы и облачные сервисы, а нам нужны старт, стоп, живой текст и три ошибки. Согласовано с пользователем 2026-10-07. Распознавание на своём сервере — в бэклог, если браузер не справится.
+**Распознавание речи — свой хук** `lib/useSpeechRecognition.ts` поверх Web Speech API браузера (микрофон в редакторе блюда, этап 19): ~100 строк, типы API описаны в нём же (в DOM-типах TypeScript их нет), без новой зависимости. Готовые обёртки (`react-speech-recognition` и т. п.) тянут полифилы и облачные сервисы, а нам нужны старт, стоп, живой текст и три ошибки. Согласовано с пользователем 2026-10-07. Распознавание на своём сервере — в бэклог, если браузер не справится.
 
 **Синхронизация — своя** (`src/sync`, §10), а не готовый движок (Firebase, Dexie Cloud, Replicache, PowerSync). Готовые движки заменяют Zustand persist своим хранилищем или тянут вторую систему. Нам нужны ~300 строк чистых функций с тестами поверх уже работающих стора, миграций и IndexedDB. Согласовано 2026-10-06.
 
@@ -172,7 +173,7 @@ src/domain/
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
-  phrase.ts         — «Что в блюде» (этап 18): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
+  phrase.ts         — «Что в блюде» (этап 19): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
   speech.ts         — сказанное → фраза: spokenToPhrase (числа словами, единицы, паразиты), looksSpoken
   phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
   phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
@@ -284,6 +285,7 @@ interface AppState {
 - После загрузки просим `navigator.storage.persist()`: браузер не будет чистить данные при нехватке места. Отказ ничего не ломает.
 - **По группам (с этапа 13).** Без входа данные лежат под ключом `split-the-portion`, как раньше. После входа у каждой группы свой блоб `split-the-portion:group:<id>` в том же формате и с теми же миграциями. Рядом лежат неотправленные изменения и курсор: `split-the-portion:sync:<id>`. Аккаунт (кто вошёл, группы, группа по умолчанию) — отдельный стор `src/store/account.ts`, ключ `split-the-portion:account`. В копию данных он не попадает. Подробно — §10.
 - **Настройки устройства** (этап 16) — отдельный стор `src/store/prefs.ts`, ключ `split-the-portion:prefs` в той же IndexedDB: `splitMode` (`'people' | 'shares'`, люди «Кто ест» или «Доли») и `portions` (порции блюда в «Долях» по id блюда: `PortionShare[]` — `{ id, weight }` без имён, номер — по месту). Как тема и аккаунт, они не входят в `storedData`: не синхронизируются (§10), не попадают в копию данных, не зависят от открытой группы и не трогаются выходом из аккаунта. Поэтому форма данных приложения и `CURRENT_VERSION` не меняются. У стора своя версия `PREFS_VERSION = 2` и миграция `migratePrefs` (`src/store/prefsMigrations.ts`, тест на фикстуре v1): v1 — `'portions'` и `portionCounts` (N равных порций) первой версии этапа 16 → v2 — `'shares'` и N порций с долей 1. `main.tsx` ждёт `prefsReady`, как `accountReady`.
+- **Подсказки для новых** (этап 18) — там же, `hints` (`HintPrefs` из `src/onboarding/hints.ts`): `settled` (первый запуск с подсказками разобран), `off` («Пропустить» / «Не показывать»), `welcome` (приветствие пройдено), `tour` (`'done'` или шаг, с которого продолжить). `PREFS_VERSION = 3`, миграция v2 → v3 добавляет пустые `hints` (тест на фикстуре v2). Если при первом запуске с подсказками на устройстве уже есть блюда, `settleHints` (в `main.tsx`, после загрузки данных) отмечает приветствие и тур пройденными: подсказки — для новых.
 - **Копия в файле** (Настройки → «Копия данных»): «Скачать» — JSON `{ app, version, exportedAt, state }` (`src/store/backupFile.ts`); «Загрузить» — файл любой прошлой версии проходит те же миграции (`readBackupFile`), после подтверждения заменяет данные (`replaceData`), тост «Отменить» возвращает прежние. Чужой, битый или более новый файл — тост «Файл не подошёл».
 
 ### 5.3. Версия схемы и миграции
@@ -321,17 +323,17 @@ src/
   app/
     RootLayout.tsx      — оболочка: баннер ошибки чтения, <ScreenTransition> вокруг <Outlet />, <Toaster />, <UpdatePrompt />, TooltipProvider, <ScrollRestoration /> (прокрутка при «назад»); нижнего меню нет (этап 15); невидимое поле `KEYBOARD_PROXY_ID` вне <ScreenTransition> (не пересоздаётся при переходе) — iPhone открывает клавиатуру меню блюд по тапу 🔍 (UX §3)
     useBack.ts          — «←» и «Отмена» (docs/UX.md «Назад»): шаг назад по истории (`navigate(-1)`); без предыдущего экрана в приложении (`location.key === 'default'`) — запасной адрес с `replace`
-    ScreenTransition.tsx — анимация входа экрана (docs/UX.md «Переходы между экранами»): внутренняя обёртка с `key` = экран (`screenKey`: все `/d/:id` — один экран, смена блюда анимируется внутри `CalculatorScreen`), направление по `useNavigationType()` — PUSH вглубь, POP назад (в т. ч. `navigate(-1)` из useBack и системный «назад»), REPLACE, первый экран и переход, который браузер анимировал сам (`popstate` с `hasUAVisualTransition`, свайп в iOS Safari), — без анимации; классы `tw-animate-css` под `motion-safe:`, `overflow-x-clip` на внешней обёртке против горизонтальной прокрутки. Работает для всех маршрутов `router.tsx`, новые экраны получают её сами. Экран поверх другого (UX §3а) — тот же ключ, что у экрана под ним (`screenKey` отрезает `tare/new`, `company/new`, `copy`, `from-dish`): нижний не пересоздаётся. Анимацию текущего перехода ScreenTransition отдаёт через `NavigationAnimationContext`
+    ScreenTransition.tsx — анимация входа экрана (docs/UX.md «Переходы между экранами»): внутренняя обёртка с `key` = экран (`screenKey`: все `/d/:id` — один экран, смена блюда анимируется внутри `CalculatorScreen`; все `/settings/*` — один экран, смена подраздела анимируется внутри `SettingsScreen`), направление по `useNavigationType()` — PUSH вглубь, POP назад (в т. ч. `navigate(-1)` из useBack и системный «назад»), REPLACE, первый экран и переход, который браузер анимировал сам (`popstate` с `hasUAVisualTransition`, свайп в iOS Safari), — без анимации; классы `tw-animate-css` под `motion-safe:`, `overflow-x-clip` на внешней обёртке против горизонтальной прокрутки. Работает для всех маршрутов `router.tsx`, новые экраны получают её сами. Экран поверх другого (UX §3а) — тот же ключ, что у экрана под ним (`screenKey` отрезает `tare/new`, `company/new`, `copy`, `from-dish`): нижний не пересоздаётся. Анимацию текущего перехода ScreenTransition отдаёт через `NavigationAnimationContext`
     screenAnimation.ts  — `NavigationAnimationContext`, классы входа `screenEnterClass`, `useReturnAnimation(covered)` — классы для спрятанной части экрана под экраном поверх: при «назад» она въезжает заново (анимация повторяется, когда элемент выходит из `display: none`)
     OverScreen.tsx      — обёртка экрана поверх другого: въезжает сам, с анимацией перехода, который его открыл
-    enterAnimation.ts   — чистая логика переходов (тест в `app/__tests__`): какая анимация у входящего экрана; ключ записи истории из `popstate`, которую браузер уже анимировал; `screenKey` — какой экран показывает путь; `dishSwitchAnimation` — сторона въезда калькулятора при смене блюда (по местам чипов на полке, иначе по типу навигации); `shelfScrollTarget` — куда прокрутить полку, чтобы текущий чип был виден
+    enterAnimation.ts   — чистая логика переходов (тест в `app/__tests__`): какая анимация у входящего экрана; ключ записи истории из `popstate`, которую браузер уже анимировал; `screenKey` — какой экран показывает путь (все `/settings/*` — один экран); `settingsSwitchAnimation` — как сменить подраздел настроек внутри экрана (PUSH/POP — весь экран вглубь/назад, REPLACE из меню — только содержимое, сторона по порядку в меню); `dishSwitchAnimation` — сторона въезда калькулятора при смене блюда (по местам чипов на полке, иначе по типу навигации); `shelfScrollTarget` — куда прокрутить полку, чтобы текущий чип был виден
     LocalDataDialog.tsx — «Перенести данные этого устройства?» при первом входе (этап 13)
     UpdatePrompt.tsx    — новая версия приложения: тост «Есть новая версия · Обновить» (useRegisterSW); проверка обновления при каждом возврате на экран
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов; экраны поверх другого (UX §3а) — его дочерние маршруты
     paths.ts            — адреса экранов
   screens/
     DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка, пустое состояние), DishMenu (поиск, тип, сортировка, список; состояние в адресе), DishMenuRow, OpenGroupLink
-    DishEditor/         — создание и правка блюда, вариант «Одной строкой» (этап 18): DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`, `tare/new`); черновик — название, фраза, свои «не учитывать», тара — в состоянии формы, «Создать» / «Сохранить»
+    DishEditor/         — создание и правка блюда, вариант «Одной строкой» (этап 19): DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`, `tare/new`); черновик — название, фраза, свои «не учитывать», тара — в состоянии формы, «Создать» / «Сохранить»
       PhraseField.tsx — «Что в блюде»: Textarea, «Вставить», «Из блюда», микрофон, подсказка / «Слушаю…» / «Сказали»
       PhraseList.tsx, PhraseRow.tsx — разбор: строка на продукт (тап — учитывать или нет, × — убрать), пометки
       TareChips.tsx — «В чём взвешиваете»: «+» (экран «Новая тара» поверх формы), «Без тары», тары
@@ -349,10 +351,11 @@ src/
       calculatorOutlet.ts     — что калькулятор передаёт экранам над собой (`useOutletContext`): выбрать тару, выбрать компанию
     Copy/
       CopyTextScreen.tsx      — экран «Скопируйте вручную» (`…/copy` под калькулятором и подразделом настроек): текст приходит в состоянии навигации, выделен
+    Welcome/            — приветственный экран `#/welcome` (этап 18, UX §3в): WelcomeScreen — шаги внутри экрана, последний — аккаунт; иллюстрации из логотипа WelcomeBoxes, WelcomeTiles, WelcomeShares, WelcomeDevices (inline SVG, CSS-анимации под `motion-safe:`)
     Join/               — вступить в группу: JoinScreen по ссылке `#/join/:code` (этап 14), JoinByCodeScreen — код вручную `#/join`
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
     Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, LeaveGroupButton — «Группа» («Вступить по коду» — ссылка на `#/join`)
-      SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список, либо подраздел
+      SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список (ссылки добавляют запись в историю), либо подраздел; с `md` меню (ссылки заменяют адрес); анимация смены подраздела
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
       sections.ts             — список подразделов: адрес, название, подпись, иконка
@@ -377,10 +380,11 @@ src/
     store.ts, migrations.ts, id.ts, hooks.ts
     __tests__/migrations.test.ts
     account.ts          — кэш аккаунта: кто вошёл, группы, группа по умолчанию (этап 12)
-    prefs.ts            — настройки устройства: люди или «Доли», порции блюд (этап 16, §5.2)
+    prefs.ts            — настройки устройства: люди или «Доли», порции блюд (этап 16), подсказки для новых (этап 18, §5.2)
     prefsMigrations.ts  — версия и миграции настроек устройства
     sync.ts             — статус синхронизации и данные устройства, ждущие «Перенести?» (этап 13)
   account/              — клиент Better Auth (authClient.ts), тексты ошибок входа (authErrors.ts), refreshAccount.ts, тип Me — общий с воркером (types.ts) (этап 12); groupsApi.ts, inviteCode.ts, groupLabel.ts, networkText.ts (этап 14)
+  onboarding/           — подсказки для новых (этап 18): hints.ts — чистые функции (показать ли приветствие и с какого шага тур, шаги тура и их тексты, «Пропустить», «Показать заново»; тест в `onboarding/__tests__`), useCalculatorTour.ts — тур driver.js по меткам `data-hint` на калькуляторе
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
 worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
@@ -422,6 +426,9 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | Плашка сверки, баннер ошибки чтения, подсказки | `Alert` (варианты default / destructive / `warning` — добавлен в `alert.tsx` через `cva`) |
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
 | Удалить / скопировать строку на телефоне и iPad | `components/SwipeRow` (`@use-gesture/react`) + `Button` под строкой; кнопки строки скрыты вариантом Tailwind `pointer-coarse:sr-only` — остаются для клавиатуры и экранного диктора |
+| Тур по калькулятору (этап 18) | `driver.js` (исключение, как `sonner`): карточка `.hint-popover` оформлена токенами темы, затемнение — `--scrim`; цели — `data-hint` на элементах |
+| Приветственный экран (этап 18) | Экран по §3а: шапка с точками шагов и «Пропустить» (`Button` ghost), иллюстрация (inline SVG), заголовок и текст, `BottomBar` с главной кнопкой |
+| «Подсказки» в «Оформлении» | `ToggleGroup` («Показывать / Не показывать», как тема) + `Button` variant `outline` «Показать заново» |
 | Подтверждения (удаление блюда, «Перенести данные?», выход из группы и т. п.) | `AlertDialog` — единственное окно поверх экрана с текстом (UX §3а) |
 | Запасной показ текста для копирования | Экран во весь экран с `Textarea` (UX §3а) |
 | Шапка, переход в настройки | `Button` variant `ghost` + иконки `lucide-react` |
@@ -468,7 +475,8 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | `#/settings` | Настройки: на телефоне — список подразделов, с `md` — меню слева и «Тара» справа |
 | `#/settings/:section` | Подраздел настроек: `tares`, `companies`, `presets`, `data`, `appearance`; с этапа 12 — `account`, с 14 — `group` (неизвестный → `#/settings`) |
 | `#/settings/:section/copy` | «Скопируйте вручную» поверх подраздела (ссылка-приглашение) |
-| `#/account` | Вход и регистрация (этап 12); после входа — в Настройки → «Аккаунт» |
+| `#/account[?tab=sign-up&next=…]` | Вход и регистрация (этап 12); `tab=sign-up` — открыта вкладка «Создать аккаунт» (с приветствия); после входа — `next` или Настройки → «Аккаунт» |
+| `#/welcome` | Приветственный экран (этап 18): `#/` ведёт сюда, пока на устройстве нет блюд и приветствие не пройдено; пройдено — уводит на `#/` |
 | `#/account/reset` | Новый пароль по ссылке сброса (`token` — в строке запроса до `#`) |
 | `#/join` | «Вступить по коду»: код вручную; «Дальше» заменяет экран на `#/join/:code`; «назад» без предыдущего экрана — Настройки → «Группа» |
 | `#/join/:code` | Вступить в группу по коду из ссылки (этап 14) |
@@ -502,6 +510,7 @@ Hash-маршруты выбраны потому, что работают на 
 1. **Wake Lock** (бэклог P1): `react-screen-wake-lock` / `@uidotdev/usehooks` или свой хук. Решить, когда дойдём.
 2. ~~**PWA**~~ — решено 2026-10-06: `vite-plugin-pwa`, этап [11](roadmap/11-pwa.md).
 3. ~~**Свайп строк**~~ — решено 2026-10-06: `@use-gesture/react` (#27); `react-swipeable` и `motion` не взяли (§2).
+4. ~~**Подсказки для новых**~~ — решено 2026-10-07: тур — `driver.js` (§2, этап [18](roadmap/18-onboarding-hints.md)); подсказки по месту (`Alert`) сделали и убрали.
 
 ## 9. Сервер
 

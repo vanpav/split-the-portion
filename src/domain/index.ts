@@ -34,7 +34,7 @@ export type { DishMenu, DishMenuOptions, DishSort, KindFilter } from './menu'
 export { FREQUENT_WINDOW_DAYS, lastUsedDay, localDay, markUsed, USED_DAYS_KEPT, usesSince } from './usage'
 export { cookingDraft } from './draft'
 export type { CalculatorInput } from './draft'
-export { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from './shares'
+export { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, splitAmounts, toPercents } from './shares'
 export { rubberBand, settleDuration, settleSwipe } from './swipe'
 export type { SwipeLimits, SwipeSettle } from './swipe'
 export {

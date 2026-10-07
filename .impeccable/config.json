@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "rubik",
+        "createdAt": "2026-10-06T21:09:55.868Z",
+        "reason": "Claude: Rubik is the DESIGN.md typeface (Rubik Variable via fontsource); the mockup page loads the same family from Google Fonts"
+      }
+    ]
+  }
+}

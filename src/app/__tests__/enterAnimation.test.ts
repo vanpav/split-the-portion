@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { dishSwitchAnimation, enterAnimation, screenKey, shelfScrollTarget, uaAnimatedKey } from '../enterAnimation'
+import {
+  dishSwitchAnimation,
+  enterAnimation,
+  screenKey,
+  settingsSwitchAnimation,
+  shelfScrollTarget,
+  uaAnimatedKey,
+} from '../enterAnimation'
 
 describe('uaAnimatedKey', () => {
   it('returns the key of the entry the browser animated into', () => {
@@ -56,8 +63,13 @@ describe('screenKey', () => {
     expect(screenKey('/d/new')).toBe('/d/new')
     expect(screenKey('/d/abc/edit')).toBe('/d/abc/edit')
     expect(screenKey('/dishes')).toBe('/dishes')
-    expect(screenKey('/settings/tares')).toBe('/settings/tares')
     expect(screenKey('/')).toBe('/')
+  })
+
+  it('maps the settings and every subsection to one screen', () => {
+    expect(screenKey('/settings')).toBe('/settings')
+    expect(screenKey('/settings/tares')).toBe('/settings')
+    expect(screenKey('/settings/companies/')).toBe('/settings')
   })
 
   it('keeps the screen under a screen opened over it, so it is not remounted', () => {
@@ -66,7 +78,7 @@ describe('screenKey', () => {
     expect(screenKey('/d/abc/copy')).toBe('/d/:id')
     expect(screenKey('/d/abc/edit/from-dish')).toBe('/d/abc/edit')
     expect(screenKey('/d/new/from-dish')).toBe('/d/new')
-    expect(screenKey('/settings/group/copy')).toBe('/settings/group')
+    expect(screenKey('/settings/group/copy')).toBe('/settings')
   })
 
   it('does not take a short path that only ends like a screen over another for one', () => {
@@ -90,6 +102,19 @@ describe('dishSwitchAnimation', () => {
   it('falls back when the current dish is not on the shelf or the places are the same', () => {
     expect(dishSwitchAnimation({ from: null, to: 2, navigationType: 'PUSH' })).toBe('forward')
     expect(dishSwitchAnimation({ from: 2, to: 2, navigationType: 'POP' })).toBe('back')
+  })
+})
+
+describe('settingsSwitchAnimation', () => {
+  it('animates only the content when the menu replaces the subsection, by its place in the menu', () => {
+    expect(settingsSwitchAnimation({ from: 0, to: 3, navigationType: 'REPLACE' })).toEqual({ page: 'none', content: 'forward' })
+    expect(settingsSwitchAnimation({ from: 4, to: 1, navigationType: 'REPLACE' })).toEqual({ page: 'none', content: 'back' })
+    expect(settingsSwitchAnimation({ from: 2, to: 2, navigationType: 'REPLACE' })).toEqual({ page: 'none', content: 'none' })
+  })
+
+  it('moves the whole page as between screens for a new entry and a step through history', () => {
+    expect(settingsSwitchAnimation({ from: 0, to: 3, navigationType: 'PUSH' })).toEqual({ page: 'forward', content: 'none' })
+    expect(settingsSwitchAnimation({ from: 3, to: 0, navigationType: 'POP' })).toEqual({ page: 'back', content: 'none' })
   })
 })
 

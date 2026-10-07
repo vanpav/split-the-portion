@@ -14,6 +14,12 @@ interface SettingsMenuProps {
   current?: SettingsSectionId
   /** Shown on the right from `md` without being in the address (`#/settings`): highlighted from `md` only. */
   shown?: SettingsSectionId
+  /**
+   * The menu beside a subsection (from `md`): switching replaces the address, so «←» and the system
+   * «назад» leave the settings in one step instead of walking through every subsection seen.
+   * The phone's list adds an entry: «←» in a subsection goes back to it.
+   */
+  replace?: boolean
   className?: string
 }
 
@@ -21,15 +27,12 @@ interface SettingsMenuProps {
  * Settings subsections. On a phone a list of rows leading to their screens;
  * from `md` a menu on the left of the open subsection.
  */
-export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
+export function SettingsMenu({ current, shown, replace = false, className }: SettingsMenuProps) {
   const me = useAccountStore((s) => s.me)
   const openId = useSyncStore((s) => s.groupId)
   const openGroup = me?.groups.find((g) => g.id === openId)
   const groupName = openGroup && groupLabel(openGroup)
   const { hasPrevious, noPreviousState } = useBack(SETTINGS_PATH)
-  // From an open subsection (the menu beside it, from `md`) switching replaces it, so «←» leaves
-  // the settings instead of walking through every subsection seen.
-  const replace = current !== undefined
   // What is said under a title: the account's email and the open group instead of the defaults.
   const said = (id: SettingsSectionId, description: string) =>
     (id === 'account' && me?.user.email) || (id === 'group' && groupName) || description

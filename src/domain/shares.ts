@@ -138,6 +138,22 @@ export function portionGrams(computed: Pick<PortionResult, 'cookedGrams' | 'raw'
 }
 
 /**
+ * What «Доли» say of each portion (docs/UX.md §3): grams of the view once all of them are weighed;
+ * percent of the dish before that, or when `unit` asks for it. Full precision; null when unknown.
+ */
+export function splitAmounts(
+  portions: readonly Pick<PortionResult, 'cookedGrams' | 'raw' | 'share'>[],
+  rawOf: Id | null,
+  unit: 'g' | '%',
+): { inPercent: boolean; values: (number | null)[] } {
+  const inPercent = unit === '%' || portions.some((p) => portionGrams(p, rawOf) === null)
+  return {
+    inPercent,
+    values: portions.map((p) => (inPercent ? (p.share !== null ? p.share * 100 : null) : portionGrams(p, rawOf))),
+  }
+}
+
+/**
  * «На завтра»: the most that can be set aside, in whole percents of the dish. `phase` is computed
  * with nothing set aside, so the sharing people (`sharingIds`) hold all that is free; each keeps
  * the minimum. 0 — nothing to cut (no one shares, or own portions took everything).
