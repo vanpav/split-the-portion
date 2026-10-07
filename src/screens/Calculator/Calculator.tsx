@@ -465,8 +465,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // The same test as that line's, so the tiles hide their ⧉ before the dish is weighed too (then by shares, unseen).
   const sharingAmounts = splitAmounts((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined), rawOf, 'g')
   const sameShares = splitSummary(sharingAmounts.values, sharingAmounts.inPercent ? 1 : 0)?.same != null
-  // Equal portions, none own, weighed: the containers are numbers only, the grams are said once above them.
-  const compactTiles = sameShares && !sharingAmounts.inPercent && Object.keys(fixed).length === 0
+  // The portions that share are equal and weighed: their containers are numbers only, the grams are said once
+  // above them. An own portion keeps its grams (and recipe) in a container across the whole row.
+  const compactTiles = sameShares && !sharingAmounts.inPercent
   // The tour over this screen (docs/UX.md §3б): with the share bar on screen its third step points at it.
   useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
 
@@ -630,8 +631,14 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 {phase.portions.map((p, i) => (
                   <PortionTile
                     key={p.portionId}
-                    // Compact: four to a row; the one opened for typing takes a row of its own.
-                    className={compactTiles ? (active === personKey(p.portionId) ? 'col-span-4' : undefined) : tileSpans[i]}
+                    // Compact: four to a row; the one opened for typing and an own one take a row of their own.
+                    className={
+                      compactTiles
+                        ? active === personKey(p.portionId) || fixed[p.portionId] !== undefined
+                          ? 'col-span-4'
+                          : undefined
+                        : tileSpans[i]
+                    }
                     cooking={draft}
                     result={result}
                     place={placeOf(p.portionId)}
@@ -639,12 +646,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
                     computed={p}
                     dry={rawOf !== null}
                     grams={amountField(p.portionId)}
-                    compact={compactTiles}
+                    compact={compactTiles && fixed[p.portionId] === undefined}
                     chosen={p.portionId === chosenId}
                     onChoose={fixed[p.portionId] === undefined ? () => setChosen(p.portionId) : undefined}
                     copyable={!sameShares || fixed[p.portionId] !== undefined}
                     // The recipe sits where ⧉ sits; a tile of its own row keeps two columns, the narrow ones one.
-                    recipe={recipe && (!sameShares || fixed[p.portionId] !== undefined) ? { ...recipe, oneColumn: oneColumn || tileSpans[i] !== 'col-span-6' } : undefined}
+                    recipe={recipe && (!sameShares || fixed[p.portionId] !== undefined) ? { ...recipe, oneColumn: oneColumn || (!compactTiles && tileSpans[i] !== 'col-span-6') } : undefined}
                   />
                 ))}
               </ul>

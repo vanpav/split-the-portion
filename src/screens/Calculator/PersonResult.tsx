@@ -1,5 +1,5 @@
 import { XIcon } from 'lucide-react'
-import { Fragment, useRef, type KeyboardEvent } from 'react'
+import { Fragment, useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
@@ -92,6 +92,11 @@ export function PersonResult({
   const copyRef = useRef<HTMLButtonElement>(null)
   const rowRef = useRef<SwipeRowHandle>(null)
 
+  // A tap anywhere on the row but its fields and buttons chooses who «− +» adjust.
+  const choose = (e: MouseEvent<HTMLElement>) => {
+    if (onChoose && !(e.target as HTMLElement).closest('input, button, label')) onChoose()
+  }
+
   return (
     <SwipeRow
       ref={rowRef}
@@ -101,12 +106,7 @@ export function PersonResult({
       onRemove={onRemove}
       onCopy={computed.share !== null ? () => copyRef.current?.click() : null}
     >
-      <div
-        className="flex items-center gap-2"
-        onClick={(e) => {
-          if (onChoose && !(e.target as HTMLElement).closest('input, button, label')) onChoose()
-        }}
-      >
+      <div className="flex items-center gap-2" onClick={choose}>
         {/* The lid sits on the name's line, not on the row's top: with or without a line under the name, the
             two stay level, and the name block is centred on the answer. */}
         <div className="flex min-w-0 flex-1 flex-col">
@@ -123,7 +123,12 @@ export function PersonResult({
                 enterKeyHint="done"
                 onChange={(e) => onRename(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                className={cn('h-9 border-transparent bg-transparent px-1 text-base font-medium shadow-none hover:border-input focus-visible:border-input dark:bg-transparent', chosen && 'font-semibold')}
+                // As wide as the name, not the row: the free space beside it chooses the person.
+                size={Math.max(name.length, 3)}
+                className={cn(
+                  'h-9 w-auto max-w-full min-w-12 border-transparent bg-transparent px-1 text-base font-medium shadow-none field-sizing-content hover:border-input focus-visible:border-input dark:bg-transparent',
+                  chosen && 'font-semibold',
+                )}
               />
             ) : (
               // The same place as the name field, without the field.
@@ -210,7 +215,10 @@ export function PersonResult({
       </div>
       {recipe && computed.share !== null && (
         // From the name to the answer, not under the actions; always per person.
-        <PortionRecipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[26px]" />
+        // The recipe is part of the row: a tap on it chooses the person too.
+        <div onClick={choose}>
+          <PortionRecipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[26px]" />
+        </div>
       )}
     </SwipeRow>
   )

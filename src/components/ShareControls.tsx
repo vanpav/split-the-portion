@@ -45,7 +45,7 @@ export function ShareControls({ names, percents, equal, selectedIndex, onChange,
           className={cn(
             'flex items-center justify-center text-chart-foreground tabular-nums',
             lidFill(mark.place),
-            mark.numbered ? 'size-7 rounded-lg text-sm font-semibold' : 'size-5.5 rounded-[7px]',
+            mark.numbered ? 'size-7 rounded-[8px] text-sm font-semibold' : 'size-5.5 rounded-[7px]',
           )}
         >
           {mark.numbered && mark.place + 1}
