@@ -34,6 +34,9 @@ export const groupsApi = {
   invite: async (groupId: string) => json<Invite>(await call(`/api/groups/${groupId}/invites`, { method: 'POST' })),
   revoke: async (groupId: string, code: string) =>
     void json(await call(`/api/groups/${groupId}/invites/${code}`, { method: 'DELETE' })),
+  /** The id of the new group (the user owns it). */
+  create: async (name: string) =>
+    (await json<{ groupId: string }>(await call('/api/groups', { method: 'POST', body: JSON.stringify({ name }) }))).groupId,
   /** null — the code is unknown, expired or revoked. */
   preview: async (code: string) => {
     const res = await call(`/api/invites/${code}`)

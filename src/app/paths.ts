@@ -37,3 +37,5 @@ export const PASSWORD_RESET_PATH = '/account/reset'
 export const JOIN_PATH = '/join'
 /** Join a group by an invite code (docs/UX.md «Вступить по ссылке»). */
 export const joinPath = (code: string) => `/join/${code}`
+/** «Создать группу»: the name typed on a screen of its own, from Settings → «Группа». */
+export const NEW_GROUP_PATH = '/groups/new'

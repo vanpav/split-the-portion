@@ -1,8 +1,11 @@
+import { MAX_GROUPS } from './types'
 import { GroupsApiError, OfflineError } from './groupsApi'
 
 /** One text per cause of a failed request, in the words of docs/UX.md §6. */
 export const OFFLINE_TEXT = 'Нет сети — попробуй, когда она появится'
 export const NO_ANSWER_TEXT = 'Сервер не отвечает — попробуй через минуту'
+/** Shown before the request too, where the count is known. */
+export const GROUP_LIMIT_TEXT = `Ты уже в ${MAX_GROUPS} группах — выйди из одной, чтобы создать или вступить в другую`
 const SERVER_TEXT = 'Сбой на сервере — попробуй через минуту'
 const TOO_MANY_TEXT = 'Слишком много попыток — подожди минуту'
 const REJECTED_TEXT = 'Запрос не принят — обнови приложение и попробуй снова'
@@ -29,6 +32,7 @@ export function groupErrorText(e: unknown): string {
   const status = statusOf(e)
   if (status === undefined) return APP_TEXT
   if (status === 401) return 'Войди снова'
+  if (status === 409) return GROUP_LIMIT_TEXT
   if (status === 403) return 'Нет доступа к группе — попроси новое приглашение'
   return httpErrorText(status)
 }

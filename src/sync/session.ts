@@ -151,6 +151,13 @@ export async function joinGroup(code: string) {
   return groupId
 }
 
+/** A new group of the user's own; its data (empty) comes on opening it. */
+export async function createGroup(name: string) {
+  const groupId = await groupsApi.create(name)
+  await refreshAccount()
+  return groupId
+}
+
 /**
  * After the session has ended on the server: the groups' data leaves the device (it stays on the
  * server) and the app is back to an empty device without an account.
