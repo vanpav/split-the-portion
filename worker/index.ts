@@ -2,9 +2,10 @@ import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { csrf } from 'hono/csrf'
 import { parseInviteCode } from '../src/account/inviteCode'
+import { MAX_GROUP_NAME } from '../src/account/types'
 import { SYNC_LIMITS } from '../src/sync/protocol'
 import { type Auth, createAuth } from './auth'
-import { acceptInvite, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
+import { acceptInvite, createGroup, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
 import { getMe, setDefaultGroup } from './me'
 import { isMember, syncGroup } from './sync'
 import { parseSyncRequest } from './syncRequest'
@@ -81,7 +82,16 @@ app.put('/me/default-group', async (c) => {
 app.post('/invites/:code/accept', async (c) => {
   const code = parseInviteCode(c.req.param('code'))
   const groupId = code && (await acceptInvite(c.get('auth'), c.env.DB, code, c.get('session').user.id, new Date()))
+  if (groupId === 'limit') return c.json({ error: 'group_limit' }, 409)
   return groupId ? c.json({ groupId }) : c.json({ error: 'not_found' }, 404)
+})
+
+app.post('/groups', async (c) => {
+  const { name } = await c.req.json<{ name?: unknown }>().catch(() => ({ name: undefined }))
+  const trimmed = typeof name === 'string' ? name.trim() : ''
+  if (!trimmed || trimmed.length > MAX_GROUP_NAME) return c.json({ error: 'bad_name' }, 400)
+  const groupId = await createGroup(c.get('auth'), c.env.DB, c.get('session').user.id, trimmed)
+  return groupId === 'limit' ? c.json({ error: 'group_limit' }, 409) : c.json({ groupId })
 })
 
 app.post('/groups/:id/invites', async (c) => {

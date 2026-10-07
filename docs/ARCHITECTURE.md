@@ -564,6 +564,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 |---|---|
 | `* /api/auth/*` | Better Auth: регистрация, вход, passkey, выход, группы (`organization/*`) |
 | `GET /api/me` | Пользователь, его группы с участниками (`memberId`, почта, роль) и своей ролью, `defaultGroupId` |
+| `POST /api/groups` | Новая группа `{ name }`, создатель — владелец; 409 `group_limit`, если он уже в трёх (`MAX_GROUPS`; так же `POST /invites/:code/accept`) |
 | `PUT /api/me/default-group` | Группа, которая открывается при запуске |
 | `POST /api/groups/:id/sync` | Push и pull изменений группы (§10) |
 | `POST /api/groups/:id/invites` | Код приглашения (действующий переиспользуется) |

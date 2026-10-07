@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { groupsApi } from '@/account/groupsApi'
 import { formatInviteCode, parseInviteCode } from '@/account/inviteCode'
-import { groupErrorText } from '@/account/networkText'
-import type { InvitePreview } from '@/account/types'
+import { GROUP_LIMIT_TEXT, groupErrorText } from '@/account/networkText'
+import { MAX_GROUPS, type InvitePreview } from '@/account/types'
 import { ACCOUNT_PATH, joinPath } from '@/app/paths'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import {
@@ -95,6 +95,8 @@ export function JoinScreen() {
               <Button size="lg" onClick={() => void open(state.invite.groupId, false)}>
                 Ты уже в этой группе — открыть
               </Button>
+            ) : me && me.groups.length >= MAX_GROUPS ? (
+              <p className="px-1 text-muted-foreground">{GROUP_LIMIT_TEXT}</p>
             ) : me ? (
               <Button size="lg" disabled={busy} onClick={() => void join()}>
                 Вступить
