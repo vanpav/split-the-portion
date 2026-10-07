@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Повтор граммов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). Desktop-only prototype. */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --chart-1: oklch(0.815 0.073 246.3);
+  --chart-2: oklch(0.871 0.14 91.6);
+  --chart-3: oklch(0.847 0.076 164.5);
+  --chart-4: oklch(0.81 0.075 301.4);
+  --chart-5: oklch(0.832 0.095 58.2);
+  --chart-foreground: oklch(0.267 0.054 269.1);
+  --chart-5-pale: color-mix(in srgb, var(--chart-5) 45%, var(--background));
+  --chart-5-pale-foreground: var(--foreground);
+  --own-edge: color-mix(in oklab, var(--foreground) 25%, transparent);
+  --caret-1: oklch(0.6 0.12 246.3);
+  --caret-2: oklch(0.66 0.13 85);
+  --idle: color-mix(in oklab, var(--muted) 60%, var(--background));
+  --radius: 0.875rem;
+  --radius-xl: 1.225rem;
+  --page: oklch(0.935 0.011 257);
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 22px 44px -24px oklch(0.267 0.054 269.1 / 0.45);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --chart-1: oklch(0.76 0.086 249);
+  --chart-2: oklch(0.827 0.139 90.3);
+  --chart-3: oklch(0.793 0.084 165.1);
+  --chart-4: oklch(0.751 0.087 299.6);
+  --chart-5: oklch(0.781 0.103 55.4);
+  --chart-foreground: oklch(0.212 0.035 268.5);
+  --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+  --chart-5-pale-foreground: var(--chart-5);
+  --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+  --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+  --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+  --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+  --page: oklch(0.175 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --chart-1: oklch(0.76 0.086 249);
+    --chart-2: oklch(0.827 0.139 90.3);
+    --chart-3: oklch(0.793 0.084 165.1);
+    --chart-4: oklch(0.751 0.087 299.6);
+    --chart-5: oklch(0.781 0.103 55.4);
+    --chart-foreground: oklch(0.212 0.035 268.5);
+    --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+    --chart-5-pale-foreground: var(--chart-5);
+    --own-edge: color-mix(in oklab, var(--chart-5) 60%, transparent);
+    --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
+    --caret-2: color-mix(in oklab, var(--chart-2) 70%, var(--foreground));
+    --idle: color-mix(in oklab, var(--muted) 20%, var(--background));
+    --page: oklch(0.175 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(0.34 0.048 267.7), 0 22px 44px -24px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--page); color: var(--foreground); font: 400 16px/1.5 Rubik, system-ui, sans-serif; }
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in oklab, var(--primary) 50%, transparent); outline-offset: 1px; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ——— Page ——— */
+.page { width: 1300px; margin: 0 auto; padding: 48px 40px 80px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; }
+h1 { font-size: 1.75rem; line-height: 1.2; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lede { max-width: 74ch; margin: 0 0 10px; color: var(--muted-foreground); }
+.lede b { color: var(--foreground); font-weight: 500; }
+.seg-ctl { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--muted); }
+.seg-ctl button { border: 0; background: none; padding: 6px 12px; border-radius: calc(var(--radius) - 2px); color: var(--muted-foreground); font-size: 0.875rem; }
+.seg-ctl button[aria-pressed="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.variants { display: grid; grid-template-columns: repeat(3, 375px); justify-content: space-between; margin-top: 40px; }
+.variant h2 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+.variant h2 .letter { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--foreground); color: var(--background); font-size: 0.875rem; }
+.pick { margin-left: auto; font-size: 0.75rem; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--foreground); }
+.variant .thesis { margin: 0 0 14px; color: var(--muted-foreground); font-size: 0.9375rem; min-height: 3em; }
+.phonebar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.count { font-size: 0.8125rem; color: var(--muted-foreground); }
+.count b { color: var(--foreground); font-weight: 600; }
+.notes { margin-top: 24px; font-size: 0.9375rem; }
+.notes h3 { font-size: 0.8125rem; font-weight: 600; margin: 18px 0 6px; color: var(--muted-foreground); }
+.notes h3:first-child { margin-top: 0; }
+.notes ul { margin: 0; padding-left: 1.1em; }
+.notes li { margin: 0 0 6px; }
+.notes li::marker { color: var(--muted-foreground); }
+.notes p { margin: 0; }
+
+/* ——— Phone ——— */
+.phone { position: relative; width: 375px; height: 740px; overflow: hidden; border-radius: 40px; background: var(--background); box-shadow: var(--phone-shadow); }
+.scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+main { display: flex; flex-direction: column; gap: 16px; padding: 20px 12px 32px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-radius: var(--radius-xl); background: var(--idle); border: 1px solid transparent; }
+.tile.on { background: var(--card); border-color: var(--border); }
+.tile .lbl { font-size: 0.875rem; color: var(--muted-foreground); }
+.tile.on .lbl { color: var(--foreground); font-weight: 500; }
+.tile .val { font-size: 1.875rem; line-height: 1.25; font-weight: 500; }
+.unit { margin-left: 4px; font-size: 1rem; font-weight: 400; color: var(--muted-foreground); }
+.quiet { display: flex; gap: 8px; align-items: center; min-height: 32px; margin-top: -10px; padding: 0 4px; font-size: 0.875rem; color: var(--muted-foreground); }
+.who { display: flex; flex-direction: column; gap: 10px; padding: 0 4px; }
+.pickrow { display: flex; align-items: center; gap: 8px; }
+.picker { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: var(--radius); border: 1px solid var(--input); font-size: 0.9375rem; }
+.picker .chev { margin-left: auto; color: var(--muted-foreground); }
+.stepper { display: flex; height: 44px; border: 1px solid var(--input); border-radius: var(--radius); overflow: hidden; flex: none; }
+.stepper button, .stepper span { width: 44px; display: grid; place-items: center; border: 0; background: none; }
+.stepper span { border-inline: 1px solid var(--input); font-weight: 500; }
+.ob { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); border: 1px solid var(--input); background: none; flex: none; }
+.ob:hover { background: var(--idle); }
+.ghost { display: inline-flex; align-items: center; height: 44px; padding: 0 8px; border: 0; background: none; color: var(--muted-foreground); font-size: 0.9375rem; font-weight: 500; }
+.ghost:hover:not(:disabled) { color: var(--foreground); }
+.ghost:disabled { opacity: 0.5; cursor: default; }
+.copy { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; color: var(--muted-foreground); border-radius: 999px; flex: none; }
+.copy:hover { background: var(--secondary); color: var(--foreground); }
+.lid { width: 14px; height: 14px; border-radius: 5px; flex: none; }
+.lidno { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: var(--chart-foreground); flex: none; }
+.l1 { background: var(--chart-1); } .l2 { background: var(--chart-2); } .l3 { background: var(--chart-3); } .l4 { background: var(--chart-4); } .l5 { background: var(--chart-5); }
+
+/* The share bar */
+.bar { position: relative; display: flex; height: 48px; border-radius: var(--radius-xl); overflow: hidden; }
+.bar.tall { height: 60px; }
+.seg { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; color: var(--chart-foreground); line-height: 1.15; border: 0; padding: 0; transition: flex-grow 200ms ease-out; }
+.seg + .seg { box-shadow: inset 2px 0 0 var(--background); }
+.seg.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg + .seg.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+.seg small { font-size: 0.75rem; font-weight: 500; }
+.seg .t { font-size: 0.875rem; font-weight: 600; }
+.seg b { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+.bar.tall .seg b { font-size: 1.25rem; }
+.grip { position: absolute; top: 50%; translate: -50% -50%; width: 32px; height: 32px; border-radius: 999px; background: var(--foreground); box-shadow: 0 2px 6px rgb(0 0 0 / 0.18); display: grid; place-items: center; pointer-events: none; }
+.grip::before { content: ""; width: 8px; height: 12px; background: radial-gradient(circle, var(--background) 1.4px, transparent 1.6px) 0 0 / 4px 4px; }
+.controls { display: flex; align-items: center; gap: 6px; }
+.chosen { display: flex; flex-direction: column; align-items: center; min-width: 64px; padding: 0 4px; font-size: 0.875rem; line-height: 1.2; color: var(--muted-foreground); }
+.chosen b { color: var(--foreground); font-weight: 600; }
+.caption { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.caption .big { font-size: 1.5rem; font-weight: 500; }
+
+/* People rows */
+.rows { list-style: none; margin: 0; padding: 0; }
+.row { display: flex; align-items: center; gap: 10px; min-height: 72px; border-top: 1px solid var(--border); }
+.row:first-child { border-top: 0; }
+.row .who-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.row .sub { padding-left: 22px; font-size: 0.8125rem; color: var(--muted-foreground); }
+.ans { font-size: 1.875rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+
+/* Доли */
+.summary { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.summary .big { font-size: 1.875rem; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.summary .rest { font-size: 0.875rem; color: var(--muted-foreground); flex: 1; min-width: 0; }
+.grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.ptile { position: relative; grid-column: span 3; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--radius-xl); background: var(--idle); min-width: 0; }
+.ptile .amt { font-size: 1.5rem; font-weight: 500; line-height: 1.2; white-space: nowrap; margin-top: 4px; }
+.ptile .oth { font-size: 0.75rem; color: var(--muted-foreground); }
+.ptile .tcopy { position: absolute; top: 2px; right: 2px; }
+.ptile.sel { box-shadow: inset 0 0 0 2px var(--foreground); }
+/* Equal portions in А: a container is its lid, nothing more — the amount is said once above. */
+.boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.box { display: grid; place-items: center; width: 100%; height: 64px; border-radius: var(--radius-xl); background: var(--idle); border: 0; }
+.box .lidno { width: 34px; height: 34px; border-radius: 9px; font-size: 1.0625rem; }
+.box.sel { box-shadow: inset 0 0 0 2px var(--foreground); background: var(--card); }
+
+/* Б: the list is the bar — each row carries its share as a track */
+.meter { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mrow { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px 14px; border-radius: var(--radius-xl); background: var(--idle); border: 1px solid transparent; cursor: pointer; text-align: left; width: 100%; }
+.mrow.sel { background: var(--card); border-color: var(--border); }
+.mrow .line { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.mrow .who-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mrow .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.mrow .sub { padding-left: 22px; font-size: 0.8125rem; color: var(--muted-foreground); }
+.mrow .lids { display: flex; gap: 4px; }
+.mrow .lids button { border: 0; padding: 0; background: none; border-radius: 7px; }
+.mrow .lids button:hover .lidno { outline: 2px solid var(--foreground); outline-offset: 1px; }
+.track { position: relative; height: 10px; border-radius: 999px; background: color-mix(in oklab, var(--muted-foreground) 18%, transparent); overflow: hidden; display: flex; }
+.track span { height: 100%; transition: width 200ms ease-out; }
+.track span + span { box-shadow: inset 2px 0 0 var(--background); }
+.mrow.sel .track span + span { box-shadow: inset 2px 0 0 var(--card); }
+.mhead { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; font-size: 0.875rem; color: var(--muted-foreground); }
+
+/* В: the bar is the answer; rows below are what it is made of */
+.vrows { list-style: none; margin: 0; padding: 0; }
+.vrow { display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid var(--border); }
+.vrow:first-child { border-top: 0; }
+.vrow .nm { display: flex; align-items: center; gap: 8px; font-weight: 500; flex: 1; min-width: 0; }
+.vrow .raw { font-size: 0.9375rem; color: var(--muted-foreground); white-space: nowrap; }
+.vrow .raw b { color: var(--foreground); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>Одно число — один раз</h1>
+      <p class="lede">
+        Сейчас граммы человека повторяются столбиком слева: на сегменте полосы, под «−&nbsp;+», в строке, а в «Долях» ещё в сводке «по&nbsp;…&nbsp;г» и в каждом контейнере.
+        У двоих одно и то же число на экране <b>3&nbsp;раза</b>, у четырёх равных порций — <b>10&nbsp;раз</b>.
+      </p>
+      <p class="lede">Три способа оставить его в одном месте. В каждом телефоне работают «−&nbsp;+», «Поровну», выбор человека и число порций; под телефоном — сколько раз на экране граммы первого.</p>
+    </div>
+    <div class="seg-ctl" role="group" aria-label="Тема">
+      <button type="button" data-theme-set="light">Светлая</button>
+      <button type="button" data-theme-set="system" aria-pressed="true">Как в системе</button>
+      <button type="button" data-theme-set="dark">Тёмная</button>
+    </div>
+  </div>
+
+  <div class="variants">
+    <section class="variant">
+      <h2><span class="letter">А</span>Граммы — в строке<span class="pick">Рекомендую</span></h2>
+      <p class="thesis">Полоса показывает доли шириной, а числа живут только в строках и контейнерах.</p>
+      <div class="phonebar"><div class="seg-ctl" data-mode-for="a"></div><span class="count" data-count-for="a"></span></div>
+      <div class="phone" id="phone-a"></div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>На полосе только имена (в «Долях» — номера). Сколько кому, видно по ширине, а точно — в строке.</li>
+          <li>Под полосой «− Ваня +», без граммов.</li>
+          <li>Доли поровну: «по 790&nbsp;г» один раз над контейнерами, сами контейнеры — только номера. Тап по номеру — своя порция, как сейчас.</li>
+          <li>Доли разные или есть своя: граммы в контейнерах, сверху — диапазон.</li>
+        </ul>
+        <h3>Цена</h3>
+        <p>Когда тянешь границу, число меняется не под пальцем, а в строке ниже.</p>
+      </div>
+    </section>
+
+    <section class="variant">
+      <h2><span class="letter">Б</span>Строка и есть доля</h2>
+      <p class="thesis">Полосы нет: у каждой строки своя дорожка доли, «− +» прямо у числа выбранного.</p>
+      <div class="phonebar"><div class="seg-ctl" data-mode-for="b"></div><span class="count" data-count-for="b"></span></div>
+      <div class="phone" id="phone-b"></div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>Вместо общей полосы и строк под ней — одна строка на человека: имя, граммы, под ними дорожка его доли от всего блюда.</li>
+          <li>Тап по строке выбирает человека, у выбранного «−» и «+» по бокам числа. Отдельной строки «− +» нет.</li>
+          <li>Одинаковые порции в «Долях» — одна строка «1&nbsp;2&nbsp;3&nbsp;4 · по 790&nbsp;г». Тап по номеру — эта порция выходит отдельной строкой со своими «− +».</li>
+        </ul>
+        <h3>Цена</h3>
+        <p>Границу больше не тянут пальцем, только «− +» по 1&nbsp;%. «На завтра» с края полосы нужно перенести в другое место. Самый большой переворот из трёх.</p>
+      </div>
+    </section>
+
+    <section class="variant">
+      <h2><span class="letter">В</span>Полоса — это ответ</h2>
+      <p class="thesis">Граммы крупно на полосе, строки под ней — только сырой вес и ⧉.</p>
+      <div class="phonebar"><div class="seg-ctl" data-mode-for="c"></div><span class="count" data-count-for="c"></span></div>
+      <div class="phone" id="phone-c"></div>
+      <div class="notes">
+        <h3>Что меняется</h3>
+        <ul>
+          <li>Полоса выше (60&nbsp;px), граммы на ней 20&nbsp;px. Двигаешь границу — число меняется прямо под пальцем.</li>
+          <li>Строки людей без готового числа: имя, «695&nbsp;г сырого», ⧉.</li>
+          <li>Доли поровну: на полосе только номера, под ней один раз «по 790&nbsp;г × 4». Контейнеров нет.</li>
+        </ul>
+        <h3>Цена</h3>
+        <p>Главное число мельче, чем сейчас в строке (20 против 30&nbsp;px), а в узком сегменте его не будет совсем. Своей порции нужен другой вход: тап по сегменту открывает поле.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const NBSP = ' ';
+const ICONS = {
+  down: '<path d="m6 9 6 6 6-6"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  pie: '<path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>',
+  minus: '<path d="M5 12h14"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+// SPEC §11 soup as on the calculator now: 1 390 g raw counted, 3 160 g cooked.
+const COOKED = 3160, RAW = 1390;
+const g = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+const NAMES = ['Ваня', 'Ксюша', 'Тёща'];
+const times = (n) => `${n}${NBSP}${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'раза' : 'раз'}`;
+const plural = (n, one, few, many) => (n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many);
+
+const equalSplit = (n) => Array(n).fill(100 / n);
+const fresh = () => ({ mode: 'people', people: [54, 46], shares: equalSplit(4), sel: { people: 0, shares: 0 } });
+// In Б nothing is chosen among equal portions at first: they are one row until a number is tapped.
+const state = { a: fresh(), b: { ...fresh(), sel: { people: 0, shares: -1 } }, c: fresh() };
+
+// ±1 % for the chosen one; the difference goes to (or comes from) the others, the largest first.
+function nudge(ws, i, d) {
+  const next = ws.slice();
+  if (d < 0 && next[i] <= 1) return next;
+  const others = next.map((w, j) => [w, j]).filter(([, j]) => j !== i);
+  const pick = d > 0 ? others.filter(([w]) => w > 1).sort((x, y) => y[0] - x[0])[0] : others.sort((x, y) => x[0] - y[0])[0];
+  if (!pick) return next;
+  next[i] += d; next[pick[1]] -= d;
+  return next;
+}
+const parts = (st) => {
+  const ws = st[st.mode];
+  return ws.map((w, i) => ({ i, share: w / 100, cooked: COOKED * w / 100, raw: RAW * w / 100, name: st.mode === 'people' ? NAMES[i] : `Порция ${i + 1}`, no: i + 1 }));
+};
+const allEqual = (ps) => ps.every((p) => Math.round(p.cooked) === Math.round(ps[0].cooked));
+
+const header = () => `
+  <div class="grid2">
+    <div class="tile"><span class="lbl">Сырой</span><span class="val num">${g(RAW)}<span class="unit">г</span></span></div>
+    <div class="tile on"><span class="lbl">Готовый</span><span class="val num">${g(COOKED)}<span class="unit">г</span></span></div>
+  </div>
+  <div class="quiet">Без тары ${icon('down')} · k блюда = 0,93</div>`;
+
+const pickrow = (st) => st.mode === 'people'
+  ? `<div class="pickrow"><div class="picker">${icon('users')}<span>Ваня и Ксюша</span><span class="chev">${icon('down')}</span></div></div>`
+  : `<div class="pickrow"><div class="picker">${icon('pie')}<span>Доли</span><span class="chev">${icon('down')}</span></div>
+       <div class="stepper"><button type="button" data-act="fewer" aria-label="Убрать порцию">${icon('minus')}</button><span class="num">${st.shares.length}</span><button type="button" data-act="more" aria-label="Добавить порцию">${icon('plus')}</button></div></div>`;
+
+const controls = (st, ps, withGrams) => {
+  const s = ps[st.sel[st.mode]];
+  return `<div class="controls">
+    <button class="ob" type="button" data-act="minus" aria-label="${s.name}: меньше">${icon('minus')}</button>
+    <span class="chosen"><span>${s.name}</span>${withGrams ? `<b class="num">${g(s.cooked)} г</b>` : ''}</span>
+    <button class="ob" type="button" data-act="plus" aria-label="${s.name}: больше">${icon('plus')}</button>
+    <button class="ghost" type="button" data-act="equal" style="margin-left:auto" ${allEqual(ps) ? 'disabled' : ''}>Поровну</button>
+  </div>`;
+};
+
+const bar = (st, ps, { grams, tall }) => {
+  let at = 0;
+  const grips = ps.slice(0, -1).map((p) => { at += p.share * 100; return `<span class="grip" style="left:${at}%"></span>`; }).join('');
+  const people = st.mode === 'people';
+  return `<div class="bar ${tall ? 'tall' : ''}">${ps.map((p) => `
+    <button type="button" class="seg l${p.no} ${p.i === st.sel[st.mode] ? 'sel' : ''}" style="flex:${p.share} 1 0" data-sel="${p.i}" aria-label="${p.name}${grams ? `: ${g(p.cooked)} г` : ''}">
+      ${grams ? `<small>${people ? p.name : p.no}</small><b class="num">${g(p.cooked)} г</b>` : `<span class="t">${people ? p.name : p.no}</span>`}
+    </button>`).join('')}${grips}</div>`;
+};
+
+const copyBtn = (label) => `<button class="copy" type="button" aria-label="Скопировать для трекера: ${label}">${icon('copy')}</button>`;
+
+/* ——— А: the number lives in the row or the container ——— */
+function variantA(st) {
+  const ps = parts(st);
+  const sel = st.sel[st.mode];
+  let body;
+  if (st.mode === 'people') {
+    body = `<ul class="rows">${ps.map((p) => `
+      <li class="row"><div class="who-n"><span class="nm"><span class="lid l${p.no}"></span>${p.name}</span><span class="sub num">${g(p.raw)} г сырого</span></div>
+        <span class="ans num">${g(p.cooked)}<span class="unit">г</span></span>${copyBtn(p.name)}</li>`).join('')}</ul>`;
+  } else if (allEqual(ps)) {
+    body = `<div class="summary"><span class="big num">по ${g(ps[0].cooked)}<span class="unit">г</span></span><span class="rest num">× ${ps.length} · ${g(ps[0].raw)} г сырого</span>${copyBtn('одна порция')}</div>
+      <ul class="boxes">${ps.map((p) => `<li><button type="button" class="box ${p.i === sel ? 'sel' : ''}" data-sel="${p.i}" aria-label="${p.name}: своя порция"><span class="lidno l${p.no}">${p.no}</span></button></li>`).join('')}</ul>`;
+  } else {
+    const lo = Math.min(...ps.map((p) => p.cooked)), hi = Math.max(...ps.map((p) => p.cooked));
+    body = `<div class="summary"><span class="big num">${g(lo)}–${g(hi)}<span class="unit">г</span></span><span class="rest">${ps.length} ${plural(ps.length, 'порция', 'порции', 'порций')} по долям</span></div>
+      <ul class="grid6">${ps.map((p) => `
+        <li class="ptile ${p.i === sel ? 'sel' : ''}" data-sel="${p.i}"><span class="lidno l${p.no}">${p.no}</span>${copyBtn(p.name).replace('class="copy"', 'class="copy tcopy"')}
+          <span class="amt num">${g(p.cooked)}<span class="unit">г</span></span><span class="oth num">${g(p.raw)} г сырого</span></li>`).join('')}</ul>`;
+  }
+  return `${pickrow(st)}${bar(st, ps, { grams: false })}${controls(st, ps, false)}${body}`;
+}
+
+/* ——— Б: each row carries its share; equal portions are one row ——— */
+function variantB(st) {
+  const ps = parts(st);
+  const sel = st.sel[st.mode];
+  const track = (items) => `<div class="track">${items.map((p) => `<span class="l${p.no}" style="width:${p.share * 100}%"></span>`).join('')}</div>`;
+  const single = (p) => {
+    const on = p.i === sel;
+    return `<li class="mrow ${on ? 'sel' : ''}" data-sel="${p.i}">
+      <div class="line">
+        <div class="who-n"><span class="nm">${st.mode === 'people' ? `<span class="lid l${p.no}"></span>${p.name}` : `<span class="lidno l${p.no}">${p.no}</span>Порция ${p.no}`}</span><span class="sub num">${g(p.raw)} г сырого</span></div>
+        ${on ? `<button class="ob" type="button" data-act="minus" aria-label="${p.name}: меньше">${icon('minus')}</button>` : ''}
+        <span class="ans num">${g(p.cooked)}<span class="unit">г</span></span>
+        ${on ? `<button class="ob" type="button" data-act="plus" aria-label="${p.name}: больше">${icon('plus')}</button>` : copyBtn(p.name)}
+      </div>${track([p])}</li>`;
+  };
+  // Portions with the same grams (and not the chosen one) are one row.
+  let rows = '';
+  if (st.mode === 'shares') {
+    const groups = new Map();
+    ps.forEach((p) => { if (p.i === sel) return; const k = Math.round(p.cooked); groups.set(k, [...(groups.get(k) ?? []), p]); });
+    const order = [...ps.map((p) => (p.i === sel ? { one: p } : null)).filter(Boolean), ...[...groups.values()].map((grp) => (grp.length === 1 ? { one: grp[0] } : { grp }))];
+    order.sort((x, y) => (x.one ?? x.grp[0]).i - (y.one ?? y.grp[0]).i);
+    rows = order.map((o) => o.one ? single(o.one) : `
+      <li class="mrow">
+        <div class="line">
+          <div class="who-n"><span class="nm"><span class="lids">${o.grp.map((p) => `<button type="button" data-sel="${p.i}" aria-label="Выбрать: ${p.name}"><span class="lidno l${p.no}">${p.no}</span></button>`).join('')}</span></span><span class="sub num" style="padding-left:0">× ${o.grp.length} · по ${g(o.grp[0].raw)} г сырого</span></div>
+          <span class="ans num">по ${g(o.grp[0].cooked)}<span class="unit">г</span></span>${copyBtn('одна порция')}
+        </div>${track(o.grp)}</li>`).join('');
+  } else {
+    rows = ps.map(single).join('');
+  }
+  return `${pickrow(st)}<div class="mhead"><span>Тап по строке — выбрать</span><button class="ghost" type="button" data-act="equal" ${allEqual(ps) ? 'disabled' : ''}>Поровну</button></div><ul class="meter">${rows}</ul>`;
+}
+
+/* ——— В: the bar is the answer ——— */
+function variantC(st) {
+  const ps = parts(st);
+  const equal = st.mode === 'shares' && allEqual(ps);
+  let body;
+  if (st.mode === 'people') {
+    body = `<ul class="vrows">${ps.map((p) => `<li class="vrow"><span class="nm"><span class="lid l${p.no}"></span>${p.name}</span><span class="raw num"><b>${g(p.raw)}</b> г сырого</span>${copyBtn(p.name)}</li>`).join('')}</ul>`;
+  } else if (equal) {
+    body = '';
+  } else {
+    body = `<ul class="vrows">${ps.map((p) => `<li class="vrow"><span class="nm"><span class="lidno l${p.no}">${p.no}</span></span><span class="raw num"><b>${g(p.raw)}</b> г сырого</span>${copyBtn(p.name)}</li>`).join('')}</ul>`;
+  }
+  const caption = equal ? `<div class="caption"><span class="big num">по ${g(ps[0].cooked)}<span class="unit">г</span></span><span class="muted num" style="flex:1">× ${ps.length} · ${g(ps[0].raw)} г сырого</span>${copyBtn('одна порция')}</div>` : '';
+  return `${pickrow(st)}${bar(st, ps, { grams: !equal, tall: true })}${caption}${controls(st, ps, false)}${body}`;
+}
+
+const VARIANTS = { a: variantA, b: variantB, c: variantC };
+
+function render(key) {
+  const st = state[key];
+  const phone = document.getElementById(`phone-${key}`);
+  phone.innerHTML = `<div class="scroll"><main>${header()}<section class="who" aria-label="Кто ест">${VARIANTS[key](st)}</section></main></div>`;
+  const sel = st.sel;
+  phone.querySelectorAll('[data-sel]').forEach((el) => el.addEventListener('click', (e) => {
+    if (e.target.closest('.copy') || e.target.closest('.ob')) return;
+    e.stopPropagation();
+    sel[st.mode] = +el.dataset.sel; render(key);
+  }));
+  phone.querySelectorAll('[data-act]').forEach((el) => el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const act = el.dataset.act, ws = st[st.mode];
+    if (act === 'plus' || act === 'minus') st[st.mode] = nudge(ws, sel[st.mode], act === 'plus' ? 1 : -1);
+    if (act === 'equal') st[st.mode] = equalSplit(ws.length);
+    if (act === 'more' && ws.length < 5) { st.shares = equalSplit(ws.length + 1); }
+    if (act === 'fewer' && ws.length > 2) { st.shares = equalSplit(ws.length - 1); sel.shares = Math.min(sel.shares, ws.length - 2); }
+    // Б: equal again — the chosen portion goes back into its row.
+    if (key === 'b' && st.mode === 'shares' && act !== 'plus' && act !== 'minus') sel.shares = -1;
+    render(key);
+  }));
+  // How many times the first one's cooked grams are on this screen.
+  const first = g(parts(st)[0].cooked);
+  // Text pieces that say exactly this number: «1 706», «1 706 г», «по 790».
+  const walker = document.createTreeWalker(phone, NodeFilter.SHOW_TEXT);
+  let found = 0;
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const t = node.textContent.replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
+    if (t.replace(/^по /, '').replace(/ г$/, '') === first.replace(NBSP, ' ')) found++;
+  }
+  document.querySelector(`[data-count-for="${key}"]`).innerHTML = `«${first}&nbsp;г» на экране: <b>${times(found)}</b>`;
+  const mode = document.querySelector(`[data-mode-for="${key}"]`);
+  mode.innerHTML = [['people', 'Люди'], ['shares', 'Доли']].map(([m, t]) => `<button type="button" aria-pressed="${st.mode === m}" data-m="${m}">${t}</button>`).join('');
+  mode.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { st.mode = b.dataset.m; render(key); }));
+}
+Object.keys(VARIANTS).forEach(render);
+
+const themeButtons = document.querySelectorAll('[data-theme-set]');
+themeButtons.forEach((b) => b.addEventListener('click', () => {
+  const t = b.dataset.themeSet;
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = t;
+  themeButtons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+}));
+</script>
+</body>
+</html>
