@@ -27,7 +27,6 @@ import {
   phraseKey,
   phraseSummary,
   phraseSummaryText,
-  productCount,
   removePhraseItem,
   spokenToPhrase,
   type ExcludedOverrides,
@@ -51,6 +50,13 @@ const SPEECH_ERROR_TEXT: Record<SpeechError, string> = {
 }
 
 const canPaste = typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
+
+/** What was said by the mic: under the field until it is edited. */
+interface Said {
+  text: string
+  /** Phrases that are not products, thrown away. */
+  skipped: string[]
+}
 
 /** Where the caret goes after the text is changed by a button: a position, or the end. */
 type CaretTarget = number | 'end'
@@ -97,8 +103,10 @@ export function DishEditorForm() {
   const [text, setText] = useState(initial.text)
   const [overrides, setOverrides] = useState<ExcludedOverrides>(initial.overrides)
   const [caret, setCaret] = useState<number | null>(null)
-  // «Сказали: «…»» under the field, until it is edited.
-  const [said, setSaid] = useState<string | null>(null)
+  // «Сказали: «…»» (and «Пропустил: …») under the field, until it is edited.
+  const [said, setSaid] = useState<Said | null>(null)
+  // «Что в блюде» folded: the parse list moves up to work with. Per visit, not stored.
+  const [expanded, setExpanded] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const fieldRef = useRef<HTMLTextAreaElement>(null)
   const addTareRef = useRef<HTMLAnchorElement>(null)
@@ -132,17 +140,19 @@ export function DishEditorForm() {
   // gets the height set here, so the phrase is never a scroll box inside the form.
   useLayoutEffect(() => {
     const field = fieldRef.current
-    if (!field || CSS.supports('field-sizing', 'content')) return
+    if (!field || CSS.supports('field-sizing', 'content') || field.closest('[hidden]')) return
     field.style.height = 'auto'
     field.style.height = `${field.scrollHeight + field.offsetHeight - field.clientHeight}px`
-  }, [text])
+  }, [text, expanded])
 
   // The caret on open (at the end), and after a button changed the text.
   useLayoutEffect(() => {
     const field = fieldRef.current
     const target = nextCaret.current
-    if (!field || target === null || field.closest('[hidden]')) return
+    if (!field || target === null) return
     nextCaret.current = null
+    // Folded, or under a screen over the form: the text changes, the hidden field is not focused.
+    if (field.closest('[hidden]')) return
     const at = target === 'end' ? field.value.length : Math.min(target, field.value.length)
     field.focus({ preventScroll: true })
     field.setSelectionRange(at, at)
@@ -154,14 +164,14 @@ export function DishEditorForm() {
     lang: DEFAULT_PHRASE_LANGUAGE.speechLocale,
     onResult: (spokenText) => {
       const spoken = spokenToPhrase(spokenText)
-      if (spoken.count === 0 || !spoken.text.trim()) {
+      const products = spoken.text.trim() !== ''
+      if (!products && spoken.skipped.length === 0) {
         toast(SPEECH_ERROR_TEXT.nothingHeard)
         return
       }
-      const before = text
-      replaceText(appendToPhrase(text, spoken.text), 'end')
-      setSaid(spokenText)
-      undoable(`Добавлено голосом: ${productCount(spoken.count)}`, before)
+      // Said goes straight into the field; «Сказали» under it shows what was heard.
+      if (products) replaceText(appendToPhrase(text, spoken.text), 'end')
+      setSaid({ text: spokenText, skipped: spoken.skipped })
     },
     onError: (error) => toast(SPEECH_ERROR_TEXT[error]),
   })
@@ -310,8 +320,14 @@ export function DishEditorForm() {
                   : null
               }
               said={said}
+              expanded={expanded}
+              onExpandedChange={(open) => {
+                // Folding hides the mic: recording stops with it.
+                if (!open && speech.listening) speech.stop()
+                setExpanded(open)
+              }}
             />
-            <PhraseList items={items} caret={caret} onToggle={toggle} onRemove={remove} />
+            <PhraseList items={items} caret={expanded ? caret : null} onToggle={toggle} onRemove={remove} />
             {summaryText && (
               <p className="px-1 text-sm text-muted-foreground" aria-live="polite">
                 <span className="font-semibold text-foreground">{summaryText.kind}</span> · {summaryText.details}
