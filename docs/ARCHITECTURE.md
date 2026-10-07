@@ -397,6 +397,7 @@ src/
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
 worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
+scripts/appVersion.ts  — версия сборки для `__APP_VERSION__` (§7); тест в `scripts/__tests__`
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 wrangler.preview-db.jsonc — только база превью, для `pnpm db:migrate:preview` (CLOUDFLARE §5)
 ```
@@ -504,6 +505,7 @@ Hash-маршруты выбраны потому, что работают на 
 - Конфиг Vitest — в `vite.config.ts` (`test: { environment: 'node' }`). Домену DOM не нужен.
 - `pnpm build` = `tsc -b && vite build`: должен проходить без ошибок типов.
 - `pnpm lint` = oxlint.
+- **Версия сборки** — `__APP_VERSION__` (`define` в `vite.config.ts`, тип в `src/vite-env.d.ts`), считает `scripts/appVersion.ts`: `MAJOR.MINOR` из `version` в `package.json`, `PATCH` — `git rev-list --count HEAD`. Прод — `0.1.312`, превью ветки — `0.1.312-b241417` (короткий sha коммита), локально — `0.1.312-b241417-dev`. Видна в настройках под блоком «Приложение» (UX §4 «Настройки»). Подробности — CLOUDFLARE §8.
 - Для проверки на телефоне: `pnpm dev --host`, открыть адрес из локальной сети. Помнить: у `localhost` и у LAN-адреса разные origin, поэтому и разные хранилища; перенести данные — «Копия данных» в настройках.
 - После `shadcn add` проверить, что сгенерированный код проходит `pnpm lint` и `pnpm build`.
 - **С этапа 11** проверка PWA — `pnpm build`, затем конфигурация `preview` в `.claude/launch.json` (`pnpm preview`, порт 4180; Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone. После проверки Service Worker на `localhost:4180` лучше удалить (DevTools → Application или `navigator.serviceWorker.getRegistrations()`), чтобы он не перехватывал другой проект на том же порту.
