@@ -27,8 +27,6 @@ export interface PhraseLanguage {
   toTaste: string
   /** Names «не учитывать» by default, lower case. */
   excludedNames: readonly string[]
-  /** «1 продукт», «3 продукта», «5 продуктов» by `Intl.PluralRules(locale)`; `other` is the fallback. */
-  productWords: Readonly<Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }>
 
   // What was said → the phrase.
   /** Number words: «шестьсот» → 600, «полтора» → 1.5. */
@@ -47,6 +45,11 @@ export interface PhraseLanguage {
   separators: readonly string[]
   /** Words thrown away and shown: «ну», «значит». */
   fillers: readonly string[]
+  /**
+   * Words that are not food («я», «говорю», «потому»): a said part without a quantity that has one is
+   * not a product and is skipped; in a product with a quantity they are removed from the name.
+   */
+  stopWords: readonly string[]
   /** «600 грамм курицы»: the noun's case form → its nominative and gender. */
   nouns: Readonly<Record<string, { nominative: string; gender: NounGender }>>
   /** An adjective in an oblique case: it belongs to the noun after it. */
@@ -89,7 +92,6 @@ export const RU: PhraseLanguage = {
   unitShort: { kg: 'кг', l: 'л', ml: 'мл', pieces: 'шт', spoons: 'ложки' },
   toTaste: 'по вкусу',
   excludedNames: ['вода', 'соль', 'специи', 'перец', 'лавровый лист'],
-  productWords: { one: 'продукт', few: 'продукта', many: 'продуктов', other: 'продукта' },
 
   numberWords: {
     ноль: 0, один: 1, одна: 1, одну: 1, одно: 1, два: 2, две: 2, три: 3, четыре: 4, пять: 5, шесть: 6, семь: 7,
@@ -109,6 +111,18 @@ export const RU: PhraseLanguage = {
     'ну', 'значит', 'так', 'вот', 'э', 'ээ', 'эээ', 'эм', 'мм', 'короче', 'типа', 'это', 'там', 'а', 'ага', 'сейчас',
     'у', 'нас', 'меня', 'положили', 'положил', 'положила', 'кладём', 'кладем', 'взяли', 'взял', 'взяла', 'добавили',
     'добавил', 'добавила',
+  ],
+  stopWords: [
+    'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они', 'его', 'её', 'ее', 'их', 'мне', 'меня', 'тебе', 'тебя', 'нам', 'вам',
+    'им', 'ей', 'ему', 'мой', 'моя', 'моё', 'мое', 'мои', 'свой', 'сам', 'сама', 'себе',
+    'что', 'что-то', 'чего', 'кто', 'где', 'когда', 'если', 'потому', 'поэтому', 'почему', 'чтобы', 'как', 'будто',
+    'который', 'которая', 'которое', 'такое', 'такой', 'тут', 'здесь', 'теперь', 'сегодня', 'уже', 'всё', 'все',
+    'или', 'но', 'да', 'нет', 'не', 'ни',
+    'быть', 'был', 'была', 'было', 'были', 'будет', 'буду', 'должно', 'должен', 'должна', 'должны', 'можно', 'нужно',
+    'надо', 'может', 'наверное', 'кажется',
+    'говорю', 'говорит', 'сказал', 'сказала', 'думаю', 'хочу', 'знаю', 'слушай', 'смотри', 'давай', 'блин',
+    'просто', 'очень', 'вообще', 'ладно', 'окей', 'хорошо', 'почище', 'продукт', 'продукты', 'продукта',
+    'записано', 'записать', 'запиши', 'положить', 'положу', 'получилось',
   ],
   nouns,
   adjectiveEnding: /(ого|его|ой|ей|ых|их)$/,

@@ -319,10 +319,3 @@ export function phraseSummary(items: readonly PhraseItem[]): { kind: CookingKind
     excludedGrams: sum(named.filter((i) => i.excluded)),
   }
 }
-
-/** «1 продукт», «3 продукта», «5 продуктов» — for «Добавлено голосом: …». */
-export function productCount(count: number): string {
-  const language = DEFAULT_PHRASE_LANGUAGE
-  const rule = new Intl.PluralRules(language.locale).select(count)
-  return `${count} ${language.productWords[rule] ?? language.productWords.other}`
-}

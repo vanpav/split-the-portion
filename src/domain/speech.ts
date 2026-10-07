@@ -13,10 +13,14 @@ export interface SpokenPhrase {
   count: number
   /** Filler words thrown away («ну», «значит»), each once, in order. */
   dropped: string[]
+  /** Said parts that are not products («я что-то говорю»), as said in lower case, in order. */
+  skipped: string[]
 }
 
 /** Quantity first and without a unit: a count below this is pieces («две луковицы»). */
 const PIECES_BELOW = 30
+/** A said part without a quantity and longer than this is talk, not a product name. */
+const MAX_NAME_WORDS = 3
 
 /** Lower case words, a «,» token for punctuation, decimals kept («1,5»), «600г» split. */
 function tokensOf(said: string, language: PhraseLanguage): string[] {
@@ -115,10 +119,18 @@ export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_
   const [tasteFirst, tasteSecond] = language.toTaste.split(' ')
   const items: SpokenItem[] = []
   const dropped: string[] = []
+  const skipped: string[] = []
+  const isStop = (w: string) => language.stopWords.includes(w)
   const fresh = (): SpokenItem => ({ words: [], n: null, unit: null, quantityFirst: false, closed: false, toTaste: false })
   let cur = fresh()
   const flush = () => {
-    if (cur.words.length || cur.n !== null) items.push(cur)
+    if (cur.n === null && !cur.toTaste && (cur.words.some(isStop) || cur.words.length > MAX_NAME_WORDS)) {
+      skipped.push(cur.words.join(' '))
+    } else {
+      // A quantity keeps the product, nameless if nothing else is left: the phrase reports it.
+      cur.words = cur.words.filter((w) => !isStop(w))
+      if (cur.words.length || cur.n !== null) items.push(cur)
+    }
     cur = fresh()
   }
   for (let i = 0; i < ts.length; i++) {
@@ -177,6 +189,8 @@ export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_
       continue
     }
     if (cur.quantityFirst && cur.closed) flush()
+    // «двести грамм я …»: talk right after the quantity does not take the product's place.
+    if (cur.quantityFirst && isStop(t)) continue
     cur.words.push(t)
     if (cur.quantityFirst && (Object.hasOwn(language.nouns, t) || !language.adjectiveEnding.test(t))) cur.closed = true
   }
@@ -185,6 +199,7 @@ export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_
     text: capitalize(items.map((item) => phraseOf(item, language)).join(', '), language),
     count: items.length,
     dropped: [...new Set(dropped)],
+    skipped,
   }
 }
 

@@ -7,7 +7,6 @@ import {
   parsePhrase,
   phraseIngredients,
   phraseSummary,
-  productCount,
   removePhraseItem,
   type PhraseItem,
 } from '../phrase'
@@ -298,20 +297,5 @@ describe('phraseSummary', () => {
   it('null without named products', () => {
     expect(phraseSummary(parsePhrase(''))).toBeNull()
     expect(phraseSummary(parsePhrase('200'))).toBeNull()
-  })
-})
-
-describe('productCount', () => {
-  it.each([
-    [1, '1 продукт'],
-    [2, '2 продукта'],
-    [5, '5 продуктов'],
-    [11, '11 продуктов'],
-    [21, '21 продукт'],
-    [22, '22 продукта'],
-    [25, '25 продуктов'],
-    [111, '111 продуктов'],
-  ])('%i', (n, text) => {
-    expect(productCount(n)).toBe(text)
   })
 })

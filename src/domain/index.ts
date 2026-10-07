@@ -46,7 +46,6 @@ export {
   phraseIngredients,
   phraseKey,
   phraseSummary,
-  productCount,
   removePhraseItem,
 } from './phrase'
 export type { ExcludedOverrides, PhraseIssue, PhraseItem, PhraseOptions } from './phrase'

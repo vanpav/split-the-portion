@@ -30,7 +30,7 @@ describe('spokenToPhrase', () => {
   })
 
   it('drops filler words, each once, in order', () => {
-    expect(spokenToPhrase('ну значит так гречка двести грамм')).toEqual({ text: 'Гречка 200', count: 1, dropped: ['ну', 'значит', 'так'] })
+    expect(spokenToPhrase('ну значит так гречка двести грамм')).toEqual({ text: 'Гречка 200', count: 1, dropped: ['ну', 'значит', 'так'], skipped: [] })
     expect(spokenToPhrase('ну вот ну рис сто').dropped).toEqual(['ну', 'вот'])
   })
 
@@ -54,6 +54,42 @@ describe('spokenToPhrase', () => {
     const [first, second] = parsePhrase(out.text)
     expect(first.issues).toEqual([{ level: 'warning', code: 'tooHeavy', grams: 8000 }])
     expect(second.issues).toEqual([{ level: 'warning', code: 'duplicate', name: 'Гречка' }])
+  })
+})
+
+describe('spokenToPhrase: what is not a product', () => {
+  it('skips talk after the products, with punctuation', () => {
+    const out = spokenToPhrase(
+      'Гречка 200 нут 200 кускус 150. Я вот что-то говорю, а оно не должно быть записано, должно быть почище. Потому что это не продукт',
+    )
+    expect(out.text).toBe('Гречка 200, нут 200, кускус 150')
+    expect(out.count).toBe(3)
+    expect(out.skipped).toEqual(['я что-то говорю', 'оно не должно быть записано', 'должно быть почище', 'потому что не продукт'])
+    expect(out.dropped).toEqual(['вот', 'а', 'это'])
+  })
+
+  it('skips talk after the products, without punctuation', () => {
+    const out = spokenToPhrase(
+      'гречка двести нут двести кускус сто пятьдесят я вот что-то говорю а оно не должно быть записано должно быть почище потому что это не продукт',
+    )
+    expect(out.text).toBe('Гречка 200, нут 200, кускус 150')
+    expect(out.skipped).toEqual(['я что-то говорю оно не должно быть записано должно быть почище потому что не продукт'])
+  })
+
+  it('a quantity keeps the product, stop words leave its name', () => {
+    expect(spokenToPhrase('я думаю гречка двести')).toMatchObject({ text: 'Гречка 200', skipped: [] })
+    expect(spokenToPhrase('двести грамм я муки')).toMatchObject({ text: 'Мука 200', skipped: [] })
+    expect(spokenToPhrase('курица шестьсот я думаю двести').text).toBe('Курица 600, 200')
+  })
+
+  it('more than three words without a quantity is talk', () => {
+    expect(spokenToPhrase('рис сто купил в магазине у дома').skipped).toEqual(['купил в магазине дома'])
+  })
+
+  it('keeps short names and «по вкусу»', () => {
+    expect(spokenToPhrase('курица шестьсот и соль')).toMatchObject({ text: 'Курица 600, соль', skipped: [] })
+    expect(spokenToPhrase('лавровый лист')).toMatchObject({ text: 'Лавровый лист', count: 1, skipped: [] })
+    expect(spokenToPhrase('соль по вкусу')).toMatchObject({ text: 'Соль по вкусу', count: 1, skipped: [] })
   })
 })
 
