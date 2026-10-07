@@ -47,7 +47,7 @@ describe('authErrorText', () => {
     online(true)
     expect(authErrorText({ code: 'INVALID_EMAIL', status: 400 })).toBe('Неверный адрес почты')
     expect(authErrorText({ code: 'PASSWORD_TOO_SHORT', status: 400 })).toBe('Минимум 8 символов')
-    expect(authErrorText({ code: 'ERROR_X', status: 400 })).toBe('Face ID не сработал — войди паролем')
+    expect(authErrorText({ code: 'ERROR_X', status: 400 })).toBe('Passkey не сработал — войди паролем')
   })
 
   it('falls back by status, never to a catch-all', () => {

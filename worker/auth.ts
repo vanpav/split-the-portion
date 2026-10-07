@@ -1,12 +1,12 @@
-import { passkey } from '@better-auth/passkey'
+import { getAuthenticatorName, passkey } from '@better-auth/passkey'
 import { type BetterAuthOptions, betterAuth } from 'better-auth'
-import { APIError } from 'better-auth/api'
+import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { organization } from 'better-auth/plugins'
 import { nanoid } from 'nanoid'
 import { MAX_GROUPS, PERSONAL_GROUP_NAME } from '../src/account/types'
 
 /**
- * Sign-in (docs/ARCHITECTURE.md §9): email and password, a passkey (Face ID) on top, groups as
+ * Sign-in (docs/ARCHITECTURE.md §9): email and password, passkeys (one per device) on top, groups as
  * Better Auth organizations. The address comes from the request, so production, branch previews
  * and localhost each work as themselves; a passkey belongs to the host it was made on.
  * The password hash is native scrypt under `nodejs_compat` (`@better-auth/utils` picks
@@ -48,6 +48,17 @@ export function createAuth(env: Env, origin: string, secret: string) {
     ...authOptions(origin),
     secret,
     database: env.DB,
+    hooks: {
+      // A passkey is named after the password manager that keeps it («iCloud Keychain», «Google
+      // Password Manager»), so the list in «Аккаунт» tells one device from another.
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/passkey/verify-registration') return
+        const created = ctx.context.returned as { id?: unknown; name?: unknown; aaguid?: unknown } | undefined
+        if (typeof created?.id !== 'string' || created.name) return
+        const name = getAuthenticatorName(typeof created.aaguid === 'string' ? created.aaguid : undefined)
+        if (name) await ctx.context.adapter.update({ model: 'passkey', where: [{ field: 'id', value: created.id }], update: { name } })
+      }),
+    },
     plugins: [
       organization({
         organizationHooks: {

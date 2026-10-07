@@ -18,9 +18,11 @@ export function authErrorText(error: { code?: string; status?: number } | null |
     case 'INVALID_TOKEN':
       return 'Ссылка устарела — попроси новую'
     case 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED':
-      return 'Face ID на этом устройстве уже добавлен'
+      return 'Passkey на этом устройстве уже добавлен'
+    case 'SESSION_NOT_FRESH':
+      return 'Чтобы добавить passkey, выйди и войди снова'
   }
   // The passkey prompt was closed, or there is no passkey for this site on the device.
-  if (error.code === 'AUTH_CANCELLED' || error.code?.startsWith('ERROR_')) return 'Face ID не сработал — войди паролем'
+  if (error.code === 'AUTH_CANCELLED' || error.code?.startsWith('ERROR_')) return 'Passkey не сработал — войди паролем'
   return httpErrorText(error.status)
 }
