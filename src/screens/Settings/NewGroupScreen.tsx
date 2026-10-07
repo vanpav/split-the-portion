@@ -9,7 +9,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { createGroup, openGroup } from '@/sync/session'
+import { createGroup, switchGroup } from '@/sync/session'
 
 /**
  * `#/groups/new` — «Создать группу» from Settings → «Группа» (docs/UX.md §3а): the name is typed
@@ -29,7 +29,7 @@ export function NewGroupScreen() {
     setBusy(true)
     try {
       const id = await createGroup(trimmed)
-      await openGroup(id)
+      await switchGroup(id)
       navigate(settingsPath('group'), { replace: true })
     } catch (err) {
       toast(groupErrorText(err))

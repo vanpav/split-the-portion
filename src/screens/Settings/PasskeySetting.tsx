@@ -14,7 +14,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { shortDate } from '@/domain/dates'
 
 type Passkey = { id: string; name?: string | null; createdAt: Date | string }
@@ -62,40 +61,38 @@ export function PasskeySetting() {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {passkeys && passkeys.length > 0 && (
-        <>
-          <h3 className="px-1 text-sm text-muted-foreground">Passkey</h3>
-          <ItemGroup className="gap-1">
-            {passkeys.map((passkey) => (
-              <Item key={passkey.id} variant="outline" size="sm">
-                <ItemMedia variant="icon">
-                  <KeyRoundIcon />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle>{label(passkey)}</ItemTitle>
-                  <ItemDescription>Добавлен {shortDate(passkey.createdAt)}</ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <Button
-                    variant="ghost"
-                    size="icon-lg"
-                    aria-label={`Удалить passkey «${label(passkey)}»`}
-                    disabled={busy}
-                    onClick={() => setRemoving(passkey)}
-                  >
-                    <Trash2Icon />
-                  </Button>
-                </ItemActions>
-              </Item>
-            ))}
-          </ItemGroup>
-        </>
-      )}
-      <Button variant="outline" className="md:self-start" disabled={busy} onClick={() => void add()}>
-        <PlusIcon data-icon="inline-start" />
-        Добавить passkey
-      </Button>
+    // Rows of the «Вход» box in «Аккаунт»: each passkey, then «Добавить passkey».
+    <>
+      {passkeys?.map((passkey) => (
+        <div key={passkey.id} className="flex min-h-14 items-center gap-3 py-2 pr-2 pl-4">
+          <KeyRoundIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="truncate font-medium">{label(passkey)}</span>
+            <span className="text-sm text-muted-foreground">Добавлен {shortDate(passkey.createdAt)}</span>
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            aria-label={`Удалить passkey «${label(passkey)}»`}
+            disabled={busy}
+            onClick={() => setRemoving(passkey)}
+          >
+            <Trash2Icon />
+          </Button>
+        </div>
+      ))}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void add()}
+        className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60 disabled:opacity-50"
+      >
+        <PlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="font-medium">Добавить passkey</span>
+          <span className="text-sm text-muted-foreground">Вход по Face ID или отпечатку на этом устройстве</span>
+        </span>
+      </button>
       <AlertDialog open={removing !== null} onOpenChange={(open) => !open && setRemoving(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -110,6 +107,6 @@ export function PasskeySetting() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }

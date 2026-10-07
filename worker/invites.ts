@@ -1,3 +1,4 @@
+import { shortName } from '../src/account/profile'
 import { customAlphabet, nanoid } from 'nanoid'
 import { INVITE_ALPHABET, INVITE_DAYS, INVITE_LENGTH } from '../src/account/inviteCode'
 import { type Invite, type InvitePreview, MAX_GROUPS } from '../src/account/types'
@@ -26,13 +27,13 @@ export async function inviteCode(db: D1Database, groupId: string, userId: string
 export async function previewInvite(db: D1Database, code: string, now: Date): Promise<InvitePreview | null> {
   const row = await db
     .prepare(
-      `select i.group_id as groupId, o.name as groupName, u.email as invitedBy
+      `select i.group_id as groupId, o.name as groupName, u.email, u.nickname
        from group_invite i join organization o on o.id = i.group_id join user u on u.id = i.created_by
        where i.code = ? and i.revoked = 0 and i.expires_at > ?`,
     )
     .bind(code, now.toISOString())
-    .first<{ groupId: string; groupName: string; invitedBy: string }>()
-  return row && { groupId: row.groupId, groupName: row.groupName, invitedBy: row.invitedBy.split('@')[0] }
+    .first<{ groupId: string; groupName: string; email: string; nickname: string | null }>()
+  return row && { groupId: row.groupId, groupName: row.groupName, invitedBy: shortName({ firstName: '', lastName: '', nickname: row.nickname ?? '', email: row.email }) }
 }
 
 /** How many groups the user is in. */

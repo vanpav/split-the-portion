@@ -1,6 +1,6 @@
 /** `GET /api/me`: who is signed in and in which groups (docs/ARCHITECTURE.md §9). Shared with the worker. */
 export interface Me {
-  user: { id: string; email: string }
+  user: { id: string; email: string } & Profile
   groups: AccountGroup[]
   /** The group opened on launch: the chosen one while the user is still in it, else the first one joined. */
   defaultGroupId: string | null
@@ -14,12 +14,34 @@ export interface AccountGroup {
   members: GroupMember[]
 }
 
-export interface GroupMember {
+export interface GroupMember extends Profile {
   memberId: string
   userId: string
   email: string
   role: 'owner' | 'member'
 }
+
+/**
+ * What a person tells about themselves (Настройки → Аккаунт). Every field may be empty: without a
+ * nickname the others see the part of the email before @.
+ */
+export interface Profile {
+  firstName: string
+  lastName: string
+  /** The short name others see in the group: «vanya», «Ксю». */
+  nickname: string
+  /** `/api/avatars/<userId>?v=<time>`; null — no photo. */
+  image: string | null
+}
+
+/** Longest first or last name, and nickname. */
+export const PROFILE_LIMITS = { name: 40, nickname: 24 } as const
+
+/** Largest avatar the server takes; the phone sends a 256×256 JPEG of 15–40 KB. */
+export const MAX_AVATAR_BYTES = 256 * 1024
+
+/** The side of the square the avatar is cut to on the phone. */
+export const AVATAR_SIZE = 256
 
 /** `POST /api/groups/:id/invites`. */
 export interface Invite {

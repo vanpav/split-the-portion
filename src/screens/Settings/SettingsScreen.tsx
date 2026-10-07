@@ -9,6 +9,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { cn } from '@/lib/utils'
 import { useSyncStore } from '@/store/sync'
 import { findSettingsSection, SETTINGS_SECTIONS, type SettingsSectionId } from './sections'
+import { SettingsHub } from './SettingsHub'
 import { SettingsMenu } from './SettingsMenu'
 import { SettingsSectionContent } from './SettingsSectionContent'
 
@@ -19,7 +20,7 @@ const menuPlace = (id: SettingsSectionId) => SETTINGS_SECTIONS.findIndex((s) => 
 /**
  * `#/settings` and `#/settings/:section` (docs/UX.md «Настройки»), one screen for the screen
  * transition (`screenKey`): a subsection changes inside it (`settingsSwitchAnimation`).
- * Phone: either the list of subsections (its links add an entry) or one subsection with «←» back to the list.
+ * Phone: either the hub (SettingsHub; its links add an entry) or one subsection with «←» back to it.
  * From `md`: the menu on the left (its links replace the address, so «назад» leaves the settings),
  * the subsection on the right (the first one on `#/settings`).
  * Switched by breakpoint classes only, so nothing reads the screen width.
@@ -73,11 +74,10 @@ export function SettingsScreen() {
             <ScreenHeader title="Настройки" back backTo="/" backLabel="Калькулятор" />
           </div>
           <main className="mx-auto grid w-full max-w-2xl flex-1 grid-cols-[minmax(0,1fr)] content-start gap-8 p-4 md:max-w-5xl md:grid-cols-[13rem_minmax(0,1fr)] md:items-start lg:py-8">
-            {!section && <SettingsMenu className="md:hidden" />}
+            {!section && <SettingsHub className="md:hidden" />}
             <SettingsMenu
               current={section?.id}
               shown={section ? undefined : shown.id}
-              replace
               className="max-md:hidden md:sticky md:top-20"
             />
             <div

@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+import { useAccountStore } from '@/store/account'
 import { refreshGroups } from '@/sync/session'
 
 /**
@@ -25,6 +25,7 @@ import { refreshGroups } from '@/sync/session'
  */
 export function LeaveGroupButton({ group }: { group: AccountGroup }) {
   const navigate = useNavigate()
+  const myId = useAccountStore((s) => s.me?.user.id)
   if (group.role === 'owner') return null
 
   const leave = async () => {
@@ -41,14 +42,17 @@ export function LeaveGroupButton({ group }: { group: AccountGroup }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" className="self-start text-destructive">
-          <LogOutIcon data-icon="inline-start" />
-          Выйти из группы
-        </Button>
+        <button
+          type="button"
+          className="flex min-h-14 w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left text-destructive outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:bg-muted/60"
+        >
+          <LogOutIcon aria-hidden className="size-5 shrink-0" />
+          <span className="font-medium">Выйти из группы</span>
+        </button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Выйти из группы «{groupLabel(group)}»?</AlertDialogTitle>
+          <AlertDialogTitle>Выйти из группы «{groupLabel(group, myId)}»?</AlertDialogTitle>
           <AlertDialogDescription>
             Её блюда уйдут с этого устройства, у остальных участников всё останется. Вернуться можно по новому
             приглашению.

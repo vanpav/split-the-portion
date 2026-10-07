@@ -37,6 +37,10 @@ export function authOptions(origin: string) {
       additionalFields: {
         // Opened on launch (stage 14); null — the first group the user joined.
         defaultGroupId: { type: 'string', required: false, input: false },
+        // The profile (docs/SPEC.md §13.2): written by `PUT /api/me/profile`, which checks it.
+        firstName: { type: 'string', required: false, input: false },
+        lastName: { type: 'string', required: false, input: false },
+        nickname: { type: 'string', required: false, input: false },
       },
     },
     plugins: [organization(), passkey({ rpID: new URL(origin).hostname, rpName: 'Порции', origin })],
