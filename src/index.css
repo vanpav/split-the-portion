@@ -87,6 +87,41 @@
         60% { caret-color: var(--caret-4); }
         80% { caret-color: var(--caret-5); }
     }
+
+    /* The welcome screen (docs/UX.md §3г): the logo's lunchboxes, once and gently; under `motion-safe:` only. */
+    --animate-box-drop: box-drop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    --animate-lid-lean: lid-lean 0.5s ease-out both;
+    --animate-food-pop: food-pop 0.4s cubic-bezier(0.34, 1.6, 0.64, 1) both;
+    --animate-rise: rise 0.45s ease-out both;
+    --animate-share-tug: share-tug 3.2s ease-in-out infinite;
+    --animate-sync-dash: sync-dash 1.2s linear infinite;
+    /* The copy hint (docs/UX.md §3в): a row swiped right, to the copy action, and back. */
+    --animate-swipe-hint: swipe-hint 3.2s ease-in-out infinite;
+
+    @keyframes box-drop {
+        from { transform: translateY(-1.5rem); opacity: 0; }
+    }
+    @keyframes lid-lean {
+        from { transform: rotate(-35deg); opacity: 0; }
+    }
+    @keyframes food-pop {
+        from { transform: scale(0); opacity: 0; }
+    }
+    @keyframes rise {
+        from { transform: translateY(0.5rem); opacity: 0; }
+    }
+    @keyframes share-tug {
+        0%, 100% { width: 50%; }
+        45%, 60% { width: 62%; }
+    }
+    @keyframes sync-dash {
+        to { stroke-dashoffset: -16; }
+    }
+    @keyframes swipe-hint {
+        0%, 18% { transform: translateX(0); }
+        42%, 70% { transform: translateX(5rem); }
+        92%, 100% { transform: translateX(0); }
+    }
 }
 
 /*
@@ -126,6 +161,12 @@
     --caret-3: oklch(0.62 0.12 164.5);
     --caret-4: oklch(0.6 0.13 301.4);
     --caret-5: oklch(0.64 0.14 58.2);
+    /* The calculator tour's dim around the lit element (docs/UX.md §3в). */
+    --scrim: oklch(0.2 0.045 268 / 0.58);
+    /* The logo's own colors besides the ink and the lids (public/favicon.svg): the same in both themes. */
+    --logo-lid: oklch(1 0 0);
+    --logo-carrot: oklch(0.73 0.15 49.9);
+    --logo-leaf: oklch(0.721 0.15 145.1);
     --radius: 0.875rem;
     --sidebar: oklch(0.969 0.006 255.5);
     --sidebar-foreground: oklch(0.267 0.054 269.1);
@@ -170,6 +211,7 @@
     --caret-3: color-mix(in oklab, var(--chart-3) 70%, var(--foreground));
     --caret-4: color-mix(in oklab, var(--chart-4) 70%, var(--foreground));
     --caret-5: color-mix(in oklab, var(--chart-5) 70%, var(--foreground));
+    --scrim: oklch(0.08 0.02 268 / 0.72);
     --sidebar: oklch(0.255 0.04 266.9);
     --sidebar-foreground: oklch(0.96 0.009 258.3);
     --sidebar-primary: oklch(0.722 0.143 268.2);
@@ -203,4 +245,61 @@
   input[inputmode='decimal'] {
     @apply tabular-nums;
   }
+}
+
+/*
+ * The calculator tour (driver.js, docs/UX.md §3в): its card dressed in the theme, like a popover of
+ * shadcn — driver.css is plain CSS without layers, these rules win by specificity.
+ */
+.driver-popover.hint-popover {
+  @apply rounded-2xl border border-border bg-popover px-4 pt-3.5 pb-3 font-sans text-popover-foreground shadow-lg;
+  min-width: 0;
+  max-width: min(20rem, calc(100vw - 1.5rem));
+}
+.hint-popover .driver-popover-title {
+  @apply text-base leading-snug font-semibold;
+}
+.hint-popover .driver-popover-description {
+  @apply mt-1 text-[0.9375rem] leading-normal text-muted-foreground;
+}
+.hint-popover .driver-popover-description b {
+  @apply font-medium text-foreground;
+}
+.hint-popover .driver-popover-footer {
+  @apply mt-3 gap-2;
+}
+.hint-popover .driver-popover-progress-text {
+  @apply text-xs text-muted-foreground tabular-nums;
+}
+.hint-popover .driver-popover-navigation-btns {
+  @apply gap-1;
+}
+.hint-popover .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+.hint-popover .driver-popover-footer-btn {
+  @apply inline-flex h-10 cursor-pointer items-center rounded-lg px-3.5 text-sm font-medium transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50;
+  text-shadow: none;
+  border: 0;
+}
+.hint-popover .driver-popover-next-btn {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary;
+}
+.hint-popover .hint-skip {
+  @apply bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus:bg-transparent;
+}
+.hint-popover .driver-popover-arrow {
+  border-width: 7px;
+}
+.hint-popover .driver-popover-arrow-side-top {
+  border-top-color: var(--popover);
+}
+.hint-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--popover);
+}
+.hint-popover .driver-popover-arrow-side-left {
+  border-left-color: var(--popover);
+}
+.hint-popover .driver-popover-arrow-side-right {
+  border-right-color: var(--popover);
 }

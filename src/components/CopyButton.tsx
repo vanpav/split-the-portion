@@ -14,6 +14,8 @@ interface CopyButtonProps {
   size?: 'default' | 'sm'
   /** The button itself: a swipe right on a touch screen clicks it. */
   ref?: Ref<HTMLButtonElement>
+  /** After the text went to the clipboard or to the screen to copy it by hand. */
+  onCopied?: () => void
 }
 
 /**
@@ -21,12 +23,13 @@ interface CopyButtonProps {
  * missing, so the text is shown on a screen of its own, already selected (docs/UX.md §3а): the
  * `copy` route under the screen the button is on (the calculator, a settings subsection).
  */
-export function CopyButton({ getText, disabled, label, size = 'default', ref }: CopyButtonProps) {
+export function CopyButton({ getText, disabled, label, size = 'default', ref, onCopied }: CopyButtonProps) {
   const navigate = useNavigate()
 
   const copy = async () => {
     const text = getText()
     if (!text) return
+    onCopied?.()
     try {
       await navigator.clipboard.writeText(text)
       toast('Скопировано', { description: text.split('\n')[0] + (text.includes('\n') ? ' …' : '') })

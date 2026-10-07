@@ -105,7 +105,7 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
     >
       {/* As wide as the calculator under it, so the shelf lines up with the column; on a desktop both are
           wider — more chips in sight without scrolling sideways with a mouse. */}
-      <div className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
+      <div data-hint="shelf" className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>

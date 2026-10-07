@@ -3,10 +3,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 import { router } from '@/app/router'
+import { settleHints } from '@/onboarding/hints'
 import { openStartData, refreshGroups, resumeSync } from '@/sync/session'
 import { accountReady, useAccountStore } from '@/store/account'
 import { askPersistentStorage } from '@/store/idbStorage'
-import { prefsReady } from '@/store/prefs'
+import { prefsReady, usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 import './index.css'
 
@@ -16,6 +17,9 @@ void Promise.all([useAppStore.ready, accountReady, prefsReady]).then(async () =>
   askPersistentStorage()
   // Signed in: the default group's data, also offline (docs/ARCHITECTURE.md §10).
   await openStartData()
+  // Hints are for new people: a device that had dishes before them goes past the welcome and the tour.
+  const hasDishes = useAppStore.getState().dishes.length > 0
+  usePrefsStore.getState().updateHints((hints) => settleHints(hints, hasDishes))
   // Still signed in? Offline the cached account stays; with nobody signed in there is nothing to ask.
   if (useAccountStore.getState().me) {
     void refreshGroups()
