@@ -170,6 +170,9 @@ src/domain/
   copyText.ts       — portionCopyText(result, portionId) → string
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
+  phrase.ts         — «Что в блюде» (этап 18): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
+  speech.ts         — сказанное → фраза: spokenToPhrase (числа словами, единицы, паразиты), looksSpoken
+  phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда

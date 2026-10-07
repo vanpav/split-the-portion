@@ -1,8 +1,9 @@
-import type { PhraseLanguage } from './phraseLanguage'
+import { capitalize, formatAmount, phraseSegments, toNominative, unitOf } from './phrase'
+import { DEFAULT_PHRASE_LANGUAGE, type PhraseLanguage, type PhraseUnit } from './phraseLanguage'
 
 /*
  * What was said (the mic button or the phone keyboard's dictation) → the phrase «курица 600, вода 2 л»
- * (docs/SPEC.md §7а «Сказанное → фраза»). Contract for the editor (stage 18); the bodies are filled in with tests.
+ * (docs/SPEC.md §7а «Сказанное → фраза»). Everything language-specific comes from the PhraseLanguage.
  */
 
 export interface SpokenPhrase {
@@ -14,15 +15,184 @@ export interface SpokenPhrase {
   dropped: string[]
 }
 
-export function spokenToPhrase(said: string, language?: PhraseLanguage): SpokenPhrase {
-  void said
-  void language
-  throw new Error('spokenToPhrase: not implemented yet')
+/** Quantity first and without a unit: a count below this is pieces («две луковицы»). */
+const PIECES_BELOW = 30
+
+/** Lower case words, a «,» token for punctuation, decimals kept («1,5»), «600г» split. */
+function tokensOf(said: string, language: PhraseLanguage): string[] {
+  const half = language.halfPrefix
+  return said
+    .toLocaleLowerCase(language.locale)
+    .replace(/(\d)[.,](\d)/g, '$1\uE000$2')
+    .replace(/[\n,;.!?]+/g, ' , ')
+    .replace(/\uE000/g, ',')
+    .replace(/[«»"“”()—–:]/g, ' ')
+    .replace(/\s-\s/g, ' ')
+    .replaceAll(`${half}-`, half)
+    .replace(new RegExp(`(\\d)([${language.letters}])`, 'gu'), '$1 $2')
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+/** The order of a number word, so «сто шестьдесят» adds up and «сто сто» does not. */
+const magnitude = (x: number) => (x >= 100 ? 100 : x >= 20 ? 10 : 1)
+
+/** «сто шестьдесят», «две тысячи двести», «полтора», «два с половиной», «1,5», «2 000» from token `i`. */
+function readNumber(ts: readonly string[], i: number, language: PhraseLanguage): { value: number; next: number } | null {
+  let j = i
+  let total = 0
+  let cur = 0
+  let last = Infinity
+  let seen = false
+  while (j < ts.length) {
+    const t = ts[j]
+    if (/^\d+(?:,\d+)?$/.test(t)) {
+      if (seen && cur !== 0) break
+      cur = Number(t.replace(',', '.'))
+      seen = true
+      j++
+      // «2 000»: a recognizer's thousands separator.
+      if (cur <= 99 && Number.isInteger(cur) && /^\d{3}$/.test(ts[j] ?? '')) {
+        cur = cur * 1000 + Number(ts[j])
+        j++
+      }
+      last = 1
+      continue
+    }
+    const n = Object.hasOwn(language.numberWords, t) ? language.numberWords[t] : undefined
+    if (n !== undefined) {
+      if (seen && cur !== 0 && !(n < magnitude(last))) break
+      cur += n
+      last = n
+      seen = true
+      j++
+      continue
+    }
+    if (seen && language.thousandWords.includes(t)) {
+      total += (cur || 1) * 1000
+      cur = 0
+      last = Infinity
+      j++
+      continue
+    }
+    if (seen && t === language.andHalf[0] && ts[j + 1] === language.andHalf[1]) {
+      cur += 0.5
+      j += 2
+      continue
+    }
+    break
+  }
+  return seen ? { value: total + cur, next: j } : null
+}
+
+interface SpokenItem {
+  words: string[]
+  n: number | null
+  unit: PhraseUnit | null
+  quantityFirst: boolean
+  /** Quantity first: the noun after the number is there, the next word starts a new product. */
+  closed: boolean
+  toTaste: boolean
+}
+
+function phraseOf(item: SpokenItem, language: PhraseLanguage): string {
+  const words = item.quantityFirst && item.words.length ? toNominative(item.words, language) : item.words
+  const name = words.join(' ')
+  if (item.n === null) return item.toTaste && name ? `${name} ${language.toTaste}` : name
+  let unit = item.unit
+  if (unit === null && item.quantityFirst && item.n < PIECES_BELOW) unit = 'pieces'
+  const short = unit === null || unit === 'g' ? '' : language.unitShort[unit]
+  return [name, formatAmount(item.n) + (short ? ` ${short}` : '')].filter(Boolean).join(' ')
+}
+
+/**
+ * What was said → the phrase the field understands: numbers from words, units shortened, the order
+ * «название вес», a comma between products. A number closes a product; after «600 грамм» the name
+ * follows until its noun.
+ */
+export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_PHRASE_LANGUAGE): SpokenPhrase {
+  const ts = tokensOf(said, language)
+  const [tasteFirst, tasteSecond] = language.toTaste.split(' ')
+  const items: SpokenItem[] = []
+  const dropped: string[] = []
+  const fresh = (): SpokenItem => ({ words: [], n: null, unit: null, quantityFirst: false, closed: false, toTaste: false })
+  let cur = fresh()
+  const flush = () => {
+    if (cur.words.length || cur.n !== null) items.push(cur)
+    cur = fresh()
+  }
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i]
+    if (t === ',' || language.separators.includes(t)) {
+      flush()
+      continue
+    }
+    if (t === tasteFirst && (tasteSecond === undefined || ts[i + 1] === tasteSecond)) {
+      cur.toTaste = true
+      if (tasteSecond !== undefined) i++
+      flush()
+      continue
+    }
+    let num: number | null = null
+    let unit: PhraseUnit | null = null
+    const halfUnit = Object.hasOwn(language.halfWords, t) ? language.halfWords[t] : undefined
+    if (halfUnit !== undefined) {
+      num = 0.5
+      unit = halfUnit
+    } else if (t === language.halfPrefix && ts[i + 1] !== undefined && unitOf(ts[i + 1], language) !== null) {
+      num = 0.5
+    } else {
+      const read = readNumber(ts, i, language)
+      if (read) {
+        num = read.value
+        i = read.next - 1
+      }
+    }
+    if (num !== null) {
+      if (unit === null) {
+        const next = ts[i + 1]
+        const afterNext = ts[i + 2]
+        if (next !== undefined && language.spoonAdjectives.includes(next) && afterNext !== undefined && unitOf(afterNext, language) === 'spoons') {
+          unit = 'spoons'
+          i += 2
+        } else if (next !== undefined && unitOf(next, language) !== null) {
+          unit = unitOf(next, language)
+          i++
+        }
+      }
+      if (cur.words.length && cur.n === null) {
+        cur.n = num
+        cur.unit = unit
+        flush()
+      } else {
+        flush()
+        cur.n = num
+        cur.unit = unit
+        cur.quantityFirst = true
+      }
+      continue
+    }
+    if (unitOf(t, language) !== null || language.spoonAdjectives.includes(t) || language.fillers.includes(t)) {
+      dropped.push(t)
+      continue
+    }
+    if (cur.quantityFirst && cur.closed) flush()
+    cur.words.push(t)
+    if (cur.quantityFirst && (Object.hasOwn(language.nouns, t) || !language.adjectiveEnding.test(t))) cur.closed = true
+  }
+  flush()
+  return {
+    text: capitalize(items.map((item) => phraseOf(item, language)).join(', '), language),
+    count: items.length,
+    dropped: [...new Set(dropped)],
+  }
 }
 
 /** The field's text looks dictated (number words, more products than separators): normalize on blur. */
-export function looksSpoken(text: string, language?: PhraseLanguage): boolean {
-  void text
-  void language
-  throw new Error('looksSpoken: not implemented yet')
+export function looksSpoken(text: string, language: PhraseLanguage = DEFAULT_PHRASE_LANGUAGE): boolean {
+  if (!text.trim()) return false
+  const numberWord = tokensOf(text, language).some(
+    (t) => Object.hasOwn(language.numberWords, t) || Object.hasOwn(language.halfWords, t) || language.thousandWords.includes(t),
+  )
+  return numberWord || spokenToPhrase(text, language).count > phraseSegments(text).length
 }
