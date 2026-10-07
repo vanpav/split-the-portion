@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
-import { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion, splitSummary } from '../portions'
+import { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion, splitSummary, tileRows } from '../portions'
 import { MAX_SPLIT_PORTIONS } from '../validation'
 import { buckwheat, share } from './fixtures'
 
@@ -104,5 +104,22 @@ describe('splitSummary', () => {
     expect(splitSummary([80])).toBeNull()
     expect(splitSummary([])).toBeNull()
     expect(splitSummary([80, null])).toBeNull()
+  })
+})
+
+describe('tileRows', () => {
+  it.each([
+    [0, []],
+    [1, [1]],
+    [2, [2]],
+    [3, [3]],
+    [4, [2, 2]],
+    [5, [3, 2]],
+    [6, [3, 3]],
+    [7, [3, 2, 2]],
+    [8, [3, 3, 2]],
+    [10, [3, 3, 2, 2]],
+  ])('%i tiles', (count, rows) => {
+    expect(tileRows(count)).toEqual(rows)
   })
 })

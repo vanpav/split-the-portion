@@ -1,7 +1,6 @@
 import { CheckIcon } from 'lucide-react'
 import { useId, useState } from 'react'
-import { useOutletContext } from 'react-router'
-import { dishPath } from '@/app/paths'
+import { useLocation, useOutletContext, useResolvedPath } from 'react-router'
 import { useBack } from '@/app/useBack'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
@@ -10,17 +9,21 @@ import { Button } from '@/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from '@/components/ui/item'
 import { formatGrams, type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
-import type { CalculatorOutlet } from './calculatorOutlet'
+import type { TareOutlet } from './calculatorOutlet'
 
 /**
- * `#/d/:id/tare/new` — «Добавить тару» from the calculator's tare list (docs/UX.md П4, §3а): the
- * settings' form on a screen of its own. Several tares in one go — each added one is listed in
- * «Добавлено»; the first is selected for the dish at once, a tap selects another. «Готово» and «←»
- * go back to the calculator, what was added stays.
+ * `…/tare/new` — «Добавить тару» from the calculator's tare list (`#/d/:id/tare/new`, docs/UX.md П4, §3а)
+ * or «+» in the dish editor's tare chips (`#/d/:id/edit/tare/new`, `#/d/new/tare/new`): the settings' form
+ * on a screen of its own. Several tares in one go — each added one is listed in «Добавлено»; the first is
+ * selected for the dish at once, a tap selects another. «Готово» and «←» go back to the screen under it,
+ * what was added stays.
  */
 export function NewTareScreen() {
-  const { dishId, onTare } = useOutletContext<CalculatorOutlet>()
-  const { back } = useBack(dishPath(dishId))
+  const { onTare, backLabel } = useOutletContext<TareOutlet>()
+  // The screen under this one, with its query: the dish editor's `?from=` is part of its address.
+  const { search } = useLocation()
+  const backTo = useResolvedPath('..').pathname + search
+  const { back } = useBack(backTo)
   const addedId = useId()
   const [added, setAdded] = useState<Tare[]>([])
   const [selectedId, setSelectedId] = useState<Id | null>(null)
@@ -36,7 +39,7 @@ export function NewTareScreen() {
 
   return (
     <>
-      <ScreenHeader title="Новая тара" back backTo={dishPath(dishId)} backLabel="Калькулятор" />
+      <ScreenHeader title="Новая тара" back backTo={backTo} backLabel={backLabel} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
         <p className="px-1 text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
         {added.length > 0 && (

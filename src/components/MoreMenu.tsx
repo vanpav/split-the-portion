@@ -12,11 +12,12 @@ import {
 import { cn } from '@/lib/utils'
 import { needsAttention, useSyncStore } from '@/store/sync'
 
-export interface MoreMenuItem {
+export type MoreMenuItem = {
   label: string
-  to: string
   icon: LucideIcon
-}
+  /** Red, like the action it starts (e.g. «Удалить блюдо»). */
+  destructive?: boolean
+} & ({ to: string; onSelect?: never } | { onSelect: () => void; to?: never })
 
 /** 44 px to tap with a busy hand, text as in the rest of the app. */
 const ITEM = 'min-h-11 gap-2.5 px-2.5 text-base'
@@ -41,14 +42,22 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
-        {items.map((item) => (
-          <DropdownMenuItem key={item.to} asChild className={ITEM}>
-            <Link to={item.to}>
+        {items.map((item) =>
+          item.to !== undefined ? (
+            <DropdownMenuItem key={item.label} asChild className={ITEM} variant={item.destructive ? 'destructive' : 'default'}>
+              <Link to={item.to}>
+                <item.icon />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : (
+            // The menu closes first, then the action opens what it opens (docs/UX.md §3а).
+            <DropdownMenuItem key={item.label} className={ITEM} variant={item.destructive ? 'destructive' : 'default'} onSelect={item.onSelect}>
               <item.icon />
               <span className="truncate">{item.label}</span>
-            </Link>
-          </DropdownMenuItem>
-        ))}
+            </DropdownMenuItem>
+          ),
+        )}
         {items.length > 0 && <DropdownMenuSeparator />}
         <DropdownMenuItem asChild className={ITEM}>
           <Link to={SETTINGS_PATH}>

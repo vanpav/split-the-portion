@@ -17,7 +17,7 @@ export { basisKey, convertPortionInput, portionBasisOptions } from './portionInp
 export type { PortionBasis } from './portionInput'
 export { roundPreservingSum, splitEqual, splitLeftover } from './split'
 export type { EqualSplit } from './split'
-export { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion, splitSummary, type SplitSummary } from './portions'
+export { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion, splitSummary, tileRows, type SplitSummary } from './portions'
 export { portionCopyText, rawAmountsCopyText } from './copyText'
 export { cookingWarnings, isValidSplitN, isValidTareGrams, K_RANGE, MAX_SPLIT_PORTIONS } from './validation'
 export type { CookingWarning } from './validation'
@@ -34,6 +34,23 @@ export type { DishMenu, DishMenuOptions, DishSort, KindFilter } from './menu'
 export { FREQUENT_WINDOW_DAYS, lastUsedDay, localDay, markUsed, USED_DAYS_KEPT, usesSince } from './usage'
 export { cookingDraft } from './draft'
 export type { CalculatorInput } from './draft'
-export { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from './shares'
+export { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, MIN_PERCENT, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, splitAmounts, toPercents } from './shares'
 export { rubberBand, settleDuration, settleSwipe } from './swipe'
 export type { SwipeLimits, SwipeSettle } from './swipe'
+export {
+  appendToPhrase,
+  excludedOverrides,
+  hasPhraseErrors,
+  ingredientsToPhrase,
+  parsePhrase,
+  phraseIngredients,
+  phraseKey,
+  phraseSummary,
+  removePhraseItem,
+} from './phrase'
+export type { ExcludedOverrides, PhraseIssue, PhraseItem, PhraseOptions } from './phrase'
+export { looksSpoken, spokenToPhrase } from './speech'
+export type { SpokenPhrase } from './speech'
+export { DEFAULT_PHRASE_LANGUAGE, RU } from './phraseLanguage'
+export type { PhraseLanguage } from './phraseLanguage'
+export { phraseIssueText, phraseSummaryText, phraseWeightText } from './phraseText'

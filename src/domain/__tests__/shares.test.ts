@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from '../shares'
+import { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, splitAmounts, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
 
@@ -218,5 +218,30 @@ describe('lineupPercents', () => {
     expect(lineupPercents(members, [{ portionId: 'a', share: 1 }])).toBeNull()
     expect(lineupPercents(members, members.map((m) => ({ portionId: m.id, share: 0 })))).toBeNull()
     expect(lineupPercents([], [])).toBeNull()
+  })
+})
+
+describe('splitAmounts', () => {
+  const weighed = [
+    { cookedGrams: 80, raw: [{ ingredientId: 'r', grams: 29 }], share: 0.5 },
+    { cookedGrams: 80, raw: [{ ingredientId: 'r', grams: 29 }], share: 0.5 },
+  ]
+
+  it('grams of the view once all are weighed: cooked, or dry grams of the ingredient in focus', () => {
+    expect(splitAmounts(weighed, null, 'g')).toEqual({ inPercent: false, values: [80, 80] })
+    expect(splitAmounts(weighed, 'r', 'g')).toEqual({ inPercent: false, values: [29, 29] })
+  })
+
+  it('percent of the dish when asked for', () => {
+    expect(splitAmounts(weighed, null, '%')).toEqual({ inPercent: true, values: [50, 50] })
+  })
+
+  it('percent before the dish is weighed: equal portions are equal before the grams are known', () => {
+    const unweighed = weighed.map((p) => ({ ...p, cookedGrams: null }))
+    expect(splitAmounts(unweighed, null, 'g')).toEqual({ inPercent: true, values: [50, 50] })
+  })
+
+  it('null for a portion whose share is unknown', () => {
+    expect(splitAmounts([{ cookedGrams: null, raw: [], share: null }], null, 'g').values).toEqual([null])
   })
 })

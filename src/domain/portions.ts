@@ -59,3 +59,14 @@ export function splitSummary(values: readonly (number | null)[], digits = 0): Sp
   const most = Math.max(...known)
   return { count: known.length, same: shown.every((v) => v === shown[0]) ? known[0] : null, least, most }
 }
+
+/** Tiles per row for `count` portion tiles: at most three, never a lone tile in a row unless there is only one. */
+export function tileRows(count: number): number[] {
+  if (count <= 0) return []
+  if (count <= 3) return [count]
+  const rest = count % 3
+  const threes = Math.floor(count / 3)
+  if (rest === 0) return Array<number>(threes).fill(3)
+  if (rest === 2) return [...Array<number>(threes).fill(3), 2]
+  return [...Array<number>(threes - 1).fill(3), 2, 2]
+}
