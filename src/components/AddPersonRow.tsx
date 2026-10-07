@@ -6,7 +6,7 @@ interface AddPersonRowProps {
   onAdd: (name: string) => void
   /** Focus the field on mount: a new company starts with typing its first name. */
   autoFocus?: boolean
-  /** For focusing the field from outside, e.g. on the way back from «Новая компания». */
+  /** For focusing the field from outside: the empty «Добавьте людей» bar, the way back from «Новая компания». */
   id?: string
 }
 

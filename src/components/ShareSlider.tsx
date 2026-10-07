@@ -1,4 +1,4 @@
-import { GripVerticalIcon } from 'lucide-react'
+import { GripVerticalIcon, PlusIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import {
   formatPercent,
@@ -57,9 +57,10 @@ interface ShareSliderProps {
   sharedLabel?: string | null
   /**
    * Nobody yet: an empty bar with this text keeps the bar's place (and the «г | %» row under it), so the
-   * screen does not jump when the first person comes or «Доли» is picked. Without it — nothing.
+   * screen does not jump when the first person comes or «Доли» is picked. It is the label of the «+ Имя»
+   * field (`fieldId`): a tap puts the cursor there. Without it — nothing.
    */
-  empty?: string
+  empty?: { label: string; fieldId: string }
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -145,9 +146,15 @@ export function ShareSlider({
   if (sharingSegments.length + own.length === 0 && empty) {
     return (
       <div className="flex flex-col gap-3">
-        <div className="flex h-12 items-center justify-center rounded-xl border-2 border-dashed border-border px-3 text-sm text-muted-foreground">
-          {empty}
-        </div>
+        {/* A label, not a button: the browser itself moves the focus to «+ Имя», and on a phone the keyboard
+            opens within the tap. From the keyboard «+ Имя» is the next field anyway. */}
+        <label
+          htmlFor={empty.fieldId}
+          className="flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border px-3 text-sm text-muted-foreground transition-colors select-none hover:border-input hover:bg-muted/50 hover:text-foreground active:bg-muted"
+        >
+          <PlusIcon aria-hidden className="size-4" />
+          {empty.label}
+        </label>
         <ShareControls names={[]} percents={[]} equal selectedIndex={0} onChange={onChange} unit={unit} onUnit={onUnit} />
       </div>
     )

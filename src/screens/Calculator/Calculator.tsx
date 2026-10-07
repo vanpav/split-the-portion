@@ -575,8 +575,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
             unit={barUnit}
             onUnit={setBarUnit}
             numbered={inShares}
-            // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything.
-            empty="Добавьте людей"
+            // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything;
+            // a tap on it puts the cursor into «+ Имя».
+            empty={{ label: 'Добавьте людей', fieldId: ADD_PERSON_ID }}
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
           />
           {Object.keys(fixed).length > 0 && (
