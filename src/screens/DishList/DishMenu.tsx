@@ -1,7 +1,6 @@
 import { ListPlusIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { toast } from 'sonner'
 import { dishPath, newDishPath, newDishWithTextPath } from '@/app/paths'
 import { useBack } from '@/app/useBack'
 import { DishSearch } from '@/components/DishSearch/DishSearch'
@@ -16,7 +15,6 @@ import {
   dishCategory,
   dishMenu,
   dishRow,
-  dishSummary,
   localDay,
   missingPresets,
   presetDish,
@@ -43,7 +41,6 @@ export function DishMenu() {
   const navigate = useNavigate()
   const dishes = useAppStore((s) => s.dishes)
   const addDishes = useAppStore((s) => s.addDishes)
-  const deleteDish = useAppStore((s) => s.deleteDish)
   const { back, hasPrevious, noPreviousState } = useBack('/')
   const [params, setParams] = useSearchParams()
   const query = params.get('q') ?? ''
@@ -62,14 +59,11 @@ export function DishMenu() {
   const update = (q: string) =>
     setParams(q ? { q } : {}, { replace: true, preventScrollReset: true, state: hasPrevious ? undefined : noPreviousState })
 
+  // No toast: the dish opens at once, that is the result (docs/UX.md §3а «Тосты — редко»).
   const add = (preset: PresetDish) => {
     const dish = presetDish(preset, newId, nowIso())
     addDishes([dish])
     navigate(dishPath(dish.id))
-    toast('Блюдо добавлено', {
-      description: `${preset.name} · ${dishSummary(dish.ingredients)}`,
-      action: { label: 'Отменить', onClick: () => deleteDish(dish.id) },
-    })
   }
 
   const values = [
