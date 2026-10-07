@@ -1,5 +1,5 @@
 /**
- * Hints for new people (docs/UX.md §3в, §3г): the welcome screen and the calculator tour. Pure: what to
+ * Hints for new people (docs/UX.md §3б, §3в): the welcome screen and the calculator tour. Pure: what to
  * show is decided here, the screens only render it. What was shown and skipped is a setting of this
  * device (docs/ARCHITECTURE.md §5.2).
  */
@@ -68,7 +68,7 @@ export interface TourStep {
 }
 
 /**
- * The calculator tour (docs/UX.md §3в): the two weights, the tare, who eats, the dish shelf.
+ * The calculator tour (docs/UX.md §3б): the two weights, the tare, who eats, the dish shelf.
  * A composite dish says «Сырой»; with people on the dish the bar is shown, without — «+ Имя».
  */
 export function tourSteps({ composite, people }: { composite: boolean; people: boolean }): TourStep[] {

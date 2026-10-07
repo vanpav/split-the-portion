@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
 import { cookingDraft } from '../draft'
+import { equalSplit, lineupPercents } from '../shares'
 import type { Company, Dish } from '../types'
 
 const AT = '2026-10-05T12:00:00.000Z'
@@ -125,5 +126,31 @@ describe('cookingDraft', () => {
   it('does not touch the dish', () => {
     cookingDraft(pasta, { rawGrams: { p: 150 }, scaleGrams: null, tare: null, people: [], companyId: null }, AT)
     expect(pasta.ingredients[0].rawGrams).toBe(130)
+  })
+})
+
+describe('«Поровну» in grams (docs/SPEC.md §3б, UX П3б)', () => {
+  const buckwheat: Dish = { ...pasta, id: 'b', name: 'Гречка', ingredients: [{ id: 'g', name: 'Гречка', rawGrams: 200, excluded: false }] }
+  const portions = (n: number, weights: number[]) => Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, name: `Порция ${i + 1}`, weight: weights[i] }))
+  const grams = (people: ReturnType<typeof portions>, fixedCooked?: Record<string, number>) =>
+    computeCooking(cookingDraft(buckwheat, { rawGrams: {}, scaleGrams: 560, tare: null, people, companyId: null, fixedCooked }, AT))
+      .phases[0].portions.map((p) => p.cookedGrams ?? 0)
+
+  it('560 g on 7 is 80 g each', () => {
+    for (const g of grams(portions(7, equalSplit(7)))) expect(g).toBeCloseTo(80, 9)
+  })
+
+  it('560 g on 6 is 93,3 g each', () => {
+    for (const g of grams(portions(6, equalSplit(6)))) expect(g).toBeCloseTo(560 / 6, 9)
+  })
+
+  it('an own 120 g, remembered as shares, leaves the other five 88 g each', () => {
+    const six = portions(6, equalSplit(6))
+    const today = computeCooking(
+      cookingDraft(buckwheat, { rawGrams: {}, scaleGrams: 560, tare: null, people: six, companyId: null, fixedCooked: { p5: 120 } }, AT),
+    ).phases[0].portions
+    const remembered = lineupPercents(six, today)!
+    const next = grams(remembered, { p5: 120 })
+    next.forEach((g, i) => expect(g).toBeCloseTo(i === 4 ? 120 : 88, 9))
   })
 })

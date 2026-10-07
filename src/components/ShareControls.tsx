@@ -1,6 +1,6 @@
 import { MinusIcon, PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { equalPercents, nudgePercent } from '@/domain'
+import { equalSplit, nudgePercent } from '@/domain'
 import { cn } from '@/lib/utils'
 
 interface ShareControlsProps {
@@ -8,12 +8,14 @@ interface ShareControlsProps {
   names: string[]
   /** Their split in whole percents, summing to 100. */
   percents: number[]
+  /** They split equally already (exact weights, not the rounded percents): «Поровну» is off. */
+  equal: boolean
   /** Who ±1 % adjusts. */
   selectedIndex: number
   onChange: (percents: number[]) => void
   /**
    * The chosen person's part of the whole dish, as their row shows it («53,8 %»); null — their whole
-   * percent of the sharing people («54 % от делящих»), when own portions or «на завтра» take a part.
+   * percent of the sharing people («54 % из 440 г»), when own portions or «на завтра» take a part.
    */
   selectedPercent?: string | null
   unit: 'g' | '%'
@@ -21,17 +23,29 @@ interface ShareControlsProps {
   onUnit?: (unit: 'g' | '%') => void
   /** Own portions or «на завтра» take part of the dish: the percents are of the sharing people. */
   partial?: boolean
+  /** What the sharing people split, «440 г», once weighed: «из 440 г» over «17 %», rather than «от делящих». */
+  sharedLabel?: string | null
 }
 
 /**
  * Under a share bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
  * Nothing to show for one person without the switch.
  */
-export function ShareControls({ names, percents, selectedIndex, onChange, selectedPercent, unit, onUnit, partial }: ShareControlsProps) {
+export function ShareControls({
+  names,
+  percents,
+  equal,
+  selectedIndex,
+  onChange,
+  selectedPercent,
+  unit,
+  onUnit,
+  partial,
+  sharedLabel,
+}: ShareControlsProps) {
   const many = names.length > 1
   if (!many && !onUnit) return null
   const name = names[selectedIndex] ?? ''
-  const isEqual = equalPercents(names.length).every((p, i) => p === percents[i])
 
   return (
     <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
@@ -49,12 +63,13 @@ export function ShareControls({ names, percents, selectedIndex, onChange, select
           </Button>
           {/* As wide as its text, so − and + hug it; on a narrow phone it gives way first. */}
           <span className="flex max-w-28 min-w-12 shrink flex-col items-center text-center text-sm leading-tight">
-            <span className="w-full truncate text-muted-foreground">{name}</span>
+            {/* Who, or — when own portions or «на завтра» take a part — of what: «из 440 г» over «20 %».
+                Who is ringed on the bar right above, and named to a screen reader by the buttons. */}
+            <span className="w-full truncate text-muted-foreground">{partial ? (sharedLabel ? `из ${sharedLabel}` : 'от делящих') : name}</span>
             <span className="w-full truncate font-semibold tabular-nums">
               {/* What ±1 % changes, in percent — the same figure as in the person's row; the grams are on the
                   bar and in the row already. */}
               {!partial && selectedPercent ? `${selectedPercent} %` : `${percents[selectedIndex]} %`}
-              {partial && <span className="font-normal text-muted-foreground"> от делящих</span>}
             </span>
           </span>
           <Button
@@ -66,16 +81,19 @@ export function ShareControls({ names, percents, selectedIndex, onChange, select
           >
             <PlusIcon />
           </Button>
-          <Button
-            variant="ghost"
-            // The free space goes before it: ±1 % is one control, «Поровну» another.
-            className="ml-auto px-2 max-[360px]:px-1"
-            disabled={isEqual}
-            onClick={() => onChange(equalPercents(names.length))}
-          >
-            Поровну
-          </Button>
         </>
+      )}
+      {many && (
+        <Button
+          variant="ghost"
+          // The free space goes before it: ±1 % is one control, «Поровну» another.
+          className="ml-auto px-2 max-[360px]:px-1"
+          disabled={equal}
+          // Exact, not whole percents: 7 portions of 560 g are 80 g each.
+          onClick={() => onChange(equalSplit(names.length))}
+        >
+          Поровну
+        </Button>
       )}
       {onUnit && (
         <div role="group" aria-label="Что показывать" className={cn('flex shrink-0 rounded-lg bg-muted p-0.5 text-sm', !many && 'ml-auto')}>

@@ -20,7 +20,7 @@ const HINTS = [
 /**
  * Light or dark theme (docs/UX.md «Настройки»). next-themes keeps the choice in this browser:
  * it is a setting of the device, not app data, so it stays out of the store and the backup.
- * Hints for new people (docs/UX.md §3в) are a setting of the device too: on, off, or all over again.
+ * Hints for new people (docs/UX.md §3б) are a setting of the device too: on, off, or all over again.
  */
 export function AppearanceSection() {
   const { theme = 'system', setTheme } = useTheme()

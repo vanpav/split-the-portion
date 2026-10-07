@@ -1,12 +1,12 @@
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 interface AddPersonRowProps {
   onAdd: (name: string) => void
   /** Focus the field on mount: a new company starts with typing its first name. */
   autoFocus?: boolean
-  /** For focusing the field from outside, e.g. on the way back from «Новая компания». */
+  /** For focusing the field from outside: the empty «Добавьте людей» bar, the way back from «Новая компания». */
   id?: string
 }
 
@@ -26,27 +26,33 @@ export function AddPersonRow({ onAdd, autoFocus, id }: AddPersonRowProps) {
   }
 
   return (
-    <li className="flex items-center gap-1 py-2">
-      <PlusIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-      <Input
-        id={id}
-        aria-label="Добавить человека"
-        placeholder="Имя"
-        value={name}
-        autoFocus={autoFocus}
-        enterKeyHint="done"
-        autoComplete="off"
-        onChange={(e) => setName(e.target.value)}
-        // A name typed and left is still added: tapping elsewhere must not lose it.
-        onBlur={add}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            add()
-          }
-        }}
-        className="h-11 border-transparent bg-transparent px-1 text-base shadow-none hover:border-input focus-visible:border-input dark:bg-transparent"
-      />
+    // A field like every other with an icon (the dish menu's search): the whole width, «+» inside it.
+    <li className="py-2">
+      <InputGroup>
+        <InputGroupAddon>
+          <PlusIcon />
+        </InputGroupAddon>
+        <InputGroupInput
+          id={id}
+          aria-label="Добавить человека"
+          placeholder="Имя"
+          value={name}
+          autoFocus={autoFocus}
+          enterKeyHint="done"
+          autoComplete="off"
+          onChange={(e) => setName(e.target.value)}
+          // A name typed and left is still added: tapping elsewhere must not lose it.
+          onBlur={add}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              add()
+            }
+          }}
+          // 16 px and more, on every width: a smaller field makes the iPhone zoom in on focus.
+          className="text-base md:text-base"
+        />
+      </InputGroup>
     </li>
   )
 }

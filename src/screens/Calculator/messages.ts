@@ -22,3 +22,12 @@ export function rawWord(kind: CookingKind): string {
 export function portionName(index: number): string {
   return `Порция ${index + 1}`
 }
+
+/** «1 порция», «3 порции», «7 порций». */
+export function portionsWord(count: number): string {
+  const last = count % 10
+  const lastTwo = count % 100
+  if (last === 1 && lastTwo !== 11) return 'порция'
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return 'порции'
+  return 'порций'
+}

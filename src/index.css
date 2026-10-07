@@ -8,7 +8,7 @@
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Rubik Variable', sans-serif;
-    /* Text on a person's lid color (`bg-chart-1..5`). */
+    /* Text on a person's lid color (`bg-chart-1..10`). */
     --color-chart-foreground: var(--chart-foreground);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -18,6 +18,32 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+    /* An own portion: the lid paler (light) or as an outline (dark) — `lidPale` in components/lids.ts. */
+    --color-chart-1-pale: var(--chart-1-pale);
+    --color-chart-1-pale-foreground: var(--chart-1-pale-foreground);
+    --color-chart-2-pale: var(--chart-2-pale);
+    --color-chart-2-pale-foreground: var(--chart-2-pale-foreground);
+    --color-chart-3-pale: var(--chart-3-pale);
+    --color-chart-3-pale-foreground: var(--chart-3-pale-foreground);
+    --color-chart-4-pale: var(--chart-4-pale);
+    --color-chart-4-pale-foreground: var(--chart-4-pale-foreground);
+    --color-chart-5-pale: var(--chart-5-pale);
+    --color-chart-5-pale-foreground: var(--chart-5-pale-foreground);
+    --color-chart-6-pale: var(--chart-6-pale);
+    --color-chart-6-pale-foreground: var(--chart-6-pale-foreground);
+    --color-chart-7-pale: var(--chart-7-pale);
+    --color-chart-7-pale-foreground: var(--chart-7-pale-foreground);
+    --color-chart-8-pale: var(--chart-8-pale);
+    --color-chart-8-pale-foreground: var(--chart-8-pale-foreground);
+    --color-chart-9-pale: var(--chart-9-pale);
+    --color-chart-9-pale-foreground: var(--chart-9-pale-foreground);
+    --color-chart-10-pale: var(--chart-10-pale);
+    --color-chart-10-pale-foreground: var(--chart-10-pale-foreground);
+    --color-chart-10: var(--chart-10);
+    --color-chart-9: var(--chart-9);
+    --color-chart-8: var(--chart-8);
+    --color-chart-7: var(--chart-7);
+    --color-chart-6: var(--chart-6);
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
@@ -53,7 +79,7 @@
 
 /*
  * The calculator caret: a field's own text caret, in the next lid of today's lineup about every blink.
- * `animate-caret-N` — N people (up to five); nobody yet — the primary color (`caret-primary`).
+ * `animate-caret-N` — N people (up to ten); nobody yet — the primary color (`caret-primary`).
  */
 @theme {
     --animate-caret-1: caret-lids-1 1.06s step-end infinite;
@@ -61,6 +87,11 @@
     --animate-caret-3: caret-lids-3 3.18s step-end infinite;
     --animate-caret-4: caret-lids-4 4.24s step-end infinite;
     --animate-caret-5: caret-lids-5 5.3s step-end infinite;
+    --animate-caret-6: caret-lids-6 6.36s step-end infinite;
+    --animate-caret-7: caret-lids-7 7.42s step-end infinite;
+    --animate-caret-8: caret-lids-8 8.48s step-end infinite;
+    --animate-caret-9: caret-lids-9 9.54s step-end infinite;
+    --animate-caret-10: caret-lids-10 10.6s step-end infinite;
 
     @keyframes caret-lids-1 {
         0% { caret-color: var(--caret-1); }
@@ -87,8 +118,58 @@
         60% { caret-color: var(--caret-4); }
         80% { caret-color: var(--caret-5); }
     }
+    @keyframes caret-lids-6 {
+        0% { caret-color: var(--caret-1); }
+        16.667% { caret-color: var(--caret-2); }
+        33.333% { caret-color: var(--caret-3); }
+        50% { caret-color: var(--caret-4); }
+        66.667% { caret-color: var(--caret-5); }
+        83.333% { caret-color: var(--caret-6); }
+    }
+    @keyframes caret-lids-7 {
+        0% { caret-color: var(--caret-1); }
+        14.286% { caret-color: var(--caret-2); }
+        28.571% { caret-color: var(--caret-3); }
+        42.857% { caret-color: var(--caret-4); }
+        57.143% { caret-color: var(--caret-5); }
+        71.429% { caret-color: var(--caret-6); }
+        85.714% { caret-color: var(--caret-7); }
+    }
+    @keyframes caret-lids-8 {
+        0% { caret-color: var(--caret-1); }
+        12.5% { caret-color: var(--caret-2); }
+        25% { caret-color: var(--caret-3); }
+        37.5% { caret-color: var(--caret-4); }
+        50% { caret-color: var(--caret-5); }
+        62.5% { caret-color: var(--caret-6); }
+        75% { caret-color: var(--caret-7); }
+        87.5% { caret-color: var(--caret-8); }
+    }
+    @keyframes caret-lids-9 {
+        0% { caret-color: var(--caret-1); }
+        11.111% { caret-color: var(--caret-2); }
+        22.222% { caret-color: var(--caret-3); }
+        33.333% { caret-color: var(--caret-4); }
+        44.444% { caret-color: var(--caret-5); }
+        55.556% { caret-color: var(--caret-6); }
+        66.667% { caret-color: var(--caret-7); }
+        77.778% { caret-color: var(--caret-8); }
+        88.889% { caret-color: var(--caret-9); }
+    }
+    @keyframes caret-lids-10 {
+        0% { caret-color: var(--caret-1); }
+        10% { caret-color: var(--caret-2); }
+        20% { caret-color: var(--caret-3); }
+        30% { caret-color: var(--caret-4); }
+        40% { caret-color: var(--caret-5); }
+        50% { caret-color: var(--caret-6); }
+        60% { caret-color: var(--caret-7); }
+        70% { caret-color: var(--caret-8); }
+        80% { caret-color: var(--caret-9); }
+        90% { caret-color: var(--caret-10); }
+    }
 
-    /* The welcome screen (docs/UX.md §3г): the logo's lunchboxes, once and gently; under `motion-safe:` only. */
+    /* The welcome screen (docs/UX.md §3в): the logo's lunchboxes, once and gently; under `motion-safe:` only. */
     --animate-box-drop: box-drop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
     --animate-lid-lean: lid-lean 0.5s ease-out both;
     --animate-food-pop: food-pop 0.4s cubic-bezier(0.34, 1.6, 0.64, 1) both;
@@ -119,7 +200,7 @@
 
 /*
  * «Ланчбокс» (DESIGN.md): frosted polypropylene ground, navy ink, a cobalt primary,
- * and a lid color per person — `--chart-1..5`, by the person's place in today's lineup.
+ * and a lid color per person — `--chart-1..10`, by the person's place in today's lineup.
  */
 :root {
     --background: oklch(0.969 0.006 255.5);
@@ -147,14 +228,47 @@
     --chart-3: oklch(0.847 0.076 164.5);
     --chart-4: oklch(0.81 0.075 301.4);
     --chart-5: oklch(0.832 0.095 58.2);
+    /* Five more for the sixth to tenth (meal prep on ten days): teal, rose, pistachio, lavender, peony —
+       hues between the first five, as far from them as those are from each other. */
+    --chart-6: oklch(0.78 0.11 196);
+    --chart-7: oklch(0.79 0.12 10);
+    --chart-8: oklch(0.78 0.12 118);
+    --chart-9: oklch(0.87 0.06 276);
+    --chart-10: oklch(0.87 0.09 342);
     --chart-foreground: oklch(0.267 0.054 269.1);
+    /* An own portion: the same lid, paler, with ink on it. */
+    --chart-1-pale: color-mix(in srgb, var(--chart-1) 45%, var(--background));
+    --chart-2-pale: color-mix(in srgb, var(--chart-2) 45%, var(--background));
+    --chart-3-pale: color-mix(in srgb, var(--chart-3) 45%, var(--background));
+    --chart-4-pale: color-mix(in srgb, var(--chart-4) 45%, var(--background));
+    --chart-5-pale: color-mix(in srgb, var(--chart-5) 45%, var(--background));
+    --chart-6-pale: color-mix(in srgb, var(--chart-6) 45%, var(--background));
+    --chart-7-pale: color-mix(in srgb, var(--chart-7) 45%, var(--background));
+    --chart-8-pale: color-mix(in srgb, var(--chart-8) 45%, var(--background));
+    --chart-9-pale: color-mix(in srgb, var(--chart-9) 45%, var(--background));
+    --chart-10-pale: color-mix(in srgb, var(--chart-10) 45%, var(--background));
+    --chart-1-pale-foreground: var(--foreground);
+    --chart-2-pale-foreground: var(--foreground);
+    --chart-3-pale-foreground: var(--foreground);
+    --chart-4-pale-foreground: var(--foreground);
+    --chart-5-pale-foreground: var(--foreground);
+    --chart-6-pale-foreground: var(--foreground);
+    --chart-7-pale-foreground: var(--foreground);
+    --chart-8-pale-foreground: var(--foreground);
+    --chart-9-pale-foreground: var(--foreground);
+    --chart-10-pale-foreground: var(--foreground);
     /* A lid as a 3 px caret on the white field: the lid's hue, deepened to ≥ 3:1 against white. */
     --caret-1: oklch(0.6 0.12 246.3);
     --caret-2: oklch(0.66 0.13 85);
     --caret-3: oklch(0.62 0.12 164.5);
     --caret-4: oklch(0.6 0.13 301.4);
     --caret-5: oklch(0.64 0.14 58.2);
-    /* The calculator tour's dim around the lit element (docs/UX.md §3в). */
+    --caret-6: oklch(0.6 0.1 196);
+    --caret-7: oklch(0.62 0.13 10);
+    --caret-8: oklch(0.6 0.12 118);
+    --caret-9: oklch(0.6 0.12 276);
+    --caret-10: oklch(0.62 0.13 342);
+    /* The calculator tour's dim around the lit element (docs/UX.md §3б). */
     --scrim: oklch(0.2 0.045 268 / 0.58);
     /* The logo's own colors besides the ink and the lids (public/favicon.svg): the same in both themes. */
     --logo-lid: oklch(1 0 0);
@@ -196,7 +310,34 @@
     --chart-3: oklch(0.793 0.084 165.1);
     --chart-4: oklch(0.751 0.087 299.6);
     --chart-5: oklch(0.781 0.103 55.4);
+    --chart-6: oklch(0.725 0.12 196);
+    --chart-7: oklch(0.735 0.13 10);
+    --chart-8: oklch(0.725 0.13 118);
+    --chart-9: oklch(0.815 0.07 276);
+    --chart-10: oklch(0.815 0.1 342);
     --chart-foreground: oklch(0.212 0.035 268.5);
+    /* An own portion on the night ground: a paler lid would turn muddy (apricot went brown), so the lid
+       outlines it instead — the ground barely tinted, the number and the dashed edge in the lid's color. */
+    --chart-1-pale: color-mix(in oklab, var(--chart-1) 20%, var(--background));
+    --chart-2-pale: color-mix(in oklab, var(--chart-2) 20%, var(--background));
+    --chart-3-pale: color-mix(in oklab, var(--chart-3) 20%, var(--background));
+    --chart-4-pale: color-mix(in oklab, var(--chart-4) 20%, var(--background));
+    --chart-5-pale: color-mix(in oklab, var(--chart-5) 20%, var(--background));
+    --chart-6-pale: color-mix(in oklab, var(--chart-6) 20%, var(--background));
+    --chart-7-pale: color-mix(in oklab, var(--chart-7) 20%, var(--background));
+    --chart-8-pale: color-mix(in oklab, var(--chart-8) 20%, var(--background));
+    --chart-9-pale: color-mix(in oklab, var(--chart-9) 20%, var(--background));
+    --chart-10-pale: color-mix(in oklab, var(--chart-10) 20%, var(--background));
+    --chart-1-pale-foreground: var(--chart-1);
+    --chart-2-pale-foreground: var(--chart-2);
+    --chart-3-pale-foreground: var(--chart-3);
+    --chart-4-pale-foreground: var(--chart-4);
+    --chart-5-pale-foreground: var(--chart-5);
+    --chart-6-pale-foreground: var(--chart-6);
+    --chart-7-pale-foreground: var(--chart-7);
+    --chart-8-pale-foreground: var(--chart-8);
+    --chart-9-pale-foreground: var(--chart-9);
+    --chart-10-pale-foreground: var(--chart-10);
     /* On the dark field the lids show as they are, lifted a little toward the ink. Mixed in oklab:
        in oklch the hue would swing toward the ink's and turn sunflower green. */
     --caret-1: color-mix(in oklab, var(--chart-1) 70%, var(--foreground));
@@ -204,6 +345,11 @@
     --caret-3: color-mix(in oklab, var(--chart-3) 70%, var(--foreground));
     --caret-4: color-mix(in oklab, var(--chart-4) 70%, var(--foreground));
     --caret-5: color-mix(in oklab, var(--chart-5) 70%, var(--foreground));
+    --caret-6: color-mix(in oklab, var(--chart-6) 70%, var(--foreground));
+    --caret-7: color-mix(in oklab, var(--chart-7) 70%, var(--foreground));
+    --caret-8: color-mix(in oklab, var(--chart-8) 70%, var(--foreground));
+    --caret-9: color-mix(in oklab, var(--chart-9) 70%, var(--foreground));
+    --caret-10: color-mix(in oklab, var(--chart-10) 70%, var(--foreground));
     --scrim: oklch(0.08 0.02 268 / 0.72);
     --sidebar: oklch(0.255 0.04 266.9);
     --sidebar-foreground: oklch(0.96 0.009 258.3);
@@ -241,7 +387,7 @@
 }
 
 /*
- * The calculator tour (driver.js, docs/UX.md §3в): its card dressed in the theme, like a popover of
+ * The calculator tour (driver.js, docs/UX.md §3б): its card dressed in the theme, like a popover of
  * shadcn — driver.css is plain CSS without layers, these rules win by specificity.
  */
 .driver-popover.hint-popover {

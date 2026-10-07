@@ -1,4 +1,5 @@
 import { defaultShareWeight } from './dish'
+import { roundHalfUp } from './numbers'
 import type { Id, PortionShare } from './types'
 import { MAX_SPLIT_PORTIONS } from './validation'
 
@@ -32,4 +33,29 @@ export function addPortion(list: readonly PortionShare[], id: Id): PortionShare[
 /** «−»: the last portion goes; one always stays. */
 export function removeLastPortion(list: readonly PortionShare[]): PortionShare[] {
   return list.length > 1 ? list.slice(0, -1) : [...list]
+}
+
+/** What the portions that split by share get, for «по 80 г × 7» above the grid (docs/UX.md §3). */
+export interface SplitSummary {
+  /** How many portions split by share. */
+  count: number
+  /** The amount every one of them gets, when they are all the same as shown; null — they differ. */
+  same: number | null
+  least: number
+  most: number
+}
+
+/**
+ * The portions that split by share, summed up for one line: their amounts in the calculator's view
+ * (cooked or dry grams, or percent), the same when they all round to the same shown value (`digits`:
+ * 0 for grams, 1 for percent) — 80, 80, 80 is «по 80 г», 79,6 and 80,2 too. Null with fewer than two
+ * or while an amount is not known.
+ */
+export function splitSummary(values: readonly (number | null)[], digits = 0): SplitSummary | null {
+  if (values.length < 2 || values.some((v) => v === null)) return null
+  const known = values as number[]
+  const shown = known.map((v) => roundHalfUp(v, digits))
+  const least = Math.min(...known)
+  const most = Math.max(...known)
+  return { count: known.length, same: shown.every((v) => v === shown[0]) ? known[0] : null, least, most }
 }

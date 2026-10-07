@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./dist-ssr/**)",
+      "Read(./coverage/**)",
+      "Read(./.wrangler/**)",
+      "Read(./pnpm-lock.yaml)",
+      "Read(./worker-configuration.d.ts)",
+      "Read(./**/*.log)",
+      "Read(./**/*.map)",
+      "Read(./**/*.sqlite)",
+      "Read(./**/*.db)",
+      "Read(./public/**/*.png)",
+      "Read(./public/**/*.ico)",
+      "Read(./.dev.vars)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/trim-output.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

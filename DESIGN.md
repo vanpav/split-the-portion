@@ -19,11 +19,21 @@ colors:
   lid-mint: "oklch(0.847 0.076 164.5)"
   lid-lilac: "oklch(0.81 0.075 301.4)"
   lid-apricot: "oklch(0.832 0.095 58.2)"
+  lid-teal: "oklch(0.78 0.11 196)"
+  lid-rose: "oklch(0.79 0.12 10)"
+  lid-pistachio: "oklch(0.78 0.12 118)"
+  lid-lavender: "oklch(0.87 0.06 276)"
+  lid-peony: "oklch(0.87 0.09 342)"
   caret-sky: "oklch(0.6 0.12 246.3)"
   caret-sunflower: "oklch(0.66 0.13 85)"
   caret-mint: "oklch(0.62 0.12 164.5)"
   caret-lilac: "oklch(0.6 0.13 301.4)"
   caret-apricot: "oklch(0.64 0.14 58.2)"
+  caret-teal: "oklch(0.6 0.1 196)"
+  caret-rose: "oklch(0.62 0.13 10)"
+  caret-pistachio: "oklch(0.6 0.12 118)"
+  caret-lavender: "oklch(0.6 0.12 276)"
+  caret-peony: "oklch(0.62 0.13 342)"
   night-ground: "oklch(0.212 0.035 268.5)"
   night-box: "oklch(0.255 0.04 266.9)"
   night-ink: "oklch(0.96 0.009 258.3)"
@@ -137,7 +147,7 @@ components:
 
 **Creative North Star: "Ланчбокс"**
 
-Every eater is a lid color. The calculator reads as lunchboxes laid out on a frosted counter: a cool, slightly blue polypropylene ground, navy ink for every number, one cobalt action, and a row of pastel lids (sky, sunflower, mint, lilac, apricot) that belong to people, not to the interface. The user chose this world out of three proposals («Ланчбокс», «Калькулятор», «Табло»).
+Every eater is a lid color. The calculator reads as lunchboxes laid out on a frosted counter: a cool, slightly blue polypropylene ground, navy ink for every number, one cobalt action, and a row of pastel lids (sky, sunflower, mint, lilac, apricot, then teal, rose, pistachio, lavender, peony) that belong to people, not to the interface. The user chose this world out of three proposals («Ланчбокс», «Калькулятор», «Табло»).
 
 The surface is a working tool for a phone at the stove: large tabular numerals typed with the phone's own number keyboard, and almost no decoration. Depth comes from tonal steps (frosted ground, white lidded box, a frost-grey chip), not from shadows. Color is quarantined: the lids appear only where a person owns the mark, so a glance at a color is a glance at a name. The tone avoids sterile medical coldness and the default shadcn look without letting anything compete with the grams.
 
@@ -145,7 +155,7 @@ Light and dark follow the phone's setting (next-themes, `defaultTheme="system"`,
 
 **Key Characteristics:**
 - Frosted cool-white ground, navy ink, a single plain cobalt primary.
-- Five lid colors assigned by a person's place in today's lineup, repeating after five.
+- Ten lid colors assigned by a person's place in today's lineup, repeating after ten.
 - Numbers first: tabular Rubik in medium weight, 30 px for readouts and answers.
 - Flat, tonal layering; the active field is a white lidded box with a 1 px seam, idle tiles sit a frosted step below.
 - Generous radii (0.875rem base, ~1.2rem on boxes and the share bar).
@@ -153,15 +163,16 @@ Light and dark follow the phone's setting (next-themes, `defaultTheme="system"`,
 
 ## Colors
 
-A cool frosted neutral set with one saturated cobalt for action and five soft pastel lids reserved for people.
+A cool frosted neutral set with one saturated cobalt for action and ten soft pastel lids reserved for people.
 
 ### Primary
 - **Cobalt** (`cobalt`): the primary «Создать / Сохранить» in the dish editor, focus rings (at 50% opacity), text selection, native input carets, and the calculator caret with no people or with reduced motion. Plain fill, white text. The calculator has no save action: the dish remembers what is typed, so the calculator carries no cobalt button.
 - **Cornflower Cobalt** (`cornflower-cobalt`, dark theme): the dark theme's primary, deliberately lighter than light-theme cobalt with navy text (`cornflower-text`) so the main action reads on the night ground. It is the same «кобальт» role adapted, not a second accent.
 
 ### Secondary (person lids)
-- **Sky, Sunflower, Mint, Lilac, Apricot** (`lid-sky`, `lid-sunflower`, `lid-mint`, `lid-lilac`, `lid-apricot`; `--chart-1..5`): one per person by place in today's lineup. Light enough to carry navy text (`--chart-foreground`) in both themes. At 45% opacity a lid marks a person's own fixed portion on the share bar.
-- **Caret lids** (`caret-sky` … `caret-apricot`; `--caret-1..5`): each lid's hue deepened to at least 3:1 against white, for the caret on the white box. In dark, the carets are the lids mixed 30% toward the ink in oklab (`color-mix(in oklab, var(--chart-N) 70%, var(--foreground))`); oklch mixing swung sunflower toward green.
+- **Sky, Sunflower, Mint, Lilac, Apricot** (`lid-sky`, `lid-sunflower`, `lid-mint`, `lid-lilac`, `lid-apricot`; `--chart-1..5`): one per person by place in today's lineup. Light enough to carry navy text (`--chart-foreground`) in both themes.
+- **Teal, Rose, Pistachio, Lavender, Peony** (`lid-teal` … `lid-peony`; `--chart-6..10`): the sixth to tenth, so a meal prep on ten days has ten different lids. Their hues sit between the first five (196, 10, 118, 276, 342), and they are as far from those and from each other (≥ 0.066 in oklab) as the first five are among themselves; teal and rose are a little deeper, lavender and peony a little lighter, so neighbours on the bar differ in lightness too. Navy text on them is ≥ 7:1. In dark they are deepened like the first five (about −0.055 L, +0.01 C). Mixed 45% into the ground a lid marks a person's own fixed portion on the share bar (`--chart-N-pale`). In dark that pale lid went muddy (apricot turned brown), so there the own portion is the lid as an outline instead: the ground tinted 20% toward the lid, the number and the dashed edge in the lid itself (`--chart-N-pale-foreground`).
+- **Caret lids** (`caret-sky` … `caret-peony`; `--caret-1..10`): each lid's hue deepened to at least 3:1 against white, for the caret on the white box. In dark, the carets are the lids mixed 30% toward the ink in oklab (`color-mix(in oklab, var(--chart-N) 70%, var(--foreground))`); oklch mixing swung sunflower toward green.
 
 ### Tertiary (status)
 - **Tomato** (`tomato`): validation errors and destructive actions only.
@@ -245,7 +256,10 @@ A calculator readout as a tile: the label above, a 30 px number below with a sma
 The field's own text caret; the system blinks it. Its color steps through the lids of today's lineup, one per 1.06 s (`animate-caret-N` on `caret-color`). With no people, or with reduced motion, it is primary.
 
 ### Share Bar (signature)
-A 48 px bar split into person segments in their lid colors, two lines each: the name (0.75rem, 500) over the grams (1rem, 600); a narrow segment drops the name first. The selected person (the one ± adjusts) is ringed in ink, inset. 12 px of air separates it from the controls row: − and + (outline, 44 px) hug the chosen person's name over their percent of the dish (the same figure as their row; with own portions or «на завтра», their whole percent «от делящих»), «Поровну» (ghost) and the «г | %» switch at the right. A person's own fixed portion is the pale lid (45%) with a dashed ink-25% border; what stays in the pot is hatched (muted/ground diagonal stripes, 135°). Round 32 px grip knobs on the borders, 44 px hit area.
+A 48 px bar split into person segments in their lid colors, two lines each: the name (0.75rem, 500) over the grams (1rem, 600); a narrow segment drops the name first. In «Доли» a segment is titled by the portion's number (0.75rem, 500), which stays down to a 1rem segment, so ten portions on a phone still read 1…10. The selected person (the one ± adjusts) is ringed in ink, inset. 12 px of air separates it from the controls row: − and + (outline, 44 px) hug the chosen person's name over their percent of the dish (the same figure as their row); with own portions or «на завтра» the name gives way to what is shared, «из 440 г» over their whole percent «20 %» (who is chosen is the ring on the bar right above). The chosen segment and its neighbours drop their grams below 3.75rem, so the grips never sit on a number; their numbers stay, «Поровну» (ghost) and the «г | %» switch at the right. A person's own fixed portion is the pale lid (45%) with a dashed ink-25% border (in dark: the lid as an outline — a barely tinted ground, lid-colored number and dashed edge at 60%); what stays in the pot is hatched (muted/ground diagonal stripes, 135°). Round 32 px grip knobs on the borders, 44 px hit area. A grip shows only where both segments beside it are at least 4rem wide (a container query on the bar picks the width at which it no longer fits); the chosen segment's two borders, and the one being dragged, always keep theirs. The width at which a grip no longer fits is picked in 2rem steps with a hair of slack, so equal portions get their grips all together or not at all. So two to four people look as before, while seven portions on a phone are a clean row of lids with grips only around the chosen one — the first until another is tapped, so there are always grips to pull. Nobody yet: the bar's place is held by an empty bar, 48 px, dashed seam, «+ Добавьте людей» in muted 0.875rem, with the «г | %» row under it, so the first person and a switch to «Доли» move nothing. It is the label of «+ Имя»: a tap puts the cursor there (and opens the phone's keyboard); on hover the seam darkens and a frost-muted wash comes up.
+
+### Portion Grid («Доли»)
+A meal prep is containers on the counter, not a list of people. Above the grid one answer line: «по 80 г» in the 30 px headline, then muted «× 7 · 29 г сухого», with ⧉ at the end when the portions are equal (one tracker text for all); unequal ones show «73–79 г · 7 порций по долям», own ones a muted «своя: 5 — 120 г» under it. The containers sit three to a row (two below 360 px, four from `lg`), 8 px apart: each is an idle readout tile (frost-muted at 60%, 20% in dark; the one being typed into is the white lidded box with a 1 px seam), with the portion's number in its lid (a 22 px lid with 6 px corners, 0.75rem 600 navy) at the top left, the amount in 24 px medium tabular with a small muted unit, and the other view under it (0.75rem muted, «29 г сухого»). An own portion is outlined dashed in ink at 25%, the same mark as its segment. ⧉ sits top right only where it is needed: on an own portion, and on every container when the portions differ. No swipe and no ×: portions are numbered by place, so «−» beside «Доли» is the remove.
 
 ### Person Row
 Lid mark, editable name (borderless input that shows a stroke on hover/focus), muted subline, then the answer field: a 30 px number that becomes a white lidded box when active, with a «г / %» unit chip that stays in place. Copy and hold-to-remove actions stacked at the end. Rows divided by seams.
@@ -254,6 +268,7 @@ Lid mark, editable name (borderless input that shows a stroke on hover/focus), m
 - **Style:** 44 px, transparent fill, 1 px input-stroke border, 0.875rem radius; dark fill is input at 30%.
 - **Focus:** border turns cobalt plus a 3 px cobalt ring at 50%.
 - **Error:** tomato border with a tomato ring at 20%.
+- **With an icon:** the icon sits inside the field at the start, muted (`InputGroup`): the dish menu's search, «+ Имя» under people (the whole width, 16 px text).
 
 ### Segmented Control («г | %»)
 Frost-muted track, 0.875rem radius, 2 px inset; the chosen option is a ground-colored tab with `shadow-sm`, the other muted ink.
@@ -261,7 +276,7 @@ Frost-muted track, 0.875rem radius, 2 px inset; the chosen option is a ground-co
 ## Do's and Don'ts
 
 ### Do:
-- **Do** give each person their lid by place in today's lineup (`--chart-1..5`), repeating after five, and put navy `--chart-foreground` text on it.
+- **Do** give each person their lid by place in today's lineup (`--chart-1..10`), repeating after ten, and put navy `--chart-foreground` text on it.
 - **Do** mark the active field as a white lidded box with a 1 px seam; signal state by shape and border as well as color.
 - **Do** keep every gram tabular and every gram input ≥ 16 px and ≥ 44 px tall.
 - **Do** show selection as an inset ring that keeps the person's color visible.

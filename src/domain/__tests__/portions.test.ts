@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
-import { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion } from '../portions'
+import { addPortion, DEFAULT_PORTIONS, dishPortions, removeLastPortion, splitSummary } from '../portions'
 import { MAX_SPLIT_PORTIONS } from '../validation'
 import { buckwheat, share } from './fixtures'
 
@@ -81,5 +81,28 @@ describe('portions are split like people', () => {
       expect(p.cookedGrams).toBeCloseTo(560 / 6, 9)
       expect(p.raw[0].grams).toBeCloseTo(200 / 6, 9)
     }
+  })
+})
+
+describe('splitSummary', () => {
+  it('the same amount when all round to the same shown value: «по 80 г × 7»', () => {
+    expect(splitSummary(Array(7).fill(80))).toEqual({ count: 7, same: 80, least: 80, most: 80 })
+    expect(splitSummary([79.6, 80.2, 80.4])?.same).toBeCloseTo(79.6, 9)
+    expect(splitSummary(Array(6).fill(560 / 6))?.same).toBeCloseTo(93.33, 2)
+  })
+
+  it('different once rounded: the range instead', () => {
+    expect(splitSummary([84, 84, 78.4, 78.4])).toEqual({ count: 4, same: null, least: 78.4, most: 84 })
+  })
+
+  it('percent: one decimal decides', () => {
+    expect(splitSummary([14.28, 14.31], 1)?.same).toBeCloseTo(14.28, 9)
+    expect(splitSummary([14.2, 14.3], 1)?.same).toBeNull()
+  })
+
+  it('nothing to sum up with fewer than two, or while an amount is unknown', () => {
+    expect(splitSummary([80])).toBeNull()
+    expect(splitSummary([])).toBeNull()
+    expect(splitSummary([80, null])).toBeNull()
   })
 })

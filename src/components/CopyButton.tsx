@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { COPY_TEXT, type CopyTextState } from '@/app/paths'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface CopyButtonProps {
   /** Built on click only: the text is not needed on every render. */
@@ -14,6 +15,7 @@ interface CopyButtonProps {
   size?: 'default' | 'sm'
   /** The button itself: a swipe right on a touch screen clicks it. */
   ref?: Ref<HTMLButtonElement>
+  className?: string
 }
 
 /**
@@ -21,7 +23,7 @@ interface CopyButtonProps {
  * missing, so the text is shown on a screen of its own, already selected (docs/UX.md §3а): the
  * `copy` route under the screen the button is on (the calculator, a settings subsection).
  */
-export function CopyButton({ getText, disabled, label, size = 'default', ref }: CopyButtonProps) {
+export function CopyButton({ getText, disabled, label, size = 'default', ref, className }: CopyButtonProps) {
   const navigate = useNavigate()
 
   const copy = async () => {
@@ -40,7 +42,7 @@ export function CopyButton({ getText, disabled, label, size = 'default', ref }: 
       ref={ref}
       variant="ghost"
       size={size === 'sm' ? 'icon-sm' : 'icon'}
-      className={size === 'sm' ? 'w-10 text-muted-foreground' : undefined}
+      className={cn(size === 'sm' && 'w-10 text-muted-foreground', className)}
       aria-label={label}
       disabled={disabled}
       onClick={copy}

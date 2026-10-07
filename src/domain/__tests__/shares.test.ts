@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { equalPercents, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from '../shares'
+import { equalPercents, equalSplit, exactPercents, isEqualSplit, keepAt, keepLimit, lineupPercents, moveBoundary, nudgePercent, percentShares, portionGrams, portionIn, toPercents } from '../shares'
 
 const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
 
@@ -31,6 +31,45 @@ describe('equalPercents', () => {
     expect(equalPercents(3)).toEqual([34, 33, 33])
     expect(equalPercents(4)).toEqual([25, 25, 25, 25])
     expect(equalPercents(0)).toEqual([])
+  })
+})
+
+describe('equalSplit', () => {
+  it('exactly equal, summing to 100: «Поровну» on 7 is 100/7 each, not 15, 15, 14…', () => {
+    const seven = equalSplit(7)
+    expect(seven).toHaveLength(7)
+    expect(new Set(seven).size).toBe(1)
+    expect(total(seven)).toBeCloseTo(100, 9)
+    expect(equalSplit(3)[0]).toBeCloseTo(33.333, 3)
+    expect(equalSplit(0)).toEqual([])
+  })
+})
+
+describe('isEqualSplit', () => {
+  it('equal weights in any units; a rounding hair still counts as equal', () => {
+    expect(isEqualSplit(equalSplit(7))).toBe(true)
+    expect(isEqualSplit([1, 1, 1])).toBe(true)
+    expect(isEqualSplit([15.714285714285714, 15.714285714285715])).toBe(true)
+    expect(isEqualSplit([])).toBe(true)
+  })
+
+  it('70 : 60 and the whole-percent «equal» 34 : 33 : 33 are not', () => {
+    expect(isEqualSplit([70, 60])).toBe(false)
+    expect(isEqualSplit(equalPercents(3))).toBe(false)
+  })
+})
+
+describe('exactPercents', () => {
+  it('parts as percents summing to 100, without rounding', () => {
+    const percents = exactPercents([0.645, 0.1917, 0.1633])
+    expect(percents[0]).toBeCloseTo(64.5, 9)
+    expect(percents[1]).toBeCloseTo(19.17, 9)
+    expect(percents[2]).toBeCloseTo(16.33, 9)
+  })
+
+  it('a part under the minimum is lifted to it; nothing at all — equal', () => {
+    expect(exactPercents([0.995, 0.005, 0])).toEqual([expect.closeTo(99.5, 9), 1, 1])
+    expect(exactPercents([0, 0])).toEqual([50, 50])
   })
 })
 
@@ -147,15 +186,22 @@ describe('lineupPercents', () => {
     { id: 'c', name: 'Тёща', weight: 60 },
   ]
 
-  it('each part of the dish as a whole percent, own portions included', () => {
+  it('each part of the dish as an exact percent, own portions included', () => {
     const portions = [
       { portionId: 'a', share: 0.645 },
       { portionId: 'b', share: 0.1917 },
       { portionId: 'c', share: 0.1633 },
     ]
     const next = lineupPercents(members, portions)
-    expect(next?.map((m) => m.weight)).toEqual([65, 19, 16])
+    expect(next?.map((m) => m.weight)).toEqual([expect.closeTo(64.5, 9), expect.closeTo(19.17, 9), expect.closeTo(16.33, 9)])
     expect(next?.map((m) => m.name)).toEqual(['Ваня', 'Ксюша', 'Тёща'])
+  })
+
+  it('equal parts stay equal: five of 88 g after an own 120 g are not rounded into 16 and 15 %', () => {
+    const six = ['1', '2', '3', '4', '5', '6'].map((id) => ({ id, name: id, weight: 1 }))
+    const shares = six.map((p) => ({ portionId: p.id, share: p.id === '5' ? 120 / 560 : 88 / 560 }))
+    const next = lineupPercents(six, shares)!
+    expect(isEqualSplit(next.filter((p) => p.id !== '5').map((p) => p.weight))).toBe(true)
   })
 
   it('what is set aside for tomorrow is not remembered: the parts are of what is given out', () => {
@@ -164,7 +210,7 @@ describe('lineupPercents', () => {
       { portionId: 'b', share: 0.2 },
       { portionId: 'c', share: 0.2 },
     ]
-    expect(lineupPercents(members, portions)?.map((m) => m.weight)).toEqual([50, 25, 25])
+    expect(lineupPercents(members, portions)?.map((m) => m.weight)).toEqual([50, 25, 25].map((p) => expect.closeTo(p, 9)))
   })
 
   it('null while a part is not computable or nobody gets anything', () => {

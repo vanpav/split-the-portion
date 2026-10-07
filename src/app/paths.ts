@@ -28,7 +28,7 @@ export const accountPath = ({ signUp, next }: { signUp?: boolean; next?: string 
   const query = new URLSearchParams({ ...(signUp ? { tab: 'sign-up' } : {}), ...(next ? { next } : {}) }).toString()
   return query ? `${ACCOUNT_PATH}?${query}` : ACCOUNT_PATH
 }
-/** The welcome screen of a new device (docs/UX.md §3г). */
+/** The welcome screen of a new device (docs/UX.md §3в). */
 export const WELCOME_PATH = '/welcome'
 export const PASSWORD_RESET_PATH = '/account/reset'
 /** «Вступить по коду»: the code typed by hand, from Settings → «Группа». */

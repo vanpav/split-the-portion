@@ -10,7 +10,7 @@ export interface PersistedPrefs {
   splitMode: SplitMode
   /** The portions of each dish in «Доли», by dish id; a dish not here starts with two equal ones. */
   portions: Record<Id, PortionShare[]>
-  /** Hints for new people: the welcome, the tour, the cards (docs/UX.md §3в). */
+  /** Hints for new people: the welcome and the tour (docs/UX.md §3б). */
   hints: HintPrefs
 }
 
@@ -22,7 +22,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
  * Brings stored prefs of any earlier version up to PREFS_VERSION.
  * v1 (stage 16 before review): `splitMode: 'people' | 'portions'` and `portionCounts` — N equal
  * portions per dish. v2: `'portions'` is «Доли», N equal portions become N shares of weight 1.
- * v3 (stage 17): `hints`; earlier versions start with none shown — main.tsx settles them by the dishes.
+ * v3 (stage 18): `hints`; earlier versions start with none shown — main.tsx settles them by the dishes.
  */
 export function migratePrefs(state: unknown, version: number, makeId: () => Id): PersistedPrefs {
   if (!isRecord(state)) return EMPTY_PREFS

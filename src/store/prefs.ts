@@ -14,7 +14,7 @@ interface PrefsState extends PersistedPrefs {
 }
 
 /**
- * Settings of this device (docs/ARCHITECTURE.md §5.2, docs/SPEC.md §3б «Режим долей», hints — docs/UX.md §3в): apart from
+ * Settings of this device (docs/ARCHITECTURE.md §5.2, docs/SPEC.md §3б «Режим долей», hints — docs/UX.md §3б): apart from
  * the app data, like the theme. Not synced with the group, not in the backup file, the same whichever
  * group is open. Kept in IndexedDB next to the data.
  */

@@ -19,7 +19,7 @@ interface Step {
   text: string
 }
 
-/** What the app is, in three screens (docs/UX.md §3г); the account comes after them. */
+/** What the app is, in three screens (docs/UX.md §3в); the account comes after them. */
 const ABOUT: Step[] = [
   {
     art: <WelcomeBoxes />,
@@ -45,7 +45,7 @@ const WITH_ACCOUNT = [
 ]
 
 /**
- * `#/welcome`: the first screen of a new device (docs/UX.md §3г) — what the app does, then the account
+ * `#/welcome`: the first screen of a new device (docs/UX.md §3в) — what the app does, then the account
  * against keeping everything here. Steps stay inside the screen; once gone through it leads to `#/`.
  */
 export function WelcomeScreen() {

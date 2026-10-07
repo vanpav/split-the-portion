@@ -31,7 +31,7 @@ interface CalculatorTourProps {
 }
 
 /**
- * The calculator tour (docs/UX.md §3в): four steps over a dimmed screen, by driver.js. Targets are
+ * The calculator tour (docs/UX.md §3б): four steps over a dimmed screen, by driver.js. Targets are
  * elements with `data-hint`. It goes on from the step it stopped at; «Пропустить» turns every hint off,
  * with «Вернуть» in the toast. Leaving the screen closes it, the step stays for next time.
  */

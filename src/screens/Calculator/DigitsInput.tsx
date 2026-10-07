@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 /**
- * The caret takes today's lids in turn (`animate-caret-N` in index.css, N people; after five they
+ * The caret takes today's lids in turn (`animate-caret-N` in index.css, N people; after ten they
  * repeat); nobody — the primary color. Reduced motion — the primary color. Literal names, so Tailwind
  * generates them.
  */
@@ -14,6 +14,11 @@ const LIDS = [
   'motion-safe:animate-caret-3',
   'motion-safe:animate-caret-4',
   'motion-safe:animate-caret-5',
+  'motion-safe:animate-caret-6',
+  'motion-safe:animate-caret-7',
+  'motion-safe:animate-caret-8',
+  'motion-safe:animate-caret-9',
+  'motion-safe:animate-caret-10',
 ] as const
 
 interface DigitsInputProps extends Omit<ComponentProps<typeof Input>, 'value'> {

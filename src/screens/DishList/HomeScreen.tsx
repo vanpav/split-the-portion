@@ -8,7 +8,7 @@ import { DishMenuScreen } from './DishMenuScreen'
 
 /**
  * `#/`: the calculator of the dish used last; with no dishes yet, the dish menu's empty state that starts them —
- * on a new device after the welcome screen (docs/UX.md §3г).
+ * on a new device after the welcome screen (docs/UX.md §3в).
  */
 export function HomeScreen() {
   const latest = useAppStore((s) => recentDishes(s.dishes)[0])
