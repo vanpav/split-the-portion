@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon, Undo2Icon } from 'lucide-react'
+import { ChevronUpIcon, Undo2Icon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
@@ -545,16 +545,15 @@ export function Calculator({ id }: { id: Id | undefined }) {
             ) : (
               note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
             )}
-            {foldable && (
+            {foldable && !folded && (
               <Button
                 variant="ghost"
-                aria-expanded={!folded}
-                // A quiet line: open or not, the button stays text, without the pressed fill.
-                className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
-                onClick={folded ? () => setFolded(false) : fold}
+                // A quiet line: the button stays text, without the pressed fill.
+                className="ml-auto px-2 text-muted-foreground"
+                onClick={fold}
               >
-                {folded ? 'Ингредиенты' : 'Свернуть'}
-                {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
+                Свернуть
+                <ChevronUpIcon data-icon="inline-end" />
               </Button>
             )}
           </div>
