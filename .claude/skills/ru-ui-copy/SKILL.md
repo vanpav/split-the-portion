@@ -1,31 +1,31 @@
 ---
 name: ru-ui-copy
-description: Пишет и правит русские тексты интерфейсов (кнопки, ошибки, подсказки, пустые состояния, уведомления, онбординг), убирая канцелярит, кальки с английского и признаки сгенерированного текста. Используй, когда пишешь или редактируешь любые русскоязычные строки в UI, файлы локализации (ru.json, *.po, *.strings, *.arb) или когда пользователь просит сделать текст «живее», «человечнее», «менее синтетическим».
+description: Writes and edits Russian UI texts (buttons, errors, hints, empty states, notifications, onboarding), removing bureaucratese, English calques and signs of generated text. Use when writing or editing any Russian-language UI strings, localization files (ru.json, *.po, *.strings, *.arb), or when the user asks to make a text "livelier", "more human", "less synthetic" (живее, человечнее, менее синтетическим).
 ---
 
-# Русские тексты интерфейсов
+# Russian UI texts
 
-Цель: текст, который написал бы внимательный человек, говорящий по-русски, а не переводчик или нейросеть. Коротко, конкретно, без украшений.
+Goal: text that a careful Russian-speaking person would write, not a translator or a neural network. Short, concrete, no decoration.
 
-## Порядок работы
+## Workflow
 
-1. Найди строки: файлы локализации или хардкод в компонентах. Прочитай соседние строки, чтобы понять принятый тон и термины.
-2. Проверь, есть ли в проекте глоссарий или гайд по тону (`docs/`, `CONTRIBUTING`, `README`). Если есть, он важнее этого скилла.
-3. Для каждой строки пойми контекст: где показывается, что пользователь только что сделал, что ему делать дальше. Не зная контекста, не правь, а спроси.
-4. Перепиши по правилам ниже.
-5. Проверь по чек-листу в конце.
-6. Если правок больше пяти, покажи таблицу «ключ / было / стало» до записи в файлы.
+1. Find the strings: localization files or hardcoded in components. Read neighboring strings to learn the established tone and terms.
+2. Check whether the project has a glossary or tone guide (`docs/`, `CONTRIBUTING`, `README`). If so, it takes precedence over this skill.
+3. For each string, understand the context: where it is shown, what the user just did, what to do next. Without context, don't edit, ask.
+4. Rewrite following the rules below.
+5. Check against the checklist at the end.
+6. If there are more than five edits, show a "key / was / now" table before writing to files.
 
-### Что нельзя трогать
+### Do not touch
 
-- Ключи, плейсхолдеры (`{name}`, `%s`, `{{count}}`), теги и разметку внутри строк.
-- Юридические тексты, названия продуктов и тарифов, термины из глоссария.
-- Смысл. Если исходная строка двусмысленна, спроси, а не угадывай.
-- Строки на других языках.
+- Keys, placeholders (`{name}`, `%s`, `{{count}}`), tags and markup inside strings.
+- Legal texts, product and plan names, glossary terms.
+- Meaning. If the source string is ambiguous, ask, don't guess.
+- Strings in other languages.
 
-## Что убирать
+## What to remove
 
-### Канцелярит
+### Bureaucratese (канцелярит)
 
 | Было | Стало |
 |---|---|
@@ -38,9 +38,9 @@ description: Пишет и правит русские тексты интерф
 | Необходимо выполнить вход | Войдите |
 | При отсутствии подключения | Без интернета |
 
-Правило: глагол вместо отглагольного существительного, короткое слово вместо длинного, актив вместо пассива.
+Rule: verb instead of verbal noun, short word instead of long, active instead of passive.
 
-### Кальки с английского
+### English calques
 
 | Было | Стало |
 |---|---|
@@ -57,91 +57,91 @@ description: Пишет и правит русские тексты интерф
 | Создать Новый Проект | Создать проект |
 | Мы не смогли найти... | Ничего не найдено |
 
-Правило: лишние «пожалуйста», «ваш», «успешно», «был/была» удаляются почти всегда. Заглавная буква только у первого слова и имён собственных.
+Rule: superfluous «пожалуйста», «ваш», «успешно», «был/была» are almost always removed. Capital letter only for the first word and proper nouns.
 
-### Признаки сгенерированного текста
+### Signs of generated text
 
-- Рекламные прилагательные: мощный, удобный, бесшовный, интуитивный, умный, современный, инновационный.
-- Штампы: «раскройте потенциал», «на новый уровень», «всё в одном месте», «легко и быстро», «в пару кликов», «мы заботимся о».
-- Конструкция «не просто X, а Y».
-- Перечисления ровно из трёх пунктов без необходимости.
-- Восклицательные знаки и эмодзи как способ изобразить дружелюбие.
-- Вводные фразы перед сутью: «Обратите внимание, что», «Важно отметить», «Давайте начнём».
-- Обещания и оценки вместо фактов: «Отличный выбор!», «Вы почти у цели!».
-- Тире ради драматической паузы.
-- Одинаковый ритм и длина у всех строк подряд.
+- Promo adjectives: мощный, удобный, бесшовный, интуитивный, умный, современный, инновационный.
+- Clichés: «раскройте потенциал», «на новый уровень», «всё в одном месте», «легко и быстро», «в пару кликов», «мы заботимся о».
+- The "не просто X, а Y" construction.
+- Lists of exactly three items without need.
+- Exclamation marks and emoji as a way to look friendly.
+- Introductory phrases before the point: «Обратите внимание, что», «Важно отметить», «Давайте начнём».
+- Promises and judgments instead of facts: «Отличный выбор!», «Вы почти у цели!».
+- Dashes for dramatic pause.
+- Identical rhythm and length in consecutive strings.
 
-Замена всегда одна: скажи, что произошло или что сделать, обычными словами.
+The fix is always the same: say what happened or what to do, in plain words.
 
-## Как писать
+## How to write
 
-### Тон
+### Tone
 
-- На «вы» со строчной буквы. «Вы» с заглавной только в личных письмах одному адресату. Если в проекте принято «ты», следуй проекту.
-- Ровно и по делу. Не шутить в ошибках и там, где пользователь что-то теряет.
-- Без «мы» там, где можно без него: «Не удалось сохранить», а не «Мы не смогли сохранить».
-- Один термин для одной сущности. Не чередовать «удалить / стереть / убрать», «папка / каталог / директория».
+- Formal «вы» in lowercase. Capital «Вы» only in personal letters to one addressee. If the project uses «ты», follow the project.
+- Even and to the point. No jokes in errors or where the user loses something.
+- No «мы» where it can be avoided: «Не удалось сохранить», not «Мы не смогли сохранить».
+- One term per entity. Don't alternate «удалить / стереть / убрать», «папка / каталог / директория».
 
-### Род и число
+### Gender and number
 
-- Не заставлять пользователя читать «зарегистрировался(-ась)», «уверен(а)». Перестраивать фразу: «Регистрация завершена», «Точно удалить?».
-- Числительные требуют трёх форм, а не двух: 1 файл, 2 файла, 5 файлов. В коде использовать ICU plural с категориями `one`, `few`, `many`, `other`. Если в строке заведено только `one/other`, сообщи об этом как об ошибке.
-- Не склеивать фразы из кусков: падеж сломается. «Удалить {item}» с подстановкой «папка» даст «Удалить папка». Либо отдельные строки, либо перестройка: «Папка будет удалена».
+- Don't make the user read «зарегистрировался(-ась)», «уверен(а)». Rephrase: «Регистрация завершена», «Точно удалить?».
+- Numerals need three forms, not two: 1 файл, 2 файла, 5 файлов. In code use ICU plural with categories `one`, `few`, `many`, `other`. If a string only has `one/other`, report it as a bug.
+- Don't glue phrases from pieces: cases break. «Удалить {item}» with «папка» gives «Удалить папка». Use separate strings or rephrase: «Папка будет удалена».
 
-### Длина
+### Length
 
-Русский текст на 20–30 % длиннее английского. Если строка не помещается, сокращать смысл, а не слова: убрать очевидное, а не писать «Сохр.».
+Russian text is 20–30% longer than English. If a string doesn't fit, cut meaning, not words: drop the obvious instead of writing «Сохр.».
 
-## Шаблоны по типам элементов
+## Templates by element type
 
-**Кнопки.** Глагол в инфинитиве, называет результат: «Сохранить», «Удалить проект», «Пригласить». Не «Да / Нет / ОК» в диалогах с последствиями и не существительное («Сохранение»).
+**Buttons.** Verb in infinitive, names the result: «Сохранить», «Удалить проект», «Пригласить». Not «Да / Нет / ОК» in dialogs with consequences, not a noun («Сохранение»).
 
-**Диалоги подтверждения.** Заголовок-вопрос с объектом, в тексте последствие, на кнопке то же действие.
+**Confirmation dialogs.** Title is a question with the object, body states the consequence, button repeats the same action.
 > Удалить проект «Альфа»?
 > Файлы и комментарии пропадут. Восстановить не получится.
 > [Удалить] [Отмена]
 
-**Ошибки.** Что случилось и что делать. Без вины пользователя, без кодов вместо объяснения, без «попробуйте позже», если есть более точный совет.
+**Errors.** What happened and what to do. No blaming the user, no codes instead of explanation, no «попробуйте позже» if a more precise advice exists.
 > Было: Произошла ошибка при загрузке файла. Пожалуйста, попробуйте снова.
 > Стало: Файл больше 10 МБ. Сожмите его или выберите другой.
 
-**Валидация полей.** Называть условие, а не факт ошибки: «Минимум 8 символов», а не «Некорректный пароль».
+**Field validation.** State the condition, not the fact of error: «Минимум 8 символов», not «Некорректный пароль».
 
-**Пустые состояния.** Что здесь появится и как это начать.
+**Empty states.** What will appear here and how to start.
 > Было: У вас пока нет проектов. Создайте свой первый проект прямо сейчас!
 > Стало: Проектов пока нет. [Создать проект]
 
-**Уведомления об успехе.** Одно-два слова: «Сохранено», «Ссылка скопирована», «Письмо отправлено».
+**Success notifications.** One or two words: «Сохранено», «Ссылка скопирована», «Письмо отправлено».
 
-**Подсказки и плейсхолдеры.** Пример значения или формат: «name@example.com», «ДД.ММ.ГГГГ». Подпись поля не дублировать в плейсхолдере.
+**Hints and placeholders.** Example value or format: «name@example.com», «ДД.ММ.ГГГГ». Don't duplicate the field label in the placeholder.
 
-**Загрузка.** «Загружаем…», «Сохраняем…». Без «Пожалуйста, подождите».
+**Loading.** «Загружаем…», «Сохраняем…». No «Пожалуйста, подождите».
 
-**Онбординг.** Одно действие на экран, заголовок называет пользу, а не функцию. Без «Добро пожаловать» на каждом шаге.
+**Onboarding.** One action per screen, the title names the benefit, not the feature. No «Добро пожаловать» on every step.
 
-## Типографика
+## Typography
 
-- Кавычки «ёлочки», вложенные „лапки“.
-- Тире — длинное, с пробелами; в диапазонах короткое без пробелов: 10–15 минут.
-- Многоточие одним символом: …
-- Неразрывный пробел после коротких предлогов и союзов, между числом и единицей, перед тире: 5 МБ, 100 ₽, 15 %.
-- Разряды разделять неразрывным пробелом: 12 500 ₽. Десятичная запятая: 1,5 ГБ.
-- Знак валюты после числа.
-- Дата: 7 октября 2026 или 07.10.2026. Время: 15:30.
-- Точка в конце заголовков, кнопок, пунктов меню и коротких уведомлений не ставится. В тексте из двух и более предложений ставится.
-- Буква «ё»: как принято в проекте, но единообразно.
-- Сокращения: «т. д.», «т. е.» с неразрывным пробелом; в интерфейсе лучше обходиться без них.
+- Quotes «ёлочки», nested „лапки“.
+- Dash — long, with spaces; in ranges short without spaces: 10–15 минут.
+- Ellipsis as a single character: …
+- Non-breaking space after short prepositions and conjunctions, between number and unit, before a dash: 5 МБ, 100 ₽, 15 %.
+- Thousands separated by non-breaking space: 12 500 ₽. Decimal comma: 1,5 ГБ.
+- Currency sign after the number.
+- Date: 7 октября 2026 or 07.10.2026. Time: 15:30.
+- No period at the end of titles, buttons, menu items and short notifications. In text of two or more sentences, use periods.
+- Letter «ё»: as accepted in the project, but consistently.
+- Abbreviations: «т. д.», «т. е.» with a non-breaking space; in UI better to avoid them.
 
-## Чек-лист перед сдачей
+## Checklist before handing off
 
-- [ ] Можно ли убрать ещё одно слово без потери смысла?
-- [ ] Нет «пожалуйста», «ваш», «успешно», «данный», «является», «осуществить»?
-- [ ] Нет рекламных прилагательных, восклицательных знаков, эмодзи?
-- [ ] Ошибка говорит, что делать дальше?
-- [ ] Кнопка называет действие глаголом?
-- [ ] Термины совпадают с остальным интерфейсом?
-- [ ] Нет «(а)», «(-ась)», склеенных из кусков фраз?
-- [ ] Множественное число работает для 1, 2, 5, 21?
-- [ ] Плейсхолдеры, ключи и разметка на месте?
-- [ ] Кавычки, тире, неразрывные пробелы расставлены?
-- [ ] Прочитай вслух: так сказал бы человек коллеге за соседним столом?
+- [ ] Can one more word be removed without losing meaning?
+- [ ] No «пожалуйста», «ваш», «успешно», «данный», «является», «осуществить»?
+- [ ] No promo adjectives, exclamation marks, emoji?
+- [ ] Does the error say what to do next?
+- [ ] Does the button name the action with a verb?
+- [ ] Do terms match the rest of the interface?
+- [ ] No «(а)», «(-ась)», phrases glued from pieces?
+- [ ] Does plural work for 1, 2, 5, 21?
+- [ ] Placeholders, keys and markup intact?
+- [ ] Quotes, dashes, non-breaking spaces in place?
+- [ ] Read aloud: would a person say this to a colleague at the next desk?
