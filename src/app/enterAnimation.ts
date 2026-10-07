@@ -46,7 +46,8 @@ export function enterAnimation(input: {
  * (docs/UX.md «Переходы между экранами»). A screen over another (`/d/:id/tare/new`, `…/copy`,
  * `…/from-dish`, docs/UX.md §3а) keeps the key of the one under it: that one stays mounted, hidden,
  * so «назад» finds it as it was; the screen over it animates by itself (app/OverScreen).
- * Any other path is its own screen.
+ * The settings with all their subsections (`/settings`, `/settings/:section`) are one screen too:
+ * a subsection changes inside it (`settingsSwitchAnimation`). Any other path is its own screen.
  */
 export function screenKey(pathname: string): string {
   const parts = pathname.split('/').filter((part) => part !== '')
@@ -55,6 +56,7 @@ export function screenKey(pathname: string): string {
   )
   const under = over ? parts.slice(0, parts.length - over.length) : parts
   if (under.length === 2 && under[0] === 'd' && under[1] !== 'new') return '/d/:id'
+  if (under[0] === 'settings') return '/settings'
   return over ? '/' + under.join('/') : pathname
 }
 
@@ -77,6 +79,31 @@ export function dishSwitchAnimation(input: {
   if (from !== null && to !== null && from !== to) return to > from ? 'forward' : 'back'
   if (input.navigationType === 'REPLACE') return 'none'
   return input.navigationType === 'POP' ? 'back' : 'forward'
+}
+
+/** How the settings screen changes its subsection; `content` is the subsection's box only. */
+export interface SettingsSwitch {
+  page: EnterAnimation
+  content: EnterAnimation
+}
+
+/**
+ * How the settings screen changes when the subsection in the address changes (docs/UX.md
+ * «Переходы между экранами», «Настройки»). The menu from `md` replaces the address: only the
+ * subsection's content comes in, from below for one further down the menu (`forward`), from above
+ * for one higher up (`back`). A new entry (the phone's list → a subsection) and a step through
+ * history change the whole page, as between screens: PUSH from the right, POP from the left.
+ * `from` and `to` are the places in the menu of the subsections shown before and after.
+ */
+export function settingsSwitchAnimation(input: {
+  from: number
+  to: number
+  navigationType: `${NavigationType}`
+}): SettingsSwitch {
+  const { from, to, navigationType } = input
+  if (navigationType === 'PUSH') return { page: 'forward', content: 'none' }
+  if (navigationType === 'POP') return { page: 'back', content: 'none' }
+  return { page: 'none', content: to === from ? 'none' : to > from ? 'forward' : 'back' }
 }
 
 /**
