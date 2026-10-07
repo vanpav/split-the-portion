@@ -1,61 +1,54 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 interface HoldButtonProps {
-  /** How long to hold; 0 — a plain click does it. */
-  holdMs: number
   onConfirm: () => void
   label: string
-  /** Shown when released too early: what holding would do. */
-  hint: string
   className?: string
   children: ReactNode
 }
 
-/** A tap shorter than this is a tap, not an attempt to hold: it gets the hint. */
-const TAP_MS = 300
+const HOLD_MS = 1500
 
 /**
  * A destructive action done by holding (docs/SPEC.md §3б): while held, the button's border fills
- * up over `holdMs`; let go earlier and nothing happens. Works with a finger, a mouse and Enter/Space.
+ * up over 1.5 s; let go earlier and nothing happens. Works with a finger, a mouse and Enter/Space.
  */
-export function HoldButton({ holdMs, onConfirm, label, hint, className, children }: HoldButtonProps) {
+export function HoldButton({ onConfirm, label, className, children }: HoldButtonProps) {
   const [holding, setHolding] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const startedAt = useRef(0)
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current)
   }, [])
 
   const start = () => {
-    if (holdMs <= 0 || timer.current) return
-    startedAt.current = Date.now()
+    if (timer.current) return
     setHolding(true)
     timer.current = setTimeout(() => {
       timer.current = null
       setHolding(false)
       navigator.vibrate?.(15)
       onConfirm()
-    }, holdMs)
+    }, HOLD_MS)
   }
   const stop = () => {
     if (!timer.current) return
     clearTimeout(timer.current)
     timer.current = null
     setHolding(false)
-    if (Date.now() - startedAt.current < TAP_MS) toast(hint, { id: 'hold-hint' })
   }
 
   return (
+    <Tooltip>
+      <TooltipTrigger asChild>
     <Button
       variant="ghost"
       size="icon-sm"
       aria-label={label}
-      aria-description={holdMs > 0 ? 'Удерживайте' : undefined}
-      onClick={holdMs <= 0 ? onConfirm : undefined}
+      aria-description={'Удерживай'}
       onPointerDown={(e) => e.button === 0 && start()}
       onPointerUp={stop}
       onPointerLeave={stop}
@@ -77,7 +70,7 @@ export function HoldButton({ holdMs, onConfirm, label, hint, className, children
       )}
     >
       {children}
-      {holdMs > 0 && (
+      {
         // The border fills clockwise while held; on release it runs back quickly.
         <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-visible">
           <rect
@@ -89,11 +82,14 @@ export function HoldButton({ holdMs, onConfirm, label, hint, className, children
             strokeDashoffset={holding ? 0 : 100}
             className="fill-none stroke-destructive stroke-2"
             style={{
-              transition: holding ? `stroke-dashoffset ${holdMs}ms linear` : 'stroke-dashoffset 150ms ease-out',
+              transition: holding ? `stroke-dashoffset ${HOLD_MS}ms linear` : 'stroke-dashoffset 150ms ease-out',
             }}
           />
         </svg>
-      )}
+      }
     </Button>
+      </TooltipTrigger>
+      <TooltipContent>Удерживай, чтобы убрать</TooltipContent>
+    </Tooltip>
   )
 }

@@ -28,7 +28,7 @@ export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]]
   { id: 'group', title: 'Группа', description: 'Кто ведёт учёт вместе', Icon: HouseIcon },
   { id: 'tares', title: 'Тара', description: 'Вес пустой посуды', Icon: WeightIcon },
   { id: 'companies', title: 'Компании', description: 'Кто ест вместе', Icon: UsersIcon },
-  { id: 'presets', title: 'Популярные блюда', description: 'Готовые рецепты для начала', Icon: BookOpenIcon },
+  { id: 'presets', title: 'Популярные блюда', description: 'Готовые блюда для начала', Icon: BookOpenIcon },
   { id: 'data', title: 'Копия данных', description: 'Скачать или загрузить файл', Icon: HardDriveIcon },
   { id: 'appearance', title: 'Оформление', description: 'Тема и подсказки', Icon: SunMoonIcon },
 ]

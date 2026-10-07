@@ -34,7 +34,7 @@ const CREATE_VALUE = 'create'
 const nowIso = () => new Date().toISOString()
 
 /**
- * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовите», the other own dishes
+ * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовишь», the other own dishes
  * (or, with «По категориям», the own dishes in sections by category),
  * the popular ones to add, «Создать «…»» while something is typed. With no dishes it is the first
  * screen: «Добавить блюдо» and the whole catalogue at once.
@@ -47,7 +47,7 @@ export function DishMenu() {
   const { back, hasPrevious, noPreviousState } = useBack('/')
   const [params, setParams] = useSearchParams()
   const query = params.get('q') ?? ''
-  // Today for «Часто готовите», fixed while the menu is open.
+  // Today for «Часто готовишь», fixed while the menu is open.
   const [today] = useState(() => localDay(new Date()))
   const byCategory = usePrefsStore((s) => s.dishesByCategory)
   const setByCategory = usePrefsStore((s) => s.setDishesByCategory)
@@ -107,7 +107,7 @@ export function DishMenu() {
           <div className="flex flex-col gap-2 pt-2">
             <h2 className="text-lg font-semibold">Пока нет блюд</h2>
             <p className="text-muted-foreground">
-              Добавьте блюдо один раз — дальше у плиты вводите только готовый вес.
+              Добавь блюдо один раз — дальше у плиты вводи только готовый вес.
             </p>
             <Button size="lg" className="mt-2 h-12 w-full text-base" asChild>
               <Link to={newDishPath()}>
@@ -139,16 +139,16 @@ export function DishMenu() {
           {ownRows(list, true)}
         </DishSearchGroup>
       ))}
-      {often.length > 0 && <DishSearchGroup heading="Часто готовите">{ownRows(often)}</DishSearchGroup>}
+      {often.length > 0 && <DishSearchGroup heading="Часто готовишь">{ownRows(often)}</DishSearchGroup>}
       {rest.length > 0 && (
         <DishSearchGroup
-          heading={typed ? 'Ваши блюда' : often.length > 0 ? 'Остальные · по алфавиту' : 'Ваши блюда · по алфавиту'}
+          heading={typed ? 'Твои блюда' : often.length > 0 ? 'Остальные · по алфавиту' : 'Твои блюда · по алфавиту'}
         >
           {ownRows(rest)}
         </DishSearchGroup>
       )}
       {popular.length > 0 && (
-        <DishSearchGroup heading={noDishes ? (typed ? 'Популярные' : 'Или возьмите из популярных') : 'Добавить из популярных'}>
+        <DishSearchGroup heading={noDishes ? (typed ? 'Популярные' : 'Или возьми из популярных') : 'Добавить из популярных'}>
           {popular.map((preset) => (
             <DishSearchRow
               key={preset.name}

@@ -37,6 +37,7 @@
 - [x] Код — шрифтом приложения (Rubik, табличные цифры), не системным моноширинным.
 - [x] Документы: ARCHITECTURE §6, §9, §10; SPEC §13.3; UX — экраны, словарь; CLOUDFLARE.md.
 - [x] `pnpm db:migrate:remote` — таблица `group_invite` в рабочей базе (2026-10-06).
+- [x] Несколько групп: `POST /api/groups` и экран `#/groups/new`; лимит `MAX_GROUPS = 3` на человека (свои и чужие вместе) — в `createGroup`, `acceptInvite` и в `beforeAddMember` Better Auth; 409 → текст про лимит; тесты в `invites.test.ts`.
 - [ ] iPhone: ссылка из Telegram открывается в Safari → на экране код → в приложении «Вступить по коду» → вступила.
 
 ## Файлы

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clockTime, cookedToday, sameDay } from '../dates'
+import { clockTime, cookedToday, sameDay, shortDate } from '../dates'
 
 // Local times, as the phone shows them: the tests hold in any time zone.
 const local = (day: number, hour: number, minute = 0) => new Date(2026, 9, day, hour, minute).toISOString()
@@ -35,5 +35,15 @@ describe('sameDay', () => {
     expect(sameDay(local(6, 0, 0), now)).toBe(true)
     expect(sameDay(local(5, 23, 59), now)).toBe(false)
     expect(sameDay(local(7, 0, 0), now)).toBe(false)
+  })
+})
+
+describe('shortDate', () => {
+  it('formats a local day and short month', () => {
+    expect(shortDate(new Date(2026, 9, 7, 23, 59))).toBe('7 окт.')
+  })
+
+  it('accepts an ISO string', () => {
+    expect(shortDate(new Date(2026, 0, 15, 12).toISOString())).toBe('15 янв.')
   })
 })

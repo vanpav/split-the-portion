@@ -37,7 +37,7 @@ export function PhraseRow({ item, current, onToggle, onRemove }: PhraseRowProps)
             {name}
           </span>
           {item.excluded && (
-            <span className="shrink-0 rounded-md bg-background px-1.5 py-0.5 text-xs text-muted-foreground">не учит.</span>
+            <span className="shrink-0 rounded-md bg-background px-1.5 py-0.5 text-xs text-muted-foreground">не в счёт</span>
           )}
           <span
             className={cn(
@@ -53,7 +53,7 @@ export function PhraseRow({ item, current, onToggle, onRemove }: PhraseRowProps)
           variant="ghost"
           size="icon"
           className="size-11 shrink-0 text-muted-foreground"
-          aria-label={`Убрать «${name}» из блюда`}
+          aria-label={`Убрать: ${name}`}
           onMouseDown={keepFocus}
           onClick={onRemove}
         >

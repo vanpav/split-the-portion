@@ -7,11 +7,11 @@ export function kText(k: YieldK, leftover: boolean): string {
 }
 
 export function kOutOfRangeText(k: number, maybeForgotTare: boolean): string {
-  const hint = maybeForgotTare ? 'Возможно, в вес попала посуда — выберите тару.' : 'Проверьте веса.'
+  const hint = maybeForgotTare ? 'Возможно, в вес попала посуда — выбери тару.' : 'Проверь веса.'
   return `Необычный выход: k = ${formatK(k)}. ${hint}`
 }
 
-export const TARE_EXCEEDS_TEXT = 'Вес с тарой меньше веса тары — проверьте тару'
+export const TARE_EXCEEDS_TEXT = 'Вес с тарой меньше веса тары — проверь тару'
 
 /** «сухого» for a simple dish (крупа, макароны), «сырого» otherwise. */
 export function rawWord(kind: CookingKind): string {
@@ -30,4 +30,12 @@ export function portionsWord(count: number): string {
   if (last === 1 && lastTwo !== 11) return 'порция'
   if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return 'порции'
   return 'порций'
+}
+
+export const K_HINT_TITLE = 'Коэффициент выхода k'
+
+/** What k tells, shown in a tooltip (desktop) or a bottom sheet (touch). */
+export function kHint(k: YieldK, leftover: boolean): string {
+  const of = leftover ? 'остатка' : k.kind === 'dish' ? 'всего блюда' : 'продукта'
+  return `Во сколько раз готовый вес ${of} отличается от сырого. Больше 1 — продукт разварился или впитал воду, меньше 1 — ужарился или уварился. На порции не влияет: нужен, чтобы проверить, что веса введены верно.`
 }

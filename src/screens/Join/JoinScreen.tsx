@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { groupsApi } from '@/account/groupsApi'
 import { formatInviteCode, parseInviteCode } from '@/account/inviteCode'
-import { groupErrorText } from '@/account/networkText'
-import type { InvitePreview } from '@/account/types'
+import { GROUP_LIMIT_TEXT, groupErrorText } from '@/account/networkText'
+import { MAX_GROUPS, type InvitePreview } from '@/account/types'
 import { ACCOUNT_PATH, joinPath } from '@/app/paths'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import {
@@ -83,7 +83,7 @@ export function JoinScreen() {
       <ScreenHeader title="Вступить в группу" back backTo="/" />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4 lg:py-8">
         {state.kind === 'loading' && <p className="px-1 text-muted-foreground">Проверяем код…</p>}
-        {state.kind === 'gone' && <p className="px-1">Код не найден или устарел. Попросите новый.</p>}
+        {state.kind === 'gone' && <p className="px-1">Код не найден или устарел. Попроси новый.</p>}
         {state.kind === 'offline' && <p className="px-1">Нет сети — вступить можно, когда она появится.</p>}
         {state.kind === 'found' && (
           <div className="flex flex-col gap-4">
@@ -93,8 +93,10 @@ export function JoinScreen() {
             </div>
             {already ? (
               <Button size="lg" onClick={() => void open(state.invite.groupId, false)}>
-                Вы уже в этой группе — открыть
+                Ты уже в этой группе — открыть
               </Button>
+            ) : me && me.groups.length >= MAX_GROUPS ? (
+              <p className="px-1 text-muted-foreground">{GROUP_LIMIT_TEXT}</p>
             ) : me ? (
               <Button size="lg" disabled={busy} onClick={() => void join()}>
                 Вступить
@@ -108,7 +110,7 @@ export function JoinScreen() {
         )}
         {code && !standalone() && (
           <div className="flex flex-col gap-2 border-t pt-6 text-sm text-muted-foreground">
-            <p>Приложение уже на экране «Домой»? Откройте его: Настройки → Группа → Вступить по коду.</p>
+            <p>Приложение уже на экране «Домой»? Открой его: Настройки → Группа → Вступить по коду.</p>
             <p className="text-3xl font-medium tracking-widest text-foreground tabular-nums">{formatInviteCode(code)}</p>
           </div>
         )}
@@ -118,11 +120,11 @@ export function JoinScreen() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Открывать эту группу при запуске?</AlertDialogTitle>
-            <AlertDialogDescription>Её можно поменять в Настройках → «Группа».</AlertDialogDescription>
+            <AlertDialogDescription>Это можно поменять: Настройки → Группа.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => void open(joined!, false)}>Нет</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void open(joined!, true)}>Да</AlertDialogAction>
+            <AlertDialogCancel onClick={() => void open(joined!, false)}>Не открывать</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void open(joined!, true)}>Открывать</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

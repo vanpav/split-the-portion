@@ -41,7 +41,7 @@ describe('phraseSummaryText', () => {
     expect(phraseSummaryText({ kind: 'simple', countedGrams: 200, excludedGrams: 0 })).toEqual({ kind: 'Простое', details: 'сухой 200 г' })
     expect(phraseSummaryText({ kind: 'composite', countedGrams: 1360, excludedGrams: 2016 })).toEqual({
       kind: 'Составное',
-      details: `сырой 1${NBSP}360 г · не учит. 2${NBSP}016 г`,
+      details: `сырой 1${NBSP}360 г · не в счёт 2${NBSP}016 г`,
     })
   })
 })

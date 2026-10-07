@@ -44,6 +44,10 @@ A unit converter for one cooking, not a food database or a calorie counter. The 
 - Name: Split the Portion; browser title «Порции».
 - Voice: plain, short, kitchen-practical Russian; numbers first, explanations quiet.
 
+## Design Prototypes
+
+When asked to produce design prototypes (standalone HTML mocks, variants, explorations), make them for desktop only. Do not spend effort on responsive behavior of the prototype HTML itself; the author reviews prototypes on desktop and will ask for mobile or other widths if needed. This applies to prototypes only: the product itself is responsive (375 px first), so every UI change in the real app must still be checked at phone width.
+
 ## Evidence on Hand
 
 - Reference examples with exact numbers: docs/SPEC.md §11 (гречка, суп, остаток гречки) — usable as demonstration data.

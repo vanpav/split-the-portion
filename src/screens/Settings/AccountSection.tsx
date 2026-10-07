@@ -21,7 +21,7 @@ import { leaveAccount } from '@/sync/session'
 import { PasskeySetting } from './PasskeySetting'
 import { SyncStatusLine } from './SyncStatusLine'
 
-/** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, Face ID and «Выйти». */
+/** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, passkeys and «Выйти». */
 export function AccountSection() {
   const me = useAccountStore((s) => s.me)
   const [busy, setBusy] = useState(false)
@@ -32,9 +32,9 @@ export function AccountSection() {
     return (
       <section className="flex flex-col gap-3">
         <div className="flex flex-col gap-1 px-1">
-          <h2 className="text-base font-semibold">Аккаунт</h2>
+          <h2 className="text-base font-semibold max-md:sr-only">Аккаунт</h2>
           <p className="text-sm text-muted-foreground">
-            Данные только на этом устройстве. Войдите, чтобы данные были на всех устройствах и в общей группе.
+            Данные хранятся только на этом устройстве. Войди — они появятся на всех устройствах и в общей группе.
           </p>
         </div>
         <Button asChild className="self-start">
@@ -68,7 +68,7 @@ export function AccountSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold">Аккаунт</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">Аккаунт</h2>
         <p className="truncate text-base">{me.user.email}</p>
         <SyncStatusLine />
       </div>
@@ -83,7 +83,7 @@ export function AccountSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Не все изменения отправлены</AlertDialogTitle>
             <AlertDialogDescription>
-              Часть правок есть только на этом устройстве. После выхода они пропадут. Выйти всё равно?
+              Часть правок есть только на этом устройстве. После выхода они пропадут.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

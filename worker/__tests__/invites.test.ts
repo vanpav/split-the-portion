@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createAuth } from '../auth'
-import { acceptInvite, inviteCode, previewInvite, revokeInvite, roleIn } from '../invites'
+import { acceptInvite, createGroup, inviteCode, previewInvite, revokeInvite, roleIn } from '../invites'
 import { isMember } from '../sync'
 import { addMember, addUser, localD1 } from './localD1'
 
@@ -47,5 +47,25 @@ describe('invites', () => {
   it('the owner is the one who made the group', async () => {
     expect(await roleIn(db, 'home', 'vanya')).toBe('owner')
     expect(await roleIn(db, 'nowhere', 'vanya')).toBeNull()
+  })
+
+  it('three groups at most: joining and creating the fourth is refused, a group already joined is not', async () => {
+    const auth = createAuth(env, 'http://localhost', 'test-secret')
+    await addMember(db, 'lena', 'g1', 'g2', 'g3')
+    const { code } = await inviteCode(db, 'home', 'vanya', NOW)
+    expect(await acceptInvite(auth, db, code, 'lena', NOW)).toBe('limit')
+    expect(await isMember(db, 'home', 'lena')).toBe(false)
+    expect(await createGroup(auth, db, 'lena', 'Четвёртая')).toBe('limit')
+    // The backstop for Better Auth's own routes.
+    await expect(auth.api.addMember({ body: { userId: 'lena', organizationId: 'home', role: 'member' } })).rejects.toThrow()
+    const { code: g1 } = await inviteCode(db, 'g1', 'lena', NOW)
+    expect(await acceptInvite(auth, db, g1, 'lena', NOW)).toBe('g1')
+  })
+
+  it('a new group is owned by its maker', async () => {
+    const auth = createAuth(env, 'http://localhost', 'test-secret')
+    await addUser(db, 'petya')
+    const id = await createGroup(auth, db, 'petya', 'Семья')
+    expect(await roleIn(db, id, 'petya')).toBe('owner')
   })
 })

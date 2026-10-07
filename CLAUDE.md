@@ -46,6 +46,11 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 - No «нетто/брутто» or `net/gross` in UI, docs or code. UI says «вес с тарой» / «вес без тары»; code uses `withTare` / `food`.
 - Other terms follow the SPEC §2 glossary; UI texts follow the UX §6 dictionary.
 - «Группа» (shared account bookkeeping) and «Компания» (who eats, in what shares) are different things — don't mix.
+- UI addresses the user as «ты» (singular imperative: «Введи», «Войди»; «твои блюда»), never «вы». This overrides the `ru-ui-copy` skill's default.
+- «Ингредиент» everywhere in UI (not «продукт»). The letter `k` stays as it is.
+- «Убрать» — a part from a set (person, portion, ingredient, group member); «Удалить» — a whole entity (dish, tare, company).
+- Errors: one text per cause, never a catch-all like «Не получилось». Offline, no answer from the server, server 5xx and each known 4xx code get their own text that says what happened and what to do (table in `docs/UX.md` §6).
+- Visible text and tooltips of a button next to the element it acts on never repeat the element's name: «Убрать», not «Убрать: Ваня». `aria-label` does name it, as «Убрать: Ваня» (colon, because a user-typed name can't be declined). A toast after the element is gone may name it too.
 
 ### Code
 - For shadcn (search, examples, install) use the `shadcn` MCP server from `.mcp.json`.
@@ -75,6 +80,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 - `server-sync` — `worker/`, D1, secrets, deploy, `src/sync`. Use for any server or sync change.
 - `ui-verify` — verifying UI in the browser (375 px, PWA, two "devices"). After screen changes.
 - `issue-workflow` — GitHub issues rules: who may assign, labels, branches, PRs.
+- `ru-ui-copy` — any Russian UI string, in code or in docs/UX.md. **Everyone who touches UI text runs it and follows it**; the rules in Terminology above and UX §6 win over it.
 
 ## Working rules
 

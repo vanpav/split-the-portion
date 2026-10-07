@@ -33,7 +33,7 @@
 | `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
 | `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой, типы окружения (`pnpm wrangler types`), `getPlatformProxy` для `pnpm db:auth-schema` ([CLOUDFLARE.md](CLOUDFLARE.md)). Согласовано 2026-10-06 |
 | `@cloudflare/vite-plugin` | dev | Воркер и локальная D1 внутри `pnpm dev` и `pnpm preview` — один dev-сервер на 5180; сборка воркера в `dist/split_the_portion`. Согласовано 2026-10-06 |
-| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, Face ID (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
+| `better-auth`, `@better-auth/passkey` | prod | Вход почта + пароль, passkey (WebAuthn), сессии и ограничение частоты в D1 (D1 — напрямую, с 1.5), группы — плагин `organization`. Под workerd хеш пароля сам берёт нативный `node:crypto` scrypt. Свою авторизацию не пишем: это безопасность. Согласовано 2026-10-06 |
 | `hono` | prod (воркер) | Маршруты `/api/*` и `csrf()` в воркере. Согласовано 2026-10-06 |
 | `@vite-pwa/assets-generator` | dev | `pnpm icons`: иконки PWA, `apple-touch-icon` и `favicon.ico` из `public/favicon.svg` (`pwa-assets.config.ts`); PNG коммитятся. Согласовано 2026-10-06 |
 | `driver.js` | prod | Подсказки для новых (этап 18): тур по калькулятору — затемнение с вырезом вокруг элемента, карточка у края экрана, прокрутка к элементу, Esc и ← / →, возврат фокуса после тура (`src/onboarding/useCalculatorTour.ts`). MIT, без зависимостей. Карточка не из shadcn — исключение, как `sonner`: оформлена переменными темы (`.hint-popover` в `index.css`). React Joyride (тяжелее), Shepherd.js и Intro.js (AGPL-3.0) не взяли. Согласовано 2026-10-07 |
@@ -239,8 +239,8 @@ src/domain/
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `localDay(date)`, `markUsed(usedOn, day)`, `usesSince(usedOn, today)` | День «YYYY-MM-DD» по местному времени; отметка использования (раз в день, последние 30, `USED_DAYS_KEPT`); сколько разных дней за последние 60 (`FREQUENT_WINDOW_DAYS`). Дата передаётся снаружи |
-| `dishMenu(dishes, presets, { query, today, byCategory? })` → `{ often, rest, categories, popular }` (`byCategory`: свои блюда в `categories`, `often` и `rest` пусты), `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products, category?)` (категория — ниже любого совпадения по названию и продукту), `detectCategory`, `dishCategory`, `categoryMatches`, `dishFoundByCategory`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовите» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
-| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
+| `dishMenu(dishes, presets, { query, today, byCategory? })` → `{ often, rest, categories, popular }` (`byCategory`: свои блюда в `categories`, `often` и `rest` пусты), `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products, category?)` (категория — ниже любого совпадения по названию и продукту), `detectCategory`, `dishCategory`, `categoryMatches`, `dishFoundByCategory`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовишь» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
+| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не в счёт: …»); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему. Свои порции — в готовых граммах (`fixedCooked`), в сухом виде (`fixedRaw`, сырой вес продукта) или в процентах (`fixedPercent`) |
@@ -361,12 +361,12 @@ src/
     Welcome/            — приветственный экран `#/welcome` (этап 18, UX §3в): WelcomeScreen — шаги внутри экрана, последний — аккаунт; иллюстрации из логотипа WelcomeBoxes, WelcomeTiles, WelcomeShares, WelcomeDevices (inline SVG, CSS-анимации под `motion-safe:`)
     Join/               — вступить в группу: JoinScreen по ссылке `#/join/:code` (этап 14), JoinByCodeScreen — код вручную `#/join`
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
-    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, LeaveGroupButton — «Группа» («Вступить по коду» — ссылка на `#/join`)
+    Settings/           — настройки по подразделам (docs/UX.md «Настройки»); AccountSection + PasskeySetting (список passkey, добавить, удалить) + SyncStatusLine — «Аккаунт»; GroupSection + GroupPicker, GroupName, GroupMembers, InviteCard, LeaveGroupButton — «Группа» («Вступить по коду» — ссылка на `#/join`)
       SettingsScreen.tsx      — раскладка: меню подразделов + выбранный подраздел; на телефоне — либо список (ссылки добавляют запись в историю), либо подраздел; с `md` меню (ссылки заменяют адрес); анимация смены подраздела
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
       sections.ts             — список подразделов: адрес, название, подпись, иконка
-      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), HoldSection, PresetsSection, DataSection
+      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), PresetsSection, DataSection
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
@@ -413,6 +413,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ и кнопкой «По категориям» (`InputGroupButton`, `ListTreeIcon`, `aria-pressed`, `Tooltip`), строка — `CommandItem` (общая с «Из блюда»); фильтра и сортировки нет; «+» в шапке — `Button` `secondary` `icon` |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказка «Найти блюдо ⌘K /» | `Tooltip` + `Kbd` |
+| «k блюда» под показаниями (`KHint`) | Подпись с пунктирным подчёркиванием: `Tooltip` с `hover` + точная мышь, иначе тап открывает `Sheet` `side="bottom"` с тем же текстом |
 | «Что в блюде» в редакторе | `Textarea` (16 px, растёт по тексту — `field-sizing: content`); «Вставить», «Из блюда» — `Button` variant `ghost` над полем |
 | Микрофон в поле «Что в блюде» | `Button` size `icon`, круглый, в правом нижнем углу поля; при записи — variant `default` с пульсом (`motion-safe:animate-pulse`), распознавание — `lib/useSpeechRecognition` |
 | Разбор фразы | Список кнопок-строк на `bg-muted/60` (тап — учитывать или нет, фокус остаётся в поле), × — `Button` variant `ghost` size `icon`; строка с курсором — `bg-card`; пометки — `text-destructive` / `text-warning` |
@@ -551,7 +552,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 - **Вход — Better Auth:**
   - адрес (`baseURL`, доверенный `Origin`, `rpID`) берётся из запроса: рабочий адрес, превью веток и `localhost` работают каждый под своим. Экземпляр Better Auth создаётся один раз на адрес в изоляте (`worker/index.ts`);
   - почта + пароль; хеш — нативный `node:crypto` scrypt: Better Auth 1.7 выбирает его для workerd сам (флаг `nodejs_compat`), чистый JS не уложился бы в 10 мс CPU бесплатного плана;
-  - passkey (Face ID); `rpID` — хост, при смене домена ключи добавляются заново;
+  - passkey (Face ID, Chrome, Windows Hello); ключей на аккаунт сколько угодно — по одному на устройство или менеджер паролей, любой можно удалить из «Аккаунта» (`deletePasskey`). Имя ключа ставит after-хук `/passkey/verify-registration` в `worker/auth.ts` по AAGUID (`getAuthenticatorName`: «iCloud Keychain», «Google Password Manager»…); ключи без имени показываются как «Passkey». Добавить ключ можно только со свежей сессией (Better Auth `freshAge`, 24 ч), иначе — «выйди и войди снова». `rpID` — хост, при смене домена ключи добавляются заново;
   - сброс пароля: пока писем нет, `sendResetPassword` пишет ссылку в лог воркера; экран `#/account/reset` берёт `token` из настоящей строки запроса (`/?token=…#/account/reset`);
   - сессия в cookie `HttpOnly; Secure; SameSite=Lax`, живёт 60 дней с продлением;
   - ограничение частоты хранится в D1.
@@ -571,6 +572,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 |---|---|
 | `* /api/auth/*` | Better Auth: регистрация, вход, passkey, выход, группы (`organization/*`) |
 | `GET /api/me` | Пользователь, его группы с участниками (`memberId`, почта, роль) и своей ролью, `defaultGroupId` |
+| `POST /api/groups` | Новая группа `{ name }`, создатель — владелец; 409 `group_limit`, если он уже в трёх (`MAX_GROUPS`; так же `POST /invites/:code/accept`) |
 | `PUT /api/me/default-group` | Группа, которая открывается при запуске |
 | `POST /api/groups/:id/sync` | Push и pull изменений группы (§10) |
 | `POST /api/groups/:id/invites` | Код приглашения (действующий переиспользуется) |
@@ -668,5 +670,5 @@ type SyncResponse = { cursor: number; changes: Change[]; more: boolean };
   - копия локальных данных до входа — `split-the-portion:backup:<ISO>`; данные другого аккаунта (после «Войти снова» под другой почтой) в группу не сливаются.
 - *Выход:* предупреждение, если outbox не пуст. Затем удаляются блобы групп, их outbox и кэш аккаунта.
 - *Другие группы аккаунта* (этап 14) синхронизируются фоном, по тем же поводам и по очереди, прямо в их сохранённой копии (`syncStoredGroup`): любая уже открывавшаяся на устройстве группа без сети открывается свежей, а правки, оставленные в ней перед переключением, уходят. Группу, которую здесь ещё не открывали, заранее не скачиваем. Открытие группы (`openGroup`) ждёт её фонового прогона.
-- *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Вы больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
+- *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Ты больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
 - *Несколько вкладок* одной группы на десктопе друг о друге не знают — в бэклоге.

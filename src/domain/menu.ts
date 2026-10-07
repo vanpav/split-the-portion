@@ -16,7 +16,7 @@ export interface DishMenuOptions {
 }
 
 /**
- * The dish menu as shown: «Часто готовите» (only without a query), the other own dishes, then the
+ * The dish menu as shown: «Часто готовишь» (only without a query), the other own dishes, then the
  * popular ones the user does not have yet.
  */
 export interface DishMenu<D, P> {
@@ -39,9 +39,9 @@ export interface DishPicks<D, P> {
   popular: { preset: P; source: DishPickSource }[]
 }
 
-/** «Часто готовите» holds at most this many dishes. */
+/** «Часто готовишь» holds at most this many dishes. */
 export const OFTEN_LIMIT = 5
-/** A dish is «часто готовите» from this many distinct days of use in the window (`FREQUENT_WINDOW_DAYS`). */
+/** A dish is «часто готовишь» from this many distinct days of use in the window (`FREQUENT_WINDOW_DAYS`). */
 export const OFTEN_MIN_USES = 2
 
 const collator = new Intl.Collator('ru', { sensitivity: 'base', numeric: true })
@@ -84,7 +84,7 @@ interface Ranked<D> {
   last: string
 }
 
-/** «Часто готовите» order: more distinct days of use, then the later use, then `updatedAt`, then the name. */
+/** «Часто готовишь» order: more distinct days of use, then the later use, then `updatedAt`, then the name. */
 function byFrequent<D extends MenuDish>(a: Ranked<D>, b: Ranked<D>): number {
   return (
     b.uses - a.uses ||
@@ -94,7 +94,7 @@ function byFrequent<D extends MenuDish>(a: Ranked<D>, b: Ranked<D>): number {
   )
 }
 
-/** Own dishes that match the query, best match first; among equals — the «Часто готовите» order. */
+/** Own dishes that match the query, best match first; among equals — the «Часто готовишь» order. */
 function rankOwn<D extends MenuDish>(dishes: readonly D[], query: string, today: string): Ranked<D>[] {
   return dishes
     .map((dish) => {
@@ -124,12 +124,12 @@ function rankPresets<P extends PresetDish>(presets: readonly P[], query: string)
  * The dish menu (docs/SPEC.md §3б «Меню блюд»). No query: `often` — own dishes used on two or more
  * distinct days in the last 60, five at most, most days first; `rest` — every other own dish by name;
  * `popular` — the presets in catalogue order. With a query: only matches, `often` is empty, `rest`
- * holds the own ones (better match first, then the «Часто готовите» order), `popular` the presets.
+ * holds the own ones (better match first, then the «Часто готовишь» order), `popular` the presets.
  *
  * `byCategory`: the own dishes go to `categories` instead (`often` and `rest` are empty). No query:
- * the categories in display order, the «Часто готовите» order inside. With one: only categories with
+ * the categories in display order, the «Часто готовишь» order inside. With one: only categories with
  * matches, the one holding the best match first (then display order), inside — better match first,
- * then the «Часто готовите» order.
+ * then the «Часто готовишь» order.
  */
 export function dishMenu<D extends MenuDish, P extends PresetDish>(
   dishes: readonly D[],
@@ -159,7 +159,7 @@ export function dishMenu<D extends MenuDish, P extends PresetDish>(
 
 /**
  * «Из блюда» in the dish editor: own simple dishes and the popular simple ones (`presets` are the ones
- * the user does not have yet). No query: own in the «Часто готовите» order, popular in the catalogue
+ * the user does not have yet). No query: own in the «Часто готовишь» order, popular in the catalogue
  * order; with one: better matches first. Each comes with what is inserted into the form.
  */
 export function dishPicks<D extends Dish, P extends PresetDish>(

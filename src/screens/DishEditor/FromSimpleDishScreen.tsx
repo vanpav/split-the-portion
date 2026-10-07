@@ -39,12 +39,12 @@ export function FromSimpleDishScreen() {
           onQueryChange={setQuery}
           onClose={back}
           placeholder="Гречка, рис…"
-          hint="Блюда из одного продукта — добавятся с обычным весом"
+          hint="Блюда из одного ингредиента — добавятся с обычным весом"
           values={values}
         >
           {values.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ничего не нашлось</p>}
           {own.length > 0 && (
-            <DishSearchGroup heading="Ваши блюда">
+            <DishSearchGroup heading="Твои блюда">
               {own.map(({ dish, source }) => (
                 <DishSearchRow
                   key={dish.id}

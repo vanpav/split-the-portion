@@ -11,6 +11,7 @@ import { DishMenuScreen } from '@/screens/DishList/DishMenuScreen'
 import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
+import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
 import { COPY_TEXT, FROM_SIMPLE_DISH, NEW_TARE } from './paths'
@@ -45,6 +46,7 @@ export const router = createHashRouter([
       { path: 'settings/:section', element: <SettingsScreen />, children: [copyText] },
       { path: 'account', element: <AccountScreen /> },
       { path: 'account/reset', element: <ResetPasswordScreen /> },
+      { path: 'groups/new', element: <NewGroupScreen /> },
       { path: 'join', element: <JoinByCodeScreen /> },
       { path: 'join/:code', element: <JoinScreen /> },
       { path: '*', element: <Navigate to="/" replace /> },

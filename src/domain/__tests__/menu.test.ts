@@ -71,7 +71,7 @@ describe('matchRank', () => {
 })
 
 describe('dishMenu without a query', () => {
-  it('«Часто готовите»: two or more distinct days in the last 60; more days higher', () => {
+  it('«Часто готовишь»: two or more distinct days in the last 60; more days higher', () => {
     const thrice = dish('Гречка', { usedOn: ['2026-09-01', '2026-09-20', '2026-10-05'] })
     const twice = dish('Макароны', { usedOn: ['2026-10-05', '2026-10-06'] })
     const once = dish('Пшено', { usedOn: ['2026-10-06'] })
@@ -89,7 +89,7 @@ describe('dishMenu without a query', () => {
     expect(names(dishMenu([a, b, c, d], [], options()).often)).toEqual(['В', 'А', 'Ая', 'Б'])
   })
 
-  it('at most five go to «Часто готовите»; the sixth waits in the alphabet with the rest', () => {
+  it('at most five go to «Часто готовишь»; the sixth waits in the alphabet with the rest', () => {
     const list = ['Ж', 'Е', 'Д', 'Г', 'В', 'Б'].map((n, i) =>
       dish(n, { usedOn: i === 5 ? ['2026-10-01', '2026-10-02'] : ['2026-10-01', '2026-10-02', '2026-10-03'] }),
     )
@@ -117,7 +117,7 @@ describe('dishMenu without a query', () => {
 })
 
 describe('dishMenu with a query', () => {
-  it('only matches, better first, the «Часто готовите» order among equals; nothing in «Часто готовите»', () => {
+  it('only matches, better first, the «Часто готовишь» order among equals; nothing in «Часто готовишь»', () => {
     const own = [
       soup('Суп', ['Гречка', 'Курица'], { usedOn: ['2026-10-01', '2026-10-02', '2026-10-03'] }),
       dish('Гречка'),
@@ -250,7 +250,7 @@ describe('dishMenu by category', () => {
       ['sides', ['Макароны', 'Гречка', 'Котлеты']],
       ['other', ['Хачапури']],
     ])
-    // No separate «Часто готовите» and no flat rest.
+    // No separate «Часто готовишь» and no flat rest.
     expect(menu.often).toEqual([])
     expect(menu.rest).toEqual([])
   })

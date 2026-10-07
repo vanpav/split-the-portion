@@ -63,13 +63,13 @@ describe('rawFold', () => {
       ingredient('w', 2000, true, 'Вода'),
       ingredient('s', 5, true, 'Соль'),
     ]
-    expect(rawFold(soup)).toEqual({ total: 1080, note: `не учит.: Вода ${formatGrams(2000)} г, Соль 5 г` })
+    expect(rawFold(soup)).toEqual({ total: 1080, note: `не в счёт: Вода ${formatGrams(2000)} г, Соль 5 г` })
   })
 
   it('counted products without a weight are named first; nothing weighed — no total', () => {
     expect(rawFold([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
       total: 300,
-      note: 'без веса: Шампиньоны · не учит.: Специи',
+      note: 'без веса: Шампиньоны · не в счёт: Специи',
     })
     expect(rawFold([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, note: 'без веса: Фарш' })
   })

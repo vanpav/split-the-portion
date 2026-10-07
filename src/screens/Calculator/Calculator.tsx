@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon, Undo2Icon } from 'lucide-react'
+import { ChevronUpIcon, Undo2Icon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate, useNavigate, useOutlet } from 'react-router'
 import { toast } from 'sonner'
@@ -55,7 +55,8 @@ import { useAppStore } from '@/store/store'
 import type { CalculatorOutlet } from './calculatorOutlet'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
-import { kText, portionName, rawWord } from './messages'
+import { portionName, rawWord } from './messages'
+import { KHint } from './KHint'
 import { PersonResult } from './PersonResult'
 import { PortionStepper } from './PortionStepper'
 import { PortionSummary } from './PortionSummary'
@@ -101,7 +102,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const lineups = useAppStore((s) => s.lineups)
   const setLineup = useAppStore((s) => s.setLineup)
   const upsertCompany = useAppStore((s) => s.upsertCompany)
-  const holdMs = useAppStore((s) => s.holdMs)
   const setCooked = useAppStore((s) => s.setCooked)
   // «Доли» (docs/SPEC.md §3б): this device's choice for every dish; the portions are per dish, here only.
   const splitMode = usePrefsStore((s) => s.splitMode)
@@ -494,9 +494,8 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const raw = rawFold(shownIngredients.map((i) => ({ ...i, rawGrams: toNumber(texts[i.id] ?? '') })))
 
   // Under the readouts, after the tare: the weight without it and k.
-  const note = [tare && phase.foodGrams !== null && `${formatGrams(phase.foodGrams)} г без тары`, phase.k && kText(phase.k, false)]
-    .filter((part): part is string => Boolean(part))
-    .join(' · ')
+  const tareNote = tare && phase.foodGrams !== null ? `${formatGrams(phase.foodGrams)} г без тары` : null
+  const note = tareNote !== null || phase.k !== null
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
   return (
@@ -519,7 +518,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 <DisplayRow
                   key={i.id}
                   {...weightField(i.id)}
-                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
+                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не в счёт' : ''}`}
                   text={texts[i.id] ?? ''}
                   small={!tiles}
                   lids={people.length}
@@ -543,18 +542,23 @@ export function Calculator({ id }: { id: Id | undefined }) {
             {tareExceeds ? (
               <span className="text-sm text-destructive">вес меньше тары</span>
             ) : (
-              note && <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{note}</span>
+              note && (
+                <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
+                  {tareNote}
+                  {tareNote !== null && phase.k && ' · '}
+                  {phase.k && <KHint k={phase.k} />}
+                </span>
+              )
             )}
-            {foldable && (
+            {foldable && !folded && (
               <Button
                 variant="ghost"
-                aria-expanded={!folded}
-                // A quiet line: open or not, the button stays text, without the pressed fill.
-                className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
-                onClick={folded ? () => setFolded(false) : fold}
+                // A quiet line: the button stays text, without the pressed fill.
+                className="ml-auto px-2 text-muted-foreground"
+                onClick={fold}
               >
-                {folded ? 'Продукты' : 'Свернуть'}
-                {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
+                Свернуть
+                <ChevronUpIcon data-icon="inline-end" />
               </Button>
             )}
           </div>
@@ -596,7 +600,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             numbered={inShares}
             // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything;
             // a tap on it puts the cursor into «+ Имя».
-            empty={{ label: 'Добавьте людей', fieldId: ADD_PERSON_ID }}
+            empty={{ label: 'Добавь людей', fieldId: ADD_PERSON_ID }}
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
             hint="bar"
           />
@@ -652,7 +656,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
                   dry={rawOf !== null}
                   onRename={(name) => updatePerson(p.portionId, name)}
                   onRemove={() => removePerson(p.portionId)}
-                  holdMs={holdMs}
                   onReleaseOwn={() => releaseOwn(p.portionId)}
                   percent={p.share !== null && p.share > 0 ? formatPercent(p.share) : null}
                   grams={{ ...amountField(p.portionId), onToggleUnit: () => toggleUnit(p.portionId) }}

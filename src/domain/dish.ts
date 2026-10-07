@@ -69,7 +69,7 @@ export function dishSummary(ingredients: (Pick<Ingredient, 'name' | 'rawGrams'> 
 /**
  * A composite dish folded to one readout in the calculator: the raw weight of what counts, summed
  * (null while no counted product has a weight), and a quiet note — counted products still without
- * a weight, then what is weighed in but not counted: «не учит.: Вода 2 000 г, Соль 5 г».
+ * a weight, then what is weighed in but not counted: «не в счёт: Вода 2 000 г, Соль 5 г».
  */
 export function rawFold(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; note: string } {
   const named = ingredients.filter((i) => i.name.trim())
@@ -80,7 +80,7 @@ export function rawFold(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'exc
   const uncounted = named
     .filter((i) => i.excluded)
     .map((i) => (i.rawGrams !== null ? `${i.name.trim()} ${formatGrams(i.rawGrams)} г` : i.name.trim()))
-  const note = [unweighed.length > 0 && `без веса: ${unweighed.join(', ')}`, uncounted.length > 0 && `не учит.: ${uncounted.join(', ')}`]
+  const note = [unweighed.length > 0 && `без веса: ${unweighed.join(', ')}`, uncounted.length > 0 && `не в счёт: ${uncounted.join(', ')}`]
     .filter((part): part is string => Boolean(part))
     .join(' · ')
   return { total, note }
