@@ -4,12 +4,15 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
+import { readAppVersion } from './scripts/appVersion.ts'
 
 // Ground of the light theme (DESIGN.md «frosted-ground»), same as theme-color in index.html.
 const GROUND = '#f2f5f9'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // `0.1.312` on production, `0.1.312-b241417` on a preview (scripts/appVersion.ts, docs/CLOUDFLARE.md §8).
+  define: { __APP_VERSION__: JSON.stringify(readAppVersion()) },
   plugins: [
     react(),
     tailwindcss(),
@@ -56,6 +59,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'worker/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'worker/**/*.test.ts', 'scripts/**/*.test.ts'],
   },
 })

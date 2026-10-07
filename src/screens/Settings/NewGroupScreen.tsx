@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { groupErrorText } from '@/account/networkText'
 import { MAX_GROUP_NAME } from '@/account/types'
-import { settingsPath } from '@/app/paths'
+import { popularPath, settingsPath } from '@/app/paths'
 import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,7 @@ import { createGroup, switchGroup } from '@/sync/session'
 
 /**
  * `#/groups/new` — «Создать группу» from Settings → «Группа» (docs/UX.md §3а): the name is typed
- * on a screen of its own; the new group opens empty, its owner invites people from «Группа».
+ * on a screen of its own; the new group opens empty and goes straight to «Популярные блюда», its owner invites people from «Группа».
  */
 export function NewGroupScreen() {
   const navigate = useNavigate()
@@ -30,7 +30,8 @@ export function NewGroupScreen() {
     try {
       const id = await createGroup(trimmed)
       await switchGroup(id)
-      navigate(settingsPath('group'), { replace: true })
+      // The new group is empty: its popular dishes next; this screen leaves the history.
+      navigate(popularPath({ group: true }), { replace: true })
     } catch (err) {
       toast(groupErrorText(err))
     } finally {
