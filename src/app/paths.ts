@@ -22,6 +22,8 @@ export const GROUP_SCREEN = ':groupId'
 export const groupPath = (groupId: string) => `${SETTINGS_PATH}/group/${groupId}`
 /** Relative to Settings → Аккаунт: the photo chosen for the avatar, cut to a circle (docs/UX.md «Аккаунт и группа»). */
 export const AVATAR_CROP = 'photo'
+/** Relative to Settings → Аккаунт: «Сменить пароль», the current one and a new one. */
+export const CHANGE_PASSWORD = 'password'
 /** The photo goes with the navigation to `photo` as an object URL: shown, not stored. */
 export interface AvatarCropState {
   photo: string

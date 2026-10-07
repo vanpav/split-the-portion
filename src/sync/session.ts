@@ -1,5 +1,8 @@
 import { del } from 'idb-keyval'
 import { toast } from 'sonner'
+import { accountApi } from '@/account/accountApi'
+import { authClient } from '@/account/authClient'
+import { forgetPasskeys, passkeyIds } from '@/account/forgetPasskeys'
 import { groupsApi } from '@/account/groupsApi'
 import { groupLabel } from '@/account/groupLabel'
 import { refreshAccount } from '@/account/refreshAccount'
@@ -180,6 +183,47 @@ export async function leaveAccount() {
   await Promise.all(groups.flatMap((g) => [del(groupDataKey(g.id)), forgetOutbox(g.id)]))
   useSyncStore.setState({ localData: null })
   useAccountStore.getState().setMe(null)
+}
+
+/**
+ * Sync stops before the server wipes the groups, so nothing is pushed into them halfway; if the
+ * request fails, the open group syncs on as before.
+ */
+async function withSyncStopped(request: () => Promise<unknown>) {
+  const open = useSyncStore.getState().groupId
+  stopSync()
+  try {
+    await request()
+  } catch (e) {
+    if (open) void syncGroup(open)
+    throw e
+  }
+}
+
+/**
+ * «Сбросить аккаунт» (docs/SPEC.md §13.2): on the server only the sign-in is left and a new empty
+ * group; here the old groups leave the device and the new one opens, as after signing up.
+ */
+export async function resetAccount() {
+  const groups = me()?.groups ?? []
+  await withSyncStopped(accountApi.reset)
+  // Still signed in all along: «Аккаунт» stays on screen, only its contents change.
+  await refreshAccount()
+  await enterAccount()
+  await Promise.all(groups.flatMap((g) => [del(groupDataKey(g.id)), forgetOutbox(g.id)]))
+  useSyncStore.setState({ localData: null })
+}
+
+/**
+ * «Удалить аккаунт»: the account is gone from the server; here the session cookie is cleared, the
+ * groups' data leaves the device, and the password manager is told to forget the passkeys.
+ */
+export async function deleteAccount() {
+  const passkeys = await passkeyIds()
+  await withSyncStopped(accountApi.remove)
+  await authClient.signOut().catch(() => undefined)
+  await leaveAccount()
+  forgetPasskeys(passkeys)
 }
 
 // The open group answered 403: the user is no longer in it (removed by the owner, or left elsewhere).

@@ -1,9 +1,9 @@
-import { LogInIcon, LogOutIcon } from 'lucide-react'
+import { ChevronRightIcon, LockKeyholeIcon, LogInIcon, LogOutIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { authClient } from '@/account/authClient'
-import { ACCOUNT_PATH } from '@/app/paths'
+import { ACCOUNT_PATH, CHANGE_PASSWORD, settingsPath } from '@/app/paths'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
 import { hasUnsentChanges } from '@/sync/runner'
 import { leaveAccount } from '@/sync/session'
+import { AccountDangerZone } from './AccountDangerZone'
 import { PasskeySetting } from './PasskeySetting'
 import { ProfileFields } from './ProfileFields'
 import { ProfileHeader } from './ProfileHeader'
@@ -72,12 +73,21 @@ export function AccountSection() {
       <ProfileHeader user={me.user} />
       <div className="flex flex-col gap-2">
         <h3 className="px-1 text-sm font-medium text-muted-foreground">О себе</h3>
-        <ProfileFields key={me.user.id} user={me.user} />
+        {/* The first group is the account's own: a new one after «Сбросить аккаунт» starts the fields afresh. */}
+        <ProfileFields key={`${me.user.id}:${me.groups[0]?.id}`} user={me.user} />
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="px-1 text-sm font-medium text-muted-foreground">Вход</h3>
         <div className="divide-y overflow-hidden rounded-xl border bg-card">
           <PasskeySetting />
+          <Link
+            to={`${settingsPath('account')}/${CHANGE_PASSWORD}`}
+            className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60"
+          >
+            <LockKeyholeIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+            <span className="flex-1 font-medium">Сменить пароль</span>
+            <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+          </Link>
           <button
             type="button"
             disabled={busy}
@@ -89,6 +99,8 @@ export function AccountSection() {
           </button>
         </div>
       </div>
+
+      <AccountDangerZone />
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>

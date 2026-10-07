@@ -379,6 +379,7 @@ src/
     ShareControls.tsx   — строка под полосой долей: «− Ваня +» (когда кто-то выбран), «Поровну» (точно поровну, `equalSplit`); процентов нет
     CopyButton.tsx      — shadcn Button + Clipboard + тост; без доступа к буферу — экран `copy` под текущим (калькулятор, подраздел настроек)
     HoldButton.tsx      — × удержанием: рамка закрашивается, отпустил раньше — ничего
+    HoldToConfirmButton.tsx — подтверждение необратимого (сброс, удаление аккаунта): держать 5 с, заливка и отсчёт
     SwipeRow.tsx        — строка со свайпом на сенсорном экране (`pointer: coarse`): влево — красное «Убрать», вправо — «Копировать»; полный свайп делает действие сразу. Поверх `useDrag` и shadcn `Button`; пороги — именованные константы; положение и прозрачность пишутся в `style` через ref, без перерисовки React на каждый кадр; удаление — уезжание влево и схлопывание высоты (Web Animations API), `ref.remove()` — то же для кнопки × строки; `itemId` — строка, возвращённая «Отменить», раскрывается. Куда доехать после отпускания, сопротивление за краем и длительность — чистые функции `domain/swipe.ts`
     ShareSlider.tsx     — полоса долей (48 px, имя над граммами): сегменты, ручки границ (только где помещаются — контейнерный запрос `@container/bar`; у краёв выбранного — всегда), ShareControls; «На завтра», `numbered` (номера порций) и `empty` (пустая полоса «Добавьте людей», пока никого нет, — `<label>` поля «+ Имя»: тап ставит в него курсор) — необязательные пропсы (калькулятор, «Доли», компании в настройках)
     AddPersonRow.tsx    — поле «+ Имя» во всю ширину (`InputGroup`, «+» внутри слева, как лупа у поиска): Enter — человек добавлен, поле готово для следующего
@@ -399,7 +400,7 @@ src/
   onboarding/           — подсказки для новых (этап 18): hints.ts — чистые функции (показать ли приветствие и с какого шага тур, шаги тура и их тексты, «Пропустить», «Показать заново»; тест в `onboarding/__tests__`), useCalculatorTour.ts — тур driver.js по меткам `data-hint` на калькуляторе
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
-worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
+worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, account.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
 scripts/appVersion.ts  — версия сборки для `__APP_VERSION__` (§7); тест в `scripts/__tests__`
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 wrangler.preview-db.jsonc — только база превью, для `pnpm db:migrate:preview` (CLOUDFLARE §5)
@@ -566,6 +567,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
   - адрес (`baseURL`, доверенный `Origin`, `rpID`) берётся из запроса: рабочий адрес, превью веток и `localhost` работают каждый под своим. Экземпляр Better Auth создаётся один раз на адрес в изоляте (`worker/index.ts`);
   - почта + пароль; хеш — нативный `node:crypto` scrypt: Better Auth 1.7 выбирает его для workerd сам (флаг `nodejs_compat`), чистый JS не уложился бы в 10 мс CPU бесплатного плана;
   - passkey (Face ID, Chrome, Windows Hello); ключей на аккаунт сколько угодно — по одному на устройство или менеджер паролей, любой можно удалить из «Аккаунта» (`deletePasskey`). Имя ключа ставит after-хук `/passkey/verify-registration` в `worker/auth.ts` по AAGUID (`getAuthenticatorName`: «iCloud Keychain», «Google Password Manager»…); ключи без имени показываются как «Passkey». Добавить ключ можно только со свежей сессией (Better Auth `freshAge`, 24 ч), иначе — «выйди и войди снова». `rpID` — хост, при смене домена ключи добавляются заново;
+  - смена пароля — `changePassword` Better Auth (нужен текущий), экран `#/settings/account/password`;
   - сброс пароля: пока писем нет, `sendResetPassword` пишет ссылку в лог воркера; экран `#/account/reset` берёт `token` из настоящей строки запроса (`/?token=…#/account/reset`);
   - сессия в cookie `HttpOnly; Secure; SameSite=Lax`, живёт 60 дней с продлением;
   - ограничение частоты хранится в D1.
@@ -588,6 +590,8 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 | `PUT /api/me/profile` | Имя, фамилия, короткое имя `{ firstName, lastName, nickname }` — проверка `parseProfile` (общая с клиентом): строки, ≤ 40 / ≤ 24 символов; 400 `bad_profile` |
 | `PUT /api/me/avatar` | Фото — байты квадрата 256×256 из «Фото», ≤ 256 КБ (`MAX_AVATAR_BYTES`, 413 `too_large`); тип определяется по сигнатуре (JPEG, PNG, WebP), иначе 400 `bad_image`. Хранится в D1 (`avatar`), в `user.image` — адрес с версией. Ответ `{ image }` |
 | `DELETE /api/me/avatar` | Убрать фото |
+| `POST /api/me/reset` | «Сбросить аккаунт» (SPEC §13.2), тело `{ confirm: 'reset' }`, иначе 400 `not_confirmed`. Одна транзакция (`worker/account.ts`): свои группы без других участников — удалить с данными; в общих — передать владение следующему по дате вступления и выйти; коды, профиль, фото — удалить; новая группа «Личная». Ответ `{ groupId }` |
+| `DELETE /api/me` | «Удалить аккаунт», тело `{ confirm: 'delete' }`: то же и сам пользователь с сессиями, паролем, passkey и ссылками сброса |
 | `GET /api/avatars/:userId` | Фото — владельцу и тем, кто с ним в одной группе (иначе 404); `cache-control: private, immutable` — адрес меняется с каждым новым фото |
 | `POST /api/groups` | Новая группа `{ name }`, создатель — владелец; 409 `group_limit`, если он уже в трёх (`MAX_GROUPS`; так же `POST /invites/:code/accept`) |
 | `PUT /api/me/default-group` | Группа, которая открывается при запуске |
