@@ -1,15 +1,14 @@
-import { ChevronDownIcon, XIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { Fragment, useRef, type KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { HoldButton } from '@/components/HoldButton'
 import { lidFill } from '@/components/lids'
 import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import {
-  baseRawGrams,
   formatGrams,
   formatPercent,
+  portionRawGrams,
   rawAmountsCopyText,
   type Cooking,
   type CookingResult,
@@ -18,7 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
-import { RawList } from './RawList'
+import { Recipe } from './Recipe'
 
 interface PersonResultProps {
   cooking: Cooking
@@ -55,6 +54,8 @@ interface PersonResultProps {
   percent: string | null
   /** «своя ×»: the person goes back to splitting by share. */
   onReleaseOwn: () => void
+  /** «Состав»: a composite dish with the recipe toggle; `open` — it is on. */
+  recipe?: { open: boolean; oneColumn: boolean }
 }
 
 /**
@@ -75,11 +76,12 @@ export function PersonResult({
   grams,
   percent,
   onReleaseOwn,
+  recipe,
 }: PersonResultProps) {
-  const single = result.baseIngredientId !== null
-  const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
+  // Raw grams of the portion: the only counted ingredient's, or all counted ones together.
+  const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
   const inPercent = grams.unit === '%'
-  const rawText = single && baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+  const rawText = baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
   // Under the name: the other unit of the answer (percent under grams, grams under percent), then the
   // other view — raw under cooked, cooked under dry.
   const subline = (
@@ -229,17 +231,9 @@ export function PersonResult({
           </HoldButton>
         </div>
       </div>
-      {!single && computed.share !== null && (
-        // Not remembered: every row starts closed, the split by product is there on request.
-        <Collapsible className="group/raw">
-          <CollapsibleTrigger className="-my-3 flex min-h-11 items-center gap-1 px-1 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            Из чего
-            <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]/raw:rotate-180" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-1 pt-3">
-            <RawList cooking={cooking} raw={computed.raw} />
-          </CollapsibleContent>
-        </Collapsible>
+      {recipe && computed.share !== null && (
+        // From the name to the answer, not under the actions; always per person.
+        <Recipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[22px]" />
       )}
     </SwipeRow>
   )

@@ -2,15 +2,15 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { sameDay, type Id } from '@/domain'
 import { idbStorage } from './idbStorage'
+import { LAST_CALCULATOR_KEY, LAST_CALCULATOR_VERSION, migrateLastCalculator } from './lastCalculatorMigrations'
 
-export const LAST_CALCULATOR_KEY = 'split-the-portion:calculator'
-export const LAST_CALCULATOR_VERSION = 1
+export { LAST_CALCULATOR_KEY, LAST_CALCULATOR_VERSION }
 
 /** An own portion typed in the calculator. */
 export interface OwnPortion {
   unit: 'g' | '%'
   value: number
-  /** Grams typed while «Сухой» was in focus: dry grams of this ingredient, not cooked. */
+  /** Grams typed while «Сухой» or «Сырой» was in focus: raw grams of this ingredient (`RAW_SUM`: of the counted ones together), not cooked. */
   raw?: Id
 }
 
@@ -19,7 +19,6 @@ export interface CalculatorInput {
   /** Field texts by row: ingredient ids, `cooked`, `person:<id>`. */
   texts: Record<string, string>
   cookedTouched: boolean
-  folded: boolean
   weightRow: string
   fixed: Record<Id, OwnPortion>
   unit: OwnPortion['unit']
@@ -54,6 +53,7 @@ export const useLastCalculatorStore = create<LastCalculatorState>()(
     {
       name: LAST_CALCULATOR_KEY,
       version: LAST_CALCULATOR_VERSION,
+      migrate: (state, version) => migrateLastCalculator(state, version) as { last: LastCalculator | null },
       storage: createJSONStorage(() => idbStorage(null)),
       partialize: (s) => ({ last: s.last }),
     },

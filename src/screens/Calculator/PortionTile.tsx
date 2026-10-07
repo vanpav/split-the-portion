@@ -1,10 +1,11 @@
 import type { KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { lidFill } from '@/components/lids'
-import { baseRawGrams, formatGrams, formatPercent, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
+import { formatGrams, formatPercent, portionRawGrams, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
+import { Recipe } from './Recipe'
 
 interface PortionTileProps {
   cooking: Cooking
@@ -34,6 +35,8 @@ interface PortionTileProps {
    * «по 80 г × 7» above.
    */
   copyable: boolean
+  /** «Состав»: this tile carries the recipe under a hairline; `open` — the mode is on. */
+  recipe?: { open: boolean; oneColumn: boolean }
   className?: string
 }
 
@@ -44,10 +47,9 @@ interface PortionTileProps {
  * is erased. No swipe here: portions are numbered by place,
  * so «−» beside «Доли» takes one away; ⧉ copies this one for the tracker when it differs from the rest.
  */
-export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, className }: PortionTileProps) {
+export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, recipe, className }: PortionTileProps) {
   const name = `Порция ${place + 1}`
-  const single = result.baseIngredientId !== null
-  const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
+  const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
   const inPercent = grams.unit === '%'
   const viewGrams = dry ? baseRaw : computed.cookedGrams
   const shownNumber = inPercent
@@ -58,9 +60,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
     ? viewGrams !== null && `${formatGrams(viewGrams)} г${dry ? ` ${rawWord(cooking.kind)}` : ''}`
     : dry
       ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
-      : single
-        ? baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
-        : computed.share !== null && `${formatPercent(computed.share)} %`
+      : baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
 
   return (
     <li
@@ -118,6 +118,17 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         </span>
         {subline && <span className="truncate text-xs text-muted-foreground tabular-nums">{subline}</span>}
       </label>
+      {recipe && computed.share !== null && (
+        <div className="px-2.5">
+          <Recipe
+            cooking={cooking}
+            raw={computed.raw}
+            open={recipe.open}
+            oneColumn={recipe.oneColumn}
+            className={cn(recipe.open && 'mb-2.5 border-t')}
+          />
+        </div>
+      )}
     </li>
   )
 }

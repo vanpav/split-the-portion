@@ -1,9 +1,9 @@
 import { CopyButton } from '@/components/CopyButton'
 import {
-  baseRawGrams,
   formatGrams,
   formatPercent,
   portionGrams,
+  portionRawGrams,
   rawAmountsCopyText,
   splitAmounts,
   splitSummary,
@@ -14,6 +14,7 @@ import {
 } from '@/domain'
 import { cn } from '@/lib/utils'
 import { portionsWord, rawWord } from './messages'
+import { Recipe } from './Recipe'
 
 interface PortionSummaryProps {
   cooking: Cooking
@@ -28,6 +29,8 @@ interface PortionSummaryProps {
   unit: 'g' | '%'
   /** A portion's number: its place in the lineup. */
   numberOf: (id: Id) => number
+  /** «Состав»: equal portions show one recipe under the line; `open` — the mode is on. */
+  recipe?: { open: boolean; oneColumn: boolean }
 }
 
 /**
@@ -35,7 +38,7 @@ interface PortionSummaryProps {
  * container, said once, with ⧉ for the tracker when they are all the same. Portions that differ get the
  * range; own ones are named under it.
  */
-export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit, numberOf }: PortionSummaryProps) {
+export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit, numberOf, recipe }: PortionSummaryProps) {
   const sharing = portions.filter((p) => !ownIds.includes(p.portionId))
   const own = portions.filter((p) => ownIds.includes(p.portionId))
   // Grams of the view once weighed; percent of the dish before that, or when asked for.
@@ -55,7 +58,7 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
       return grams !== null ? `${formatGrams(grams)} г${rawOf !== null ? ` ${rawWord(cooking.kind)}` : ''}` : null
     }
     if (rawOf !== null) return first.cookedGrams !== null ? `${formatGrams(first.cookedGrams)} г готового` : null
-    const raw = result.baseIngredientId !== null ? baseRawGrams(result, first.raw) : null
+    const raw = portionRawGrams(result, first.raw)
     return raw !== null ? `${formatGrams(raw)} г ${rawWord(cooking.kind)}` : null
   })()
   const head = summary.same !== null ? `по ${shown(summary.same)}` : `${shown(summary.least).replace(/ [г%]$/, '')}–${shown(summary.most)}`
@@ -69,19 +72,24 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
     `${own.length === 1 ? 'своя' : 'свои'}: ${own.map((p) => `${numberOf(p.portionId)} — ${ownAmount(p)}`).join(', ')}`
 
   return (
-    <div className="flex items-center gap-2">
-      <p aria-live="polite" className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 px-1">
-        <span className="text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">{head}</span>
-        <span className="text-sm text-muted-foreground tabular-nums">{tail}</span>
-        {ownLine && <span className="basis-full text-sm text-muted-foreground tabular-nums">{ownLine}</span>}
-      </p>
-      {/* Hidden, not removed, while the portions differ (each tile has its own ⧉ then): the line keeps its
-          height when they turn equal or unequal. */}
-      <CopyButton
-        className={cn('text-muted-foreground', summary.same === null && 'invisible')}
-        label="Скопировать для трекера: одна порция"
-        getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
-      />
+    <div>
+      <div className="flex items-center gap-2">
+        <p aria-live="polite" className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 px-1">
+          <span className="text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">{head}</span>
+          <span className="text-sm text-muted-foreground tabular-nums">{tail}</span>
+          {ownLine && <span className="basis-full text-sm text-muted-foreground tabular-nums">{ownLine}</span>}
+        </p>
+        {/* Hidden, not removed, while the portions differ (each tile has its own ⧉ then): the line keeps its
+            height when they turn equal or unequal. */}
+        <CopyButton
+          className={cn('text-muted-foreground', summary.same === null && 'invisible')}
+          label="Скопировать для трекера: одна порция"
+          getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
+        />
+      </div>
+      {recipe && summary.same !== null && (
+        <Recipe cooking={cooking} raw={first.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="px-1" />
+      )}
     </div>
   )
 }

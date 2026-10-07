@@ -21,6 +21,8 @@ interface NumberFieldProps {
   autoFocus?: boolean
   /** «lg» — a big field for add forms (new tare): 56 px high, 18 px text. */
   size?: 'default' | 'lg'
+  /** «end» — the number sits against the unit, for a column of weights. */
+  align?: 'start' | 'end'
 }
 
 /**
@@ -40,6 +42,7 @@ export function NumberField({
   className,
   autoFocus,
   size = 'default',
+  align = 'start',
 }: NumberFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
@@ -73,7 +76,7 @@ export function NumberField({
           enterKeyHint="next"
           autoComplete="off"
           autoFocus={autoFocus}
-          className={cn(size === 'lg' && 'text-lg md:text-lg')}
+          className={cn(size === 'lg' && 'text-lg md:text-lg', align === 'end' && 'text-right')}
           placeholder={placeholder}
           aria-label={label ? undefined : ariaLabel}
           aria-invalid={invalid || undefined}

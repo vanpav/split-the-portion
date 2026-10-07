@@ -2,6 +2,7 @@ import { createHashRouter, Navigate } from 'react-router'
 import { AccountScreen } from '@/screens/Account/AccountScreen'
 import { ResetPasswordScreen } from '@/screens/Account/ResetPasswordScreen'
 import { CalculatorScreen } from '@/screens/Calculator/CalculatorScreen'
+import { IngredientsScreen } from '@/screens/Calculator/IngredientsScreen'
 import { NewCompanyScreen } from '@/screens/Calculator/NewCompanyScreen'
 import { NewTareScreen } from '@/screens/Calculator/NewTareScreen'
 import { CopyTextScreen } from '@/screens/Copy/CopyTextScreen'
@@ -37,6 +38,7 @@ export const router = createHashRouter([
         element: <CalculatorScreen />,
         children: [
           newTare,
+          { path: 'ingredients', element: <IngredientsScreen /> },
           { path: 'company/new', element: <NewCompanyScreen /> },
           copyText,
         ],

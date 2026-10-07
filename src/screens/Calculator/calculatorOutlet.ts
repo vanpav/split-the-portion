@@ -1,4 +1,4 @@
-import type { Company, Id, Tare } from '@/domain'
+import type { Company, Id, Ingredient, Tare } from '@/domain'
 
 /**
  * What a screen opened over another gives to «Новая тара» (`…/tare/new` under the calculator and the dish
@@ -19,4 +19,12 @@ export interface CalculatorOutlet extends TareOutlet {
   dishId: Id
   /** A company just added on «Новая компания»: picked for this dish, focus to «+ Имя» on the way back. */
   onCompany: (company: Company) => void
+  /** «Ингредиенты»: the dish's ingredients with the weights as typed today, their counted sum and where a typed weight goes. */
+  ingredients: {
+    dishName: string
+    list: Ingredient[]
+    texts: Record<Id, string>
+    total: number | null
+    onText: (ingredientId: Id, typed: string) => void
+  }
 }

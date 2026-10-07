@@ -5,6 +5,8 @@ export const portionGramsId = (id: Id) => `portion-grams-${id}`
 export const calculatorFieldId = (row: string) => `calculator-${row}`
 /** Calculator fields focused again on the way back from «Новая тара» and «Новая компания». */
 export const TARE_SELECT_ID = 'calculator-tare'
+/** The «›» of «Сырой», focused again on the way back from «Ингредиенты». */
+export const INGREDIENTS_KNOB_ID = 'calculator-ingredients'
 export const COMPANY_SELECT_ID = 'calculator-company'
 export const ADD_PERSON_ID = 'calculator-add-person'
 
