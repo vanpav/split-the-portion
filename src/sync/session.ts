@@ -134,7 +134,7 @@ export async function refreshGroups() {
   }
   for (const group of gone) {
     await Promise.all([del(groupDataKey(group.id)), forgetOutbox(group.id)])
-    toast(`Вы больше не в группе «${groupLabel(group)}»`)
+    toast(`Ты больше не в группе «${groupLabel(group)}»`)
   }
 }
 

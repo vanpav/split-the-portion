@@ -33,7 +33,7 @@ export function DeleteDishDialog({ dish, open, onOpenChange }: DeleteDishDialogP
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Удалить «{dishTitle(dish)}»?</AlertDialogTitle>
-          <AlertDialogDescription>Блюдо удалится вместе с тем, кто его ест и в каких долях. Вернуть не получится.</AlertDialogDescription>
+          <AlertDialogDescription>Вместе с блюдом удалятся компания и доли. Вернуть не получится.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Отмена</AlertDialogCancel>

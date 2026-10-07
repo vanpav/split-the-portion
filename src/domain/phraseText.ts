@@ -43,12 +43,12 @@ export function phraseWeightText(item: Pick<PhraseItem, 'rawGrams' | 'approx' | 
   return `${item.approx ? '≈ ' : ''}${formatGrams(item.rawGrams)} г`
 }
 
-/** The summary under the list: «Простое» + «сухой 200 г», «Составное» + «сырой 1 360 г · не учит. 2 016 г». */
+/** The summary under the list: «Простое» + «сухой 200 г», «Составное» + «сырой 1 360 г · не в счёт 2 016 г». */
 export function phraseSummaryText(summary: { kind: CookingKind; countedGrams: number; excludedGrams: number }): {
   kind: string
   details: string
 } {
   const counted = `${summary.kind === 'simple' ? 'сухой' : 'сырой'} ${formatGrams(summary.countedGrams)} г`
-  const excluded = summary.excludedGrams > 0 ? ` · не учит. ${formatGrams(summary.excludedGrams)} г` : ''
+  const excluded = summary.excludedGrams > 0 ? ` · не в счёт ${formatGrams(summary.excludedGrams)} г` : ''
   return { kind: summary.kind === 'simple' ? 'Простое' : 'Составное', details: counted + excluded }
 }

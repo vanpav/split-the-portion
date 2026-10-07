@@ -519,7 +519,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 <DisplayRow
                   key={i.id}
                   {...weightField(i.id)}
-                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не учит.' : ''}`}
+                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не в счёт' : ''}`}
                   text={texts[i.id] ?? ''}
                   small={!tiles}
                   lids={people.length}
@@ -553,7 +553,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 className="ml-auto px-2 text-muted-foreground aria-expanded:bg-transparent"
                 onClick={folded ? () => setFolded(false) : fold}
               >
-                {folded ? 'Продукты' : 'Свернуть'}
+                {folded ? 'Ингредиенты' : 'Свернуть'}
                 {folded ? <ChevronDownIcon data-icon="inline-end" /> : <ChevronUpIcon data-icon="inline-end" />}
               </Button>
             )}
@@ -596,7 +596,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             numbered={inShares}
             // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything;
             // a tap on it puts the cursor into «+ Имя».
-            empty={{ label: 'Добавьте людей', fieldId: ADD_PERSON_ID }}
+            empty={{ label: 'Добавь людей', fieldId: ADD_PERSON_ID }}
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
             hint="bar"
           />

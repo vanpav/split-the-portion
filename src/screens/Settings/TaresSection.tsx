@@ -12,7 +12,7 @@ export function TaresSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold">Тара</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">Тара</h2>
         <p className="text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
       </div>
       <ul className="divide-y overflow-hidden rounded-xl border">

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аудит русских текстов</title>
+<style>
+  :root {
+    --bg: #fafaf7; --fg: #1d1d1b; --muted: #6a6a64; --line: #e3e2dc; --card: #fff;
+    --old: #fbe9e7; --old-fg: #8a2a1c; --new: #e6f4ea; --new-fg: #1c5a30; --accent: #2f5d8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171715; --fg: #ecebe6; --muted: #9a9a92; --line: #33332f; --card: #1f1f1c;
+      --old: #3a2320; --old-fg: #f0a99d; --new: #1c3324; --new-fg: #9fd8b1; --accent: #8bb4dc;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; line-height: 1.2; }
+  h2 { font-size: 1.3rem; margin: 40px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  p, li { max-width: 72ch; }
+  .lead { color: var(--muted); margin: 0 0 16px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+  nav a { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--accent); text-decoration: none; font-size: .9rem; background: var(--card); }
+  nav a:hover { border-color: var(--accent); }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+  td.where { white-space: nowrap; }
+  code { font: .85em ui-monospace, monospace; color: var(--accent); }
+  .old, .new { display: block; padding: 8px 12px; border-radius: 6px; margin: 2px 0; }
+  .old { background: var(--old); color: var(--old-fg); }
+  .new { background: var(--new); color: var(--new-fg); }
+  .why { color: var(--muted); }
+  ul, ol { padding-left: 1.3em; }
+  li { margin: 4px 0; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+  .q b { color: var(--accent); }
+  @media (max-width: 640px) { td.where { white-space: normal; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Аудит русских текстов интерфейса</h1>
+  <p class="lead">Около 640 строк в <code>src/</code>, <code>index.html</code>, <code>vite.config.ts</code>. Только русские тексты. Решения ниже приняты; правила уже записаны в <code>CLAUDE.md</code> и <code>docs/UX.md</code> §6, строки в коде и словарь UX §6 обновлены. <b>Не сделано:</b> P8 (неразрывные пробелы, отдельный PR), текст «Поиск слева…» в подсказке (проверить на телефоне).</p>
+  <nav>
+    <a href="#rules">Правила</a><a href="#p0">P0 «ты»</a><a href="#p1">P1 Ошибки</a><a href="#p2">P2 Формулировки</a><a href="#p3">P3 Онбординг</a><a href="#p4">P4 Кнопки</a><a href="#p5">P5 Ингредиент</a><a href="#p6">P6 Убрать / удалить</a><a href="#p7">P7 Имя в кнопке</a><a href="#p8">P8 Типографика</a><a href="#p9">P9 Второй проход</a><a href="#p10">P10 Ошибки</a><a href="#order">Порядок</a>
+  </nav>
+
+  <h2 id="rules">Принятые правила</h2>
+  <ul>
+    <li><b>«Ты»</b> во всём интерфейсе: «Введи», «Войди», «твои блюда». Текст приглашения в группу уже на «ты».</li>
+    <li><b>«Ингредиент»</b> вместо «продукт» везде в UI. Буква <code>k</code> остаётся как есть, отдельная задача.</li>
+    <li><b>«Убрать»</b> — часть из набора (человек, порция, ингредиент, участник группы). <b>«Удалить»</b> — сущность целиком (блюдо, тара, компания). Блюдо удаляется без отмены и с подтверждением, поэтому слово «удалить» остаётся только за целыми сущностями.</li>
+    <li><b>Имя не повторяем</b> в видимом тексте и тултипе кнопки рядом с элементом: «Убрать», а не «Убрать: Ваня». В <code>aria-label</code> имя остаётся для скринридера, в виде «Убрать: Ваня» (двоеточие, потому что введённое имя нельзя склонить). Тост после действия тоже может назвать, что убрано.</li>
+    <li>«Нужно внимание» у «⋯»: это точка, которая загорается при трёх состояниях синхронизации: нужен вход, нужно обновить приложение, нет доступа к группе. Предлагаю назвать причину: «Ещё: проблема с синхронизацией».</li>
+    <li><b>Ошибки.</b> На каждую причину свой текст, общего «Не получилось» нет (таблица в P10 и в UX §6).</li>
+    <li><b>Скилл <code>ru-ui-copy</code></b> запускает и соблюдает каждый, кто трогает текст интерфейса. Записано в <code>CLAUDE.md</code>, раздел «Skills»; правила проекта сильнее скилла.</li>
+  </ul>
+
+  <h2 id="p0">P0. Переход на «ты»</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>authErrors.ts:16</code></td><td><span class="old">Ссылка устарела — попросите новую</span><span class="new">Ссылка устарела — попроси новую</span></td></tr>
+    <tr><td class="where"><code>authErrors.ts:21</code></td><td><span class="old">Face ID не сработал — войдите паролем</span><span class="new">Face ID не сработал — войди паролем</span></td></tr>
+    <tr><td class="where"><code>authErrors.ts:22</code><br><code>networkText.ts:5</code><br><code>GroupMembers.tsx:19</code></td><td>Тексты ошибок по причинам, уже на «ты»: см. P10.</td></tr>
+    <tr><td class="where"><code>CompanyForm.tsx:60</code><br><code>Calculator.tsx:583</code></td><td><span class="old">Добавьте людей</span><span class="new">Добавь людей</span></td></tr>
+    <tr><td class="where"><code>CompanyForm.tsx:82</code><br><code>PersonResult.tsx:227</code><br><code>GroupMembers.tsx:37</code><br><code>HoldButton.tsx:57</code></td><td><span class="old">Удерживайте ×, чтобы убрать (из группы) / Удерживайте</span><span class="new">Удерживай ×, чтобы убрать (из группы) / Удерживай</span></td></tr>
+    <tr><td class="where"><code>NumberField.tsx:61</code></td><td><span class="old">Введите число, например 1240 или 12,5</span><span class="new">Введи число, например 1240 или 12,5</span></td></tr>
+    <tr><td class="where"><code>TareRow.tsx:59</code></td><td><span class="old">Введите название</span><span class="new">Введи название</span></td></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:29</code></td><td><span class="old">Введите продукт</span><span class="new">Введи ингредиент</span></td></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:182</code></td><td><span class="old">Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметьте «не учитывать».</span><span class="new">Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметь «не учитывать».</span></td></tr>
+    <tr><td class="where"><code>messages.ts:10,14</code></td><td><span class="old">…выберите тару. / Проверьте веса. / …проверьте тару</span><span class="new">…выбери тару. / Проверь веса. / …проверь тару</span></td></tr>
+    <tr><td class="where"><code>CopyTextScreen.tsx:26</code></td><td><span class="old">Скопируйте вручную</span><span class="new">Скопируй вручную</span></td></tr>
+    <tr><td class="where"><code>DishMenu.tsx:190</code></td><td><span class="old">Ваши блюда</span><span class="new">Твои блюда</span></td></tr>
+    <tr><td class="where"><code>DishMenuScreen.tsx:43</code></td><td><span class="old">…Добавьте блюдо один раз — дальше у плиты вводите только готовый вес.</span><span class="new">…Добавь блюдо один раз — дальше у плиты вводи только готовый вес.</span></td></tr>
+    <tr><td class="where"><code>JoinScreen.tsx:86,96,111</code></td><td><span class="old">Попросите новый. / Вы уже в этой группе — открыть / Откройте его: Настройки → Группа → Вступить по коду.</span><span class="new">Попроси новый. / Ты уже в этой группе — открыть / Открой его: Настройки → Группа → Вступить по коду.</span></td></tr>
+    <tr><td class="where"><code>ResetPasswordScreen.tsx:33</code></td><td><span class="old">Пароль изменён — войдите с ним</span><span class="new">Пароль изменён — войди с ним</span></td></tr>
+    <tr><td class="where"><code>SignInForm.tsx:43,79</code></td><td><span class="old">Введите почту — ссылка будет для неё / …напишите ему.</span><span class="new">Введи почту / …напиши ему.</span></td></tr>
+    <tr><td class="where"><code>AccountScreen.tsx:41</code></td><td><span class="old">…на всех ваших устройствах, а вести их можно вместе с близкими.</span><span class="new">…на всех твоих устройствах, а вести их можно вместе с близкими.</span></td></tr>
+    <tr><td class="where"><code>AccountSection.tsx:37</code></td><td><span class="old">Данные только на этом устройстве. Войдите, чтобы данные были на всех устройствах и в общей группе.</span><span class="new">Данные хранятся только на этом устройстве. Войди — они появятся на всех устройствах и в общей группе.</span></td></tr>
+    <tr><td class="where"><code>DataSection.tsx:72,78</code></td><td><span class="old">…если браузер очистит данные или вы смените телефон. / …скачайте копию в Safari и загрузите её в приложении.</span><span class="new">…если браузер очистит данные или ты сменишь телефон. / …скачай копию в Safari и загрузи её в приложении.</span></td></tr>
+    <tr><td class="where"><code>PresetsSection.tsx:54,71</code></td><td><span class="old">Ваши блюда останутся… / Ваши блюда и готовки не изменятся, блюда с такими же названиями пропустим.</span><span class="new">Твои блюда останутся… / Твои блюда не изменятся, блюда с такими же названиями пропустим. <i>(«готовки» убраны: их нет с этапа 15)</i></span></td></tr>
+    <tr><td class="where"><code>SyncStatusLine.tsx:33,37</code></td><td><span class="old">Обновите приложение, чтобы синхронизировать: закройте его и откройте снова / Войдите снова, чтобы синхронизировать</span><span class="new">Обнови приложение, чтобы синхронизировать: закрой его и открой снова / Войди снова, чтобы синхронизировать</span></td></tr>
+    <tr><td class="where"><code>session.ts:137</code></td><td><span class="old">Вы больше не в группе «X»</span><span class="new">Ты больше не в группе «X»</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:28,50</code></td><td><span class="old">Взвесьте готовое блюдо — и сразу видно… / Блюда на всех ваших устройствах</span><span class="new">Взвесь готовое блюдо — и сразу видно… / Блюда на всех твоих устройствах</span></td></tr>
+    <tr><td class="where"><code>hints.ts:93-94</code></td><td><span class="old">…его и вводите каждый раз.</span><span class="new">…его и вводи каждый раз.</span></td></tr>
+    <tr><td class="where"><code>hints.ts:99,105,115</code></td><td><span class="old">…выберите её здесь. / Тяните границу… / Нажмите на название… находит ваши блюда…</span><span class="new">…выбери её здесь. / Тяни границу… / Нажми на название… находит твои блюда…</span></td></tr>
+  </table></div>
+  <p class="why">Тесты и словарь UX §6 с этими строками обновляются в том же коммите. В §6 «вы»-форм много: словарь переписывается целиком.</p>
+
+  <h2 id="p1">P1. Ошибки и расхождения</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th><th>Почему</th></tr>
+    <tr><td class="where"><code>authErrors.ts:14</code></td><td><span class="old">Проверьте почту</span><span class="new">Неверный адрес почты</span></td><td class="why">Читалось как «загляни в ящик».</td></tr>
+    <tr><td class="where"><code>authErrors.ts:9</code><br><code>SignUpForm.tsx:66</code></td><td><span class="old">Пароль — не короче 8 символов / Не короче 8 символов.</span><span class="new">Минимум 8 символов</span></td><td class="why">Условие, одна формулировка в обоих местах.</td></tr>
+    <tr><td class="where"><code>CompanyCard.tsx:27</code></td><td><span class="old">Удалено</span><span class="new">Компания удалена</span></td><td class="why">Не сказано, что удалено.</td></tr>
+    <tr><td class="where"><code>JoinScreen.tsx:121</code></td><td><span class="old">Её можно поменять в Настройках → «Группа».</span><span class="new">Это можно поменять: Настройки → Группа.</span></td><td class="why">«Её» непонятно к чему; путь без кавычек.</td></tr>
+    <tr><td class="where"><code>JoinScreen.tsx:124-125</code></td><td><span class="old">Нет / Да</span><span class="new">Не открывать / Открывать</span></td><td class="why">Кнопки диалога — глаголы.</td></tr>
+    <tr><td class="where"><code>JoinByCodeScreen.tsx:61</code></td><td><span class="old">Дальше</span><span class="new">Проверить</span></td><td class="why">Называет действие.</td></tr>
+    <tr><td class="where"><code>MoreMenu.tsx:38,57</code></td><td><span class="old">Ещё: в настройках нужно внимание / нужно внимание</span><span class="new">Ещё: проблема с синхронизацией / проблема с синхронизацией</span></td><td class="why">Называет причину точки.</td></tr>
+  </table></div>
+
+  <h2 id="p2">P2. Формулировки</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>RootLayout.tsx:26-28</code></td><td><span class="old">Не удалось прочитать сохранённые данные / Копия сохранена в браузере, приложение начато с чистого листа.</span><span class="new">Не удалось прочитать данные / Копия осталась в браузере, приложение запущено с нуля.</span></td></tr>
+    <tr><td class="where"><code>DataSection.tsx:52</code></td><td><span class="old">Файл не подошёл / Нужна копия, скачанная здесь же, в настройках.</span><span class="new">Не тот файл / Нужна копия, скачанная в этом приложении: Настройки → Копия данных.</span></td></tr>
+    <tr><td class="where"><code>AccountSection.tsx:86</code></td><td><span class="old">…После выхода они пропадут. Выйти всё равно?</span><span class="new">…После выхода они пропадут.</span></td></tr>
+    <tr><td class="where"><code>LocalDataDialog.tsx:32</code></td><td><span class="old">…уже есть свои. Перенести эти в группу? Одинаковые блюда могут задвоиться.</span><span class="new">…уже есть другие блюда. Перенести эти в группу? Одинаковые могут продублироваться.</span></td></tr>
+    <tr><td class="where"><code>SyncStatusLine.tsx:31</code></td><td><span class="old">Нет доступа к группе</span><span class="new">Нет доступа к группе — попроси новое приглашение</span></td></tr>
+    <tr><td class="where"><code>DishActions.tsx:50</code></td><td><span class="old">Блюдо удалится вместе с тем, кто его ест и в каких долях. Вернуть не получится.</span><span class="new">Вместе с блюдом удалятся компания и доли. Вернуть не получится.</span></td></tr>
+    <tr><td class="where"><code>CopyTextScreen.tsx:28</code></td><td><span class="old">Браузер не дал доступ к буферу обмена. Текст уже выделен.</span><span class="new">Браузер не дал скопировать. Текст уже выделен.</span></td></tr>
+    <tr><td class="where"><code>AppearanceSection.tsx:75</code></td><td><span class="old">Тур начнётся на калькуляторе</span><span class="new">Подсказки покажем на калькуляторе</span></td></tr>
+    <tr><td class="where"><code>sections.ts:31</code></td><td><span class="old">Готовые рецепты для начала</span><span class="new">Готовые блюда для начала</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:177</code></td><td><span class="old">Всё хранится только в этом браузере.</span><span class="new">Данные хранятся только в этом браузере.</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:52</code></td><td><span class="old">Ничего не пропадёт, если сменить телефон или очистить браузер</span><span class="new">Данные сохранятся при смене телефона и очистке браузера</span></td></tr>
+  </table></div>
+
+  <h2 id="p3">P3. Приветствие и тур</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:32-33</code></td><td><span class="old">Блюдо помнит всё — Сухой вес, кастрюлю, кто ест и в каких долях. У плиты обычно вводите одно число — вес готового.</span><span class="new">Вводи один вес — Сухой вес, тару, компанию и доли блюдо запоминает. У плиты остаётся ввести вес готового.</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:37-38</code></td><td><span class="old">Делите как хотите — Поровну или по долям, часть — на завтра, для meal prep — на порции без имён. Свою порцию для трекера копируете одним свайпом.</span><span class="new">Поровну или по долям — Часть можно отложить на завтра, а на неделю вперёд разделить на порции без имён. Порцию для трекера копируй свайпом.</span></td></tr>
+    <tr><td class="where"><code>hints.ts:110</code></td><td><span class="old">Впишите имя и нажмите Enter — и так каждого.</span><span class="new">Впиши имя и подтверди — так каждого.</span> <span class="why">На телефоне клавиши Enter нет; проверить на iPhone.</span></td></tr>
+    <tr><td class="where"><code>hints.ts:115</code></td><td>«Поиск слева…»: проверить на 375 px, «слева» верно только на широком экране.</td></tr>
+    <tr><td class="where"><code>hints.ts:91</code></td><td>«Два веса» — оставить.</td></tr>
+  </table></div>
+
+  <h2 id="p4">P4. Кнопки без глагола</h2>
+  <p>Заменить на глагол, если рядом нет иконки плюса, которая его заменяет (проверить в коде).</p>
+  <ul>
+    <li><code>DishMenuScreen.tsx:50</code> «Блюдо» → «Добавить блюдо»; <code>:56</code> «Популярные блюда» → «Добавить популярные». Это главная кнопка пустого экрана, плюса-иконки для неё мало.</li>
+    <li><code>CompaniesSection.tsx:37</code> «Компания» → «Добавить компанию».</li>
+    <li><code>DishEditorForm.tsx:207</code> «Ингредиент» → «Добавить ингредиент».</li>
+    <li><code>DishActions.tsx:36</code> «Составное на основе» → «Сделать составным» (экран остаётся «Из простого блюда»).</li>
+  </ul>
+
+  <h2 id="p5">P5. «Ингредиент» вместо «продукт»</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:187</code><br><code>Calculator.tsx:540</code></td><td><span class="old">Продукты</span><span class="new">Ингредиенты</span></td></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:181</code></td><td><span class="old">Один продукт. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.</span><span class="new">Один ингредиент. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.</span></td></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:134</code></td><td><span class="old">Убрано продуктов: N</span><span class="new">Убрано ингредиентов: N</span></td></tr>
+    <tr><td class="where"><code>RawFoldTile.tsx:23</code></td><td><span class="old">…Показать продукты</span><span class="new">…Показать ингредиенты</span></td></tr>
+    <tr><td class="where"><code>hints.ts:93</code></td><td><span class="old">Сырой — все продукты блюда… Продукты блюдо запомнит.</span><span class="new">Сырой — все ингредиенты блюда… Ингредиенты блюдо запомнит.</span></td></tr>
+  </table></div>
+  <p class="why">«Сколько продукта взяли» в подсказке про сухой вес остаётся: там «продукт» — обычное слово про еду, а не пункт состава.</p>
+
+  <h2 id="p6">P6. «Убрать» и «удалить»</h2>
+  <p>По правилу выше менять нужно только ингредиент: он часть блюда.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>DishEditorForm.tsx:102</code></td><td><span class="old">Удалено: Курица / Ингредиент удалён</span><span class="new">Убрано: Курица / Ингредиент убран</span></td></tr>
+    <tr><td class="where"><code>IngredientEditorRow.tsx:68</code></td><td><span class="old">Удалить (ингредиент)</span><span class="new">Убрать</span></td></tr>
+  </table></div>
+  <p class="why">Остальное по правилу уже верно: блюдо, тара и компания — «удалить»; человек, порция, участник группы — «убрать».</p>
+
+  <h2 id="p7">P7. Имя в подписи кнопки</h2>
+  <p>Тултипов и видимых подписей с именем в коде сейчас нет, у кнопок есть только <code>aria-label</code>, а там имя нужно. Поэтому почти всё остаётся как есть. Правило действует вперёд: если появится тултип или видимая подпись, имени в ней не будет.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Было → стало</th></tr>
+    <tr><td class="where"><code>PersonResult.tsx:226</code><br><code>CompanyForm.tsx:81</code></td><td><span class="old">aria-label: Убрать Ваня</span><span class="new">aria-label: Убрать: Ваня</span> <span class="why">Падеж: имя вводит пользователь, «Убрать Маша» читается криво.</span></td></tr>
+    <tr><td class="where"><code>GroupMembers.tsx:36</code></td><td><span class="old">Убрать email из группы</span><span class="new">Убрать из группы: email</span></td></tr>
+    <tr><td class="where"><code>IngredientEditorRow.tsx:68</code></td><td><span class="old">Удалить Курица</span><span class="new">Убрать: Курица</span> <span class="why">Ингредиент убирают (P6).</span></td></tr>
+  </table></div>
+  <p class="why">Остальные подписи с именем остаются: «Удалить «Кастрюля 3 л»», «Скопировать для трекера: Порция 1», «Ваня: вернуть к доле», «Ваня: на 1 % меньше».</p>
+
+  <h2 id="p8">P8. Типографика</h2>
+  <ul>
+    <li>Нигде в строках нет неразрывных пробелов: <code>200 г</code>, <code>× 7</code>, <code>k = 2,8</code>, <code>1 из 4</code> могут разорваться. Решение: функция «число + единица» с <code> </code> в <code>src/domain</code> рядом с <code>formatGrams</code>, с тестом.</li>
+    <li>Проверить, что <code>formatGrams</code> разделяет тысячи неразрывным пробелом (<code>2 000 г</code>), и добавить тест.</li>
+    <li>Сокращение «не учит.» заменено на «не в счёт» везде; ширина плитки и метки проверена на 375 px.</li>
+    <li>Многоточие, «ёлочки», тире с пробелами и «ё» в порядке.</li>
+  </ul>
+
+  <h2 id="p9">P9. Второй проход: ux-copy и humanizer</h2>
+  <p>Строки перечитаны по структуре из <code>ux-copy</code> (что сказать и в каком элементе), затем по правилам <code>ru-ui-copy</code>, в конце по приметам ИИ-текста из <code>humanizer</code>. При конфликте победил <code>ru-ui-copy</code>: русское тире с пробелами осталось, совет «добавить личность» не применялся.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Где</th><th>Что нашёл → что делать</th></tr>
+    <tr><td class="where"><code>SettingsScreen.tsx:69</code> + <code>TaresSection.tsx:15</code> и другие разделы</td><td><span class="old">На телефоне подраздел открывается с шапкой «Тара», а сразу под ней второй заголовок «Тара». То же в «Аккаунт», «Группа», «Компании», «Популярные блюда», «Копия данных».</span><span class="new">Скрыть внутренний <code>h2</code> на телефоне (<code>max-md:sr-only</code>), оставить пояснение под ним. Проверить на 375 px. «Тема» и «Подсказки» — разные блоки, их не трогать.</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:50-52</code></td><td><span class="old">Три пункта, два из них про одно и то же (устройства и смена телефона).</span><span class="new">Два пункта: «Блюда на всех твоих устройствах, в том числе после смены телефона» / «Общий учёт с близкими: готовый вес, который ввёл один, сразу у всех».</span></td></tr>
+    <tr><td class="where"><code>WelcomeScreen.tsx:37</code></td><td><span class="old">«Делите как хотите» — лозунг без содержания.</span><span class="new">«Поровну или по долям» (уже в P3).</span></td></tr>
+    <tr><td class="where"><code>FromSimpleDishScreen.tsx:38</code></td><td><span class="old">Простых блюд пока нет</span><span class="new">Простых блюд пока нет. Сначала добавь простое блюдо.</span> <span class="why">Пустое состояние должно говорить, с чего начать.</span></td></tr>
+    
+  </table></div>
+  <p><b>Проверено и оставлено.</b></p>
+  <ul>
+    <li>Диалоги подтверждения: заголовок-вопрос с объектом, последствие в тексте, кнопка с глаголом («Остаться» / «Выйти», «Заменить», «Перенести»). «Отмена» у удаления соответствует шаблону <code>ru-ui-copy</code>.</li>
+    <li>Тосты успеха короткие («Скопировано», «Блюдо добавлено», «Данные загружены»), у каждого есть «Отменить» там, где действие обратимо.</li>
+    <li>Тире: больше 60 строк построены как «что случилось — что делать». Это обычная русская структура, а не пауза для эффекта; после правок строк с двумя тире не остаётся.</li>
+    <li>«Не X, а Y», рубленые фразы-закрывающие, «Давайте начнём», хвалебные прилагательные, эмодзи: не найдено. «Вернуть не получится» оставлено: это последствие, а не эффектная концовка.</li>
+    <li>«Возможно, в вес попала посуда» — настоящая неуверенность, а не накопление оговорок.</li>
+  </ul>
+
+  <h2 id="p10">P10. Ошибки по причинам</h2>
+  <p>Сейчас <code>authErrorText</code> и <code>groupErrorText</code> различают только «нет сети» и «всё остальное». Нужно разделить причины.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Причина</th><th>Текст</th></tr>
+    <tr><td>Нет сети</td><td><span class="new">Нет сети — попробуй, когда она появится</span> (вход: «…войти можно, когда она появится»)</td></tr>
+    <tr><td>Сеть есть, сервер не ответил</td><td><span class="new">Сервер не отвечает — попробуй через минуту</span></td></tr>
+    <tr><td>5xx</td><td><span class="new">Сбой на сервере — попробуй через минуту</span></td></tr>
+    <tr><td>429</td><td><span class="new">Слишком много попыток — подожди минуту</span></td></tr>
+    <tr><td>401</td><td><span class="new">Войди снова</span> и кнопка «Войти снова»</td></tr>
+    <tr><td>403</td><td><span class="new">Нет доступа к группе — попроси новое приглашение</span></td></tr>
+    <tr><td>404 у кода</td><td><span class="new">Код не найден или устарел. Попроси новый.</span></td></tr>
+    <tr><td>Другой 4xx без известного кода</td><td><span class="new">Запрос не принят — обнови приложение и попробуй снова</span></td></tr>
+  </table></div>
+  <p>Что менять в коде:</p>
+  <ul>
+    <li><code>groupsApi.ts:19</code>: вместо <code>new Error('HTTP …')</code> бросать ошибку со статусом (<code>GroupsApiError</code>), иначе <code>groupErrorText</code> не видит, что ответил сервер.</li>
+    <li><code>networkText.ts</code>, <code>authErrors.ts</code>: ветки по причинам из таблицы; общего «Не получилось» не остаётся. <code>GroupMembers.tsx:19</code> перестаёт собирать текст сам и вызывает общую функцию.</li>
+    <li>Тесты: каждая причина даёт свой текст (нет сети, нет ответа, 429, 403, 404, 5xx, неизвестный 4xx).</li>
+  </ul>
+
+  <h2 id="order">Порядок работ</h2>
+  <ol>
+    <li>Коммит <code>docs:</code>: UX §6 (словарь переписан на «ты», «ингредиент», новые строки) и правила (<code>CLAUDE.md</code>, UX §6 — уже внесены).</li>
+    <li>Коммит <code>fix:</code> P0–P1, P5–P7: строки в коде и в тестах, которые их проверяют.</li>
+    <li>Коммит P2–P4 и P9 после проверки на 375 px (скилл <code>ui-verify</code>).</li>
+    <li>Отдельный PR P8: функция в <code>src/domain</code> и тесты, затем подстановка в шаблоны.</li>
+    <li>В конце <code>pnpm lint &amp;&amp; pnpm test &amp;&amp; pnpm build</code>.</li>
+  </ol>
+</main>
+</body>
+</html>

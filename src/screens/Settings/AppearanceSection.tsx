@@ -72,7 +72,7 @@ export function AppearanceSection() {
           variant="outline"
           onClick={() => {
             updateHints(hintsAgain)
-            toast('Подсказки включены', { description: 'Тур начнётся на калькуляторе' })
+            toast('Подсказки включены', { description: 'Подсказки покажем на калькуляторе' })
           }}
         >
           <RotateCcwIcon data-icon="inline-start" />

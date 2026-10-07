@@ -15,7 +15,7 @@ export function CompaniesSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold">Компании</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">Компании</h2>
         <p className="text-sm text-muted-foreground">Кто ест вместе и в каком соотношении.</p>
       </div>
       <ul className="divide-y overflow-hidden rounded-xl border">
@@ -34,7 +34,7 @@ export function CompaniesSection() {
             className="flex min-h-14 w-full items-center gap-3 px-4 font-medium outline-none hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
           >
             <PlusIcon className="size-4" />
-            Компания
+            Добавить компанию
           </button>
         </li>
       </ul>

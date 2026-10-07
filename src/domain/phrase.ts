@@ -306,7 +306,7 @@ export function phraseIngredients(
   }))
 }
 
-/** The summary line «Составное · сырой 1 360 г · не учит. 2 016 г»; `null` — no named products yet. */
+/** The summary line «Составное · сырой 1 360 г · не в счёт 2 016 г»; `null` — no named products yet. */
 export function phraseSummary(items: readonly PhraseItem[]): { kind: CookingKind; countedGrams: number; excludedGrams: number } | null {
   const named = items.filter((i) => i.name.trim())
   if (named.length === 0) return null
