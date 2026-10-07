@@ -35,7 +35,7 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="secondary" size="icon" className="relative size-11 shrink-0 rounded-full" aria-label={attention ? 'Ещё: в настройках нужно внимание' : 'Ещё'}>
+        <Button variant="secondary" size="icon" className="relative size-11 shrink-0 rounded-full" aria-label={attention ? 'Ещё: проблема с синхронизацией' : 'Ещё'}>
           <EllipsisIcon />
           {attention && <span aria-hidden className={cn('absolute top-2 right-2', DOT)} />}
         </Button>
@@ -54,7 +54,7 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
           <Link to={SETTINGS_PATH}>
             <SettingsIcon />
             Настройки
-            {attention && <span aria-label="нужно внимание" className={cn('ml-auto', DOT)} />}
+            {attention && <span aria-label="проблема с синхронизацией" className={cn('ml-auto', DOT)} />}
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

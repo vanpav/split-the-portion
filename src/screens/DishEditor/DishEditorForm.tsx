@@ -26,7 +26,7 @@ import { IngredientEditorRow } from './IngredientEditorRow'
 const NONE = 'none'
 
 const ERROR_TEXT: Record<DishError, string> = {
-  noIngredients: 'Введите продукт',
+  noIngredients: 'Введи ингредиент',
   badWeight: 'Вес должен быть больше 0',
 }
 
@@ -99,7 +99,7 @@ export function DishEditorForm() {
     const gone = draft.ingredients[index]
     if (!gone) return
     patch({ ingredients: draft.ingredients.filter((i) => i.id !== ingredientId) })
-    toast(gone.name.trim() ? `Удалено: ${gone.name.trim()}` : 'Ингредиент удалён', {
+    toast(gone.name.trim() ? `Убрано: ${gone.name.trim()}` : 'Ингредиент убран', {
       duration: 5000,
       action: {
         label: 'Отменить',
@@ -131,7 +131,7 @@ export function DishEditorForm() {
     patch({ ingredients: kept })
     const gone = before.length - kept.length
     toast('Блюдо стало простым', {
-      description: `Убрано продуктов: ${gone}`,
+      description: `Убрано ингредиентов: ${gone}`,
       action: {
         label: 'Вернуть',
         onClick: () => {
@@ -178,13 +178,13 @@ export function DishEditorForm() {
             </ToggleGroup>
             <p className="text-sm text-muted-foreground" aria-live="polite">
               {shownKind === 'simple'
-                ? 'Один продукт. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.'
-                : 'Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметьте «не учитывать».'}
+                ? 'Один ингредиент. Воду, соль и специи можно добавить с отметкой «не учитывать» — блюдо останется простым.'
+                : 'Несколько ингредиентов в учёте: порцию покажем с составом. Воду, соль и специи отметь «не учитывать».'}
             </p>
           </section>
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold">Продукты</h2>
+            <h2 className="text-base font-semibold">Ингредиенты</h2>
             {/* Rows are padded and divided themselves, so a removed one folds up with nothing left behind;
                 the negative margin keeps the section's own gap to the heading and the buttons. */}
             <div className="-my-3 flex flex-col divide-y">
@@ -204,7 +204,7 @@ export function DishEditorForm() {
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => addIngredient()}>
                 <PlusIcon data-icon="inline-start" />
-                Ингредиент
+                Добавить ингредиент
               </Button>
               <Button variant="outline" asChild>
                 {/* The query (`from`) stays: it is the form's address. */}
@@ -226,7 +226,7 @@ export function DishEditorForm() {
                 value={draft.name}
                 onChange={(e) => patch({ name: e.target.value })}
               />
-              <FieldDescription>Можно не заполнять — назовём по продуктам.</FieldDescription>
+              <FieldDescription>Можно не заполнять — назовём по ингредиентам.</FieldDescription>
             </Field>
             <Field>
               <FieldLabel htmlFor="dish-tare">В чём взвешиваете</FieldLabel>

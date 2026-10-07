@@ -187,7 +187,7 @@ export function DishMenu() {
       <CommandList className="max-h-none overflow-visible">
         <CommandEmpty>Ничего не нашлось</CommandEmpty>
         {own.length > 0 && (
-          <CommandGroup heading="Ваши блюда" className="px-0">
+          <CommandGroup heading="Твои блюда" className="px-0">
             {own.map((dish) => (
               <DishMenuRow
                 key={dish.id}

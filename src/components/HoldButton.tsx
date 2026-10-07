@@ -54,7 +54,7 @@ export function HoldButton({ holdMs, onConfirm, label, hint, className, children
       variant="ghost"
       size="icon-sm"
       aria-label={label}
-      aria-description={holdMs > 0 ? 'Удерживайте' : undefined}
+      aria-description={holdMs > 0 ? 'Удерживай' : undefined}
       onClick={holdMs <= 0 ? onConfirm : undefined}
       onPointerDown={(e) => e.button === 0 && start()}
       onPointerUp={stop}

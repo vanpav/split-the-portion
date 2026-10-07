@@ -33,7 +33,7 @@ export function DishActions({ dish }: { dish: Dish }) {
         <Button variant="ghost" asChild>
           <Link to={newDishPath(dish.id)}>
             <SoupIcon data-icon="inline-start" />
-            Составное на основе
+            Сделать составным
           </Link>
         </Button>
       )}
@@ -47,7 +47,7 @@ export function DishActions({ dish }: { dish: Dish }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить «{title}»?</AlertDialogTitle>
-            <AlertDialogDescription>Блюдо удалится вместе с тем, кто его ест и в каких долях. Вернуть не получится.</AlertDialogDescription>
+            <AlertDialogDescription>Вместе с блюдом удалятся компания и доли. Вернуть не получится.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>

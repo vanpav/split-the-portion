@@ -65,7 +65,7 @@ export function IngredientEditorRow({
           variant="ghost"
           size="icon"
           className="pointer-coarse:sr-only"
-          aria-label={`Удалить ${label}`}
+          aria-label={`Убрать: ${label}`}
           onClick={() => rowRef.current?.remove()}
         >
           <XIcon />

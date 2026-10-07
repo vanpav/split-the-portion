@@ -3,6 +3,15 @@ import type { Invite, InvitePreview } from './types'
 /** No answer at all: offline, or the server is unreachable (looks the same). */
 export class OfflineError extends Error {}
 
+/** The server answered with an error status. */
+export class GroupsApiError extends Error {
+  status: number
+  constructor(status: number) {
+    super(`HTTP ${status}`)
+    this.status = status
+  }
+}
+
 async function call(path: string, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(path, {
@@ -16,11 +25,11 @@ async function call(path: string, init?: RequestInit): Promise<Response> {
 }
 
 async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  if (!res.ok) throw new GroupsApiError(res.status)
   return (await res.json()) as T
 }
 
-/** The API of groups (docs/ARCHITECTURE.md §9). Errors: OfflineError, or Error with the status. */
+/** The API of groups (docs/ARCHITECTURE.md §9). Errors: OfflineError, or GroupsApiError with the status. */
 export const groupsApi = {
   invite: async (groupId: string) => json<Invite>(await call(`/api/groups/${groupId}/invites`, { method: 'POST' })),
   revoke: async (groupId: string, code: string) =>

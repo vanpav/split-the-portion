@@ -58,7 +58,7 @@ export function NumberField({
     parsed === null
       ? null
       : !parsed.ok
-        ? 'Введите число, например 1240 или 12,5'
+        ? 'Введи число, например 1240 или 12,5'
         : (validate?.(parsed.value) ?? null)
   const invalid = error !== null
 

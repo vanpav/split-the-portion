@@ -20,7 +20,7 @@ export function RawFoldTile({ total, note, onExpand }: RawFoldTileProps) {
     <button
       type="button"
       aria-expanded={false}
-      aria-label={`Сырой: ${shown !== null ? `${shown} г` : 'не введено'}${note ? `, ${note}` : ''}. Показать продукты`}
+      aria-label={`Сырой: ${shown !== null ? `${shown} г` : 'не введено'}${note ? `, ${note}` : ''}. Показать ингредиенты`}
       onClick={onExpand}
       className="group/fold flex w-full min-w-0 flex-col items-start justify-start gap-0.5 rounded-xl border border-transparent bg-muted/60 px-4 py-2.5 dark:bg-muted/20 text-left outline-none transition-colors hover:bg-card/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 max-[360px]:px-3"
     >

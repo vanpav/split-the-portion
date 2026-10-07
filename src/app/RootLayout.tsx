@@ -23,9 +23,9 @@ export function RootLayout() {
           <div className="mx-auto max-w-3xl p-4 pb-0">
             <Alert variant="destructive">
               <TriangleAlertIcon />
-              <AlertTitle>Не удалось прочитать сохранённые данные</AlertTitle>
+              <AlertTitle>Не удалось прочитать данные</AlertTitle>
               <AlertDescription>
-                <p>Копия сохранена в браузере, приложение начато с чистого листа.</p>
+                <p>Копия осталась в браузере, приложение запущено с нуля.</p>
                 <Button variant="outline" size="sm" onClick={dismissLoadError}>
                   Понятно
                 </Button>
