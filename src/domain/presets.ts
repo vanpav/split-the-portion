@@ -1,4 +1,6 @@
 import { dishKind, dishTitle } from './dish'
+import { dishWeight, plain } from './dishRow'
+import { roundHalfUp } from './numbers'
 import type { Dish, Id } from './types'
 
 /** A recipe template: no ids, no dates. `excluded` — «не учитывать» (water, salt, spices). */
@@ -303,7 +305,8 @@ export function presetSource(preset: PresetDish): { name: string; rawGrams: numb
   return { name: counted[0].name.trim(), rawGrams: counted[0].rawGrams }
 }
 
-const key = (name: string) => name.trim().toLowerCase()
+/** Same title for «уже есть»: ignoring case, «ё» and the spaces around. */
+const key = (name: string) => plain(name.trim())
 
 /** Popular dishes the user does not have yet: one with the same title (ignoring case) is theirs already. */
 export function missingPresets(existing: Pick<Dish, 'name' | 'ingredients'>[]): PresetDish[] {
@@ -329,4 +332,83 @@ export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dis
  */
 export function presetDishes(existing: Pick<Dish, 'name' | 'ingredients'>[], newId: () => Id, at: string): Dish[] {
   return missingPresets(existing).map((p) => presetDish(p, newId, at))
+}
+
+/** The usual weight of a popular dish: its counted product (simple) or the sum of the counted ones (composite); null — none has a weight. */
+export function presetWeight(preset: PresetDish): number | null {
+  return dishWeight(preset)
+}
+
+/**
+ * A popular dish for the weight the user typed (docs/SPEC.md §3б «Популярные блюда»). Simple: the counted
+ * product gets exactly that weight. Composite: every ingredient, «не учитывать» too, is multiplied by
+ * new ÷ catalogue weight, in whole grams (the counted ones add up to exactly the typed weight). `null` (the field emptied): no weights at all, the
+ * recipe stays. A dish with no usual weight has nothing to scale by and is kept as it is.
+ */
+export function scalePreset(preset: PresetDish, grams: number | null): PresetDish {
+  if (grams === null) return { ...preset, ingredients: preset.ingredients.map((i) => ({ ...i, rawGrams: null })) }
+  const base = presetWeight(preset)
+  if (preset.ingredients.length === 0) return preset
+  if (presetSource(preset) !== null) {
+    const counted = preset.ingredients.find((i) => !i.excluded && i.name.trim())
+    return { ...preset, ingredients: preset.ingredients.map((i) => (i === counted ? { ...i, rawGrams: grams } : i)) }
+  }
+  if (base === null || base <= 0) return preset
+  const factor = grams / base
+  // Counted products: whole grams that add up to the typed weight (largest remainder), so «Сырой» shows
+  // exactly what was typed; «не учитывать» is simply rounded.
+  const counted = preset.ingredients.flatMap((i, n) => (!i.excluded && i.rawGrams !== null ? [{ n, exact: i.rawGrams * factor }] : []))
+  const whole = new Map(counted.map((c) => [c.n, Math.floor(c.exact)]))
+  let left = roundHalfUp(grams) - counted.reduce((sum, c) => sum + Math.floor(c.exact), 0)
+  for (const c of [...counted].sort((a, b) => b.exact - Math.floor(b.exact) - (a.exact - Math.floor(a.exact)) || a.n - b.n)) {
+    if (left <= 0) break
+    whole.set(c.n, whole.get(c.n)! + 1)
+    left--
+  }
+  return {
+    ...preset,
+    ingredients: preset.ingredients.map((i, n) => ({
+      ...i,
+      rawGrams: i.rawGrams === null ? null : (whole.get(n) ?? roundHalfUp(i.rawGrams * factor)),
+    })),
+  }
+}
+
+/** A popular dish ticked in the picker: its name and the weight in the field (`null` — empty, no weight). */
+export interface PickedPreset {
+  preset: PresetDish
+  grams: number | null
+}
+
+/**
+ * The ticked popular dishes as the user's own, in the order ticked (docs/UX.md §3г): each with its weight
+ * scaled (`scalePreset`), those whose title the user already has skipped. The first one gets the latest
+ * `updatedAt` (a millisecond apart) — the shelf goes by it, so the first ticked stands first.
+ */
+export function pickedDishes(
+  existing: Pick<Dish, 'name' | 'ingredients'>[],
+  picked: readonly PickedPreset[],
+  newId: () => Id,
+  at: string,
+): Dish[] {
+  const taken = new Set(existing.map((d) => key(dishTitle(d))))
+  const fresh = picked.filter((p) => {
+    const k = key(p.preset.name)
+    if (taken.has(k)) return false
+    taken.add(k)
+    return true
+  })
+  const start = new Date(at).getTime()
+  return fresh.map((p, index) => {
+    const dish = presetDish(scalePreset(p.preset, p.grams), newId, at)
+    return { ...dish, updatedAt: new Date(start - index).toISOString() }
+  })
+}
+
+const dishPlural = new Intl.PluralRules('ru')
+const DISH_WORDS: Partial<Record<Intl.LDMLPluralRule, string>> = { one: 'блюдо', few: 'блюда' }
+
+/** «1 блюдо», «3 блюда», «5 блюд», «21 блюдо». */
+export function dishCountText(count: number): string {
+  return `${count} ${DISH_WORDS[dishPlural.select(count)] ?? 'блюд'}`
 }

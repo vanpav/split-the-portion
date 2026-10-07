@@ -5,6 +5,7 @@ import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
+import { AppVersion } from './AppVersion'
 import { CLUSTER_TITLES, SETTINGS_SECTIONS, type SettingsCluster, type SettingsSectionId } from './sections'
 
 interface SettingsMenuProps {
@@ -61,6 +62,7 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
                   )
                 })}
             </ul>
+            {cluster === 'app' && <AppVersion className="px-3 pt-1" />}
           </div>
         )
       })}

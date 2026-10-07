@@ -183,7 +183,7 @@ src/domain/
   phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   dishCategories.ts — DishCategory (тип — в types.ts), DISH_CATEGORIES (порядок показа), CATEGORY_LABELS, словарь основ и detectCategory, dishCategory(dish), categoryMatches(query, category)
-  presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
+  presets.ts        — PRESET_DISHES (популярные блюда), presetDishes(existing, newId, at), presetWeight, scalePreset (вес под новый), pickedDishes (отмеченные с весом, в порядке отметки), dishCountText
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
   dates.ts          — dayLabel(at, now) → «сегодня» / «вчера» / «12 окт.»
@@ -196,7 +196,7 @@ src/domain/
     cooking.test.ts   — граничные случаи SPEC §8
     phases.test.ts    — перевзвешивание (кнопка, остаток в списке, составное блюдо), dayLabel
     share.test.ts     — порции по доле (70 : 60, порция в граммах + доли, без готового веса)
-    presets.test.ts   — популярные блюда валидны для модели, повторно не добавляются
+    presets.test.ts   — популярные блюда валидны для модели, повторно не добавляются; вес, масштаб рецепта, порядок отметки
     dish.test.ts      — проверка блюда перед сохранением, «Из блюда», доля нового человека
 ```
 
@@ -240,6 +240,7 @@ src/domain/
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `localDay(date)`, `markUsed(usedOn, day)`, `usesSince(usedOn, today)` | День «YYYY-MM-DD» по местному времени; отметка использования (раз в день, последние 30, `USED_DAYS_KEPT`); сколько разных дней за последние 60 (`FREQUENT_WINDOW_DAYS`). Дата передаётся снаружи |
+| `popularView(query, filter, picked)` → `{ counts, sections }` | Экран «Популярные блюда» (UX §3г): разделы по категориям / один список по `matchRank` / «Отмечено» / одна категория; числа на чипах по найденному |
 | `dishMenu(dishes, presets, { query, today, byCategory? })` → `{ often, rest, categories, popular }` (`byCategory`: свои блюда в `categories`, `often` и `rest` пусты), `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products, category?)` (категория — ниже любого совпадения по названию и продукту), `detectCategory`, `dishCategory`, `categoryMatches`, `dishFoundByCategory`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовишь» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
 | `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не в счёт: …»); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
@@ -340,7 +341,7 @@ src/
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов; экраны поверх другого (UX §3а) — его дочерние маршруты
     paths.ts            — адреса экранов
   screens/
-    DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка с «+» и «⋯»), DishMenu (поле, разделы, строка «Создать», пустое приложение; состояние в адресе — только `q`), OpenGroupLink; `src/components/DishSearch/` (DishSearch, DishSearchGroup, DishSearchRow, Highlight) — общий поиск (в поле у меню блюд — кнопка «По категориям»), раздел (с числом блюд справа) и строка (с иконкой категории в начале) для меню и «Из блюда»; `src/components/DishCategoryIcon.tsx` — единственная карта «категория → иконка» (lucide: Soup, Drumstick, Wheat, Salad, EggFried, CakeSlice, CupSoda, Utensils) — в строках списка и на чипах полки; `src/lib/addAllPresets.ts` — «Добавить все» из Настроек и пустого меню
+    DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка с «+» и «⋯»), DishMenu (поле, разделы, строка «Создать», пустое приложение; состояние в адресе — только `q`), OpenGroupLink; `src/components/DishSearch/` (DishSearch, DishSearchGroup, DishSearchRow, Highlight) — общий поиск (в поле у меню блюд — кнопка «По категориям»), раздел (с числом блюд справа) и строка (с иконкой категории в начале) для меню и «Из блюда»; `src/components/DishCategoryIcon.tsx` — единственная карта «категория → иконка» (lucide: Soup, Drumstick, Wheat, Salad, EggFried, CakeSlice, CupSoda, Utensils) — в строках списка и на чипах полки
     DishEditor/         — создание и правка блюда, вариант «Одной строкой» (этап 19): DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`, `tare/new`); черновик — название, фраза, свои «не учитывать», тара — в состоянии формы, «Создать» / «Сохранить»
       PhraseField.tsx — «Что в блюде»: Textarea, «Вставить», «Из блюда», микрофон, подсказка / «Слушаю…» / «Сказали»
       PhraseList.tsx, PhraseRow.tsx — разбор: строка на продукт (тап — учитывать или нет, × — убрать), пометки
@@ -359,6 +360,7 @@ src/
       calculatorOutlet.ts     — что калькулятор передаёт экранам над собой (`useOutletContext`): выбрать тару, выбрать компанию
     Copy/
       CopyTextScreen.tsx      — экран «Скопируйте вручную» (`…/copy` под калькулятором и подразделом настроек): текст приходит в состоянии навигации, выделен
+    Popular/            — экран «Популярные блюда» `#/popular` (этап 20, UX §3г): PopularScreen (отметки, вес и «Добавить» живут в его состоянии, ничего не сохраняется до «Добавить»; один `addDishes`, калькулятор первого отмеченного с `replace`), PopularFilters (поле поиска и чипы), PopularSection (раздел с «Отметить все»), PopularRow (строка: `NumberField` 88 × 44, отметка 32 px, «уже есть»). Признак «после группы» — `?group=1` (`popularPath({ group: true })`); после приветствия экран открывают с `state` «нет предыдущего экрана» (`NO_PREVIOUS`), чтобы «Пропустить» вёл на `#/`
     Welcome/            — приветственный экран `#/welcome` (этап 18, UX §3в): WelcomeScreen — шаги внутри экрана, последний — аккаунт; иллюстрации из логотипа WelcomeBoxes, WelcomeTiles, WelcomeShares, WelcomeDevices (inline SVG, CSS-анимации под `motion-safe:`)
     Join/               — вступить в группу: JoinScreen по ссылке `#/join/:code` (этап 14), JoinByCodeScreen — код вручную `#/join`
     Account/            — вход (этап 12): AccountScreen (Tabs «Войти / Создать аккаунт»), SignInForm, SignUpForm, ResetPasswordScreen
@@ -370,7 +372,7 @@ src/
       TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), PresetsSection, DataSection
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
-    NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
+    NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже); для плотных строк (этап 20): `groupClassName`, `inputClassName`, `hideError`, `keepInvalid`, `selectOnFocus`, `onInvalidChange`, `onFocus`
     ScreenHeader.tsx    — шапка экрана: «← назад» (шаг назад по истории через useBack; запасной адрес и подпись — пропсы), заголовок, действия экрана (каждый экран рендерит свою)
     MoreMenu.tsx        — «⋯»: действия экрана и «Настройки», точка «нужно внимание»; во всех шапках
     ShareControls.tsx   — строка под полосой долей: «− Ваня +» (когда кто-то выбран), «Поровну» (точно поровну, `equalSplit`), «г | %»
@@ -397,6 +399,7 @@ src/
   sync/                 — синхронизация, см. §10 (этап 13): protocol, records, diff, merge, migrateChange, outbox, engine (чистые) + runner, transport, session (браузер)
   domain/               — см. §4
 worker/                 — сервер, см. §9 (этап 12): index.ts (Hono), auth.ts, me.ts, sync.ts, syncRequest.ts, invites.ts, migrations/, __tests__/
+scripts/appVersion.ts  — версия сборки для `__APP_VERSION__` (§7); тест в `scripts/__tests__`
 scripts/auth-schema.mjs — SQL недостающих таблиц Better Auth против локальной D1 (`pnpm -s db:auth-schema`)
 wrangler.preview-db.jsonc — только база превью, для `pnpm db:migrate:preview` (CLOUDFLARE §5)
 ```
@@ -438,6 +441,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | «Скопировано», «Удалено · Отменить» | `Sonner` (toast с action) |
 | Удалить / скопировать строку на телефоне и iPad | `components/SwipeRow` (`@use-gesture/react`) + `Button` под строкой; кнопки строки скрыты вариантом Tailwind `pointer-coarse:sr-only` — остаются для клавиатуры и экранного диктора |
 | Тур по калькулятору (этап 18) | `driver.js` (исключение, как `sonner`): карточка `.hint-popover` оформлена токенами темы, затемнение — `--scrim`; цели — `data-hint` на элементах |
+| Популярные блюда (этап 20, UX §3г) | Экран по §3а, но без `BottomBar`: действие — `Button` ghost справа в `ScreenHeader` («Пропустить» / «Добавить»); поле поиска — `InputGroup`; чипы — как на полке (`buttonVariants` secondary, выбранный `bg-card` с `ring-foreground`), `DishCategoryIcon`; строка — `NumberField` (`groupClassName` / `inputClassName` / `hideError` / `keepInvalid` / `selectOnFocus` / `onInvalidChange`) и круглая отметка |
 | Приветственный экран (этап 18) | Экран по §3а: шапка с точками шагов и «Пропустить» (`Button` ghost), иллюстрация (inline SVG), заголовок и текст, `BottomBar` с главной кнопкой |
 | Хаб настроек (телефон) | `SettingsHub`: карточка аккаунта и блоки-«коробки» строк (`Link`), тема и подсказки на месте |
 | «Тема» | `ToggleGroup` из трёх плиток-миниатюр (`ThemePreview`, токены темы через классы `.light` / `.dark`) |
@@ -491,6 +495,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | `#/settings/group/:groupId` | Экран группы поверх «Группы» (§3а): открыть, название, участники, приглашение, выход |
 | `#/settings/account/photo` | «Фото»: кадрирование аватара поверх «Аккаунта»; снимок — object URL в `location.state` |
 | `#/account[?tab=sign-up&next=…]` | Вход и регистрация (этап 12); `tab=sign-up` — открыта вкладка «Создать аккаунт» (с приветствия); после входа — `next` или Настройки → «Аккаунт» |
+| `#/popular[?group=1]` | Популярные блюда (этап 20): после приветствия (пока блюд нет), после «Создать группу» (`?group=1`), из «⋯» меню блюд и «Выбрать из популярных» в пустом списке |
 | `#/welcome` | Приветственный экран (этап 18): `#/` ведёт сюда, пока на устройстве нет блюд и приветствие не пройдено; пройдено — уводит на `#/` |
 | `#/account/reset` | Новый пароль по ссылке сброса (`token` — в строке запроса до `#`) |
 | `#/join` | «Вступить по коду»: код вручную; «Дальше» заменяет экран на `#/join/:code`; «назад» без предыдущего экрана — Настройки → «Группа» |
@@ -504,6 +509,7 @@ Hash-маршруты выбраны потому, что работают на 
 - Конфиг Vitest — в `vite.config.ts` (`test: { environment: 'node' }`). Домену DOM не нужен.
 - `pnpm build` = `tsc -b && vite build`: должен проходить без ошибок типов.
 - `pnpm lint` = oxlint.
+- **Версия сборки** — `__APP_VERSION__` (`define` в `vite.config.ts`, тип в `src/vite-env.d.ts`), считает `scripts/appVersion.ts`: `MAJOR.MINOR` из `version` в `package.json`, `PATCH` — `git rev-list --count HEAD`. Прод — `0.1.312`, превью ветки — `0.1.312-b241417` (короткий sha коммита), локально — `0.1.312-b241417-dev`. Видна в настройках под блоком «Приложение» (UX §4 «Настройки»). Подробности — CLOUDFLARE §8.
 - Для проверки на телефоне: `pnpm dev --host`, открыть адрес из локальной сети. Помнить: у `localhost` и у LAN-адреса разные origin, поэтому и разные хранилища; перенести данные — «Копия данных» в настройках.
 - После `shadcn add` проверить, что сгенерированный код проходит `pnpm lint` и `pnpm build`.
 - **С этапа 11** проверка PWA — `pnpm build`, затем конфигурация `preview` в `.claude/launch.json` (`pnpm preview`, порт 4180; Service Worker в `pnpm dev` выключен) и превью-деплой на iPhone. После проверки Service Worker на `localhost:4180` лучше удалить (DevTools → Application или `navigator.serviceWorker.getRegistrations()`), чтобы он не перехватывал другой проект на том же порту.

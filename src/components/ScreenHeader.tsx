@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useBack } from '@/app/useBack'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface ScreenHeaderProps {
   title: string
@@ -14,10 +15,12 @@ interface ScreenHeaderProps {
   backLabel?: string
   /** Screen actions on the right, e.g. «История», «Изменить». */
   action?: ReactNode
+  /** A long title next to a wide text action: less air around the title so it keeps its width. */
+  compactTitle?: boolean
 }
 
 /** On a phone the back link is an arrow only: the title needs the width. */
-export function ScreenHeader({ title, back, backTo = '/', backLabel = 'Блюда', action }: ScreenHeaderProps) {
+export function ScreenHeader({ title, back, backTo = '/', backLabel = 'Блюда', action, compactTitle }: ScreenHeaderProps) {
   const { hasPrevious, back: goBack } = useBack(backTo)
   // The previous screen can be any, so it is named only when «←» leads to the fallback.
   const label = hasPrevious ? 'Назад' : backLabel
@@ -40,7 +43,7 @@ export function ScreenHeader({ title, back, backTo = '/', backLabel = 'Блюд�
           </Link>
         </Button>
       )}
-      <h1 className="min-w-0 flex-1 truncate px-2 text-lg font-semibold">{title}</h1>
+      <h1 className={cn('min-w-0 flex-1 truncate px-2 text-lg font-semibold', compactTitle && 'px-0.5')}>{title}</h1>
       {action}
     </header>
   )

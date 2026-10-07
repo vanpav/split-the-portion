@@ -14,6 +14,7 @@ import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { AvatarCropScreen } from '@/screens/Settings/AvatarCropScreen'
 import { GroupScreen } from '@/screens/Settings/GroupScreen'
 import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
+import { PopularScreen } from '@/screens/Popular/PopularScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
 import { AVATAR_CROP, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, NEW_TARE } from './paths'
@@ -33,6 +34,7 @@ export const router = createHashRouter([
       { index: true, element: <HomeScreen /> },
       { path: 'welcome', element: <WelcomeScreen /> },
       { path: 'dishes', element: <DishMenuScreen /> },
+      { path: 'popular', element: <PopularScreen /> },
       { path: 'd/new', element: <DishEditorScreen />, children: [fromSimpleDish, newTare] },
       {
         path: 'd/:id',

@@ -2,7 +2,7 @@ import { dishSource, dishTitle } from './dish'
 import { categoryMatches, dishCategory, DISH_CATEGORIES } from './dishCategories'
 import { plain } from './dishRow'
 import type { PresetDish } from './presets'
-import { presetSource } from './presets'
+import { presetSource, PRESET_DISHES } from './presets'
 import type { Dish, DishCategory } from './types'
 import { lastUsedDay, usesSince } from './usage'
 
@@ -187,4 +187,53 @@ export function createDishText(dishes: readonly Pick<Dish, 'name' | 'ingredients
   if (!text) return null
   if (dishes.some((d) => plain(dishTitle(d)) === plain(text))) return null
   return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/** The filter chip chosen in «Популярные блюда»: everything, only the ticked ones, or one category. */
+export type PopularFilter = 'all' | 'picked' | DishCategory
+
+export interface PopularView {
+  /** Chip counts: of what the search found. `categories` — only categories the catalogue has. */
+  counts: { all: number; picked: number; categories: { category: DishCategory; count: number }[] }
+  /** The list: with a heading (a category, with «Отметить все») or without (`category` null). */
+  sections: { category: DishCategory | null; presets: PresetDish[] }[]
+}
+
+/**
+ * The list of the popular-dishes picker (docs/UX.md §3г). No text, «Все»: sections by category in display
+ * order. A text: one list, better `matchRank` first, the catalogue order among equals. A category: only its
+ * dishes, in a section with its heading. «Отмечено»: only the ticked ones, no heading. `picked` holds names.
+ */
+export function popularView(query: string, filter: PopularFilter, picked: ReadonlySet<string>): PopularView {
+  const typed = query.trim() !== ''
+  const found = PRESET_DISHES.map((preset, order) => ({
+    preset,
+    order,
+    category: dishCategory(preset),
+    rank: matchRank(query, preset.name, preset.ingredients.map((i) => i.name), dishCategory(preset)),
+  })).filter((row) => row.rank > 0)
+  const ranked = (rows: typeof found) => [...rows].sort((a, b) => (typed ? b.rank - a.rank : 0) || a.order - b.order).map((r) => r.preset)
+
+  const counts = {
+    all: found.length,
+    picked: found.filter((r) => picked.has(r.preset.name)).length,
+    categories: DISH_CATEGORIES.map((category) => ({
+      category,
+      count: found.filter((r) => r.category === category).length,
+    })).filter((c) => PRESET_DISHES.some((p) => dishCategory(p) === c.category)),
+  }
+
+  if (filter === 'picked') {
+    return { counts, sections: [{ category: null, presets: ranked(found.filter((r) => picked.has(r.preset.name))) }] }
+  }
+  if (filter !== 'all') {
+    return { counts, sections: [{ category: filter, presets: ranked(found.filter((r) => r.category === filter)) }] }
+  }
+  if (typed) return { counts, sections: [{ category: null, presets: ranked(found) }] }
+  return {
+    counts,
+    sections: DISH_CATEGORIES.map((category) => ({ category, presets: ranked(found.filter((r) => r.category === category)) })).filter(
+      (s) => s.presets.length > 0,
+    ),
+  }
 }
