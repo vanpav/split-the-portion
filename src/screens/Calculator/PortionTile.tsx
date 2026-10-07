@@ -34,6 +34,7 @@ interface PortionTileProps {
    * «по 80 г × 7» above.
    */
   copyable: boolean
+  className?: string
 }
 
 /**
@@ -43,7 +44,7 @@ interface PortionTileProps {
  * is erased. No swipe here: portions are numbered by place,
  * so «−» beside «Доли» takes one away; ⧉ copies this one for the tracker when it differs from the rest.
  */
-export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable }: PortionTileProps) {
+export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, className }: PortionTileProps) {
   const name = `Порция ${place + 1}`
   const single = result.baseIngredientId !== null
   const baseRaw = computed.share !== null ? baseRawGrams(result, computed.raw) : null
@@ -65,6 +66,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
     <li
       className={cn(
         'flex min-w-0 flex-col rounded-xl border transition-colors',
+        className,
         grams.active
           ? 'border-border bg-card'
           : grams.own
