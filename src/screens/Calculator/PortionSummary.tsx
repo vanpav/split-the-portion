@@ -5,12 +5,14 @@ import {
   formatPercent,
   portionGrams,
   rawAmountsCopyText,
+  splitAmounts,
   splitSummary,
   type Cooking,
   type CookingResult,
   type Id,
   type PortionResult,
 } from '@/domain'
+import { cn } from '@/lib/utils'
 import { portionsWord, rawWord } from './messages'
 
 interface PortionSummaryProps {
@@ -37,9 +39,9 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
   const sharing = portions.filter((p) => !ownIds.includes(p.portionId))
   const own = portions.filter((p) => ownIds.includes(p.portionId))
   // Grams of the view once weighed; percent of the dish before that, or when asked for.
-  const inPercent = unit === '%' || sharing.some((p) => portionGrams(p, rawOf) === null)
+  const { inPercent, values } = splitAmounts(sharing, rawOf, unit)
   const amount = (p: PortionResult) => (inPercent ? (p.share !== null ? p.share * 100 : null) : portionGrams(p, rawOf))
-  const summary = splitSummary(sharing.map(amount), inPercent ? 1 : 0)
+  const summary = splitSummary(values, inPercent ? 1 : 0)
   if (!summary) return null
 
   const shown = (value: number) => (inPercent ? `${formatPercent(value / 100)} %` : `${formatGrams(value)} г`)
@@ -73,13 +75,13 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
         <span className="text-sm text-muted-foreground tabular-nums">{tail}</span>
         {ownLine && <span className="basis-full text-sm text-muted-foreground tabular-nums">{ownLine}</span>}
       </p>
-      {summary.same !== null && (
-        <CopyButton
-          className="text-muted-foreground"
-          label="Скопировать для трекера: одна порция"
-          getText={() => rawAmountsCopyText(cooking, first.raw) || null}
-        />
-      )}
+      {/* Hidden, not removed, while the portions differ (each tile has its own ⧉ then): the line keeps its
+          height when they turn equal or unequal. */}
+      <CopyButton
+        className={cn('text-muted-foreground', summary.same === null && 'invisible')}
+        label="Скопировать для трекера: одна порция"
+        getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
+      />
     </div>
   )
 }

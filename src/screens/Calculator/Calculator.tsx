@@ -35,6 +35,7 @@ import {
   portionIn,
   rawFold,
   removeLastPortion,
+  splitAmounts,
   splitSummary,
   typedGrams,
   type Company,
@@ -467,7 +468,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const sharingGrams = (phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined).map((p) => portionGrams(p, rawOf))
   const sharedGrams = sharingGrams.every((g) => g !== null) ? sharingGrams.reduce<number>((a, g) => a + (g ?? 0), 0) : null
   // «Доли»: the portions that split by share all get the same — one ⧉ above the grid copies any of them.
-  const sameShares = splitSummary(sharingGrams)?.same != null
+  // The same test as that line's, so the tiles hide their ⧉ before the dish is weighed too.
+  const sharingAmounts = splitAmounts((phase?.portions ?? []).filter((p) => fixed[p.portionId] === undefined), rawOf, barUnit)
+  const sameShares = splitSummary(sharingAmounts.values, sharingAmounts.inPercent ? 1 : 0)?.same != null
   // The tour over this screen (docs/UX.md §3б): with the share bar on screen its third step points at it.
   useCalculatorTour({ paused: covered, composite: dish?.kind === 'composite', people: segments.some((x) => x.share > 0) })
 
