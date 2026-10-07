@@ -72,6 +72,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 
 ### Git
 - The project has its own `git init` in this folder (it sits inside a foreign repo `~/Projects`; commit nothing there).
+- Draft PRs are never touched or merged by Claude (no pushes, edits, ready-for-review, merge) — only the user moves them out of draft.
 - Commits and PR titles: short `type: what was done` (`feat`, `fix`, `design`, `refactor`, `docs`, `chore`), no assistant mentions, no `Co-Authored-By` lines.
 
 ## Skills (loaded on demand)
