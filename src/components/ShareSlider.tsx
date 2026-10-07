@@ -49,11 +49,6 @@ interface ShareSliderProps {
   /** Without it there is no «г | %» switch, and the labels show percents. */
   onUnit?: (unit: 'g' | '%') => void
   /**
-   * Nobody is chosen until a segment is tapped, and a second tap lets go: no ring and no ±1 % until then.
-   * «Доли»: equal portions rarely need ±1 %, and with seven of them the grips stay off the bar.
-   */
-  pickToAdjust?: boolean
-  /**
    * Segments are titled by number, not by name: «3» fits a segment far narrower than «Порция 3», and it
    * tells two portions apart when there are more of them than lids. «Доли».
    */
@@ -105,7 +100,6 @@ export function ShareSlider({
   onKeep,
   unit = '%',
   onUnit,
-  pickToAdjust = false,
   numbered = false,
   sharedLabel = null,
 }: ShareSliderProps) {
@@ -113,7 +107,8 @@ export function ShareSlider({
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
   const dragRef = useRef<number | null>(null)
   const [dragging, setDragging] = useState<number | null>(null)
-  // Who the ±1 % buttons adjust: the first sharing person to start with, or nobody until tapped (`pickToAdjust`).
+  // Who the ±1 % buttons adjust: always someone, the first sharing person (or portion) to start with — so the
+  // chosen one's grips and «− +» are always there.
   const [chosenId, setChosenId] = useState<Id | null>(null)
   // A tap on the «на завтра» edge lights it up for a moment: touch has no hover to say «pull me».
   const [edgeLit, setEdgeLit] = useState(false)
@@ -140,8 +135,7 @@ export function ShareSlider({
   const ownStarts = own.map((_, i) => groupWidth + own.slice(0, i).reduce((a, s) => a + width(s.share), 0))
   const restStart = groupWidth + own.reduce((a, s) => a + width(s.share), 0)
 
-  const chosenIndex = sharing.findIndex((p) => p.id === chosenId)
-  const selectedIndex = pickToAdjust ? chosenIndex : Math.max(0, chosenIndex)
+  const selectedIndex = Math.max(0, sharing.findIndex((p) => p.id === chosenId))
   const name = (index: number) => sharing[index]?.name.trim() || 'Без имени'
   const segmentFor = (id: Id) => sharingSegments.find((s) => s.id === id)
   const dishPercent = (share: number) => formatPercent(share / total)
@@ -202,7 +196,7 @@ export function ShareSlider({
   const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
   // The chosen segment and its neighbours have grips on their borders: narrower than 3.75rem, the grams would
   // sit under them, so these show the number (or nothing) and the grams stay in the rows below.
-  const crowded = (index: number) => selectedIndex >= 0 && sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
+  const crowded = (index: number) => sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
   const labels = (title: string, label: string | null, fallback: string, place: number | null = null, tight = false) => (
     <>
       {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
@@ -237,7 +231,7 @@ export function ShareSlider({
                 type="button"
                 aria-pressed={sharing.length > 1 && index === selectedIndex}
                 aria-label={`${name(index)}: ${segment ? dishPercent(segment.share) : percents[index]} % блюда${segment?.label ? `, ${segment.label}` : ''}`}
-                onClick={() => setChosenId(pickToAdjust && index === selectedIndex ? null : person.id)}
+                onClick={() => setChosenId(person.id)}
                 // Placed by percent, not by flex: padding must not move a border away from its grip.
                 style={{ left: `${sharingStarts[index]}%`, width: `${sharingWidths[index]}%` }}
                 className={cn(

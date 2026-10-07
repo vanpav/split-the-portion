@@ -10,7 +10,7 @@ interface ShareControlsProps {
   percents: number[]
   /** They split equally already (exact weights, not the rounded percents): «Поровну» is off. */
   equal: boolean
-  /** Who ±1 % adjusts; -1 — nobody chosen yet: no ±1 %, «Поровну» and «г | %» only. */
+  /** Who ±1 % adjusts. */
   selectedIndex: number
   onChange: (percents: number[]) => void
   /**
@@ -28,8 +28,8 @@ interface ShareControlsProps {
 }
 
 /**
- * Under a share bar, one line: ±1 % for the chosen person on the left (once someone is chosen); «Поровну»
- * and «г | %» on the right. Nothing to show for one person without the switch.
+ * Under a share bar, one line: ±1 % for the chosen person on the left; «Поровну» and «г | %» on the right.
+ * Nothing to show for one person without the switch.
  */
 export function ShareControls({
   names,
@@ -49,7 +49,7 @@ export function ShareControls({
 
   return (
     <div className="flex min-h-11 items-center gap-2 max-[360px]:gap-1">
-      {many && selectedIndex >= 0 && (
+      {many && (
         <>
           <Button
             variant="outline"

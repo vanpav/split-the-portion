@@ -577,7 +577,6 @@ export function Calculator({ id }: { id: Id | undefined }) {
             onKeep={inShares ? undefined : setKeep}
             unit={barUnit}
             onUnit={setBarUnit}
-            pickToAdjust={inShares}
             numbered={inShares}
             sharedLabel={sharedGrams !== null && sharedGrams > 0 ? gramsLabel(sharedGrams) : null}
           />
