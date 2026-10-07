@@ -12,6 +12,33 @@ export function equalPercents(n: number): number[] {
   return n > 0 ? roundPreservingSum(Array.from({ length: n }, () => 100 / n)) : []
 }
 
+/**
+ * «Поровну»: n equal share weights in percent, summing to 100 — exact, not whole: 7 people get 100/7 each,
+ * so 560 g is 80 g each, not 84, 84, 78… (docs/SPEC.md §3б). The bar shows them rounded.
+ */
+export function equalSplit(n: number): number[] {
+  return n > 0 ? Array.from({ length: n }, () => 100 / n) : []
+}
+
+/** The weights split equally already: «Поровну» would change nothing. 70 : 60 is not; 1 : 1 and 14,3 : 14,3 are. */
+export function isEqualSplit(weights: number[]): boolean {
+  if (weights.length === 0) return true
+  const most = Math.max(...weights)
+  const least = Math.min(...weights)
+  return most - least <= Math.abs(most) * 1e-9
+}
+
+/**
+ * Parts of the dish as share weights in percent, summing to 100 — exact, so equal parts stay equal.
+ * Anyone under the minimum is lifted to it: a part that came out 0 would never get anything again.
+ */
+export function exactPercents(parts: number[]): number[] {
+  const positive = parts.map((p) => Math.max(p, 0))
+  const total = sum(positive)
+  if (total <= 0) return equalSplit(parts.length)
+  return positive.map((p) => Math.max((p / total) * 100, MIN_PERCENT))
+}
+
 /** Lifts anyone under the minimum, taking the difference from the largest shares. */
 function withMinimum(percents: number[]): number[] {
   const result = [...percents]
@@ -132,9 +159,9 @@ export function keepAt(at: number, most: number): number {
 }
 
 /**
- * Today's split written back as share weights: each person's part of the dish in whole percents,
- * own portions included, so the next time the same people get the same parts by share
- * (docs/SPEC.md §3б). Null while someone's part is not computable or nobody gets anything.
+ * Today's split written back as share weights: each person's part of the dish in percent (exact, not
+ * whole: equal parts stay equal), own portions included, so the next time the same people get the same
+ * parts by share (docs/SPEC.md §3б). Null while someone's part is not computable or nobody gets anything.
  */
 export function lineupPercents<T extends { id: Id; weight: number }>(
   members: T[],
@@ -144,6 +171,6 @@ export function lineupPercents<T extends { id: Id; weight: number }>(
   if (members.length === 0 || shares.some((s) => s === null)) return null
   const parts = shares.map((s) => Math.max(s ?? 0, 0))
   if (parts.every((s) => s === 0)) return null
-  const percents = toPercents(parts)
+  const percents = exactPercents(parts)
   return members.map((m, i) => ({ ...m, weight: percents[i] }))
 }

@@ -1,9 +1,10 @@
 import { XIcon } from 'lucide-react'
+import { useId } from 'react'
 import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, lineupName, percentShares, toPercents, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, exactPercents, formatPercent, lineupName, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 
@@ -24,11 +25,12 @@ interface CompanyFormProps {
  */
 export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   const holdMs = useAppStore((s) => s.holdMs)
+  // «+ Имя» of this form: the empty bar puts the cursor there. Several forms can be open in the settings.
+  const addPersonId = useId()
   const { members } = value
   const weights = members.map((m) => m.weight)
-  const percents = toPercents(weights)
-  const shares = percentShares(weights)
-  // Each person's part, for the bar: percents only.
+  // Each person's part, exact: «Поровну» on three is 33,3 % each, not 34, 33, 33. The bar shows percents only.
+  const shares = exactPercents(weights).map((p) => p / 100)
   const segments: DishSegment[] = members.map((m, i) => ({ id: m.id, place: i, name: m.name, share: shares[i], label: null }))
 
   const setMembers = (next: CompanyMember[]) => onChange({ ...value, members: next })
@@ -49,7 +51,14 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         value={value.name}
         onChange={(e) => onChange({ ...value, name: e.target.value })}
       />
-      <ShareSlider sharing={members} sharingSegments={segments} own={[]} rest={null} onChange={setPercents} />
+      <ShareSlider
+        sharing={members}
+        sharingSegments={segments}
+        own={[]}
+        rest={null}
+        onChange={setPercents}
+        empty={{ label: 'Добавьте людей', fieldId: addPersonId }}
+      />
       <ul className="flex flex-col divide-y">
         {members.map((m, index) => (
           <li key={m.id} className="flex items-center gap-2 py-1">
@@ -64,7 +73,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
             />
             {/* The part of the dish, here too: on the bar a narrow segment has no room for it. */}
             <span aria-hidden className="shrink-0 text-sm text-muted-foreground tabular-nums">
-              {percents[index]} %
+              {formatPercent(shares[index])} %
             </span>
             <HoldButton
               holdMs={holdMs}
@@ -77,7 +86,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
             </HoldButton>
           </li>
         ))}
-        <AddPersonRow onAdd={addMember} autoFocus={autoFocus && members.length === 0} />
+        <AddPersonRow id={addPersonId} onAdd={addMember} autoFocus={autoFocus && members.length === 0} />
       </ul>
     </div>
   )

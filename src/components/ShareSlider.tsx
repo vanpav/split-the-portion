@@ -1,7 +1,8 @@
-import { GripVerticalIcon } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { GripVerticalIcon, PlusIcon } from 'lucide-react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import {
   formatPercent,
+  isEqualSplit,
   keepAt,
   moveBoundary,
   toPercents,
@@ -32,7 +33,10 @@ interface ShareSliderProps {
   own: DishSegment[]
   /** What stays in the pot; null when everything is given out. */
   rest: { share: number; label: string | null } | null
-  /** New split of the sharing people, whole percents in the order of `sharing`. */
+  /**
+   * New split of the sharing people in the order of `sharing`, in percent: whole after a drag or ±1 %,
+   * exact after «Поровну».
+   */
   onChange: (percents: number[]) => void
   /** «На завтра»: percent of the dish set aside, pulled in from the right edge. */
   keep?: number
@@ -44,8 +48,19 @@ interface ShareSliderProps {
   unit?: 'g' | '%'
   /** Without it there is no «г | %» switch, and the labels show percents. */
   onUnit?: (unit: 'g' | '%') => void
-  /** Beside the bar on the right, as tall as it: the portion «−» / «+» in «Доли», where «на завтра» is for people. */
-  aside?: ReactNode
+  /**
+   * Segments are titled by number, not by name: «3» fits a segment far narrower than «Порция 3», and it
+   * tells two portions apart when there are more of them than lids. «Доли».
+   */
+  numbered?: boolean
+  /** What the sharing people split, «440 г», for «17 % из 440 г» under the bar. */
+  sharedLabel?: string | null
+  /**
+   * Nobody yet: an empty bar with this text keeps the bar's place (and the «г | %» row under it), so the
+   * screen does not jump when the first person comes or «Доли» is picked. It is the label of the «+ Имя»
+   * field (`fieldId`): a tap puts the cursor there. Without it — nothing.
+   */
+  empty?: { label: string; fieldId: string }
 }
 
 /** Index of the «на завтра» border among the draggable ones (the others are 0..n-2). */
@@ -53,6 +68,41 @@ const KEEP = -1
 
 const SEGMENT =
   '@container absolute inset-y-0 flex flex-col items-center justify-center overflow-hidden text-xs leading-tight outline-none'
+
+/**
+ * A grip covers about 2rem; next to a segment narrower than 4rem it hides the grams. For each border the
+ * bar width (rem) under which it no longer fits, as literal container classes Tailwind can find, every
+ * 2rem: with many people or portions on a phone only the chosen one's borders keep their grips, on a wide
+ * bar all of them (docs/UX.md §3).
+ */
+const GRIP_ROOM = [
+  [16, ''],
+  [18, '@max-[18rem]/bar:hidden'],
+  [20, '@max-[20rem]/bar:hidden'],
+  [22, '@max-[22rem]/bar:hidden'],
+  [24, '@max-[24rem]/bar:hidden'],
+  [26, '@max-[26rem]/bar:hidden'],
+  [28, '@max-[28rem]/bar:hidden'],
+  [30, '@max-[30rem]/bar:hidden'],
+  [32, '@max-[32rem]/bar:hidden'],
+  [34, '@max-[34rem]/bar:hidden'],
+  [36, '@max-[36rem]/bar:hidden'],
+  [38, '@max-[38rem]/bar:hidden'],
+  [40, '@max-[40rem]/bar:hidden'],
+  [42, '@max-[42rem]/bar:hidden'],
+  [44, '@max-[44rem]/bar:hidden'],
+  [46, '@max-[46rem]/bar:hidden'],
+  [48, '@max-[48rem]/bar:hidden'],
+] as const
+/**
+ * `narrowest` — the narrower of the two segments by a border, in percent of the bar. A hair of rounding
+ * must not move a border to the next width: nine equal portions need 36rem whether their parts add up to
+ * 99,999… or 100,000…, so all their grips show or hide together.
+ */
+const gripRoom = (narrowest: number) => {
+  const needed = narrowest > 0 ? 400 / narrowest - 0.01 : Infinity
+  return GRIP_ROOM.find(([rem]) => needed <= rem)?.[1] ?? 'hidden'
+}
 
 /**
  * The whole dish as one bar (docs/SPEC.md §3б): a segment per person in the size of what they get,
@@ -72,13 +122,16 @@ export function ShareSlider({
   onKeep,
   unit = '%',
   onUnit,
-  aside,
+  numbered = false,
+  sharedLabel = null,
+  empty,
 }: ShareSliderProps) {
   const barRef = useRef<HTMLDivElement>(null)
   // The border being dragged: a ref answers at once (moves arrive before a re-render), state paints it.
   const dragRef = useRef<number | null>(null)
   const [dragging, setDragging] = useState<number | null>(null)
-  // Who the ±1 % buttons adjust: always someone, the first sharing person to start with.
+  // Who the ±1 % buttons adjust: always someone, the first sharing person (or portion) to start with — so the
+  // chosen one's grips and «− +» are always there.
   const [chosenId, setChosenId] = useState<Id | null>(null)
   // A tap on the «на завтра» edge lights it up for a moment: touch has no hover to say «pull me».
   const [edgeLit, setEdgeLit] = useState(false)
@@ -90,15 +143,34 @@ export function ShareSlider({
 
   const total =
     sharingSegments.reduce((a, s) => a + s.share, 0) + own.reduce((a, s) => a + s.share, 0) + (rest?.share ?? 0)
+  if (sharingSegments.length + own.length === 0 && empty) {
+    return (
+      <div className="flex flex-col gap-3">
+        {/* A label, not a button: the browser itself moves the focus to «+ Имя», and on a phone the keyboard
+            opens within the tap. From the keyboard «+ Имя» is the next field anyway. */}
+        <label
+          htmlFor={empty.fieldId}
+          className="flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border px-3 text-sm text-muted-foreground transition-colors select-none hover:border-input hover:bg-muted/50 hover:text-foreground active:bg-muted"
+        >
+          <PlusIcon aria-hidden className="size-4" />
+          {empty.label}
+        </label>
+        <ShareControls names={[]} percents={[]} equal selectedIndex={0} onChange={onChange} unit={unit} onUnit={onUnit} />
+      </div>
+    )
+  }
   if (total <= 0 || sharingSegments.length + own.length === 0) return null
 
   // Bar geometry in percent of its width: sharing people first (a block whose inside is draggable),
   // then own portions, then the pot.
   const width = (share: number) => (share / total) * 100
   const groupWidth = width(sharingSegments.reduce((a, s) => a + s.share, 0))
+  // Dragging and ±1 % work in whole percents; the segments are as wide as the exact shares, so seven equal
+  // portions are seven equal segments, not 15, 15, 14… wide.
   const percents = toPercents(sharing.map((p) => p.weight))
-  const sharingStarts = percents.map((_, i) => (percents.slice(0, i).reduce((a, b) => a + b, 0) / 100) * groupWidth)
-  const sharingWidths = percents.map((p) => (p / 100) * groupWidth)
+  const weightTotal = sharing.reduce((a, p) => a + Math.max(p.weight, 0), 0)
+  const sharingWidths = sharing.map((p) => (weightTotal > 0 ? Math.max(p.weight, 0) / weightTotal : 1 / sharing.length) * groupWidth)
+  const sharingStarts = sharingWidths.map((_, i) => sharingWidths.slice(0, i).reduce((a, b) => a + b, 0))
   const ownStarts = own.map((_, i) => groupWidth + own.slice(0, i).reduce((a, s) => a + width(s.share), 0))
   const restStart = groupWidth + own.reduce((a, s) => a + width(s.share), 0)
 
@@ -159,12 +231,25 @@ export function ShareSlider({
     cn(index === 0 && 'rounded-l-xl', index === lastIndex && 'rounded-r-xl', index > 0 && 'shadow-[inset_2px_0_0_var(--color-background)]')
   // Grams once weighed and asked for; percent of the dish otherwise.
   const shown = (label: string | null) => (unit === 'g' ? label : null)
-  const labels = (title: string, label: string | null, fallback: string) => (
+  // The title over the grams: a name, or in «Доли» the portion's number (its place in the lineup).
+  const titleOf = (title: string, place: number | null) => (numbered && place !== null ? String(place + 1) : title)
+  // The chosen segment and its neighbours have grips on their borders: narrower than 3.75rem, the grams would
+  // sit under them, so these show the number (or nothing) and the grams stay in the rows below.
+  const crowded = (index: number) => sharing.length > 1 && Math.abs(index - selectedIndex) <= 1
+  const labels = (title: string, label: string | null, fallback: string, place: number | null = null, tight = false) => (
     <>
       {/* Two lines, the name over the grams: the bar is as tall as they are. Padding on the labels, not on
-          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first. */}
-      <span className="w-full truncate px-3 text-center font-medium @max-[4.5rem]:hidden">{title}</span>
-      <span className="px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden">
+          the segment: a 1 % segment must stay 1 % wide. A narrow segment drops the name first; a number
+          stays down to 1rem. */}
+      <span
+        className={cn(
+          'w-full truncate text-center font-medium',
+          numbered && place !== null ? 'px-0.5 @max-[1rem]:hidden' : 'px-3 @max-[4.5rem]:hidden',
+        )}
+      >
+        {titleOf(title, place)}
+      </span>
+      <span className={cn('px-1 text-base font-semibold whitespace-nowrap tabular-nums @max-[2.75rem]:hidden', tight && '@max-[3.75rem]:hidden')}>
         {shown(label) ?? fallback}
       </span>
     </>
@@ -176,7 +261,7 @@ export function ShareSlider({
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <div ref={barRef} className="relative h-12 min-w-0 flex-1 touch-none select-none">
+        <div ref={barRef} className="@container/bar relative h-12 min-w-0 flex-1 touch-none select-none">
           {sharing.map((person, index) => {
             const segment = segmentFor(person.id)
             return (
@@ -199,7 +284,7 @@ export function ShareSlider({
                   sharing.length > 1 && index === selectedIndex && 'font-semibold ring-2 ring-foreground ring-inset',
                 )}
               >
-                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`)}
+                {labels(name(index), segment?.label ?? null, `${segment ? dishPercent(segment.share) : percents[index]} %`, segment?.place ?? index, crowded(index))}
               </button>
             )
           })}
@@ -213,12 +298,13 @@ export function ShareSlider({
               style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
               className={cn(
                 SEGMENT,
-                'border-2 border-dashed border-foreground/25 text-foreground transition-[left,width] duration-300 ease-out',
+                // Dashed in its own text color: ink at 25% on the pale lid, the lid itself in dark.
+                'border-2 border-dashed border-current/25 transition-[left,width] duration-300 ease-out dark:border-current/60',
                 lidPale(segment.place),
                 rounding(sharing.length + i),
               )}
             >
-              {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`)}
+              {labels(segment.name.trim() || 'Без имени', segment.label, `${dishPercent(segment.share)} %`, segment.place)}
             </div>
           ))}
 
@@ -259,6 +345,11 @@ export function ShareSlider({
               className={cn(
                 'group/grip absolute top-1/2 z-20 flex size-11 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center outline-none active:cursor-grabbing',
                 dragging === null && 'transition-[left] duration-300 ease-out',
+                // The chosen one's borders and the one in the hand always keep their grips.
+                index !== selectedIndex &&
+                  index + 1 !== selectedIndex &&
+                  dragging !== index &&
+                  gripRoom(Math.min(sharingWidths[index], sharingWidths[index + 1])),
               )}
             >
               <span
@@ -343,18 +434,19 @@ export function ShareSlider({
             </div>
           )}
         </div>
-        {aside}
       </div>
 
       <ShareControls
         names={sharing.map((_, i) => name(i))}
         percents={percents}
+        equal={isEqualSplit(sharing.map((p) => p.weight))}
         selectedIndex={selectedIndex}
         onChange={onChange}
         unit={unit}
         onUnit={onUnit}
         selectedPercent={selected ? dishPercent(selected.share) : null}
         partial={own.length > 0 || keep > 0}
+        sharedLabel={sharedLabel}
       />
     </div>
   )

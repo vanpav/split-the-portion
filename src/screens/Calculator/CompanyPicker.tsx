@@ -123,7 +123,11 @@ export function CompanyPicker({
         {shares && (
           <SelectItem value={SHARES}>
             <ChartPieIcon />
-            Доли
+            {/* What it is before it is picked; the field itself shows «Доли» only. */}
+            <span className="flex flex-col">
+              Доли
+              <span className="text-xs text-muted-foreground">Порции без имён, например на неделю</span>
+            </span>
           </SelectItem>
         )}
         {(companies.length > 0 || shares) && <SelectSeparator />}

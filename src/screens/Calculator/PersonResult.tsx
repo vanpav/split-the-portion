@@ -33,8 +33,6 @@ interface PersonResultProps {
   /** Without it the name is not editable: a portion in «Доли» is named by its place. */
   onRename?: (name: string) => void
   onRemove: () => void
-  /** What «×» says to a screen reader; «Убрать Ваня» by default. */
-  removeLabel?: string
   /** «×» is held this long before the person is removed; 0 — a tap. */
   holdMs: number
   /** The answer is a field: tap it and type the person's own portion. */
@@ -74,7 +72,6 @@ export function PersonResult({
   dry,
   onRename,
   onRemove,
-  removeLabel,
   holdMs,
   grams,
   percent,
@@ -226,7 +223,7 @@ export function PersonResult({
           <HoldButton
             holdMs={holdMs}
             className="w-10 text-muted-foreground"
-            label={removeLabel ?? `Убрать ${name || 'человека'}`}
+            label={`Убрать ${name || 'человека'}`}
             hint="Удерживайте ×, чтобы убрать"
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}
