@@ -481,14 +481,19 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // «Доли» tiles: as usual with the mode off. On, a tile with a recipe needs width: unequal portions go two
   // to a row; with equal ones the recipe sits once under the summary, only an own portion's tile has its own
   // and takes the row, the others keep the rows of the portions that share.
+  // The containers: the portions that share first, own ones after them — as on the bar. Numbers stay by place.
+  const gridPortions = [
+    ...phase.portions.filter((p) => fixed[p.portionId] === undefined),
+    ...phase.portions.filter((p) => fixed[p.portionId] !== undefined),
+  ]
   const sharingCount = phase.portions.filter((p) => fixed[p.portionId] === undefined).length
   const spansOf = (count: number) => tileRows(count).flatMap((n) => Array<number>(n).fill(n)).map((n) => TILE_SPAN[n])
   const tileSpans = (() => {
-    if (!recipeOpen) return spansOf(phase.portions.length)
-    if (!sameShares) return phase.portions.map(() => 'col-span-3')
+    if (!recipeOpen) return spansOf(gridPortions.length)
+    if (!sameShares) return gridPortions.map(() => 'col-span-3')
     const sharingSpans = spansOf(sharingCount)
     let next = 0
-    return phase.portions.map((p) => (fixed[p.portionId] !== undefined ? 'col-span-6' : sharingSpans[next++]))
+    return gridPortions.map((p) => (fixed[p.portionId] !== undefined ? 'col-span-6' : sharingSpans[next++]))
   })()
 
   // Under the readouts, after the tare: the weight without it and k.
@@ -628,7 +633,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 recipe={recipe}
               />
               <ul className={cn('grid gap-2', compactTiles ? 'grid-cols-4' : 'grid-cols-6')}>
-                {phase.portions.map((p, i) => (
+                {gridPortions.map((p, i) => (
                   <PortionTile
                     key={p.portionId}
                     // Compact: four to a row; the one opened for typing and an own one take a row of their own.
