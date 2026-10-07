@@ -572,7 +572,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
               lids={people.length}
             />
           </div>
-          {/* One quiet line: what «Готовый» was weighed in, what that leaves and k; a composite dish folds here. */}
+          {/* One quiet line: what «Готовый» was weighed in, what that leaves and k. */}
           {/* Small to look at, 44 px to hit: the line pulls its margins in, the people get the height. */}
           <div className="-my-1.5 flex flex-wrap items-center gap-x-2">
             <TareSelect tares={tares} tareId={tareId} onTare={changeTare} onAdd={() => openScreen(newTarePath(dish.id), TARE_SELECT_ID)} />

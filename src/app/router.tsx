@@ -15,7 +15,7 @@ import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
-import { COPY_TEXT, FROM_SIMPLE_DISH, NEW_TARE } from './paths'
+import { COPY_TEXT, FROM_SIMPLE_DISH, INGREDIENTS, NEW_TARE } from './paths'
 import { RootLayout } from './RootLayout'
 
 // Screens opened over another one (docs/UX.md §3а) are its child routes: the screen under them stays
@@ -38,7 +38,7 @@ export const router = createHashRouter([
         element: <CalculatorScreen />,
         children: [
           newTare,
-          { path: 'ingredients', element: <IngredientsScreen /> },
+          { path: INGREDIENTS, element: <IngredientsScreen /> },
           { path: 'company/new', element: <NewCompanyScreen /> },
           copyText,
         ],

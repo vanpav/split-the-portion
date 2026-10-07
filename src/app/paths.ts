@@ -7,7 +7,9 @@ export const dishPath = (id: Id) => `/d/${id}`
 export const dishEditPath = (id: Id) => `/d/${id}/edit`
 /** Screens over the calculator (docs/UX.md §3а): it stays mounted under them, so «назад» finds it as it was. */
 export const newTarePath = (id: Id) => `/d/${id}/tare/new`
-export const ingredientsPath = (id: Id) => `/d/${id}/ingredients`
+/** Relative to the calculator: «Ингредиенты» of a composite dish. */
+export const INGREDIENTS = 'ingredients'
+export const ingredientsPath = (id: Id) => `/d/${id}/${INGREDIENTS}`
 export const newCompanyPath = (id: Id) => `/d/${id}/company/new`
 /** Relative to the dish editor: «Из простого блюда», a screen over the form. */
 export const FROM_SIMPLE_DISH = 'from-dish'
