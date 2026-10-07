@@ -268,6 +268,7 @@ Lid mark, editable name (borderless input that shows a stroke on hover/focus), m
 - **Style:** 44 px, transparent fill, 1 px input-stroke border, 0.875rem radius; dark fill is input at 30%.
 - **Focus:** border turns cobalt plus a 3 px cobalt ring at 50%.
 - **Error:** tomato border with a tomato ring at 20%.
+- **With an icon:** the icon sits inside the field at the start, muted (`InputGroup`): the dish menu's search, «+ Имя» under people (the whole width, 16 px text).
 
 ### Segmented Control («г | %»)
 Frost-muted track, 0.875rem radius, 2 px inset; the chosen option is a ground-colored tab with `shadow-sm`, the other muted ink.
