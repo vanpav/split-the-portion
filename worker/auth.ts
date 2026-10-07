@@ -1,8 +1,9 @@
 import { passkey } from '@better-auth/passkey'
 import { type BetterAuthOptions, betterAuth } from 'better-auth'
+import { APIError } from 'better-auth/api'
 import { organization } from 'better-auth/plugins'
 import { nanoid } from 'nanoid'
-import { PERSONAL_GROUP_NAME } from '../src/account/types'
+import { MAX_GROUPS, PERSONAL_GROUP_NAME } from '../src/account/types'
 
 /**
  * Sign-in (docs/ARCHITECTURE.md §9): email and password, a passkey (Face ID) on top, groups as
@@ -47,6 +48,18 @@ export function createAuth(env: Env, origin: string, secret: string) {
     ...authOptions(origin),
     secret,
     database: env.DB,
+    plugins: [
+      organization({
+        organizationHooks: {
+          // Creating a group and joining one both add a member: the limit holds for the HTTP routes of Better Auth too.
+          beforeAddMember: async ({ member }) => {
+            const { n } = (await env.DB.prepare('select count(*) as n from member where userId = ?').bind(member.userId).first<{ n: number }>())!
+            if (n >= MAX_GROUPS) throw new APIError('CONFLICT', { message: 'group_limit' })
+          },
+        },
+      }),
+      passkey({ rpID: new URL(origin).hostname, rpName: 'Порции', origin }),
+    ],
     databaseHooks: {
       user: {
         create: {

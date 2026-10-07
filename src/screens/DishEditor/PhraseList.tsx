@@ -17,7 +17,7 @@ export function PhraseList({ items, caret, onToggle, onRemove }: PhraseListProps
         Разбор · тап — учитывать или нет, × — убрать
       </h2>
       {items.length === 0 ? (
-        <p className="px-2.5 pb-2 text-sm text-muted-foreground">Здесь появится разбор: продукт и вес.</p>
+        <p className="px-2.5 pb-2 text-sm text-muted-foreground">Здесь появится разбор: ингредиент и вес.</p>
       ) : (
         <ul className="flex flex-col">
           {items.map((item, index) => (

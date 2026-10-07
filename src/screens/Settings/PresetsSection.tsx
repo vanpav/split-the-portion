@@ -49,9 +49,9 @@ export function PresetsSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold">Популярные блюда</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">Популярные блюда</h2>
         <p className="text-sm text-muted-foreground">
-          Гречка, макароны, борщ, плов и другие — с обычным весом. Ваши блюда останутся, их можно поправить
+          Гречка, макароны, борщ, плов и другие — с обычным весом. Твои блюда останутся, их можно поправить
           или удалить.
         </p>
       </div>
@@ -68,7 +68,7 @@ export function PresetsSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Добавить популярные блюда?</AlertDialogTitle>
             <AlertDialogDescription>
-              {`Добавятся простые блюда: ${confirm.simple}, составные: ${confirm.composite}. Ваши блюда и готовки не изменятся, блюда с такими же названиями пропустим.`}
+              {`Добавятся простые блюда: ${confirm.simple}, составные: ${confirm.composite}. Твои блюда не изменятся, блюда с такими же названиями пропустим.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

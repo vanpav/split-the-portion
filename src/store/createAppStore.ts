@@ -39,7 +39,6 @@ export interface AppState extends PersistedState {
   /** «Кто ест» of one dish: the company picked and the shares; other dishes keep their own. */
   setLineup(dishId: Id, lineup: Lineup): void
   /** Settings: how long «×» is held before a person is removed. */
-  setHoldMs(ms: number): void
   /** «Загрузить из файла»: all the user's data replaced by a backup (already migrated). */
   replaceData(data: PersistedState): void
 
@@ -143,7 +142,6 @@ export function createAppStore(storage: () => StateStorage) {
           deleteTare: (id) => set((s) => ({ tares: s.tares.filter((t) => t.id !== id) })),
 
           setLineup: (dishId, lineup) => set((s) => ({ lineups: { ...s.lineups, [dishId]: lineup } })),
-          setHoldMs: (holdMs) => set({ holdMs }),
           replaceData: (data) => set({ ...data }),
 
           upsertCompany: (company) => {

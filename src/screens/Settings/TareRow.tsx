@@ -56,7 +56,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
               if (name) upsertTare({ ...tare, name })
             }}
           />
-          {nameEmpty && <FieldError>Введите название</FieldError>}
+          {nameEmpty && <FieldError>Введи название</FieldError>}
         </Field>
         <NumberField
           className="w-28 shrink-0"

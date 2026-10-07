@@ -134,7 +134,7 @@ export async function refreshGroups() {
   }
   for (const group of gone) {
     await Promise.all([del(groupDataKey(group.id)), forgetOutbox(group.id)])
-    toast(`Вы больше не в группе «${groupLabel(group)}»`)
+    toast(`Ты больше не в группе «${groupLabel(group)}»`)
   }
 }
 
@@ -148,6 +148,13 @@ export async function makeDefaultGroup(groupId: string) {
 export async function joinGroup(code: string) {
   const groupId = await groupsApi.accept(code)
   if (groupId) await refreshAccount()
+  return groupId
+}
+
+/** A new group of the user's own; its data (empty) comes on opening it. */
+export async function createGroup(name: string) {
+  const groupId = await groupsApi.create(name)
+  await refreshAccount()
   return groupId
 }
 

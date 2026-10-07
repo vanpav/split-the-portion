@@ -1,6 +1,6 @@
-import { customAlphabet } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
 import { INVITE_ALPHABET, INVITE_DAYS, INVITE_LENGTH } from '../src/account/inviteCode'
-import type { Invite, InvitePreview } from '../src/account/types'
+import { type Invite, type InvitePreview, MAX_GROUPS } from '../src/account/types'
 import type { Auth } from './auth'
 import { isMember } from './sync'
 
@@ -35,11 +35,21 @@ export async function previewInvite(db: D1Database, code: string, now: Date): Pr
   return row && { groupId: row.groupId, groupName: row.groupName, invitedBy: row.invitedBy.split('@')[0] }
 }
 
-/** Joins the group of a working code; already in it — nothing to do. Returns the group, or null. */
+/** How many groups the user is in. */
+export async function groupCount(db: D1Database, userId: string) {
+  const row = await db.prepare('select count(*) as n from member where userId = ?').bind(userId).first<{ n: number }>()
+  return row?.n ?? 0
+}
+
+/**
+ * Joins the group of a working code; already in it — nothing to do. Returns the group id,
+ * null for a code that does not work, 'limit' when the user is already in `MAX_GROUPS` groups.
+ */
 export async function acceptInvite(auth: Auth, db: D1Database, code: string, userId: string, now: Date) {
   const invite = await previewInvite(db, code, now)
   if (!invite) return null
   if (!(await isMember(db, invite.groupId, userId))) {
+    if ((await groupCount(db, userId)) >= MAX_GROUPS) return 'limit'
     // Server-only Better Auth call (no HTTP route): this code is the permission check.
     await auth.api.addMember({ body: { userId, organizationId: invite.groupId, role: 'member' } })
   }
@@ -59,4 +69,11 @@ export async function roleIn(db: D1Database, groupId: string, userId: string) {
     .bind(groupId, userId)
     .first<{ role: string }>()
   return row?.role ?? null
+}
+
+/** A new group owned by the user; 'limit' when they are already in `MAX_GROUPS` groups. */
+export async function createGroup(auth: Auth, db: D1Database, userId: string, name: string) {
+  if ((await groupCount(db, userId)) >= MAX_GROUPS) return 'limit'
+  const group = await auth.api.createOrganization({ body: { name, slug: nanoid(), userId } })
+  return group.id
 }

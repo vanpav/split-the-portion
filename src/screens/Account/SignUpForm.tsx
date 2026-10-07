@@ -63,7 +63,7 @@ export function SignUpForm({ onSignedIn }: { onSignedIn(): void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error ? <FieldError>{error}</FieldError> : <FieldDescription>Не короче 8 символов.</FieldDescription>}
+        {error ? <FieldError>{error}</FieldError> : <FieldDescription>Минимум 8 символов</FieldDescription>}
       </Field>
       <Button type="submit" size="lg" disabled={busy}>
         Создать аккаунт

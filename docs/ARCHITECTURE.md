@@ -236,7 +236,7 @@ src/domain/
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `localDay(date)`, `markUsed(usedOn, day)`, `usesSince(usedOn, today)` | День «YYYY-MM-DD» по местному времени; отметка использования (раз в день, последние 30, `USED_DAYS_KEPT`); сколько разных дней за последние 60 (`FREQUENT_WINDOW_DAYS`). Дата передаётся снаружи |
 | `dishMenu(dishes, presets, { query, kind, sort, today })`, `matchRank(query, title, products)`, `compareNames(a, b)`, `presetKind(preset)`, `parseKindFilter`, `parseDishSort` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), фильтр по типу, сортировка «Частые» / «По названию» (`Intl.Collator('ru')`), разбор `kind` и `sort` из адреса |
-| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
+| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не в счёт: …»); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему. Свои порции — в готовых граммах (`fixedCooked`), в сухом виде (`fixedRaw`, сырой вес продукта) или в процентах (`fixedPercent`) |
@@ -360,7 +360,7 @@ src/
       SettingsMenu.tsx        — меню подразделов (Item-ссылки)
       SettingsSectionContent.tsx — какие *Section показать в подразделе
       sections.ts             — список подразделов: адрес, название, подпись, иконка
-      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), HoldSection, PresetsSection, DataSection
+      TaresSection (новая — TareForm), CompaniesSection (CompanyCard: правка на месте через CompanyForm), PresetsSection, DataSection
   components/
     ui/                 — компоненты shadcn (генерирует CLI, руками правим только при необходимости)
     NumberField.tsx     — поле граммов: shadcn Field + InputGroup + parseGrams (см. ниже)
@@ -565,6 +565,7 @@ iPhone (PWA, standalone)                       Cloudflare Worker split-the-porti
 |---|---|
 | `* /api/auth/*` | Better Auth: регистрация, вход, passkey, выход, группы (`organization/*`) |
 | `GET /api/me` | Пользователь, его группы с участниками (`memberId`, почта, роль) и своей ролью, `defaultGroupId` |
+| `POST /api/groups` | Новая группа `{ name }`, создатель — владелец; 409 `group_limit`, если он уже в трёх (`MAX_GROUPS`; так же `POST /invites/:code/accept`) |
 | `PUT /api/me/default-group` | Группа, которая открывается при запуске |
 | `POST /api/groups/:id/sync` | Push и pull изменений группы (§10) |
 | `POST /api/groups/:id/invites` | Код приглашения (действующий переиспользуется) |
@@ -662,5 +663,5 @@ type SyncResponse = { cursor: number; changes: Change[]; more: boolean };
   - копия локальных данных до входа — `split-the-portion:backup:<ISO>`; данные другого аккаунта (после «Войти снова» под другой почтой) в группу не сливаются.
 - *Выход:* предупреждение, если outbox не пуст. Затем удаляются блобы групп, их outbox и кэш аккаунта.
 - *Другие группы аккаунта* (этап 14) синхронизируются фоном, по тем же поводам и по очереди, прямо в их сохранённой копии (`syncStoredGroup`): любая уже открывавшаяся на устройстве группа без сети открывается свежей, а правки, оставленные в ней перед переключением, уходят. Группу, которую здесь ещё не открывали, заранее не скачиваем. Открытие группы (`openGroup`) ждёт её фонового прогона.
-- *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Вы больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
+- *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Ты больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
 - *Несколько вкладок* одной группы на десктопе друг о друге не знают — в бэклоге.
