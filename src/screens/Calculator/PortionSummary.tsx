@@ -30,7 +30,7 @@ interface PortionSummaryProps {
 
 /**
  * «по 80 г × 7 · 29 г сухого» over the grid of portions in «Доли» (docs/UX.md §3): what goes into each
- * container, said once, with ⧉ for the tracker when they are all the same. Portions that differ get the
+ * container, said once, with ⧉ for the tracker — on when they are all the same. Portions that differ get the
  * range; own ones are named under it.
  */
 export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit, numberOf }: PortionSummaryProps) {
@@ -73,13 +73,14 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
         <span className="text-sm text-muted-foreground tabular-nums">{tail}</span>
         {ownLine && <span className="basis-full text-sm text-muted-foreground tabular-nums">{ownLine}</span>}
       </p>
-      {summary.same !== null && (
-        <CopyButton
-          className="text-muted-foreground"
-          label="Скопировать для трекера: одна порция"
-          getText={() => rawAmountsCopyText(cooking, first.raw) || null}
-        />
-      )}
+      {/* Always there, off while the portions differ (each tile has its own ⧉ then): switching between equal
+          and unequal does not move the line. */}
+      <CopyButton
+        className="text-muted-foreground"
+        label="Скопировать для трекера: одна порция"
+        disabled={summary.same === null}
+        getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
+      />
     </div>
   )
 }
