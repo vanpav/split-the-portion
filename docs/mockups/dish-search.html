@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Поиск блюд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --accent: oklch(0.938 0.018 261.3);
+  --destructive: oklch(0.556 0.183 29.1);
+  --warning: oklch(0.531 0.119 65.1);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --field: transparent;
+  --radius: 0.875rem;
+  /* Mockup page only. */
+  --page: oklch(0.935 0.011 257);
+  --kb: 320px;
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 18px 40px -22px oklch(0.267 0.054 269.1 / 0.45);
+  --pop-shadow: 0 2px 6px oklch(0.267 0.054 269.1 / 0.08), 0 14px 32px -12px oklch(0.267 0.054 269.1 / 0.4);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --popover: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --primary-foreground: oklch(0.21 0.052 270.1);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --accent: oklch(0.321 0.055 266.3);
+  --destructive: oklch(0.715 0.178 28);
+  --warning: oklch(0.819 0.124 75.6);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+  --page: oklch(0.17 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+  --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --popover: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --destructive: oklch(0.715 0.178 28);
+    --warning: oklch(0.819 0.124 75.6);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+    --page: oklch(0.17 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+    --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--foreground);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  caret-color: var(--primary);
+}
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+code { font-family: ui-monospace, monospace; font-size: 0.86em; background: var(--secondary); padding: 0.05em 0.35em; border-radius: 6px; }
+a { color: var(--primary); text-underline-offset: 3px; }
+
+/* ---------- Page ---------- */
+.wrap { max-width: 1260px; margin: 0 auto; padding: 40px 24px 96px; }
+.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-start; justify-content: space-between; }
+.top h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.01em; }
+.lead { max-width: 66ch; margin: 0; color: var(--muted-foreground); }
+.lead strong { color: var(--foreground); font-weight: 500; }
+.theme-switch { display: inline-flex; padding: 3px; gap: 2px; background: var(--secondary); border-radius: 14px; }
+.theme-switch button { border: 0; background: transparent; padding: 0 12px; height: 36px; border-radius: 11px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.theme-switch button[aria-pressed="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 28px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.toc a { color: var(--muted-foreground); text-decoration: none; }
+.toc a:hover { color: var(--foreground); }
+.toc b { color: var(--foreground); font-weight: 600; margin-right: 5px; }
+
+section.block { margin-top: 72px; }
+section.block > h2 { font-size: 24px; line-height: 1.3; font-weight: 600; margin: 0 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.intro { max-width: 72ch; margin: 0 0 8px; color: var(--muted-foreground); }
+.intro b { color: var(--foreground); font-weight: 500; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 44px 28px; margin-top: 28px; align-items: start; }
+figure { margin: 0; max-width: 375px; width: 100%; }
+figcaption { margin-top: 14px; font-size: 15px; color: var(--muted-foreground); }
+figcaption .cap-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+figcaption .cap-title { color: var(--foreground); font-weight: 600; font-size: 16px; }
+figcaption p { margin: 4px 0 0; }
+figcaption b { color: var(--foreground); font-weight: 500; }
+
+.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.badge.rec { background: var(--primary); color: var(--primary-foreground); }
+.badge.live { background: color-mix(in oklab, var(--primary) 14%, transparent); color: var(--primary); }
+.badge.tag { background: var(--secondary); color: var(--foreground); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px 40px; margin-top: 24px; max-width: 1060px; }
+.pc h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.pc ul { margin: 0; padding-left: 20px; color: var(--muted-foreground); font-size: 15px; }
+.pc li { margin: 4px 0; }
+.pc li b { color: var(--foreground); font-weight: 500; }
+.pro::marker { content: '+  '; color: var(--primary); font-weight: 600; }
+.con::marker { content: '−  '; color: var(--destructive); font-weight: 600; }
+
+/* Where dishes are worked with now. */
+.map { margin-top: 24px; max-width: 1060px; border-top: 1px solid var(--border); }
+.map-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 4px 20px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; align-items: baseline; }
+.map-row.h { font-size: 13px; font-weight: 500; color: var(--muted-foreground); padding: 8px 0; }
+.map-row .dim { color: var(--muted-foreground); }
+.map-row .bad { color: var(--destructive); }
+.inline-i { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+@media (max-width: 760px) {
+  .map-row { grid-template-columns: 1fr 1fr; }
+  .map-row.h { display: none; }
+  .map-row > :nth-child(1) { font-weight: 500; grid-column: 1 / -1; }
+}
+
+.flaws { list-style: none; margin: 28px 0 0; padding: 0; max-width: 1060px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px 40px; }
+.flaws li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 15px; color: var(--muted-foreground); }
+.flaws li b { color: var(--foreground); font-weight: 500; }
+.flaws .mk { position: static; box-shadow: none; margin-top: 1px; }
+.flaws .mk.ghost { background: var(--secondary); color: var(--foreground); }
+
+.fixes { margin: 20px 0 0; padding-left: 20px; max-width: 80ch; color: var(--muted-foreground); font-size: 15px; }
+.fixes li { margin: 6px 0; }
+.fixes b { color: var(--foreground); font-weight: 500; }
+
+/* Row anatomy. */
+.anat { display: grid; grid-template-columns: minmax(0, 375px) minmax(0, 1fr); gap: 4px 28px; margin-top: 28px; max-width: 1000px; align-items: center; }
+.anat .acard { background: var(--background); border: 1px solid var(--border); border-radius: 18px; padding: 4px 6px; }
+.anat .note { font-size: 15px; color: var(--muted-foreground); }
+.anat .note b { color: var(--foreground); font-weight: 500; }
+@media (max-width: 760px) { .anat { grid-template-columns: 1fr; } .anat .note { margin: 0 0 14px 10px; } }
+
+.cmp-wrap { margin-top: 24px; overflow-x: auto; max-width: 1180px; }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 15px; }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); }
+.cmp thead th { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.cmp tbody th { font-weight: 500; width: 17%; }
+.cmp td { color: var(--muted-foreground); width: 27.6%; }
+.cmp td b { color: var(--foreground); font-weight: 500; }
+
+.next { margin-top: 28px; max-width: 72ch; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--border); }
+.next p { margin: 0; }
+.next p + p { margin-top: 8px; color: var(--muted-foreground); }
+
+/* ---------- Phone ---------- */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 375px;
+  height: 812px;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--phone-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+.scr { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.hdr2 { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 4px; border-bottom: 1px solid var(--border); flex: none; }
+.ibtn { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; flex: none; }
+.ibtn.sec { background: var(--secondary); }
+.ibtn + .ibtn.sec { margin-left: 2px; }
+.h-title { font-size: 18px; font-weight: 600; flex: 1; min-width: 0; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-pad { width: 10px; flex: none; }
+
+.topz { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 10px; flex: none; }
+.field { position: relative; display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 4px 0 12px; border: 1px solid var(--input); border-radius: 14px; background: var(--field); cursor: text; }
+.field.focus, .field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.field > .i { color: var(--muted-foreground); }
+.field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--foreground); padding: 0; }
+.field input::placeholder { color: var(--muted-foreground); opacity: 1; }
+.field input:focus-visible { box-shadow: none; }
+.fv { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; }
+.fv .ph { color: var(--muted-foreground); }
+.fx { width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted-foreground); cursor: pointer; flex: none; }
+.fx[hidden] { display: none; }
+.caret { display: inline-block; width: 2px; height: 20px; background: var(--primary); vertical-align: -4px; margin: 0 1px 0 0; animation: blink 1.06s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.fhint { margin: -2px 2px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.list { flex: 1; min-height: 0; overflow: auto; padding: 0 6px 16px; scrollbar-width: thin; scrollbar-color: var(--input) transparent; }
+.phone.kb .list { padding-bottom: calc(var(--kb) + 16px); }
+.phone.kb.with-bar .list { padding-bottom: calc(var(--kb) + 92px); }
+.grp { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 10px 6px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.grp .n { font-variant-numeric: tabular-nums; font-weight: 400; }
+.row { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 6px 6px 10px; border-radius: 14px; cursor: pointer; }
+.row:hover { background: color-mix(in oklab, var(--accent) 70%, transparent); }
+.row.sel { background: var(--accent); }
+.r-main { flex: 1; min-width: 0; }
+.r-name, .r-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-name { font-size: 16px; line-height: 1.3; }
+.r-sub { font-size: 13px; line-height: 1.35; color: var(--muted-foreground); margin-top: 1px; }
+.r-w { flex: none; font-size: 14px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.r-add { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; color: var(--foreground); transition: background-color 0.15s ease-out, color 0.15s ease-out; }
+.r-add .i { width: 18px; height: 18px; }
+.r-add.on { background: var(--foreground); color: var(--background); }
+.row.create { color: var(--primary); }
+.row.create .r-name { font-weight: 500; }
+.row.create .r-add { background: transparent; border: 1.5px dashed currentColor; color: var(--primary); }
+.row.more { color: var(--primary); font-weight: 500; min-height: 44px; }
+.row.more .i { margin-left: auto; width: 18px; height: 18px; }
+mark { background: color-mix(in oklab, var(--primary) 18%, transparent); color: inherit; border-radius: 4px; padding: 0 1px; font-weight: 500; }
+.nothing { padding: 18px 10px 6px; color: var(--muted-foreground); font-size: 15px; margin: 0; }
+.lhead { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 0 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.sortb { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border: 0; background: transparent; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.sortb:hover { background: var(--muted); }
+.sortb .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.addall { padding: 18px 4px 8px; }
+.addall p { margin: 8px 6px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--muted); border-radius: 14px; padding: 3px; }
+.seg2 button { height: 40px; border: 0; border-radius: 11px; background: transparent; font-size: 15px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.seg2 button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.12); }
+.seg2 .n { font-variant-numeric: tabular-nums; font-weight: 400; color: var(--muted-foreground); }
+
+.kbzone { position: absolute; left: 0; right: 0; bottom: 0; height: var(--kb); z-index: 3; pointer-events: none; background: color-mix(in oklab, var(--page) 74%, transparent); border-top: 2px dashed color-mix(in oklab, var(--muted-foreground) 70%, transparent); }
+.kbzone span { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 500; color: var(--muted-foreground); background: var(--secondary); padding: 2px 9px; border-radius: 999px; }
+
+.bbar { flex: none; border-top: 1px solid var(--border); background: var(--background); padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.bbar.float { position: absolute; left: 0; right: 0; bottom: var(--kb); z-index: 4; padding-bottom: 10px; }
+.added { font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 21px; }
+.added b { color: var(--foreground); font-weight: 500; }
+
+.toast { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--pop-shadow); font-size: 14px; line-height: 1.35; animation: toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.phone.kb .toast { bottom: calc(var(--kb) + 12px); }
+.phone.kb.with-bar .toast { bottom: calc(var(--kb) + 80px); }
+.toast[hidden] { display: none; }
+.toast .t-main { flex: 1; min-width: 0; }
+.toast b { display: block; font-weight: 600; }
+.toast span { color: var(--muted-foreground); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Buttons (shadcn Button look). */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.lg { height: 48px; }
+.btn.sm { height: 36px; padding: 0 12px; border-radius: 12px; font-size: 14px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); }
+.btn.secondary { background: var(--secondary); color: var(--foreground); }
+.btn.outline { background: var(--background); border-color: var(--border); color: var(--foreground); }
+.btn.ghost { background: transparent; color: var(--foreground); }
+.btn.wide { width: 100%; }
+.btn .i { width: 18px; height: 18px; }
+
+/* Empty app. */
+.empty-top { padding: 14px 12px 4px; }
+.empty-top h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.empty-top p { margin: 4px 0 12px; font-size: 15px; color: var(--muted-foreground); }
+
+/* Current app, as it is (section «Сейчас»). */
+.ltools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.tgl { position: relative; display: inline-flex; border: 1px solid var(--input); border-radius: 14px; height: 44px; }
+.tgl span { display: grid; place-items: center; padding: 0 12px; font-size: 14px; font-weight: 500; border-right: 1px solid var(--input); }
+.tgl span:first-child { border-radius: 13px 0 0 13px; }
+.tgl span:last-child { border-right: 0; border-radius: 0 13px 13px 0; }
+.tgl .on { background: var(--accent); }
+.lsel { position: relative; width: 144px; height: 44px; border: 1px solid var(--input); border-radius: 14px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 12px; font-size: 14px; }
+.lsel .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.lgrp { position: relative; font-size: 12px; font-weight: 500; color: var(--muted-foreground); padding: 12px 8px 4px; }
+.lrow { position: relative; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 8px; border-radius: 10px; font-size: 16px; }
+.lrow.sel { background: var(--accent); }
+.lt { max-width: 65%; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ls { flex: 1; min-width: 0; text-align: right; font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cin { position: relative; display: flex; align-items: center; gap: 8px; height: 44px; border: 1px solid var(--input); background: color-mix(in oklab, var(--muted) 60%, transparent); border-radius: 14px; padding: 0 12px; color: var(--muted-foreground); font-size: 16px; }
+.frow { position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center; min-height: 44px; padding: 0 8px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+.frow span:last-child { color: var(--muted-foreground); font-weight: 400; font-variant-numeric: tabular-nums; }
+.frow.sel { background: var(--accent); }
+.mk { position: absolute; z-index: 4; width: 24px; height: 24px; border-radius: 999px; background: var(--foreground); color: var(--background); font-style: normal; font-size: 13px; font-weight: 600; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--background); }
+.mk.r { right: 4px; top: 50%; transform: translateY(-50%); }
+.mk.rt { right: -8px; top: -8px; }
+
+/* Dish editor (variant C). */
+.ed { padding: 12px 12px 0; display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow: auto; }
+.ed > * { flex: none; }
+.phone.kb .ed { padding-bottom: calc(var(--kb) + 16px); }
+.lbl { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; padding: 0 2px; }
+.lbl span:last-child { font-weight: 400; color: var(--muted-foreground); }
+.inp { height: 50px; border: 1px solid var(--input); background: var(--field); border-radius: 14px; display: flex; align-items: center; padding: 0 12px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inp.ph { color: var(--muted-foreground); }
+.phr-h { display: flex; align-items: center; gap: 2px; margin-top: 8px; }
+.phr-h .sp { flex: 1; }
+.gbtn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; border-radius: 12px; font-size: 14px; font-weight: 500; }
+.gbtn .i { width: 16px; height: 16px; }
+.gbtn.first { margin-left: -6px; }
+.gbtn.first .i { color: var(--muted-foreground); }
+.ta { position: relative; border: 1px solid var(--input); background: var(--field); border-radius: 14px; }
+.ta:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.ta textarea { display: block; width: 100%; min-height: 88px; resize: none; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; line-height: 1.5; padding: 10px 52px 10px 12px; color: var(--foreground); }
+.ta textarea:focus-visible { box-shadow: none; }
+.mic { position: absolute; right: 6px; bottom: 6px; width: 40px; height: 40px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; }
+.sugg { display: flex; gap: 6px; overflow-x: auto; padding: 4px 24px 4px 0; scrollbar-width: none; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); min-height: 44px; }
+.sugg::-webkit-scrollbar { display: none; }
+.schip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--secondary); border: 0; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.schip:hover { background: var(--accent); }
+.schip .sg { color: var(--muted-foreground); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ehint { font-size: 14px; color: var(--muted-foreground); padding: 2px 4px; margin: 0; min-height: 44px; }
+.parse { background: var(--muted); border-radius: 14px; padding: 8px; margin-top: 4px; }
+.parse .p-cap { font-size: 12.5px; color: var(--muted-foreground); padding: 2px 6px 6px; }
+.prow { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px 0 10px; border-radius: 12px; font-size: 15px; }
+.prow.cur { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+.prow .pw { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; }
+.prow .pw.none { color: var(--muted-foreground); font-weight: 400; }
+.prow .px { width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted-foreground); flex: none; }
+.prow .px .i { width: 16px; height: 16px; }
+.esum { font-size: 14px; color: var(--muted-foreground); padding: 6px 4px; }
+.esum b { color: var(--foreground); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+  .toast { animation: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-updown" viewBox="0 0 24 24"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-pot" viewBox="0 0 24 24"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M16 4h2a2 2 0 0 1 2 2v4"/><path d="M21 14H11"/><path d="m15 10-4 4 4 4"/></symbol>
+  <symbol id="i-listplus" viewBox="0 0 24 24"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Поиск блюд</h1>
+      <p class="lead">Сейчас с блюдами работают четыре места, и у каждого свой поиск и свой вид списка. Ниже — что мешает, что поправим при любом выборе и <strong>три варианта, как свести всё к одному списку</strong>. <strong>Выбрано 2026-10-07: A.</strong> Экраны — как в приложении на 375 px. Где стоит «можно потрогать», макет работает: печатайте, нажимайте строки и вкладки.</p>
+    </div>
+    <div class="theme-switch" role="group" aria-label="Тема макетов">
+      <button type="button" data-theme-set="system">Как в системе</button>
+      <button type="button" data-theme-set="light">Светлая</button>
+      <button type="button" data-theme-set="dark">Тёмная</button>
+    </div>
+  </header>
+  <ol class="toc">
+    <li><a href="#now"><b>1</b>Как сейчас</a></li>
+    <li><a href="#common"><b>2</b>При любом варианте</a></li>
+    <li><a href="#a"><b>A</b>Один список</a></li>
+    <li><a href="#b"><b>B</b>Ваши и популярные</a></li>
+    <li><a href="#c"><b>C</b>Найти или создать</a></li>
+    <li><a href="#compare"><b>3</b>Сравнение</a></li>
+  </ol>
+
+  <!-- ============ NOW ============ -->
+  <section class="block" id="now">
+    <h2>Как сейчас</h2>
+    <p class="intro">Четыре входа к блюдам — и четыре разных поведения. Один и тот же «рис» ищется по-разному в меню блюд и в форме, а популярные блюда живут в трёх местах.</p>
+    <div class="map" role="table" aria-label="Где сейчас работают с блюдами">
+      <div class="map-row h" role="row"><span role="columnheader">Откуда</span><span role="columnheader">Куда попадаем</span><span role="columnheader">Что делает тап</span><span role="columnheader">Как ищет</span></div>
+      <div class="map-row" role="row"><span role="cell"><svg class="i inline-i"><use href="#i-search"/></svg> на полке, ⌘K, «/»</span><span role="cell">«Блюда» <code>#/dishes</code></span><span role="cell">своё — открыть, популярное — сразу создать</span><span role="cell">по названию и продуктам, плюс тип и сортировка</span></div>
+      <div class="map-row" role="row"><span role="cell">«⋯» → «Добавить блюдо»</span><span role="cell">форма блюда</span><span role="cell dim">—</span><span role="cell dim">популярные отсюда не видны</span></div>
+      <div class="map-row" role="row"><span role="cell">форма → «Из блюда»</span><span role="cell">«Из простого блюда»</span><span role="cell">дописать в «Что в блюде»</span><span role="cell bad">другой поиск: нечёткий, «ё» ≠ «е»</span></div>
+      <div class="map-row" role="row"><span role="cell">пустое приложение → «Популярные блюда»</span><span role="cell">Настройки → «Популярные блюда»</span><span role="cell">добавить все ~50 сразу</span><span role="cell dim">поиска нет</span></div>
+    </div>
+
+    <div class="grid">
+      <figure>
+        <div class="phone" data-screen="now-menu"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">«Блюда», набрали «рис»</span></div>
+          <p>Пунктир — где на iPhone начинается клавиатура. Список начинается на 272 px от верха: над клавиатурой три строки.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="now-from"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Форма → «Из блюда»</span></div>
+          <p>Отдельный экран со своим полем и своей строкой списка.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <ol class="flaws">
+      <li><i class="mk">1</i><span><b>«Простые / Составные» и «Частые»</b> — слова из устройства приложения, у плиты так не думают. Фильтр типа к тому же молча прячет и часть популярных.</span></li>
+      <li><i class="mk">2</i><span><b>Фильтры занимают две строки</b>: переключатель и сортировка не помещаются в одну, список уезжает вниз, под клавиатуру.</span></li>
+      <li><i class="mk">3</i><span><b>Блюдо без названия показано дважды</b>: слева и справа один и тот же список продуктов, оба обрезаны.</span></li>
+      <li><i class="mk">4</i><span><b>Непонятно, почему нашлось.</b> «Ленивые голубцы» по запросу «рис» — рис третий в составе и спрятан за многоточием.</span></li>
+      <li><i class="mk">5</i><span><b>Популярные выглядят как ваши</b>, а тап по ним создаёт блюдо. Подсказывает это только заголовок группы, который уезжает вверх.</span></li>
+      <li><i class="mk">6</i><span><b>Название экрана не совпадает с кнопкой</b>: нажимали «Из блюда», попали в «Из простого блюда».</span></li>
+      <li><i class="mk">7</i><span><b>Вес висит посередине строки</b>, а не справа, как в меню блюд.</span></li>
+      <li><i class="mk">8</i><span><b>Другой поиск</b>: нечёткий (cmdk), «свекла» не найдёт «Свёклу», порядок результатов другой.</span></li>
+      <li><i class="mk">9</i><span><b>Только ваши блюда.</b> Популярных («Булгур 150 г», «Куриная грудка 500 г») нет, хотя состав собирают как раз из таких.</span></li>
+      <li><i class="mk ghost">10</i><span><b>«Ничего не нашлось» — тупик.</b> Набрали «хачапури» — и ни кнопки «Создать», ни перехода в форму с этим словом.</span></li>
+      <li><i class="mk ghost">11</i><span><b>«Добавить блюдо» спрятано в «⋯»</b>, в том числе на экране «Блюда», где ему самое место.</span></li>
+      <li><i class="mk ghost">12</i><span><b>Пустое приложение ведёт в Настройки</b>, где популярные можно добавить только все ~50 сразу: полка и меню блюд сразу забиты.</span></li>
+    </ol>
+  </section>
+
+  <!-- ============ COMMON ============ -->
+  <section class="block" id="common">
+    <h2>При любом варианте</h2>
+    <p class="intro">Это не спорно и войдёт в любой из трёх вариантов.</p>
+    <ol class="fixes">
+      <li><b>Один поиск везде.</b> Одно поле (16 px, ✕, «Перейти» на клавиатуре), одно правило совпадений из domain (<code>matchRank</code>: «ё» = «е», начало слова выше, совпадение по продукту ниже) и одна строка списка — в «Блюдах» и в «Из блюда».</li>
+      <li><b>Строка списка одна на всё.</b> Название слева, обычный вес справа. У блюда из нескольких продуктов — второй строкой продукты. Совпадение подсвечено, а продукт, по которому нашлось, встаёт в начало второй строки, чтобы его не съело многоточие.</li>
+      <li><b>«+» на строке значит «тап добавит».</b> У популярных он есть всегда — и в «Блюдах», и в «Из блюда».</li>
+      <li><b>Последняя строка выдачи — «Создать «…»».</b> Откроется форма, в «Что в блюде» уже набранное слово, курсор после него — осталось дописать вес.</li>
+      <li><b>(+) «Добавить блюдо» — в шапке «Блюд</b>», рядом с «⋯».</li>
+      <li><b>«Из блюда» — так же называется и экран.</b> В нём блюда из одного продукта — свои и популярные; под полем одна строка, почему только они.</li>
+      <li><b>Пустое приложение</b> — тот же экран «Блюда»: «Добавить блюдо» и популярные с «+» по одному; «Добавить все» — в конце списка, для тех, кому нужно всё.</li>
+    </ol>
+
+    <div class="anat" aria-label="Строка списка">
+      <div class="acard" data-anat="0"></div><p class="note"><b>Из одного продукта.</b> Справа обычный вес — сухой, как в калькуляторе.</p>
+      <div class="acard" data-anat="1"></div><p class="note"><b>Из нескольких.</b> Справа сумма сырых, второй строкой продукты без воды и соли.</p>
+      <div class="acard" data-anat="2"></div><p class="note"><b>Без названия.</b> Название и есть продукты — второй строки нет, ничего не повторяется.</p>
+      <div class="acard" data-anat="3"></div><p class="note"><b>Нашлось по продукту</b> (набрали «рис»): рис первым во второй строке и подсвечен.</p>
+      <div class="acard" data-anat="4"></div><p class="note"><b>Популярное.</b> «+» — тап добавит блюдо к вашим и откроет его, как сейчас, с тостом «Отменить».</p>
+      <div class="acard" data-anat="5"></div><p class="note"><b>Создать.</b> Всегда последней строкой, пока что-то набрано; единственная, если ничего не нашлось.</p>
+    </div>
+
+    <div class="grid">
+      <figure>
+        <div class="phone" data-screen="empty"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Первый запуск, блюд ещё нет</span><span class="badge live">можно потрогать</span></div>
+          <p>Вместо «Пока нет блюд» с двумя кнопками — тот же экран: «Добавить блюдо» и популярные, которые можно брать по одному. «Добавить все» — в самом низу.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ A ============ -->
+  <section class="block" id="a">
+    <h2>A. Один список <span class="badge rec">Советую</span></h2>
+    <p class="intro"><b>Фильтров нет совсем.</b> Порядок задают разделы: сверху «Часто готовите», ниже «Остальные · по алфавиту», в конце «Добавить из популярных». Оба нынешних порядка видны сразу, а «только супы» находятся словом «суп». На экране одно поле — список начинается сразу под ним.</p>
+    <div class="grid">
+      <figure>
+        <div class="phone kb" data-screen="a-open"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Открыли поиск</span></div>
+          <p>Блюда, которые готовите чаще всего, — над клавиатурой. Остальные — по алфавиту, их можно пролистать.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone kb" data-screen="a-query"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Набрали «рис»</span><span class="badge live">можно потрогать</span></div>
+          <p>Видно, почему нашлись «Плов» и «Ленивые голубцы». Если такого блюда у вас нет, последней строкой — «Создать «…»». Попробуйте «свекла», «вода» или «хачапури».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="a-pick"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Форма → «Из блюда»</span><span class="badge live">можно потрогать</span></div>
+          <p>Тот же список и та же строка. Тап дописывает «Булгур 150» в «Что в блюде» и возвращает в форму — как сейчас. Клавиатуру здесь убрали, чтобы был виден список.</p>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="two">
+      <div class="pc">
+        <h3>Плюсы и минусы</h3>
+        <ul>
+          <li class="pro">Меньше всего решений на экране: поле и список.</li>
+          <li class="pro">Список начинается на 110 px выше: над клавиатурой пять строк вместо трёх.</li>
+          <li class="pro">Меньше кода: уходят фильтр, сортировка и их параметры в адресе.</li>
+          <li class="con">Нельзя показать «только составные» — только найти словом.</li>
+          <li class="con">Популярные — в конце длинного списка, если ничего не набирать.</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>Что меняется в коде</h3>
+        <ul>
+          <li><code>dishMenu</code> отдаёт разделы (часто, остальные, популярные) без <code>kind</code> и <code>sort</code>, и где нашлось — для подсветки. Тесты.</li>
+          <li>Один компонент списка для «Блюд» и «Из блюда»; у <code>FromSimpleDishScreen</code> уходит нечёткий фильтр cmdk, появляются популярные.</li>
+          <li><code>dishSummary</code> → вес и продукты отдельно. «Создать «…»» → <code>#/d/new?text=…</code>.</li>
+          <li>Пустое приложение — тот же экран. Правка UX §3, SPEC §3б и словаря.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ B ============ -->
+  <section class="block" id="b">
+    <h2>B. Ваши и популярные</h2>
+    <p class="intro"><b>Фильтр один, и со смыслом: где искать.</b> Вкладки «Ваши | Популярные» с числом блюд — тот же переключатель, что «г | %» в калькуляторе. Порядок — тихой кнопкой над списком «Сначала частые» ↔ «По алфавиту». Популярные становятся настоящим каталогом и забирают «Добавить все» из Настроек.</p>
+    <div class="grid">
+      <figure>
+        <div class="phone" data-screen="b-own"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Вкладка «Ваши»</span><span class="badge live">можно потрогать</span></div>
+          <p>Переключите вкладку и порядок, наберите что-нибудь.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone kb" data-screen="b-query"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Набрали «рис»</span></div>
+          <p>Ищет в обеих вкладках; числа показывают, где сколько нашлось. Чтобы не пропустить вторую вкладку, внизу «Ещё 5 в популярных».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="b-pop"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Вкладка «Популярные»</span></div>
+          <p>Группы «Из одного продукта» и «Из нескольких» — так тип блюда остаётся, но не фильтром. В конце «Добавить все»; в Настройках вместо кнопки — ссылка сюда.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="b-pick"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Форма → «Из блюда»</span><span class="badge live">можно потрогать</span></div>
+          <p>Те же вкладки. Можно отметить несколько — каждое сразу дописывается в «Что в блюде»; «Готово» возвращает в форму.</p>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="two">
+      <div class="pc">
+        <h3>Плюсы и минусы</h3>
+        <ul>
+          <li class="pro">Фильтр понятен без объяснений: ваши или популярные.</li>
+          <li class="pro">Популярные удобно листать и брать по одному, а «Добавить все» — рядом, а не в Настройках.</li>
+          <li class="pro">Состав из нескольких блюд — за один заход.</li>
+          <li class="con">Вкладка прячет половину результатов: выручают числа и строка «Ещё N».</li>
+          <li class="con">Над клавиатурой на строку меньше, чем в A.</li>
+          <li class="con">Больше всего правок экранов: вкладки, группы, отметки, перенос из Настроек.</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>Что меняется в коде</h3>
+        <ul>
+          <li>Всё из «При любом варианте».</li>
+          <li><code>#/dishes?tab=popular&amp;sort=name</code>; <code>dishMenu</code> отдаёт обе вкладки с числами, популярные — по виду.</li>
+          <li>«Из блюда»: отметки и нижняя панель «Готово».</li>
+          <li>Настройки → «Популярные блюда»: ссылка на вкладку вместо кнопки.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ C ============ -->
+  <section class="block" id="c">
+    <h2>C. Найти или создать</h2>
+    <p class="intro"><b>Список — как в A, но поиск становится единственной дверью.</b> «Добавить блюдо» в «⋯» ведёт на тот же экран; пока что-то набрано, над клавиатурой кнопка «Создать «…»». А в форме продукты подсказываются прямо под полем «Что в блюде», пока печатаете, — без перехода на другой экран.</p>
+    <div class="grid">
+      <figure>
+        <div class="phone kb with-bar" data-screen="c-open"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Набрали «суп»</span><span class="badge live">можно потрогать</span></div>
+          <p>Нашлось — открываете, нет — «Создать» всегда под пальцем, не нужно листать до конца выдачи. Отдельной кнопки (+) в шапке нет: поле и есть «добавить».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone kb" data-screen="c-editor"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Подсказки в «Что в блюде»</span><span class="badge live">можно потрогать</span></div>
+          <p>Набираете «кур» — под полем продукты из ваших и популярных блюд с обычным весом. Тап — «Куриное филе 500, » в поле, печатайте дальше. Экран «Из блюда» остаётся, чтобы посмотреть весь список.</p>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="two">
+      <div class="pc">
+        <h3>Плюсы и минусы</h3>
+        <ul>
+          <li class="pro">Составное собирается быстрее всего: не уходя из поля.</li>
+          <li class="pro">Одна дверь: найти и создать — одно и то же действие.</li>
+          <li class="con">Больше всего работы: новая логика в domain (фрагмент под курсором, подсказки) с тестами.</li>
+          <li class="con">Кнопка над клавиатурой на iPhone — отдельная возня с <code>visualViewport</code>.</li>
+          <li class="con">Подсказки под полем двигают подсказку-строку и разбор, пока печатаете.</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>Что меняется в коде</h3>
+        <ul>
+          <li>Всё из A.</li>
+          <li>Нижняя панель «Создать «…»» над клавиатурой; «Добавить блюдо» в «⋯» → <code>#/dishes</code>.</li>
+          <li>domain: фрагмент фразы под курсором и подсказки по простым блюдам — тесты; в <code>PhraseField</code> — ряд чипов вместо подсказки, пока есть совпадения.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section class="block" id="compare">
+    <h2>Сравнение</h2>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead><tr><th scope="col"></th><th scope="col">A. Один список</th><th scope="col">B. Ваши и популярные</th><th scope="col">C. Найти или создать</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Фильтры</th><td><b>Нет.</b> Разделы «Часто готовите», «Остальные · по алфавиту»</td><td><b>Вкладки</b> «Ваши | Популярные» и «Сначала частые ⇅»</td><td>Как в A</td></tr>
+          <tr><th scope="row">Строк над клавиатурой (сейчас 3)</th><td><b>5</b></td><td>4</td><td>3–4: место занимает «Создать»</td></tr>
+          <tr><th scope="row">Популярные</th><td>Третьим разделом в том же списке</td><td>Своя вкладка с группами и «Добавить все»</td><td>Как в A</td></tr>
+          <tr><th scope="row">Состав в форме</th><td>«Из блюда»: тот же список, тап — дописать и назад</td><td>«Из блюда»: можно отметить несколько, «Готово»</td><td>Подсказки под полем при наборе + «Из блюда» как в A</td></tr>
+          <tr><th scope="row">Новое блюдо</th><td>(+) в шапке и «Создать «…»» последней строкой</td><td>Как в A</td><td>Поле «Найти или создать», «Создать» над клавиатурой</td></tr>
+          <tr><th scope="row">Настройки → «Популярные»</th><td>Остаются</td><td>Ссылка на вкладку</td><td>Остаются</td></tr>
+          <tr><th scope="row">Объём работы</th><td><b>Небольшой</b></td><td>Средний</td><td>Самый большой</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="next">
+      <p><b>Советую A.</b> Блюд у пары — десяток-другой: их быстрее найти словом, чем фильтровать, а одно поле над клавиатурой важнее всего у плиты. Подсказки в форме из C можно добавить следующим шагом, если собирать состав окажется долго.</p>
+      <p>Выберите вариант или скажите, что взять из других, — сначала поправлю UX.md и SPEC, потом код.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- Data: a couple's dishes and the popular catalogue (src/domain/presets.ts). ---------- */
+const I = (n, g, x) => ({ n, g, x: Boolean(x) });
+const W = (g) => I('Вода', g, 1), S = (g) => I('Соль', g, 1), SP = (g) => I('Специи', g, 1);
+
+const OWN = [
+  { id: 'grechka', name: 'Гречка', items: [I('Гречка', 200)], uses: 14, last: '2026-10-06' },
+  { id: 'plov', name: 'Плов', items: [I('Рис', 300), I('Курица', 500), I('Морковь', 200), I('Лук', 100), W(600)], uses: 6, last: '2026-10-03' },
+  { id: 'mak', name: 'Макароны', items: [I('Макароны', 130), S(10)], uses: 9, last: '2026-10-05' },
+  { id: 'ris', name: 'Рис', items: [I('Рис', 180), W(400)], uses: 5, last: '2026-10-01' },
+  { id: 'kkr', name: '', items: [I('Курица', 600), I('Картофель', 400), I('Рис', 80)], uses: 3, last: '2026-09-28' },
+  { id: 'sup', name: 'Суп с фрикадельками', items: [I('Фарш', 400), I('Картофель', 400), I('Морковь', 150), I('Лук', 100), W(2000)], uses: 2, last: '2026-09-20' },
+  { id: 'bed', name: 'Бёдра в духовке', items: [I('Куриное бедро', 900)], uses: 2, last: '2026-09-25' },
+  { id: 'ovs', name: 'Овсянка', items: [I('Овсяные хлопья', 80), W(250)], uses: 1, last: '2026-09-30' },
+  { id: 'bul', name: 'Булгур', items: [I('Булгур', 150)], uses: 0, last: '' },
+  { id: 'syr', name: 'Сырники', items: [I('Творог', 400), I('Яйца', 60), I('Мука', 60)], uses: 1, last: '2026-09-14' },
+  { id: 'che', name: 'Чечевица', items: [I('Чечевица красная', 150)], uses: 0, last: '' },
+];
+
+const CATALOG = [
+  ['Гречка', [I('Гречка', 200)]],
+  ['Рис', [I('Рис', 180), W(400), S(5)]],
+  ['Рис бурый', [I('Рис бурый', 160)]],
+  ['Булгур', [I('Булгур', 150), W(300)]],
+  ['Перловка', [I('Перловка', 150)]],
+  ['Пшено', [I('Пшено', 150), S(3)]],
+  ['Овсянка на воде', [I('Овсяные хлопья', 80), W(250), S(2)]],
+  ['Кускус', [I('Кускус', 150), W(200)]],
+  ['Киноа', [I('Киноа', 120)]],
+  ['Макароны', [I('Макароны', 250), S(10)]],
+  ['Спагетти', [I('Спагетти', 200)]],
+  ['Чечевица красная', [I('Чечевица красная', 150), W(450)]],
+  ['Нут', [I('Нут', 200)]],
+  ['Фасоль красная', [I('Фасоль красная', 200)]],
+  ['Картофель отварной', [I('Картофель', 800), S(10)]],
+  ['Картофель запечённый', [I('Картофель', 700)]],
+  ['Батат запечённый', [I('Батат', 500)]],
+  ['Куриная грудка', [I('Куриное филе', 500), SP(5)]],
+  ['Куриные бёдра', [I('Куриное бедро без кости', 600)]],
+  ['Индейка', [I('Филе индейки', 500)]],
+  ['Говядина отварная', [I('Говядина', 700), W(2000), S(10)]],
+  ['Свиная шея запечённая', [I('Свиная шея', 800), SP(10)]],
+  ['Лосось запечённый', [I('Лосось', 400)]],
+  ['Треска', [I('Треска', 500)]],
+  ['Минтай', [I('Минтай', 500)]],
+  ['Креветки', [I('Креветки', 300)]],
+  ['Яйца варёные', [I('Яйца', 300)]],
+  ['Брокколи', [I('Брокколи', 400)]],
+  ['Цветная капуста', [I('Цветная капуста', 500)]],
+  ['Кабачки на гриле', [I('Кабачки', 600)]],
+  ['Свёкла запечённая', [I('Свёкла', 500)]],
+  ['Шампиньоны', [I('Шампиньоны', null)]],
+  ['Борщ', [I('Говядина', 600), I('Свёкла', 400), I('Капуста белокочанная', 400), I('Картофель', 400), I('Морковь', 150), I('Лук репчатый', 150), I('Томатная паста', 40), I('Масло подсолнечное', 30), W(3000), S(20)]],
+  ['Щи из свежей капусты', [I('Свинина', 500), I('Капуста белокочанная', 500), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 100), W(2500), S(15)]],
+  ['Куриный суп с лапшой', [I('Куриное бедро', 500), I('Лапша', 100), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 80), W(2500), S(15)]],
+  ['Гороховый суп', [I('Горох колотый', 250), I('Копчёные рёбрышки', 400), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 100), W(2500)]],
+  ['Плов с курицей', [I('Рис', 400), I('Куриное филе', 800), I('Морковь', 250), I('Лук репчатый', 250), I('Масло подсолнечное', 90), I('Чеснок', 40), W(600), SP(5), S(10)]],
+  ['Плов со свининой', [I('Рис', 500), I('Свинина', 700), I('Морковь', 500), I('Лук репчатый', 200), I('Масло подсолнечное', 100)]],
+  ['Макароны по-флотски', [I('Макароны', 250), I('Фарш говяжий', 400), I('Лук репчатый', 100), I('Масло подсолнечное', 20), S(5)]],
+  ['Гуляш из говядины', [I('Говядина', 600), I('Лук репчатый', 150), I('Морковь', 100), I('Томатная паста', 50), I('Мука пшеничная', 20), I('Масло подсолнечное', 30), W(400)]],
+  ['Гречка с грибами', [I('Гречка', 200), I('Шампиньоны', 300), I('Лук репчатый', 100), I('Масло сливочное', 20)]],
+  ['Курица с рисом', [I('Рис', 200), I('Куриное филе', 400), I('Масло подсолнечное', 15), W(450), S(5)]],
+  ['Омлет', [I('Яйца', 240), I('Молоко 2,5 %', 100), I('Масло сливочное', 10), S(2)]],
+  ['Сырники', [I('Творог 5 %', 400), I('Яйца', 60), I('Мука пшеничная', 60), I('Сахар', 30), I('Масло подсолнечное', 30)]],
+  ['Творожная запеканка', [I('Творог 5 %', 500), I('Яйца', 120), I('Манка', 50), I('Сахар', 60), I('Сметана 15 %', 50)]],
+  ['Овсянка с бананом', [I('Овсяные хлопья', 80), I('Молоко 2,5 %', 200), I('Банан', 120), W(100)]],
+  ['Котлеты домашние', [I('Фарш свино-говяжий', 500), I('Лук репчатый', 100), I('Хлеб белый', 60), I('Яйца', 60), I('Масло подсолнечное', 40), SP(5)]],
+  ['Ленивые голубцы', [I('Фарш свино-говяжий', 500), I('Капуста белокочанная', 400), I('Рис', 100), I('Лук репчатый', 100), I('Морковь', 100), I('Сметана 15 %', 100), I('Томатная паста', 50), W(300)]],
+  ['Овощное рагу', [I('Кабачки', 400), I('Картофель', 400), I('Морковь', 150), I('Перец болгарский', 200), I('Лук репчатый', 100), I('Помидоры', 300), I('Масло подсолнечное', 30)]],
+  ['Тушёная капуста с курицей', [I('Капуста белокочанная', 800), I('Куриное бедро без кости', 500), I('Морковь', 150), I('Лук репчатый', 100), I('Томатная паста', 30), I('Масло подсолнечное', 30), S(8)]],
+  ['Шакшука', [I('Яйца', 240), I('Помидоры', 500), I('Перец болгарский', 150), I('Лук репчатый', 80), I('Масло оливковое', 20), SP(3)]],
+  ['Чили кон карне', [I('Фарш говяжий', 500), I('Фасоль красная консервированная', 400), I('Помидоры в собственном соку', 400), I('Лук репчатый', 150), I('Перец болгарский', 150), I('Масло подсолнечное', 20), SP(10)]],
+  ['Паста болоньезе', [I('Спагетти', 300), I('Фарш говяжий', 400), I('Помидоры в собственном соку', 400), I('Лук репчатый', 100), I('Морковь', 80), I('Масло оливковое', 20), I('Пармезан', null)]],
+];
+
+/* ---------- Domain, ported from src/domain (dish.ts, menu.ts). ---------- */
+const NB = ' ';
+const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NB);
+const gr = (n) => (n == null ? '' : fmt(n) + NB + 'г');
+const plain = (s) => s.toLowerCase().replace(/ё/g, 'е');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const collator = new Intl.Collator('ru', { sensitivity: 'base', numeric: true });
+const byName = (a, b) => collator.compare(plain(title(a.d)), plain(title(b.d)));
+const plural = (n, f) => { const a = n % 10, b = n % 100; return f[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 1 : 2]; };
+
+const counted = (d) => d.items.filter((i) => !i.x && i.n.trim());
+const title = (d) => d.name || counted(d).map((i) => i.n).join(', ');
+const isComposite = (d) => counted(d).length > 1;
+const weight = (d) => { const w = counted(d).filter((i) => i.g != null); return w.length ? w.reduce((a, i) => a + i.g, 0) : null; };
+const product = (d) => counted(d)[0];
+
+function matchRank(query, name, products) {
+  const q = plain(query).trim();
+  if (!q) return 1;
+  const t = plain(name), names = products.map(plain);
+  const startsWord = (text) => text.startsWith(q) || text.includes(' ' + q);
+  if (t === q) return 5;
+  if (startsWord(t)) return 4;
+  if (t.includes(q)) return 3;
+  if (names.some(startsWord)) return 2;
+  return names.some((n) => n.includes(q)) ? 1 : 0;
+}
+/** The product a dish was found by, when its title does not match. */
+function viaOf(d, query) {
+  const q = plain(query).trim();
+  if (!q || plain(title(d)).includes(q)) return null;
+  const startsWord = (text) => text.startsWith(q) || text.includes(' ' + q);
+  const hit = d.items.find((i) => startsWord(plain(i.n))) || d.items.find((i) => plain(i.n).includes(q));
+  return hit ? hit.n : null;
+}
+function hl(text, query) {
+  const q = plain(query || '').trim();
+  if (!q) return esc(text);
+  const p = plain(text);
+  let i = p.startsWith(q) ? 0 : p.indexOf(' ' + q);
+  if (i > 0) i += 1;
+  if (i < 0) i = p.indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+}
+
+const ownNames = new Set(OWN.map((d) => plain(d.name)));
+const POP = CATALOG.filter(([n]) => !ownNames.has(plain(n))).map(([name, items], order) => ({ id: 'p:' + name, name, items, uses: 0, last: '', order }));
+const ALL = [...OWN.map((d) => ({ d, pop: false })), ...POP.map((d) => ({ d, pop: true }))];
+const byId = new Map(ALL.map((r) => [r.d.id, r]));
+
+function ranked(rows, q) {
+  return rows
+    .map((r) => ({ ...r, rank: matchRank(q, title(r.d), r.d.items.map((i) => i.n)), via: viaOf(r.d, q) }))
+    .filter((r) => r.rank > 0)
+    .sort((a, b) => b.rank - a.rank || (a.pop ? a.d.order - b.d.order : b.d.uses - a.d.uses || byName(a, b)));
+}
+const ownRows = (pick) => ALL.filter((r) => !r.pop && (!pick || !isComposite(r.d)));
+const popRows = (pick) => ALL.filter((r) => r.pop && (!pick || !isComposite(r.d)));
+const byUses = (a, b) => b.d.uses - a.d.uses || b.d.last.localeCompare(a.d.last) || byName(a, b);
+
+/* ---------- Rendering. ---------- */
+const ic = (n, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+function row(r, o = {}) {
+  const d = r.d, t = title(d), comp = isComposite(d), q = o.q || '';
+  let sub = '';
+  if (comp && d.name) {
+    const names = counted(d).map((i) => i.n);
+    const line = r.via ? [r.via, ...names.filter((n) => n !== r.via)] : names;
+    sub = r.via ? hl(line.join(', '), q) : esc(line.join(', '));
+  } else if (!comp) {
+    const p = product(d);
+    if (r.via) sub = hl(r.via, q);
+    else if (o.pick && p && plain(p.n) !== plain(t)) sub = esc(p.n);
+  }
+  const nameHtml = r.via ? esc(t) : hl(t, q);
+  const end = o.checked ? `<span class="r-add on">${ic('check')}</span>` : r.pop || o.pick ? `<span class="r-add">${ic('plus')}</span>` : '';
+  return `<div class="row${o.sel ? ' sel' : ''}" data-id="${esc(d.id)}" role="option" aria-selected="${o.sel ? 'true' : 'false'}">
+    <div class="r-main"><div class="r-name">${nameHtml}</div>${sub ? `<div class="r-sub">${sub}</div>` : ''}</div>
+    <span class="r-w">${gr(weight(d))}</span>${end}</div>`;
+}
+const createRow = (q, sel) => `<div class="row create${sel ? ' sel' : ''}" data-create role="option">
+  <div class="r-main"><div class="r-name">Создать «${esc(cap(q.trim()))}»</div><div class="r-sub">Откроется форма с этим словом</div></div>
+  <span class="r-add">${ic('plus')}</span></div>`;
+const grp = (h, n) => `<div class="grp"><span>${h}</span>${n != null ? `<span class="n">${n}</span>` : ''}</div>`;
+
+/** Sections with rows; the first row is the one Enter opens while something is typed. */
+function renderSections(sections, o) {
+  let first = Boolean(o.q && o.q.trim());
+  return sections.filter((s) => s.rows.length).map((s) => grp(s.h, s.n) + s.rows.map((r) => {
+    const html = row(r, { q: o.q, pick: o.pick, sel: first, checked: o.checked && o.checked.has(r.d.id) });
+    first = false;
+    return html;
+  }).join('')).join('');
+}
+
+function sectionsA(q, pick) {
+  if (!q.trim()) {
+    if (pick) return [{ h: 'Ваши блюда', rows: ownRows(true).sort(byUses) }, { h: 'Популярные', rows: popRows(true) }];
+    const own = ownRows(false);
+    const often = own.filter((r) => r.d.uses >= 2).sort(byUses).slice(0, 5);
+    const rest = own.filter((r) => !often.includes(r)).sort(byName);
+    return [
+      { h: 'Часто готовите', rows: often },
+      { h: often.length ? 'Остальные · по алфавиту' : 'Ваши блюда · по алфавиту', rows: rest },
+      { h: 'Добавить из популярных', rows: popRows(false) },
+    ];
+  }
+  return [{ h: 'Ваши блюда', rows: ranked(ownRows(pick), q) }, { h: pick ? 'Популярные' : 'Добавить из популярных', rows: ranked(popRows(pick), q) }];
+}
+const exactOwn = (q) => ownRows(false).some((r) => plain(title(r.d)) === plain(q).trim());
+
+/* ---------- Phone parts. ---------- */
+function hdr(t, acts = [], back = true) {
+  const btn = (a) => `<span class="ibtn sec" title="${a === 'plus' ? 'Добавить блюдо' : 'Ещё'}">${ic(a === 'plus' ? 'plus' : 'more')}</span>`;
+  return `<div class="hdr2">${back ? `<span class="ibtn">${ic('back')}</span>` : '<span class="h-pad"></span>'}<span class="h-title">${t}</span>${acts.map(btn).join('')}</div>`;
+}
+function field(st, ph) {
+  const body = st.live
+    ? `<input value="${esc(st.q)}" placeholder="${esc(ph)}" aria-label="Найти блюдо" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go">`
+    : `<span class="fv">${st.q ? esc(st.q) + (st.focus ? '<i class="caret"></i>' : '') : (st.focus ? '<i class="caret"></i>' : '') + `<span class="ph">${esc(ph)}</span>`}</span>`;
+  return `<label class="field${st.focus && !st.live ? ' focus' : ''}">${ic('search')}${body}<button type="button" class="fx" aria-label="Очистить"${st.q ? '' : ' hidden'}>${ic('x')}</button></label>`;
+}
+const kbzone = () => '<div class="kbzone"><span>клавиатура</span></div>';
+const toastEl = '<div class="toast" hidden role="status"></div>';
+
+function toast(el, head, text, action) {
+  const t = el.querySelector('.toast');
+  t.hidden = false;
+  t.innerHTML = `<div class="t-main"><b>${esc(head)}</b><span>${esc(text)}</span></div>${action ? `<button type="button" class="btn sm ghost">${esc(action)}</button>` : ''}`;
+  t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.hidden = true; }, 2800);
+}
+/** What a tap does, the same on every screen. */
+function tap(el, rowEl, st) {
+  if (!rowEl) return;
+  if (rowEl.hasAttribute('data-create')) return toast(el, 'Откроется форма', `В «Что в блюде» уже «${cap(st.q.trim())}», курсор после него`);
+  const r = byId.get(rowEl.dataset.id);
+  if (!r) return;
+  const d = r.d, p = product(d);
+  if (st.pick) return toast(el, 'Дописано в «Что в блюде»', `${p.n}${p.g != null ? ' ' + fmt(p.g) : ''} — снова форма`);
+  if (r.pop) return toast(el, 'Блюдо добавлено', `${d.name} · ${weight(d) != null ? gr(weight(d)) : 'без веса'}`, 'Отменить');
+  return toast(el, `Открывается «${title(d)}»`, 'калькулятор этого блюда');
+}
+function bindField(el, st, draw) {
+  const input = el.querySelector('.field input');
+  const x = el.querySelector('.fx');
+  if (input) input.addEventListener('input', () => { st.q = input.value; x.hidden = !st.q; draw(); });
+  if (x) x.addEventListener('click', () => { st.q = ''; if (input) { input.value = ''; input.focus(); } x.hidden = true; draw(); });
+}
+
+/* ---------- Screens. ---------- */
+function mountA(el, st) {
+  const pick = Boolean(st.pick);
+  el.innerHTML = `<div class="scr">
+    ${hdr(pick ? 'Из блюда' : 'Блюда', pick ? [] : st.c ? ['more'] : ['plus', 'more'])}
+    <div class="topz">${field(st, st.c ? 'Найти или создать' : pick ? 'Гречка, рис…' : 'Гречка, суп…')}
+      ${pick ? '<p class="fhint">Блюда из одного продукта — добавятся с обычным весом</p>' : ''}</div>
+    <div class="list" role="listbox"></div>
+    ${st.c ? '<div class="bbar float"></div>' : ''}
+  </div>${el.classList.contains('kb') ? kbzone() : ''}${toastEl}`;
+  const list = el.querySelector('.list');
+  const bar = el.querySelector('.bbar');
+  const draw = () => {
+    const secs = sectionsA(st.q, pick);
+    const found = secs.some((s) => s.rows.length);
+    const typed = st.q.trim();
+    let html = found ? renderSections(secs, { q: st.q, pick }) : typed ? '<p class="nothing">Ничего не нашлось</p>' : '';
+    if (typed && !pick && !st.c && !exactOwn(st.q)) html += createRow(st.q, !found);
+    list.innerHTML = html;
+    if (bar) {
+      bar.hidden = !typed;
+      el.classList.toggle('with-bar', Boolean(typed));
+      bar.innerHTML = typed ? `<button type="button" class="btn secondary wide" data-create>${ic('plus')} Создать «${esc(cap(typed))}»</button>` : '';
+    }
+  };
+  draw();
+  bindField(el, st, draw);
+  el.addEventListener('click', (e) => tap(el, e.target.closest('.row, [data-create]'), st));
+}
+
+function mountB(el, st) {
+  const pick = Boolean(st.pick);
+  st.sort = st.sort || 'often';
+  el.innerHTML = `<div class="scr">
+    ${hdr(pick ? 'Из блюда' : 'Блюда', pick ? [] : ['plus', 'more'])}
+    <div class="topz">${field(st, pick ? 'Гречка, рис…' : 'Гречка, суп…')}<div class="seg2" role="tablist"></div></div>
+    <div class="list" role="listbox"></div>
+    ${pick ? '<div class="bbar"><div class="added"></div><button type="button" class="btn primary lg wide" data-done></button></div>' : ''}
+  </div>${el.classList.contains('kb') ? kbzone() : ''}${toastEl}`;
+  const tabs = el.querySelector('.seg2');
+  const list = el.querySelector('.list');
+  const draw = () => {
+    const typed = st.q.trim();
+    const own = typed ? ranked(ownRows(pick), st.q) : ownRows(pick).sort(st.sort === 'name' ? byName : byUses);
+    const pop = typed ? ranked(popRows(pick), st.q) : popRows(pick);
+    tabs.innerHTML = [['own', 'Ваши', own.length], ['pop', 'Популярные', pop.length]]
+      .map(([k, label, n]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${st.tab === k}">${label} <span class="n">${n}</span></button>`).join('');
+    const o = { q: st.q, pick, checked: st.checked };
+    let html = '';
+    if (st.tab === 'own') {
+      if (!typed) html += `<div class="lhead"><span>${own.length} ${plural(own.length, ['блюдо', 'блюда', 'блюд'])}</span><button type="button" class="sortb" data-sort>${ic('updown')}${st.sort === 'name' ? 'По алфавиту' : 'Сначала частые'}</button></div>`;
+      html += renderSections([{ h: '', rows: own }], o).replace('<div class="grp"><span></span></div>', '');
+      if (typed && !own.length) html += '<p class="nothing">Среди ваших не нашлось</p>';
+      if (typed && pop.length) html += `<div class="row more" data-tab="pop">Ещё ${pop.length} в популярных${ic('right')}</div>`;
+    } else {
+      if (typed || pick) html += renderSections([{ h: '', rows: pop }], o).replace('<div class="grp"><span></span></div>', '');
+      else {
+        const simple = pop.filter((r) => !isComposite(r.d)), comp = pop.filter((r) => isComposite(r.d));
+        html += renderSections([{ h: 'Из одного продукта', n: simple.length, rows: simple }, { h: 'Из нескольких продуктов', n: comp.length, rows: comp }], o);
+        html += `<div class="addall"><button type="button" class="btn outline wide" data-all>${ic('listplus')} Добавить все ${pop.length}</button><p>Ваши блюда останутся, с таким же названием пропустим.</p></div>`;
+      }
+      if (typed && !pop.length) html += '<p class="nothing">В популярных не нашлось</p>';
+      if (typed && own.length) html += `<div class="row more" data-tab="own">Ещё ${own.length} в ваших${ic('right')}</div>`;
+    }
+    if (typed && !pick && !exactOwn(st.q)) html += createRow(st.q, !own.length && !pop.length);
+    list.innerHTML = html;
+    if (pick) {
+      const names = [...st.checked].map((id) => { const p = product(byId.get(id).d); return `<b>${esc(p.n)}</b> ${p.g != null ? gr(p.g) : ''}`; });
+      el.querySelector('.added').innerHTML = names.length ? 'В составе: ' + names.join(', ') : 'Отметьте, что добавить';
+      el.querySelector('[data-done]').textContent = names.length ? `Готово · ${names.length}` : 'Готово';
+    }
+  };
+  draw();
+  bindField(el, st, draw);
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-tab]');
+    if (t) { st.tab = t.dataset.tab; draw(); list.scrollTop = 0; return; }
+    if (e.target.closest('[data-sort]')) { st.sort = st.sort === 'name' ? 'often' : 'name'; draw(); return; }
+    if (e.target.closest('[data-all]')) { const all = popRows(false); const simple = all.filter((r) => !isComposite(r.d)).length; return toast(el, 'Блюда добавлены', `Из одного продукта: ${simple}, из нескольких: ${all.length - simple}`, 'Отменить'); }
+    if (e.target.closest('[data-done]')) return toast(el, 'Снова форма', 'отмеченное уже в «Что в блюде»');
+    const rowEl = e.target.closest('.row');
+    if (pick && rowEl && rowEl.dataset.id) {
+      const id = rowEl.dataset.id;
+      if (st.checked.has(id)) st.checked.delete(id); else st.checked.add(id);
+      draw();
+      return;
+    }
+    tap(el, rowEl, st);
+  });
+}
+
+function mountEmpty(el) {
+  const st = { q: '', live: true };
+  // Nothing is the user's yet: the whole catalogue is popular.
+  const catalog = CATALOG.map(([name, items], order) => ({ d: { id: 'e:' + name, name, items, uses: 0, last: '', order }, pop: true }));
+  el.innerHTML = `<div class="scr">${hdr('Блюда', ['more'], false)}
+    <div class="topz">${field(st, 'Гречка, суп…')}</div>
+    <div class="list" role="listbox"></div></div>${toastEl}`;
+  const list = el.querySelector('.list');
+  const draw = () => {
+    const typed = st.q.trim();
+    const pop = typed ? ranked(catalog, st.q) : catalog;
+    let html = typed ? '' : `<div class="empty-top"><h3>Пока нет блюд</h3><p>Добавьте блюдо один раз — дальше у плиты вводите только готовый вес.</p><button type="button" class="btn primary lg wide" data-new>${ic('plus')} Добавить блюдо</button></div>`;
+    html += renderSections([{ h: typed ? 'Популярные' : 'Или возьмите из популярных', rows: pop }], { q: st.q });
+    if (typed && !pop.length) html = '<p class="nothing">Ничего не нашлось</p>';
+    if (typed) html += createRow(st.q, !pop.length);
+    else html += `<div class="addall"><button type="button" class="btn outline wide" data-all>${ic('listplus')} Добавить все ${catalog.length}</button></div>`;
+    list.innerHTML = html;
+  };
+  draw();
+  bindField(el, st, draw);
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-new]')) return toast(el, 'Откроется форма', '«Добавить блюдо»');
+    if (e.target.closest('[data-all]')) return toast(el, 'Блюда добавлены', `Все ${catalog.length}`, 'Отменить');
+    const rowEl = e.target.closest('.row');
+    if (!rowEl) return;
+    if (rowEl.hasAttribute('data-create')) return tap(el, rowEl, st);
+    const r = catalog.find((c) => c.d.id === rowEl.dataset.id);
+    const w = r && weight(r.d);
+    return toast(el, 'Блюдо добавлено', `${r.d.name} · ${w != null ? gr(w) : 'без веса'}`, 'Отменить');
+  });
+}
+
+/* The app as it is now: «Блюда» and «Из простого блюда». */
+function nowMenu(el) {
+  const q = 'рис';
+  const summary = (d) => { const c = counted(d); return c.length === 1 ? gr(c[0].g) : c.map((i) => i.n).join(', '); };
+  const own = ranked(ownRows(false), q), pop = ranked(popRows(false), q);
+  const mark = { kkr: 3, 'p:Ленивые голубцы': 4 };
+  const lrow = (r, sel) => `<div class="lrow${sel ? ' sel' : ''}"><span class="lt">${esc(title(r.d))}</span><span class="ls">${esc(summary(r.d))}</span>${mark[r.d.id] ? `<i class="mk r">${mark[r.d.id]}</i>` : ''}</div>`;
+  el.innerHTML = `<div class="scr">${hdr('Блюда', ['more'])}
+    <div class="topz" style="padding-top:16px;gap:12px">${field({ q, focus: true }, '')}
+      <div class="ltools"><div class="tgl"><span class="on">Все</span><span>Простые</span><span>Составные</span><i class="mk rt">1</i></div><div class="lsel">Частые ${ic('down')}<i class="mk rt">2</i></div></div></div>
+    <div class="list" style="padding-top:8px">
+      <div class="lgrp">Ваши блюда</div>${own.map((r, i) => lrow(r, i === 0)).join('')}
+      <div class="lgrp">Популярные — добавить<i class="mk" style="left:172px;top:7px">5</i></div>${pop.map((r) => lrow(r)).join('')}
+    </div></div>
+    <div class="kbzone"><span>клавиатура</span></div>`;
+}
+function nowFrom(el) {
+  const rows = ownRows(true).map((r) => product(r.d));
+  el.innerHTML = `<div class="scr"><div class="hdr2"><span class="ibtn">${ic('back')}</span><span class="h-title" style="position:relative;flex:none">Из простого блюда<i class="mk rt" style="right:-30px;top:-2px">6</i></span></div>
+    <div class="topz" style="padding:24px 24px 8px"><div class="cin">${ic('search')}Найти блюдо<i class="mk r" style="right:8px">8</i></div></div>
+    <div class="list" style="padding:0 24px">
+      ${rows.map((p, i) => `<div class="frow${i === 0 ? ' sel' : ''}"><span>${esc(p.n)}</span><span>${gr(p.g)}</span>${i === 0 ? '<i class="mk r" style="right:auto;left:calc(50% + 52px)">7</i>' : ''}</div>`).join('')}
+      <div style="position:relative;height:40px"><i class="mk" style="left:8px;top:10px">9</i></div>
+    </div></div>`;
+}
+
+/* Variant C: the dish form with suggestions under «Что в блюде». */
+function mountEditor(el) {
+  const SOURCES = [];
+  const seen = new Set();
+  for (const r of [...ownRows(true), ...popRows(true)]) {
+    const p = product(r.d);
+    if (!p || seen.has(plain(p.n) + p.g)) continue;
+    seen.add(plain(p.n) + p.g);
+    SOURCES.push({ d: r.d, own: !r.pop, n: p.n, g: p.g });
+  }
+  el.innerHTML = `<div class="scr">${hdr('Добавить блюдо', ['more'])}
+    <div class="ed">
+      <div class="lbl"><span>Название</span><span>можно не писать</span></div>
+      <div class="inp ph" data-name></div>
+      <div class="phr-h"><span class="gbtn first">Что в блюде ${ic('down')}</span><span class="sp"></span><span class="gbtn">${ic('paste')}Вставить</span><span class="gbtn">${ic('pot')}Из блюда</span></div>
+      <div class="ta"><textarea aria-label="Что в блюде" spellcheck="false" autocapitalize="sentences"></textarea><span class="mic">${ic('mic')}</span></div>
+      <div data-under></div>
+      <div class="parse"><div class="p-cap">Разбор · тап — учитывать или нет, × — убрать</div><div data-parse></div></div>
+      <div class="esum" data-sum></div>
+    </div></div>${kbzone()}`;
+  const ta = el.querySelector('textarea');
+  const under = el.querySelector('[data-under]');
+  ta.value = 'Рис 180, кур';
+  const fragment = () => {
+    const before = ta.value.slice(0, ta.selectionEnd);
+    const start = Math.max(before.lastIndexOf(','), before.lastIndexOf('\n')) + 1;
+    return { start, text: before.slice(start) };
+  };
+  const parse = (text) => text.split(/[,\n]/).map((s, idx) => ({ s: s.trim(), idx })).filter((x) => x.s).map(({ s, idx }) => {
+    const m = s.match(/^(.*?)\s*(\d+(?:[.,]\d+)?)\s*(кг|гр|г|мл|л)?\.?$/i);
+    if (m && m[1]) {
+      let v = parseFloat(m[2].replace(',', '.'));
+      const u = (m[3] || '').toLowerCase();
+      if (u === 'кг' || u === 'л') v *= 1000;
+      return { name: cap(m[1]), g: v, approx: u === 'л' || u === 'мл', idx };
+    }
+    return { name: cap(s), g: null, idx };
+  });
+  const draw = () => {
+    const f = fragment();
+    const frag = f.text.trim();
+    let html = '<p class="ehint">Продукт и вес — через запятую, с новой строки или голосом.</p>';
+    if (frag.length >= 2 && !/\d/.test(frag)) {
+      const hits = SOURCES
+        .map((s) => ({ ...s, rank: matchRank(frag, title(s.d), [s.n]) }))
+        .filter((s) => s.rank > 0)
+        .sort((a, b) => b.rank - a.rank || Number(b.own) - Number(a.own))
+        .slice(0, 6);
+      if (hits.length) html = `<div class="sugg" role="listbox" aria-label="Подсказки">${hits.map((h) => `<button type="button" class="schip" data-n="${esc(h.n)}" data-g="${h.g ?? ''}"><span>${hl(h.n, frag)}</span>${h.g != null ? `<span class="sg">${gr(h.g)}</span>` : ''}</button>`).join('')}</div>`;
+    }
+    under.innerHTML = html;
+    const parts = parse(ta.value);
+    const curIdx = ta.value.slice(0, ta.selectionEnd).split(/[,\n]/).length - 1;
+    el.querySelector('[data-parse]').innerHTML = parts.length
+      ? parts.map((p) => `<div class="prow${p.idx === curIdx && document.activeElement === ta ? ' cur' : ''}"><span>${esc(p.name)}</span><span class="pw${p.g == null ? ' none' : ''}">${p.g == null ? 'без веса' : (p.approx ? '≈ ' : '') + gr(p.g)}</span><span class="px">${ic('x')}</span></div>`).join('')
+      : '<div class="prow"><span style="color:var(--muted-foreground)">Здесь появится разбор: продукт и вес.</span></div>';
+    const weighed = parts.filter((p) => p.g != null);
+    const sum = weighed.reduce((a, p) => a + p.g, 0);
+    el.querySelector('[data-sum]').innerHTML = parts.length
+      ? `<b>${parts.length > 1 ? 'Составное' : 'Простое'}</b> · ${parts.length > 1 ? 'сырой' : 'сухой'} ${weighed.length ? gr(sum) : '—'}`
+      : '';
+    const nameEl = el.querySelector('[data-name]');
+    nameEl.textContent = parts.length ? parts.map((p) => p.name).join(', ') : 'Без названия';
+  };
+  ta.addEventListener('input', draw);
+  ta.addEventListener('keyup', draw);
+  ta.addEventListener('click', draw);
+  ta.addEventListener('focus', draw);
+  ta.addEventListener('blur', draw);
+  // A chip keeps the caret and the keyboard in the field.
+  under.addEventListener('mousedown', (e) => { if (e.target.closest('.schip')) e.preventDefault(); });
+  under.addEventListener('click', (e) => {
+    const chip = e.target.closest('.schip');
+    if (!chip) return;
+    const f = fragment();
+    const after = ta.value.slice(ta.selectionEnd).replace(/^[^,\n]*/, '');
+    const lead = f.start > 0 && !/\s$/.test(ta.value.slice(0, f.start)) ? ' ' : '';
+    const insert = lead + chip.dataset.n + (chip.dataset.g ? ' ' + fmt(Number(chip.dataset.g)) : '') + (after ? '' : ', ');
+    ta.value = ta.value.slice(0, f.start) + insert + after;
+    const pos = f.start + insert.length;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+    draw();
+  });
+  draw();
+}
+
+/* ---------- Mount every phone. ---------- */
+const SCREENS = {
+  'now-menu': (el) => nowMenu(el),
+  'now-from': (el) => nowFrom(el),
+  empty: (el) => mountEmpty(el),
+  'a-open': (el) => mountA(el, { q: '', focus: true }),
+  'a-query': (el) => mountA(el, { q: 'рис', live: true }),
+  'a-pick': (el) => mountA(el, { q: '', live: true, pick: true }),
+  'b-own': (el) => mountB(el, { tab: 'own', q: '', live: true }),
+  'b-query': (el) => mountB(el, { tab: 'own', q: 'рис', focus: true }),
+  'b-pop': (el) => mountB(el, { tab: 'pop', q: '', live: true }),
+  'b-pick': (el) => mountB(el, { tab: 'own', q: '', live: true, pick: true, checked: new Set(['ris', 'p:Куриная грудка']) }),
+  'c-open': (el) => mountA(el, { q: 'суп', live: true, c: true }),
+  'c-editor': (el) => mountEditor(el),
+};
+document.querySelectorAll('[data-screen]').forEach((el) => SCREENS[el.dataset.screen](el));
+
+/* Row anatomy samples. */
+const ANAT = [
+  [{ ...byId.get('grechka') }, {}],
+  [{ ...byId.get('plov') }, {}],
+  [{ ...byId.get('kkr') }, {}],
+  [{ ...byId.get('p:Ленивые голубцы'), via: 'Рис' }, { q: 'рис' }],
+  [{ ...byId.get('p:Рис бурый') }, {}],
+];
+document.querySelectorAll('[data-anat]').forEach((el) => {
+  const i = Number(el.dataset.anat);
+  el.innerHTML = i < ANAT.length ? row(ANAT[i][0], ANAT[i][1]) : createRow('хачапури');
+});
+
+/* ---------- Theme switch for the mockups. ---------- */
+const root = document.documentElement;
+function setTheme(t) {
+  if (t === 'system') delete root.dataset.theme; else root.dataset.theme = t;
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)));
+  try { localStorage.setItem('dish-search-mockups-theme', t); } catch (_) { /* storage may be blocked */ }
+}
+document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeSet)));
+let saved = 'system';
+try { saved = localStorage.getItem('dish-search-mockups-theme') || 'system'; } catch (_) { /* default */ }
+setTheme(saved);
+</script>
+</body>
+</html>

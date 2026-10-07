@@ -9,6 +9,7 @@ const pasta: Dish = {
   id: 'd',
   kind: 'simple',
   name: 'Макароны',
+  category: null,
   createdAt: AT,
   updatedAt: AT,
   ingredients: [{ id: 'p', name: 'Макароны', rawGrams: 130, excluded: false }],

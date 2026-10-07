@@ -8,6 +8,7 @@ const dish = (parts: Partial<Dish>): Dish => ({
   id: 'd',
   kind: 'simple',
   name: '',
+  category: null,
   createdAt: '',
   updatedAt: '',
   ingredients: [],

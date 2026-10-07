@@ -20,7 +20,7 @@ describe('migrateChange', () => {
   })
 
   it('a dish of an app before v11 is not weighed yet', () => {
-    const { cooked: _cooked, usedOn: _usedOn, ...old } = dish('pasta')
+    const { cooked: _cooked, usedOn: _usedOn, category: _category, ...old } = dish('pasta')
     expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 10 })).toEqual({
       type: 'dish',
       id: 'pasta',
@@ -30,7 +30,7 @@ describe('migrateChange', () => {
   })
 
   it('a dish of a v11 app was used on the day of its updatedAt', () => {
-    const { usedOn: _usedOn, ...old } = dish('pasta')
+    const { usedOn: _usedOn, category: _category, ...old } = dish('pasta')
     expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 11 })).toEqual({
       type: 'dish',
       id: 'pasta',
@@ -42,6 +42,16 @@ describe('migrateChange', () => {
   it('a cooking is skipped, whatever app sent it: there are none since v11', () => {
     expect(migrateChange({ type: 'cooking', id: 'c1', data: cooking('c1', 'pasta'), v: 10 })).toBeNull()
     expect(migrateChange({ type: 'cooking', id: 'c1', data: null, v: CURRENT_VERSION })).toBeNull()
+  })
+
+  it('a dish of a v12 app has no category chosen', () => {
+    const { category: _category, ...old } = dish('pasta')
+    expect(migrateChange({ type: 'dish', id: 'pasta', data: old, v: 12 })).toEqual({
+      type: 'dish',
+      id: 'pasta',
+      data: dish('pasta'),
+      v: CURRENT_VERSION,
+    })
   })
 
   it('a record of a newer app asks for an update', () => {

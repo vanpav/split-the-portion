@@ -1,7 +1,7 @@
 import { localDay, type Company, type Dish, type Id, type Lineup, type Tare } from '@/domain'
 
 export const STORAGE_KEY = 'split-the-portion'
-export const CURRENT_VERSION = 12
+export const CURRENT_VERSION = 13
 
 export interface PersistedState {
   dishes: Dish[]
@@ -124,6 +124,11 @@ export const migrations: Record<number, (state: unknown) => unknown> = {
         return { ...d, usedOn: at && !Number.isNaN(at.getTime()) ? [localDay(at)] : [] }
       }),
     }
+  },
+  // v13: dishes get a category chosen by hand; null — «по названию», detected from the title and never stored.
+  12: (state) => {
+    const s = state as { dishes?: object[] }
+    return { ...s, dishes: (s.dishes ?? []).map((d) => ({ ...d, category: null })) }
   },
 }
 

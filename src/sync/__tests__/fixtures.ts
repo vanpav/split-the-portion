@@ -9,6 +9,7 @@ export const dish = (id: string): Dish => ({
   id,
   kind: 'simple',
   name: id,
+  category: null,
   createdAt: AT,
   updatedAt: AT,
   ingredients: [{ id: `${id}-i`, name: id, rawGrams: 130, excluded: false }],

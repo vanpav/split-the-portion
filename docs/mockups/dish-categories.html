@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Категории блюд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --accent: oklch(0.938 0.018 261.3);
+  --destructive: oklch(0.556 0.183 29.1);
+  --warning: oklch(0.531 0.119 65.1);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --field: transparent;
+  --radius: 0.875rem;
+  /* Mockup page only. */
+  --page: oklch(0.935 0.011 257);
+  --kb: 320px;
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 18px 40px -22px oklch(0.267 0.054 269.1 / 0.45);
+  --pop-shadow: 0 2px 6px oklch(0.267 0.054 269.1 / 0.08), 0 14px 32px -12px oklch(0.267 0.054 269.1 / 0.4);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --popover: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --primary-foreground: oklch(0.21 0.052 270.1);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --accent: oklch(0.321 0.055 266.3);
+  --destructive: oklch(0.715 0.178 28);
+  --warning: oklch(0.819 0.124 75.6);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+  --page: oklch(0.17 0.03 268.5);
+  --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+  --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --popover: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --destructive: oklch(0.715 0.178 28);
+    --warning: oklch(0.819 0.124 75.6);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --field: color-mix(in oklab, oklch(0.396 0.05 266.3) 30%, transparent);
+    --page: oklch(0.17 0.03 268.5);
+    --phone-shadow: 0 0 0 1px oklch(1 0 0 / 0.03), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+    --pop-shadow: 0 14px 32px -12px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--foreground);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  caret-color: var(--primary);
+}
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+code { font-family: ui-monospace, monospace; font-size: 0.86em; background: var(--secondary); padding: 0.05em 0.35em; border-radius: 6px; }
+a { color: var(--primary); text-underline-offset: 3px; }
+
+/* ---------- Page ---------- */
+.wrap { max-width: 1260px; margin: 0 auto; padding: 40px 24px 96px; }
+.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-start; justify-content: space-between; }
+.top h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.01em; }
+.lead { max-width: 66ch; margin: 0; color: var(--muted-foreground); }
+.lead strong { color: var(--foreground); font-weight: 500; }
+.theme-switch { display: inline-flex; padding: 3px; gap: 2px; background: var(--secondary); border-radius: 14px; }
+.theme-switch button { border: 0; background: transparent; padding: 0 12px; height: 36px; border-radius: 11px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.theme-switch button[aria-pressed="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 28px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.toc a { color: var(--muted-foreground); text-decoration: none; }
+.toc a:hover { color: var(--foreground); }
+.toc b { color: var(--foreground); font-weight: 600; margin-right: 5px; }
+
+section.block { margin-top: 72px; }
+section.block > h2 { font-size: 24px; line-height: 1.3; font-weight: 600; margin: 0 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.intro { max-width: 72ch; margin: 0 0 8px; color: var(--muted-foreground); }
+.intro b { color: var(--foreground); font-weight: 500; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 44px 28px; margin-top: 28px; align-items: start; }
+figure { margin: 0; max-width: 375px; width: 100%; }
+figcaption { margin-top: 14px; font-size: 15px; color: var(--muted-foreground); }
+figcaption .cap-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+figcaption .cap-title { color: var(--foreground); font-weight: 600; font-size: 16px; }
+figcaption p { margin: 4px 0 0; }
+figcaption b { color: var(--foreground); font-weight: 500; }
+
+.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.badge.rec { background: var(--primary); color: var(--primary-foreground); }
+.badge.live { background: color-mix(in oklab, var(--primary) 14%, transparent); color: var(--primary); }
+.badge.tag { background: var(--secondary); color: var(--foreground); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px 40px; margin-top: 24px; max-width: 1060px; }
+.pc h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.pc ul { margin: 0; padding-left: 20px; color: var(--muted-foreground); font-size: 15px; }
+.pc li { margin: 4px 0; }
+.pc li b { color: var(--foreground); font-weight: 500; }
+.pro::marker { content: '+  '; color: var(--primary); font-weight: 600; }
+.con::marker { content: '−  '; color: var(--destructive); font-weight: 600; }
+
+/* Where dishes are worked with now. */
+.map { margin-top: 24px; max-width: 1060px; border-top: 1px solid var(--border); }
+.map-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 4px 20px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; align-items: baseline; }
+.map-row.h { font-size: 13px; font-weight: 500; color: var(--muted-foreground); padding: 8px 0; }
+.map-row .dim { color: var(--muted-foreground); }
+.map-row .bad { color: var(--destructive); }
+.inline-i { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+@media (max-width: 760px) {
+  .map-row { grid-template-columns: 1fr 1fr; }
+  .map-row.h { display: none; }
+  .map-row > :nth-child(1) { font-weight: 500; grid-column: 1 / -1; }
+}
+
+.flaws { list-style: none; margin: 28px 0 0; padding: 0; max-width: 1060px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px 40px; }
+.flaws li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 15px; color: var(--muted-foreground); }
+.flaws li b { color: var(--foreground); font-weight: 500; }
+.flaws .mk { position: static; box-shadow: none; margin-top: 1px; }
+.flaws .mk.ghost { background: var(--secondary); color: var(--foreground); }
+
+.fixes { margin: 20px 0 0; padding-left: 20px; max-width: 80ch; color: var(--muted-foreground); font-size: 15px; }
+.fixes li { margin: 6px 0; }
+.fixes b { color: var(--foreground); font-weight: 500; }
+
+/* Row anatomy. */
+.anat { display: grid; grid-template-columns: minmax(0, 375px) minmax(0, 1fr); gap: 4px 28px; margin-top: 28px; max-width: 1000px; align-items: center; }
+.anat .acard { background: var(--background); border: 1px solid var(--border); border-radius: 18px; padding: 4px 6px; }
+.anat .note { font-size: 15px; color: var(--muted-foreground); }
+.anat .note b { color: var(--foreground); font-weight: 500; }
+@media (max-width: 760px) { .anat { grid-template-columns: 1fr; } .anat .note { margin: 0 0 14px 10px; } }
+
+.cmp-wrap { margin-top: 24px; overflow-x: auto; max-width: 1180px; }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 15px; }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); }
+.cmp thead th { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.cmp tbody th { font-weight: 500; width: 17%; }
+.cmp td { color: var(--muted-foreground); width: 27.6%; }
+.cmp td b { color: var(--foreground); font-weight: 500; }
+
+.next { margin-top: 28px; max-width: 72ch; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--border); }
+.next p { margin: 0; }
+.next p + p { margin-top: 8px; color: var(--muted-foreground); }
+
+/* ---------- Phone ---------- */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 375px;
+  height: 812px;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--phone-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+.scr { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.hdr2 { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 4px; border-bottom: 1px solid var(--border); flex: none; }
+.ibtn { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; flex: none; }
+.ibtn.sec { background: var(--secondary); }
+.ibtn + .ibtn.sec { margin-left: 2px; }
+.h-title { font-size: 18px; font-weight: 600; flex: 1; min-width: 0; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-pad { width: 10px; flex: none; }
+
+.topz { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 10px; flex: none; }
+.field { position: relative; display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 4px 0 12px; border: 1px solid var(--input); border-radius: 14px; background: var(--field); cursor: text; }
+.field.focus, .field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.field > .i { color: var(--muted-foreground); }
+.field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--foreground); padding: 0; }
+.field input::placeholder { color: var(--muted-foreground); opacity: 1; }
+.field input:focus-visible { box-shadow: none; }
+.fv { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; }
+.fv .ph { color: var(--muted-foreground); }
+.fx { width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted-foreground); cursor: pointer; flex: none; }
+.fx[hidden] { display: none; }
+.caret { display: inline-block; width: 2px; height: 20px; background: var(--primary); vertical-align: -4px; margin: 0 1px 0 0; animation: blink 1.06s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.fhint { margin: -2px 2px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.list { flex: 1; min-height: 0; overflow: auto; padding: 0 6px 16px; scrollbar-width: thin; scrollbar-color: var(--input) transparent; }
+.phone.kb .list { padding-bottom: calc(var(--kb) + 16px); }
+.phone.kb.with-bar .list { padding-bottom: calc(var(--kb) + 92px); }
+.grp { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 10px 6px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.grp .n { font-variant-numeric: tabular-nums; font-weight: 400; }
+.row { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 6px 6px 10px; border-radius: 14px; cursor: pointer; }
+.row:hover { background: color-mix(in oklab, var(--accent) 70%, transparent); }
+.row.sel { background: var(--accent); }
+.r-main { flex: 1; min-width: 0; }
+.r-name, .r-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-name { font-size: 16px; line-height: 1.3; }
+.r-sub { font-size: 13px; line-height: 1.35; color: var(--muted-foreground); margin-top: 1px; }
+.r-w { flex: none; font-size: 14px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.r-add { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; color: var(--foreground); transition: background-color 0.15s ease-out, color 0.15s ease-out; }
+.r-add .i { width: 18px; height: 18px; }
+.r-add.on { background: var(--foreground); color: var(--background); }
+.row.create { color: var(--primary); }
+.row.create .r-name { font-weight: 500; }
+.row.create .r-add { background: transparent; border: 1.5px dashed currentColor; color: var(--primary); }
+.row.more { color: var(--primary); font-weight: 500; min-height: 44px; }
+.row.more .i { margin-left: auto; width: 18px; height: 18px; }
+mark { background: color-mix(in oklab, var(--primary) 18%, transparent); color: inherit; border-radius: 4px; padding: 0 1px; font-weight: 500; }
+.nothing { padding: 18px 10px 6px; color: var(--muted-foreground); font-size: 15px; margin: 0; }
+.lhead { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 0 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.sortb { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border: 0; background: transparent; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.sortb:hover { background: var(--muted); }
+.sortb .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.addall { padding: 18px 4px 8px; }
+.addall p { margin: 8px 6px 0; font-size: 13px; color: var(--muted-foreground); }
+
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--muted); border-radius: 14px; padding: 3px; }
+.seg2 button { height: 40px; border: 0; border-radius: 11px; background: transparent; font-size: 15px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.seg2 button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.12); }
+.seg2 .n { font-variant-numeric: tabular-nums; font-weight: 400; color: var(--muted-foreground); }
+
+.kbzone { position: absolute; left: 0; right: 0; bottom: 0; height: var(--kb); z-index: 3; pointer-events: none; background: color-mix(in oklab, var(--page) 74%, transparent); border-top: 2px dashed color-mix(in oklab, var(--muted-foreground) 70%, transparent); }
+.kbzone span { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 500; color: var(--muted-foreground); background: var(--secondary); padding: 2px 9px; border-radius: 999px; }
+
+.bbar { flex: none; border-top: 1px solid var(--border); background: var(--background); padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.bbar.float { position: absolute; left: 0; right: 0; bottom: var(--kb); z-index: 4; padding-bottom: 10px; }
+.added { font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 21px; }
+.added b { color: var(--foreground); font-weight: 500; }
+
+.toast { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--pop-shadow); font-size: 14px; line-height: 1.35; animation: toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.phone.kb .toast { bottom: calc(var(--kb) + 12px); }
+.phone.kb.with-bar .toast { bottom: calc(var(--kb) + 80px); }
+.toast[hidden] { display: none; }
+.toast .t-main { flex: 1; min-width: 0; }
+.toast b { display: block; font-weight: 600; }
+.toast span { color: var(--muted-foreground); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Buttons (shadcn Button look). */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.lg { height: 48px; }
+.btn.sm { height: 36px; padding: 0 12px; border-radius: 12px; font-size: 14px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); }
+.btn.secondary { background: var(--secondary); color: var(--foreground); }
+.btn.outline { background: var(--background); border-color: var(--border); color: var(--foreground); }
+.btn.ghost { background: transparent; color: var(--foreground); }
+.btn.wide { width: 100%; }
+.btn .i { width: 18px; height: 18px; }
+
+/* Empty app. */
+.empty-top { padding: 14px 12px 4px; }
+.empty-top h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.empty-top p { margin: 4px 0 12px; font-size: 15px; color: var(--muted-foreground); }
+
+/* Current app, as it is (section «Сейчас»). */
+.ltools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.tgl { position: relative; display: inline-flex; border: 1px solid var(--input); border-radius: 14px; height: 44px; }
+.tgl span { display: grid; place-items: center; padding: 0 12px; font-size: 14px; font-weight: 500; border-right: 1px solid var(--input); }
+.tgl span:first-child { border-radius: 13px 0 0 13px; }
+.tgl span:last-child { border-right: 0; border-radius: 0 13px 13px 0; }
+.tgl .on { background: var(--accent); }
+.lsel { position: relative; width: 144px; height: 44px; border: 1px solid var(--input); border-radius: 14px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 12px; font-size: 14px; }
+.lsel .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.lgrp { position: relative; font-size: 12px; font-weight: 500; color: var(--muted-foreground); padding: 12px 8px 4px; }
+.lrow { position: relative; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 8px; border-radius: 10px; font-size: 16px; }
+.lrow.sel { background: var(--accent); }
+.lt { max-width: 65%; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ls { flex: 1; min-width: 0; text-align: right; font-size: 14px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cin { position: relative; display: flex; align-items: center; gap: 8px; height: 44px; border: 1px solid var(--input); background: color-mix(in oklab, var(--muted) 60%, transparent); border-radius: 14px; padding: 0 12px; color: var(--muted-foreground); font-size: 16px; }
+.frow { position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center; min-height: 44px; padding: 0 8px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+.frow span:last-child { color: var(--muted-foreground); font-weight: 400; font-variant-numeric: tabular-nums; }
+.frow.sel { background: var(--accent); }
+.mk { position: absolute; z-index: 4; width: 24px; height: 24px; border-radius: 999px; background: var(--foreground); color: var(--background); font-style: normal; font-size: 13px; font-weight: 600; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--background); }
+.mk.r { right: 4px; top: 50%; transform: translateY(-50%); }
+.mk.rt { right: -8px; top: -8px; }
+
+/* Dish editor (variant C). */
+.ed { padding: 12px 12px 0; display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow: auto; }
+.ed > * { flex: none; }
+.phone.kb .ed { padding-bottom: calc(var(--kb) + 16px); }
+.lbl { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; padding: 0 2px; }
+.lbl span:last-child { font-weight: 400; color: var(--muted-foreground); }
+.inp { height: 50px; border: 1px solid var(--input); background: var(--field); border-radius: 14px; display: flex; align-items: center; padding: 0 12px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inp.ph { color: var(--muted-foreground); }
+.phr-h { display: flex; align-items: center; gap: 2px; margin-top: 8px; }
+.phr-h .sp { flex: 1; }
+.gbtn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; border-radius: 12px; font-size: 14px; font-weight: 500; }
+.gbtn .i { width: 16px; height: 16px; }
+.gbtn.first { margin-left: -6px; }
+.gbtn.first .i { color: var(--muted-foreground); }
+.ta { position: relative; border: 1px solid var(--input); background: var(--field); border-radius: 14px; }
+.ta:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.ta textarea { display: block; width: 100%; min-height: 88px; resize: none; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; line-height: 1.5; padding: 10px 52px 10px 12px; color: var(--foreground); }
+.ta textarea:focus-visible { box-shadow: none; }
+.mic { position: absolute; right: 6px; bottom: 6px; width: 40px; height: 40px; border-radius: 999px; background: var(--secondary); display: grid; place-items: center; }
+.sugg { display: flex; gap: 6px; overflow-x: auto; padding: 4px 24px 4px 0; scrollbar-width: none; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); min-height: 44px; }
+.sugg::-webkit-scrollbar { display: none; }
+.schip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--secondary); border: 0; font-size: 14px; font-weight: 500; color: var(--foreground); cursor: pointer; }
+.schip:hover { background: var(--accent); }
+.schip .sg { color: var(--muted-foreground); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ehint { font-size: 14px; color: var(--muted-foreground); padding: 2px 4px; margin: 0; min-height: 44px; }
+.parse { background: var(--muted); border-radius: 14px; padding: 8px; margin-top: 4px; }
+.parse .p-cap { font-size: 12.5px; color: var(--muted-foreground); padding: 2px 6px 6px; }
+.prow { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px 0 10px; border-radius: 12px; font-size: 15px; }
+.prow.cur { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+.prow .pw { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; }
+.prow .pw.none { color: var(--muted-foreground); font-weight: 400; }
+.prow .px { width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted-foreground); flex: none; }
+.prow .px .i { width: 16px; height: 16px; }
+.esum { font-size: 14px; color: var(--muted-foreground); padding: 6px 4px; }
+.esum b { color: var(--foreground); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+  .toast { animation: none; }
+}
+/* ---------- Categories (this mockup). ---------- */
+.r-ic { flex: none; width: 20px; display: grid; place-items: center; color: var(--muted-foreground); }
+.r-ic .i { width: 18px; height: 18px; }
+.gtog { position: relative; flex: none; width: 40px; height: 40px; border: 0; border-radius: 999px; background: transparent; display: grid; place-items: center; color: var(--muted-foreground); cursor: pointer; transition: background-color 0.15s ease-out, color 0.15s ease-out, box-shadow 0.15s ease-out; }
+.gtog::after { content: ''; position: absolute; inset: -2px; }
+.gtog:hover { background: var(--muted); color: var(--foreground); }
+.gtog[aria-pressed="true"] { background: var(--secondary); color: var(--foreground); box-shadow: inset 0 0 0 2px var(--foreground); }
+.fx:not([hidden]) + .gtog { margin-left: -4px; }
+.no-dish-icons .row .r-ic, .no-dish-icons .chip .i { display: none; }
+.no-dish-icons .chip { padding-left: 14px; }
+.icon-switch { margin-top: 10px; }
+.shelf-fig { max-width: 375px; margin-top: 28px; background: var(--background); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: var(--phone-shadow); }
+.shelf-row { display: flex; align-items: center; gap: 4px; padding: 8px 6px 8px 8px; }
+.shelf-row .chips { display: flex; gap: 6px; flex: 1; min-width: 0; overflow: hidden; padding-left: 6px; mask-image: linear-gradient(to right, #000 80%, transparent); -webkit-mask-image: linear-gradient(to right, #000 80%, transparent); }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px 0 11px; border-radius: 999px; background: var(--secondary); font-size: 14px; font-weight: 500; white-space: nowrap; }
+.chip .i { width: 16px; height: 16px; color: var(--muted-foreground); }
+.chip.cur { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); font-weight: 600; }
+.chip.cur .i { color: var(--foreground); }
+.inp-l { display: block; }
+.inp-i { width: 100%; height: 50px; border: 1px solid var(--input); background: var(--field); border-radius: 14px; padding: 0 12px; font: inherit; font-size: 20px; color: var(--foreground); outline: 0; }
+.inp-i:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.csel { display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; padding: 0 12px 0 10px; border: 1px solid var(--input); background: var(--field); border-radius: 14px; font-size: 16px; color: var(--foreground); cursor: pointer; text-align: left; }
+.csel .cs-v { font-weight: 500; }
+.csel .cs-n { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.csel > .i:last-child { width: 16px; height: 16px; color: var(--muted-foreground); }
+.chint { margin: 0 2px; font-size: 14px; color: var(--muted-foreground); }
+.chint[hidden] { display: none; }
+.cpop { position: absolute; left: 12px; right: 12px; top: 240px; z-index: 5; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--pop-shadow); padding: 4px; animation: toast-in 0.15s cubic-bezier(0.16, 1, 0.3, 1); }
+.cpop[hidden] { display: none; }
+.opt { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border-radius: 10px; font-size: 16px; cursor: pointer; }
+.opt:hover { background: var(--accent); }
+.opt > .i { margin-left: auto; width: 16px; height: 16px; }
+.opt .o-n { color: var(--muted-foreground); }
+.sep { height: 1px; background: var(--border); margin: 4px 6px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-updown" viewBox="0 0 24 24"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-pot" viewBox="0 0 24 24"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M16 4h2a2 2 0 0 1 2 2v4"/><path d="M21 14H11"/><path d="m15 10-4 4 4 4"/></symbol>
+  <symbol id="i-listplus" viewBox="0 0 24 24"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol>
+<symbol id="i-soup" viewBox="0 0 24 24"><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/></symbol>
+<symbol id="i-cup-soda" viewBox="0 0 24 24"><path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"/><path d="M5 8h14"/><path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/><path d="m12 8 1-6h2"/></symbol>
+<symbol id="i-salad" viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-2.77 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1"/><path d="m13 12 4-4"/><path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2"/></symbol>
+<symbol id="i-egg-fried" viewBox="0 0 24 24"><circle cx="11.5" cy="12.5" r="3.5"/><path d="M3 8c0-3.5 2.5-6 6.5-6 5 0 4.83 3 7.5 5s5 2 5 6c0 4.5-2.5 6.5-7 6.5-2.5 0-2.5 2.5-6 2.5s-7-2-7-5.5c0-3 1.5-3 1.5-5C3.5 10 3 9 3 8Z"/></symbol>
+<symbol id="i-cake-slice" viewBox="0 0 24 24"><path d="M16 13H3"/><path d="M16 17H3"/><path d="m7.2 7.9-3.388 2.5A2 2 0 0 0 3 12.01V20a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-8.654c0-2-2.44-6.026-6.44-8.026a1 1 0 0 0-1.082.057L10.4 5.6"/><circle cx="9" cy="7" r="2"/></symbol>
+<symbol id="i-drumstick" viewBox="0 0 24 24"><path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"/><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"/></symbol>
+<symbol id="i-wheat" viewBox="0 0 24 24"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/></symbol>
+<symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol>
+<symbol id="i-list-tree" viewBox="0 0 24 24"><path d="M8 5h13"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="M3 10a2 2 0 0 0 2 2h3"/><path d="M3 5v12a2 2 0 0 0 2 2h3"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Категории блюд</h1>
+      <p class="lead">Поверх варианта A из <a href="dish-search.html">поиска блюд</a>. Категорию угадывает словарь по названию (русский, английский, испанский — как в <a href="dish-groups.html">макете групп</a>), ошибся — меняют в форме блюда. <strong>Иконка в конце поля поиска переключает вид: «Часто готовите + по алфавиту» ↔ «По категориям». Выбор запоминается на этом устройстве, пока его снова не переключат.</strong> Когда что-то набрано, ✕ стоит левее неё. У названий категорий иконок нет. «Группой» по-прежнему называем только общий учёт аккаунтов.</p>
+    </div>
+    <div>
+      <div class="theme-switch" role="group" aria-label="Тема макетов">
+        <button type="button" data-theme-set="system">Как в системе</button>
+        <button type="button" data-theme-set="light">Светлая</button>
+        <button type="button" data-theme-set="dark">Тёмная</button>
+      </div>
+      <div class="theme-switch icon-switch" role="group" aria-label="Иконки у блюд">
+        <button type="button" data-icons="on" aria-pressed="true">С иконками у блюд</button>
+        <button type="button" data-icons="off" aria-pressed="false">Без иконок</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="shelf-fig" data-shelf aria-label="Полка калькулятора"></div>
+    <p class="intro" style="margin-top:12px">Полка калькулятора не меняется. Иконка категории стоит у блюда — на полке и в строках списка (16–18 px, только чернилами). Здесь это временные иконки lucide; в приложении пока будут заглушки, финальные иконки пришлём отдельно.</p>
+
+    <div class="grid">
+      <figure>
+        <div class="phone" data-screen="flat"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Как в A, переключатель выключен</span><span class="badge live">можно потрогать</span></div>
+          <p>Иконка в конце поля — «По категориям». Нажмите: список перестроится, и так останется до следующего нажатия.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="grouped"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">«По категориям» включено</span><span class="badge live">можно потрогать</span></div>
+          <p>Разделы по категориям в постоянном порядке, внутри — сначала частые. Пустых разделов нет. «Часто готовите» здесь не нужен: частые и так сверху в каждом разделе. Включённый переключатель — с обводкой, как текущее блюдо на полке. Популярные — в конце, одним списком.</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="query"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Набрали «гарнир»</span><span class="badge live">можно потрогать</span></div>
+          <p>Ищет и по категории: нашлось по ней — её название второй строкой с подсветкой; совпадения по названию и продуктам выше. ✕ — левее переключателя, переключатель на месте. Включите его и здесь: найденное разложится по категориям, первой — категория с лучшим совпадением. Попробуйте «завтрак», «перв», «рис».</p>
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="phone" data-screen="editor"></div>
+        <figcaption>
+          <div class="cap-head"><span class="cap-title">Форма: словарь не угадал</span><span class="badge live">можно потрогать</span></div>
+          <p>«Категория» сразу под названием и меняется, пока печатают название. «Сырников» в словаре нет — «Другое» и подсказка. Обычный <code>Select</code> без поиска и без иконок; первый пункт возвращает «по названию» и показывает, что выберет словарь.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <ul class="fixes" style="margin-top:36px">
+      <li><b>Хранится</b> только ручной выбор: <code>Dish.category: DishCategory | null</code>, <code>null</code> — «по названию», категория вычисляется в <code>src/domain</code> и не сохраняется. Переименовали «Суп» в «Плов» — категория поехала следом. Ручной выбор синхронизируется с группой как обычное поле блюда; миграция ставит <code>category: null</code>.</li>
+      <li><b>Вид списка</b> («Категории» вкл/выкл) — настройка устройства, как тема: в группу и в копию данных не попадает.</li>
+      <li><b>Порядок разделов</b>: Первые, Вторые, Гарниры, Салаты, Завтраки, Выпечка и сладкое, Напитки, Другое. При споре словаря побеждает старшая: Первые → Напитки → Салаты → Завтраки → Выпечка → Вторые → Гарниры («Суп с гречкой» — первое, «Курица с рисом» — второе).</li>
+      <li><b>Esc</b> в поле, пока оно в фокусе: сначала очищает его (фокус и клавиатура остаются), в пустом поле — закрывает экран, как «←». Так же в «Из блюда».</li>
+      <li><b>В «Из блюда»</b> переключателя нет — список короткий.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+/* ---------- Data: a couple's dishes and the popular catalogue (src/domain/presets.ts). ---------- */
+const I = (n, g, x) => ({ n, g, x: Boolean(x) });
+const W = (g) => I('Вода', g, 1), S = (g) => I('Соль', g, 1), SP = (g) => I('Специи', g, 1);
+
+const OWN = [
+  { id: 'grechka', name: 'Гречка', items: [I('Гречка', 200)], uses: 14, last: '2026-10-06' },
+  { id: 'plov', name: 'Плов', items: [I('Рис', 300), I('Курица', 500), I('Морковь', 200), I('Лук', 100), W(600)], uses: 6, last: '2026-10-03' },
+  { id: 'mak', name: 'Макароны', items: [I('Макароны', 130), S(10)], uses: 9, last: '2026-10-05' },
+  { id: 'ris', name: 'Рис', items: [I('Рис', 180), W(400)], uses: 5, last: '2026-10-01' },
+  { id: 'kkr', name: '', items: [I('Курица', 600), I('Картофель', 400), I('Рис', 80)], uses: 3, last: '2026-09-28' },
+  { id: 'sup', name: 'Суп с фрикадельками', items: [I('Фарш', 400), I('Картофель', 400), I('Морковь', 150), I('Лук', 100), W(2000)], uses: 2, last: '2026-09-20' },
+  { id: 'bed', name: 'Бёдра в духовке', items: [I('Куриное бедро', 900)], uses: 2, last: '2026-09-25' },
+  { id: 'ovs', name: 'Овсянка', items: [I('Овсяные хлопья', 80), W(250)], uses: 1, last: '2026-09-30' },
+  { id: 'bul', name: 'Булгур', items: [I('Булгур', 150)], uses: 0, last: '' },
+  { id: 'syr', name: 'Сырники', items: [I('Творог', 400), I('Яйца', 60), I('Мука', 60)], uses: 1, last: '2026-09-14' },
+  { id: 'che', name: 'Чечевица', items: [I('Чечевица красная', 150)], uses: 0, last: '' },
+];
+
+const CATALOG = [
+  ['Гречка', [I('Гречка', 200)]],
+  ['Рис', [I('Рис', 180), W(400), S(5)]],
+  ['Рис бурый', [I('Рис бурый', 160)]],
+  ['Булгур', [I('Булгур', 150), W(300)]],
+  ['Перловка', [I('Перловка', 150)]],
+  ['Пшено', [I('Пшено', 150), S(3)]],
+  ['Овсянка на воде', [I('Овсяные хлопья', 80), W(250), S(2)]],
+  ['Кускус', [I('Кускус', 150), W(200)]],
+  ['Киноа', [I('Киноа', 120)]],
+  ['Макароны', [I('Макароны', 250), S(10)]],
+  ['Спагетти', [I('Спагетти', 200)]],
+  ['Чечевица красная', [I('Чечевица красная', 150), W(450)]],
+  ['Нут', [I('Нут', 200)]],
+  ['Фасоль красная', [I('Фасоль красная', 200)]],
+  ['Картофель отварной', [I('Картофель', 800), S(10)]],
+  ['Картофель запечённый', [I('Картофель', 700)]],
+  ['Батат запечённый', [I('Батат', 500)]],
+  ['Куриная грудка', [I('Куриное филе', 500), SP(5)]],
+  ['Куриные бёдра', [I('Куриное бедро без кости', 600)]],
+  ['Индейка', [I('Филе индейки', 500)]],
+  ['Говядина отварная', [I('Говядина', 700), W(2000), S(10)]],
+  ['Свиная шея запечённая', [I('Свиная шея', 800), SP(10)]],
+  ['Лосось запечённый', [I('Лосось', 400)]],
+  ['Треска', [I('Треска', 500)]],
+  ['Минтай', [I('Минтай', 500)]],
+  ['Креветки', [I('Креветки', 300)]],
+  ['Яйца варёные', [I('Яйца', 300)]],
+  ['Брокколи', [I('Брокколи', 400)]],
+  ['Цветная капуста', [I('Цветная капуста', 500)]],
+  ['Кабачки на гриле', [I('Кабачки', 600)]],
+  ['Свёкла запечённая', [I('Свёкла', 500)]],
+  ['Шампиньоны', [I('Шампиньоны', null)]],
+  ['Борщ', [I('Говядина', 600), I('Свёкла', 400), I('Капуста белокочанная', 400), I('Картофель', 400), I('Морковь', 150), I('Лук репчатый', 150), I('Томатная паста', 40), I('Масло подсолнечное', 30), W(3000), S(20)]],
+  ['Щи из свежей капусты', [I('Свинина', 500), I('Капуста белокочанная', 500), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 100), W(2500), S(15)]],
+  ['Куриный суп с лапшой', [I('Куриное бедро', 500), I('Лапша', 100), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 80), W(2500), S(15)]],
+  ['Гороховый суп', [I('Горох колотый', 250), I('Копчёные рёбрышки', 400), I('Картофель', 300), I('Морковь', 100), I('Лук репчатый', 100), W(2500)]],
+  ['Плов с курицей', [I('Рис', 400), I('Куриное филе', 800), I('Морковь', 250), I('Лук репчатый', 250), I('Масло подсолнечное', 90), I('Чеснок', 40), W(600), SP(5), S(10)]],
+  ['Плов со свининой', [I('Рис', 500), I('Свинина', 700), I('Морковь', 500), I('Лук репчатый', 200), I('Масло подсолнечное', 100)]],
+  ['Макароны по-флотски', [I('Макароны', 250), I('Фарш говяжий', 400), I('Лук репчатый', 100), I('Масло подсолнечное', 20), S(5)]],
+  ['Гуляш из говядины', [I('Говядина', 600), I('Лук репчатый', 150), I('Морковь', 100), I('Томатная паста', 50), I('Мука пшеничная', 20), I('Масло подсолнечное', 30), W(400)]],
+  ['Гречка с грибами', [I('Гречка', 200), I('Шампиньоны', 300), I('Лук репчатый', 100), I('Масло сливочное', 20)]],
+  ['Курица с рисом', [I('Рис', 200), I('Куриное филе', 400), I('Масло подсолнечное', 15), W(450), S(5)]],
+  ['Омлет', [I('Яйца', 240), I('Молоко 2,5 %', 100), I('Масло сливочное', 10), S(2)]],
+  ['Сырники', [I('Творог 5 %', 400), I('Яйца', 60), I('Мука пшеничная', 60), I('Сахар', 30), I('Масло подсолнечное', 30)]],
+  ['Творожная запеканка', [I('Творог 5 %', 500), I('Яйца', 120), I('Манка', 50), I('Сахар', 60), I('Сметана 15 %', 50)]],
+  ['Овсянка с бананом', [I('Овсяные хлопья', 80), I('Молоко 2,5 %', 200), I('Банан', 120), W(100)]],
+  ['Котлеты домашние', [I('Фарш свино-говяжий', 500), I('Лук репчатый', 100), I('Хлеб белый', 60), I('Яйца', 60), I('Масло подсолнечное', 40), SP(5)]],
+  ['Ленивые голубцы', [I('Фарш свино-говяжий', 500), I('Капуста белокочанная', 400), I('Рис', 100), I('Лук репчатый', 100), I('Морковь', 100), I('Сметана 15 %', 100), I('Томатная паста', 50), W(300)]],
+  ['Овощное рагу', [I('Кабачки', 400), I('Картофель', 400), I('Морковь', 150), I('Перец болгарский', 200), I('Лук репчатый', 100), I('Помидоры', 300), I('Масло подсолнечное', 30)]],
+  ['Тушёная капуста с курицей', [I('Капуста белокочанная', 800), I('Куриное бедро без кости', 500), I('Морковь', 150), I('Лук репчатый', 100), I('Томатная паста', 30), I('Масло подсолнечное', 30), S(8)]],
+  ['Шакшука', [I('Яйца', 240), I('Помидоры', 500), I('Перец болгарский', 150), I('Лук репчатый', 80), I('Масло оливковое', 20), SP(3)]],
+  ['Чили кон карне', [I('Фарш говяжий', 500), I('Фасоль красная консервированная', 400), I('Помидоры в собственном соку', 400), I('Лук репчатый', 150), I('Перец болгарский', 150), I('Масло подсолнечное', 20), SP(10)]],
+  ['Паста болоньезе', [I('Спагетти', 300), I('Фарш говяжий', 400), I('Помидоры в собственном соку', 400), I('Лук репчатый', 100), I('Морковь', 80), I('Масло оливковое', 20), I('Пармезан', null)]],
+];
+
+/* ---------- Domain, ported from src/domain (dish.ts, menu.ts). ---------- */
+const NB = ' ';
+const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NB);
+const gr = (n) => (n == null ? '' : fmt(n) + NB + 'г');
+const plain = (s) => s.toLowerCase().replace(/ё/g, 'е');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const collator = new Intl.Collator('ru', { sensitivity: 'base', numeric: true });
+const byName = (a, b) => collator.compare(plain(title(a.d)), plain(title(b.d)));
+const plural = (n, f) => { const a = n % 10, b = n % 100; return f[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 1 : 2]; };
+
+const counted = (d) => d.items.filter((i) => !i.x && i.n.trim());
+const title = (d) => d.name || counted(d).map((i) => i.n).join(', ');
+const isComposite = (d) => counted(d).length > 1;
+const weight = (d) => { const w = counted(d).filter((i) => i.g != null); return w.length ? w.reduce((a, i) => a + i.g, 0) : null; };
+const product = (d) => counted(d)[0];
+
+function matchRank(query, name, products) {
+  const q = plain(query).trim();
+  if (!q) return 1;
+  const t = plain(name), names = products.map(plain);
+  const startsWord = (text) => text.startsWith(q) || text.includes(' ' + q);
+  if (t === q) return 5;
+  if (startsWord(t)) return 4;
+  if (t.includes(q)) return 3;
+  if (names.some(startsWord)) return 2;
+  return names.some((n) => n.includes(q)) ? 1 : 0;
+}
+/** The product a dish was found by, when its title does not match. */
+function viaOf(d, query) {
+  const q = plain(query).trim();
+  if (!q || plain(title(d)).includes(q)) return null;
+  const startsWord = (text) => text.startsWith(q) || text.includes(' ' + q);
+  const hit = d.items.find((i) => startsWord(plain(i.n))) || d.items.find((i) => plain(i.n).includes(q));
+  return hit ? hit.n : null;
+}
+function hl(text, query) {
+  const q = plain(query || '').trim();
+  if (!q) return esc(text);
+  const p = plain(text);
+  let i = p.startsWith(q) ? 0 : p.indexOf(' ' + q);
+  if (i > 0) i += 1;
+  if (i < 0) i = p.indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+}
+
+const ownNames = new Set(OWN.map((d) => plain(d.name)));
+const POP = CATALOG.filter(([n]) => !ownNames.has(plain(n))).map(([name, items], order) => ({ id: 'p:' + name, name, items, uses: 0, last: '', order }));
+const ALL = [...OWN.map((d) => ({ d, pop: false })), ...POP.map((d) => ({ d, pop: true }))];
+const byId = new Map(ALL.map((r) => [r.d.id, r]));
+
+function ranked(rows, q) {
+  return rows
+    .map((r) => ({ ...r, rank: matchRank(q, title(r.d), r.d.items.map((i) => i.n)), via: viaOf(r.d, q) }))
+    .filter((r) => r.rank > 0)
+    .sort((a, b) => b.rank - a.rank || (a.pop ? a.d.order - b.d.order : b.d.uses - a.d.uses || byName(a, b)));
+}
+const ownRows = (pick) => ALL.filter((r) => !r.pop && (!pick || !isComposite(r.d)));
+const popRows = (pick) => ALL.filter((r) => r.pop && (!pick || !isComposite(r.d)));
+const byUses = (a, b) => b.d.uses - a.d.uses || b.d.last.localeCompare(a.d.last) || byName(a, b);
+
+/* ---------- Rendering. ---------- */
+const ic = (n, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+function row(r, o = {}) {
+  const d = r.d, t = title(d), comp = isComposite(d), q = o.q || '';
+  let sub = '';
+  if (comp && d.name) {
+    const names = counted(d).map((i) => i.n);
+    const line = r.via ? [r.via, ...names.filter((n) => n !== r.via)] : names;
+    sub = r.via ? hl(line.join(', '), q) : esc(line.join(', '));
+  } else if (!comp) {
+    const p = product(d);
+    if (r.via) sub = hl(r.via, q);
+    else if (o.pick && p && plain(p.n) !== plain(t)) sub = esc(p.n);
+  }
+  const nameHtml = r.via ? esc(t) : hl(t, q);
+  const end = o.checked ? `<span class="r-add on">${ic('check')}</span>` : r.pop || o.pick ? `<span class="r-add">${ic('plus')}</span>` : '';
+  return `<div class="row${o.sel ? ' sel' : ''}" data-id="${esc(d.id)}" role="option" aria-selected="${o.sel ? 'true' : 'false'}">
+    <div class="r-main"><div class="r-name">${nameHtml}</div>${sub ? `<div class="r-sub">${sub}</div>` : ''}</div>
+    <span class="r-w">${gr(weight(d))}</span>${end}</div>`;
+}
+const createRow = (q, sel) => `<div class="row create${sel ? ' sel' : ''}" data-create role="option">
+  <div class="r-main"><div class="r-name">Создать «${esc(cap(q.trim()))}»</div><div class="r-sub">Откроется форма с этим словом</div></div>
+  <span class="r-add">${ic('plus')}</span></div>`;
+const grp = (h, n) => `<div class="grp"><span>${h}</span>${n != null ? `<span class="n">${n}</span>` : ''}</div>`;
+
+/** Sections with rows; the first row is the one Enter opens while something is typed. */
+function renderSections(sections, o) {
+  let first = Boolean(o.q && o.q.trim());
+  return sections.filter((s) => s.rows.length).map((s) => grp(s.h, s.n) + s.rows.map((r) => {
+    const html = row(r, { q: o.q, pick: o.pick, sel: first, checked: o.checked && o.checked.has(r.d.id) });
+    first = false;
+    return html;
+  }).join('')).join('');
+}
+
+function sectionsA(q, pick) {
+  if (!q.trim()) {
+    if (pick) return [{ h: 'Ваши блюда', rows: ownRows(true).sort(byUses) }, { h: 'Популярные', rows: popRows(true) }];
+    const own = ownRows(false);
+    const often = own.filter((r) => r.d.uses >= 2).sort(byUses).slice(0, 5);
+    const rest = own.filter((r) => !often.includes(r)).sort(byName);
+    return [
+      { h: 'Часто готовите', rows: often },
+      { h: often.length ? 'Остальные · по алфавиту' : 'Ваши блюда · по алфавиту', rows: rest },
+      { h: 'Добавить из популярных', rows: popRows(false) },
+    ];
+  }
+  return [{ h: 'Ваши блюда', rows: ranked(ownRows(pick), q) }, { h: pick ? 'Популярные' : 'Добавить из популярных', rows: ranked(popRows(pick), q) }];
+}
+const exactOwn = (q) => ownRows(false).some((r) => plain(title(r.d)) === plain(q).trim());
+
+/* ---------- Phone parts. ---------- */
+function hdr(t, acts = [], back = true) {
+  const btn = (a) => `<span class="ibtn sec" title="${a === 'plus' ? 'Добавить блюдо' : 'Ещё'}">${ic(a === 'plus' ? 'plus' : 'more')}</span>`;
+  return `<div class="hdr2">${back ? `<span class="ibtn">${ic('back')}</span>` : '<span class="h-pad"></span>'}<span class="h-title">${t}</span>${acts.map(btn).join('')}</div>`;
+}
+function field(st, ph) {
+  const body = st.live
+    ? `<input value="${esc(st.q)}" placeholder="${esc(ph)}" aria-label="Найти блюдо" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go">`
+    : `<span class="fv">${st.q ? esc(st.q) + (st.focus ? '<i class="caret"></i>' : '') : (st.focus ? '<i class="caret"></i>' : '') + `<span class="ph">${esc(ph)}</span>`}</span>`;
+  return `<label class="field${st.focus && !st.live ? ' focus' : ''}">${ic('search')}${body}<button type="button" class="fx" aria-label="Очистить"${st.q ? '' : ' hidden'}>${ic('x')}</button></label>`;
+}
+const kbzone = () => '<div class="kbzone"><span>клавиатура</span></div>';
+const toastEl = '<div class="toast" hidden role="status"></div>';
+
+function toast(el, head, text, action) {
+  const t = el.querySelector('.toast');
+  t.hidden = false;
+  t.innerHTML = `<div class="t-main"><b>${esc(head)}</b><span>${esc(text)}</span></div>${action ? `<button type="button" class="btn sm ghost">${esc(action)}</button>` : ''}`;
+  t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.hidden = true; }, 2800);
+}
+/** What a tap does, the same on every screen. */
+function tap(el, rowEl, st) {
+  if (!rowEl) return;
+  if (rowEl.hasAttribute('data-create')) return toast(el, 'Откроется форма', `В «Что в блюде» уже «${cap(st.q.trim())}», курсор после него`);
+  const r = byId.get(rowEl.dataset.id);
+  if (!r) return;
+  const d = r.d, p = product(d);
+  if (st.pick) return toast(el, 'Дописано в «Что в блюде»', `${p.n}${p.g != null ? ' ' + fmt(p.g) : ''} — снова форма`);
+  if (r.pop) return toast(el, 'Блюдо добавлено', `${d.name} · ${weight(d) != null ? gr(weight(d)) : 'без веса'}`, 'Отменить');
+  return toast(el, `Открывается «${title(d)}»`, 'калькулятор этого блюда');
+}
+function bindField(el, st, draw) {
+  const input = el.querySelector('.field input');
+  const x = el.querySelector('.fx');
+  if (input) input.addEventListener('input', () => { st.q = input.value; x.hidden = !st.q; draw(); });
+  if (x) x.addEventListener('click', () => { st.q = ''; if (input) { input.value = ''; input.focus(); } x.hidden = true; draw(); });
+}
+
+/* ---------- Categories (mockup only: the real dictionary lives in src/domain with tests). ---------- */
+// Detection priority: the first category whose stem starts a word of the title wins.
+const CATS = [
+  { id: 'first', name: 'Первые', icon: 'soup', stems: ['суп', 'борщ', 'щи', 'солянк', 'бульон', 'уха', 'рассольник', 'харчо', 'окрошк', 'soup', 'broth', 'ramen', 'chowder', 'sopa', 'caldo', 'gazpacho', 'crema'] },
+  { id: 'drinks', name: 'Напитки', icon: 'cup-soda', stems: ['компот', 'кисел', 'морс', 'смузи', 'какао', 'чай', 'кофе', 'сок', 'smoothie', 'juice', 'tea', 'coffee', 'lemonade', 'batido', 'zumo', 'jugo', 'cafe', 'limonada'] },
+  { id: 'salads', name: 'Салаты', icon: 'salad', stems: ['салат', 'винегрет', 'оливье', 'salad', 'slaw', 'ensalada'] },
+  { id: 'breakfast', name: 'Завтраки', icon: 'egg-fried', stems: ['каш', 'овсянк', 'омлет', 'яичниц', 'гранол', 'oatmeal', 'porridge', 'omelet', 'granola', 'avena', 'tortilla', 'huevos'] },
+  { id: 'baking', name: 'Выпечка и сладкое', icon: 'cake-slice', stems: ['пирог', 'пирож', 'торт', 'блин', 'оладь', 'кекс', 'печень', 'запеканк', 'cake', 'pie', 'pancake', 'muffin', 'cookie', 'tarta', 'pastel', 'galleta', 'bizcocho'] },
+  { id: 'mains', name: 'Вторые', icon: 'drumstick', stems: ['котлет', 'плов', 'гуляш', 'курин', 'куриц', 'бедр', 'рыб', 'жарк', 'тефтел', 'голубц', 'рагу', 'мясо', 'индейк', 'говядин', 'лосос', 'треск', 'минтай', 'креветк', 'шакшук', 'чили', 'chicken', 'stew', 'curry', 'beef', 'fish', 'meatball', 'pollo', 'estofado', 'pescado', 'carne', 'albondig'] },
+  { id: 'sides', name: 'Гарниры', icon: 'wheat', stems: ['гречк', 'рис', 'макарон', 'паст', 'спагетт', 'булгур', 'кускус', 'киноа', 'пюре', 'картоф', 'перлов', 'пшен', 'чечевиц', 'нут', 'фасол', 'батат', 'брокколи', 'капуст', 'кабачк', 'свекл', 'шампиньон', 'rice', 'pasta', 'noodle', 'quinoa', 'couscous', 'potato', 'mash', 'arroz', 'fideo', 'patata', 'pure'] },
+];
+const OTHER = { id: 'other', name: 'Другое', icon: 'utensils', stems: [] };
+const ORDER = ['first', 'mains', 'sides', 'salads', 'breakfast', 'baking', 'drinks', 'other'];
+const catById = new Map([...CATS, OTHER].map((c) => [c.id, c]));
+
+function detect(text) {
+  const words = plain(text).split(/[^\p{L}]+/u).filter(Boolean);
+  for (const c of CATS) if (words.some((w) => c.stems.some((s) => w.startsWith(s)))) return c;
+  return OTHER;
+}
+const MANUAL = {}; // id → category id, chosen in the form
+const catOf = (d) => (MANUAL[d.id] ? catById.get(MANUAL[d.id]) : detect(title(d)));
+/** The category matches the query by a word start: «гарн», «перв», «выпечк». */
+function catMatch(d, q) {
+  const p = plain(q).trim();
+  if (!p) return null;
+  const c = catOf(d);
+  return plain(c.name).split(' ').some((w) => w.startsWith(p)) ? c : null;
+}
+
+/* The list, as A plus categories: a title or product match first, a category match last. */
+function rankedC(rows, q) {
+  return rows
+    .map((r) => {
+      let rank = matchRank(q, title(r.d), r.d.items.map((i) => i.n));
+      const cat = rank === 0 ? catMatch(r.d, q) : null;
+      if (cat) rank = 0.5;
+      return { ...r, rank, via: cat ? null : viaOf(r.d, q), viaCat: cat };
+    })
+    .filter((r) => r.rank > 0)
+    .sort((a, b) => b.rank - a.rank || (a.pop ? a.d.order - b.d.order : b.d.uses - a.d.uses || byName(a, b)));
+}
+
+function crow(r, o = {}) {
+  const d = r.d, t = title(d), comp = isComposite(d), q = o.q || '';
+  let sub = '';
+  if (r.viaCat) sub = hl(r.viaCat.name, q);
+  else if (comp && d.name) {
+    const names = counted(d).map((i) => i.n);
+    const line = r.via ? [r.via, ...names.filter((n) => n !== r.via)] : names;
+    sub = r.via ? hl(line.join(', '), q) : esc(line.join(', '));
+  } else if (!comp) {
+    const p = product(d);
+    if (r.via) sub = hl(r.via, q);
+    else if (o.pick && p && plain(p.n) !== plain(t)) sub = esc(p.n);
+  }
+  const nameHtml = r.via || r.viaCat ? esc(t) : hl(t, q);
+  const end = r.pop || o.pick ? `<span class="r-add">${ic('plus')}</span>` : '';
+  return `<div class="row${o.sel ? ' sel' : ''}" data-id="${esc(d.id)}" role="option">
+    <span class="r-ic" title="${esc(catOf(d).name)}">${ic(catOf(d).icon)}</span>
+    <div class="r-main"><div class="r-name">${nameHtml}</div>${sub ? `<div class="r-sub">${sub}</div>` : ''}</div>
+    <span class="r-w">${gr(weight(d))}</span>${end}</div>`;
+}
+function sectionsHtml(sections, q) {
+  let first = Boolean(q.trim());
+  return sections.filter((s) => s.rows.length).map((s) => {
+    // Under a category heading the category is not repeated in the rows; the heading is marked instead.
+    const head = `<div class="grp"><span>${s.cat ? hl(s.h, q) : esc(s.h)}</span>${s.n != null ? `<span class="n">${s.n}</span>` : ''}</div>`;
+    return head + s.rows.map((r) => { const h = crow(s.cat ? { ...r, viaCat: null } : r, { q, sel: first }); first = false; return h; }).join('');
+  }).join('');
+}
+
+function listSections(q, grouped) {
+  const own = ownRows(false), pop = popRows(false);
+  if (q.trim() && grouped) {
+    // Found ones by category; the category with the best match first, so Enter still takes the best one.
+    const found = rankedC(own, q);
+    const secs = ORDER.map((id, order) => ({ c: catById.get(id), order, rows: found.filter((r) => catOf(r.d).id === id) }))
+      .filter((x) => x.rows.length)
+      .sort((a, b) => b.rows[0].rank - a.rows[0].rank || a.order - b.order);
+    return [...secs.map(({ c, rows }) => ({ h: c.name, n: rows.length, rows, cat: true })), { h: 'Добавить из популярных', rows: rankedC(pop, q) }];
+  }
+  if (q.trim()) return [{ h: 'Ваши блюда', rows: rankedC(own, q) }, { h: 'Добавить из популярных', rows: rankedC(pop, q) }];
+  if (grouped) {
+    const byCat = ORDER.map((id) => ({ c: catById.get(id), rows: own.filter((r) => catOf(r.d).id === id).sort(byUses) }));
+    return [...byCat.map(({ c, rows }) => ({ h: c.name, n: rows.length, rows, cat: true })), { h: 'Добавить из популярных', rows: pop }];
+  }
+  const often = own.filter((r) => r.d.uses >= 2).sort(byUses).slice(0, 5);
+  return [
+    { h: 'Часто готовите', rows: often },
+    { h: 'Остальные · по алфавиту', rows: own.filter((r) => !often.includes(r)).sort(byName) },
+    { h: 'Добавить из популярных', rows: pop },
+  ];
+}
+
+function mountList(el, st) {
+  el.innerHTML = `<div class="scr">${hdr('Блюда', ['plus', 'more'])}
+    <div class="topz"><label class="field">${ic('search')}
+      <input value="${esc(st.q)}" placeholder="Гречка, суп…" aria-label="Найти блюдо" autocomplete="off" spellcheck="false" enterkeyhint="go">
+      <button type="button" class="fx" aria-label="Очистить">${ic('x')}</button>
+      <button type="button" class="gtog" aria-label="По категориям" title="По категориям">${ic('list-tree')}</button>
+    </label></div>
+    <div class="list" role="listbox"></div></div>${toastEl}`;
+  const input = el.querySelector('input'), x = el.querySelector('.fx'), tog = el.querySelector('.gtog'), list = el.querySelector('.list');
+  const draw = () => {
+    const typed = st.q.trim();
+    x.hidden = !typed;
+    tog.setAttribute('aria-pressed', String(st.grouped));
+    const secs = listSections(st.q, st.grouped);
+    const found = secs.some((s) => s.rows.length);
+    let html = found ? sectionsHtml(secs, st.q) : typed ? '<p class="nothing">Ничего не нашлось</p>' : '';
+    if (typed && !exactOwn(st.q)) html += createRow(st.q, !found);
+    list.innerHTML = html;
+  };
+  input.addEventListener('input', () => { st.q = input.value; draw(); });
+  // Esc in the field: clears it (and keeps the focus); in an empty field it would close the screen, as «←».
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    if (st.q) { st.q = ''; input.value = ''; draw(); } else toast(el, 'Экран закрывается', 'как «←»');
+  });
+  x.addEventListener('click', () => { st.q = ''; input.value = ''; input.focus(); draw(); });
+  // In the app the choice is kept on the device until it is switched again; here each phone keeps its own.
+  tog.addEventListener('click', () => { st.grouped = !st.grouped; draw(); list.scrollTop = 0; });
+  el.addEventListener('click', (e) => tap(el, e.target.closest('.row'), st));
+  draw();
+}
+
+function mountCatEditor(el) {
+  const st = { name: 'Сырники', manual: null, open: false };
+  el.innerHTML = `<div class="scr">${hdr('Добавить блюдо', ['more'])}
+    <div class="ed">
+      <div class="lbl"><span>Название</span><span>можно не писать</span></div>
+      <label class="inp-l"><input class="inp-i" value="${esc(st.name)}" aria-label="Название" spellcheck="false"></label>
+      <div class="lbl" style="margin-top:8px"><span>Категория</span></div>
+      <button type="button" class="csel" aria-haspopup="listbox"></button>
+      <p class="chint"></p>
+      <div class="phr-h"><span class="gbtn first">Что в блюде ${ic('down')}</span><span class="sp"></span><span class="gbtn">${ic('paste')}Вставить</span><span class="gbtn">${ic('pot')}Из блюда</span></div>
+      <div class="ta"><textarea aria-label="Что в блюде" spellcheck="false">Творог 400, яйца 60, мука 60, сахар 30</textarea><span class="mic">${ic('mic')}</span></div>
+    </div>
+    <div class="cpop" role="listbox" hidden></div></div>`;
+  const nameEl = el.querySelector('.inp-i'), sel = el.querySelector('.csel'), hint = el.querySelector('.chint'), pop = el.querySelector('.cpop');
+  const draw = () => {
+    const auto = detect(st.name);
+    const c = st.manual ? catById.get(st.manual) : auto;
+    sel.innerHTML = `<span class="cs-v">${esc(c.name)}</span><span class="cs-n">${st.manual ? 'выбрано вручную' : 'по названию'}</span>${ic('down')}`;
+    hint.textContent = !st.manual && auto.id === 'other' && st.name.trim() ? 'По названию не угадать — выберите сами' : '';
+    hint.hidden = !hint.textContent;
+    pop.innerHTML = `<div class="opt${st.manual ? '' : ' on'}" data-v=""><span>По названию<span class="o-n"> · ${esc(auto.name)}</span></span>${st.manual ? '' : ic('check')}</div><div class="sep"></div>` +
+      ORDER.map((id) => { const k = catById.get(id); return `<div class="opt${st.manual === id ? ' on' : ''}" data-v="${id}"><span>${esc(k.name)}</span>${st.manual === id ? ic('check') : ''}</div>`; }).join('');
+    pop.hidden = !st.open;
+  };
+  nameEl.addEventListener('input', () => { st.name = nameEl.value; draw(); });
+  sel.addEventListener('click', () => { st.open = !st.open; draw(); });
+  pop.addEventListener('click', (e) => {
+    const o = e.target.closest('.opt');
+    if (!o) return;
+    st.manual = o.dataset.v || null;
+    st.open = false;
+    draw();
+  });
+  draw();
+}
+
+function mountShelf(el) {
+  const chips = ['grechka', 'sup', 'plov', 'ovs', 'mak'].map((id) => byId.get(id).d);
+  el.innerHTML = `<div class="shelf-row"><span class="ibtn sec">${ic('search')}</span><div class="chips">${chips.map((d, i) =>
+    `<span class="chip${i === 0 ? ' cur' : ''}">${ic(catOf(d).icon)}${esc(title(d))}</span>`).join('')}</div><span class="ibtn sec">${ic('more')}</span></div>`;
+}
+
+document.querySelectorAll('[data-screen]').forEach((el) => {
+  const s = el.dataset.screen;
+  if (s === 'flat') mountList(el, { q: '', grouped: false });
+  if (s === 'grouped') mountList(el, { q: '', grouped: true });
+  if (s === 'query') mountList(el, { q: 'гарнир', grouped: false });
+  if (s === 'editor') mountCatEditor(el);
+});
+document.querySelectorAll('[data-shelf]').forEach(mountShelf);
+
+/* Dish icons: off by default, a switch to compare. */
+function setIcons(on) {
+  document.documentElement.classList.toggle('no-dish-icons', !on);
+  document.querySelectorAll('[data-icons]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.icons === 'on') === on)));
+}
+document.querySelectorAll('[data-icons]').forEach((b) => b.addEventListener('click', () => setIcons(b.dataset.icons === 'on')));
+setIcons(true);
+
+/* ---------- Theme switch for the mockups. ---------- */
+const root = document.documentElement;
+function setTheme(t) {
+  if (t === 'system') delete root.dataset.theme; else root.dataset.theme = t;
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)));
+  try { localStorage.setItem('dish-categories-mockups-theme', t); } catch (_) { /* storage may be blocked */ }
+}
+document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeSet)));
+let saved = 'system';
+try { saved = localStorage.getItem('dish-categories-mockups-theme') || 'system'; } catch (_) { /* default */ }
+setTheme(saved);
+</script>
+</body>
+</html>
