@@ -5,12 +5,14 @@ import {
   formatPercent,
   portionGrams,
   rawAmountsCopyText,
+  splitAmounts,
   splitSummary,
   type Cooking,
   type CookingResult,
   type Id,
   type PortionResult,
 } from '@/domain'
+import { cn } from '@/lib/utils'
 import { portionsWord, rawWord } from './messages'
 
 interface PortionSummaryProps {
@@ -30,16 +32,16 @@ interface PortionSummaryProps {
 
 /**
  * «по 80 г × 7 · 29 г сухого» over the grid of portions in «Доли» (docs/UX.md §3): what goes into each
- * container, said once, with ⧉ for the tracker — on when they are all the same. Portions that differ get the
+ * container, said once, with ⧉ for the tracker when they are all the same. Portions that differ get the
  * range; own ones are named under it.
  */
 export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit, numberOf }: PortionSummaryProps) {
   const sharing = portions.filter((p) => !ownIds.includes(p.portionId))
   const own = portions.filter((p) => ownIds.includes(p.portionId))
   // Grams of the view once weighed; percent of the dish before that, or when asked for.
-  const inPercent = unit === '%' || sharing.some((p) => portionGrams(p, rawOf) === null)
+  const { inPercent, values } = splitAmounts(sharing, rawOf, unit)
   const amount = (p: PortionResult) => (inPercent ? (p.share !== null ? p.share * 100 : null) : portionGrams(p, rawOf))
-  const summary = splitSummary(sharing.map(amount), inPercent ? 1 : 0)
+  const summary = splitSummary(values, inPercent ? 1 : 0)
   if (!summary) return null
 
   const shown = (value: number) => (inPercent ? `${formatPercent(value / 100)} %` : `${formatGrams(value)} г`)
@@ -73,12 +75,11 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
         <span className="text-sm text-muted-foreground tabular-nums">{tail}</span>
         {ownLine && <span className="basis-full text-sm text-muted-foreground tabular-nums">{ownLine}</span>}
       </p>
-      {/* Always there, off while the portions differ (each tile has its own ⧉ then): switching between equal
-          and unequal does not move the line. */}
+      {/* Hidden, not removed, while the portions differ (each tile has its own ⧉ then): the line keeps its
+          height when they turn equal or unequal. */}
       <CopyButton
-        className="text-muted-foreground"
+        className={cn('text-muted-foreground', summary.same === null && 'invisible')}
         label="Скопировать для трекера: одна порция"
-        disabled={summary.same === null}
         getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
       />
     </div>
