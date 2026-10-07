@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
-import { Recipe } from './Recipe'
+import { PortionRecipe } from './PortionRecipe'
 
 interface PersonResultProps {
   cooking: Cooking
@@ -233,7 +233,7 @@ export function PersonResult({
       </div>
       {recipe && computed.share !== null && (
         // From the name to the answer, not under the actions; always per person.
-        <Recipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[22px]" />
+        <PortionRecipe cooking={cooking} raw={computed.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="pr-12 pl-[22px]" />
       )}
     </SwipeRow>
   )

@@ -1,218 +1,170 @@
-import { SearchIcon, XIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
-import { toast } from 'sonner'
-import { dishPath } from '@/app/paths'
+import { ListPlusIcon, PlusIcon } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { dishPath, newDishPath, newDishWithTextPath } from '@/app/paths'
 import { useBack } from '@/app/useBack'
-import { Command, CommandEmpty, CommandGroup, CommandList } from '@/components/ui/command'
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
+import { DishSearch } from '@/components/DishSearch/DishSearch'
+import { DishSearchGroup } from '@/components/DishSearch/DishSearchGroup'
+import { DishSearchRow } from '@/components/DishSearch/DishSearchRow'
+import { Highlight } from '@/components/DishSearch/Highlight'
+import { Button } from '@/components/ui/button'
 import {
+  CATEGORY_LABELS,
+  categoryMatches,
+  createDishText,
+  dishCategory,
   dishMenu,
-  dishSummary,
-  dishTitle,
+  dishRow,
   localDay,
   missingPresets,
-  parseDishSort,
-  parseKindFilter,
   presetDish,
-  type DishSort,
-  type KindFilter,
   type PresetDish,
 } from '@/domain'
+import { addAllPresets } from '@/lib/addAllPresets'
 import { newId } from '@/store/id'
+import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
-import { DishMenuRow } from './DishMenuRow'
-
-const KINDS: { value: KindFilter; label: string }[] = [
-  { value: 'all', label: 'Все' },
-  { value: 'simple', label: 'Простые' },
-  { value: 'composite', label: 'Составные' },
-]
-
-const SORTS: { value: DishSort; label: string }[] = [
-  { value: 'frequent', label: 'Частые' },
-  { value: 'name', label: 'По названию' },
-]
 
 const presetValue = (preset: PresetDish) => `preset:${preset.name}`
+const CREATE_VALUE = 'create'
 
 /** When a popular dish is added: its createdAt and updatedAt (it goes first on the shelf). */
 const nowIso = () => new Date().toISOString()
 
-/** The search, the filters and the list: the part of the menu that needs dishes to show. */
+/**
+ * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовишь», the other own dishes
+ * (or, with «По категориям», the own dishes in sections by category),
+ * the popular ones to add, «Создать «…»» while something is typed. With no dishes it is the first
+ * screen: «Добавить блюдо» and the whole catalogue at once.
+ */
 export function DishMenu() {
   const navigate = useNavigate()
   const dishes = useAppStore((s) => s.dishes)
   const addDishes = useAppStore((s) => s.addDishes)
-  const deleteDish = useAppStore((s) => s.deleteDish)
   const { back, hasPrevious, noPreviousState } = useBack('/')
   const [params, setParams] = useSearchParams()
   const query = params.get('q') ?? ''
-  const kind = parseKindFilter(params.get('kind'))
-  const sort = parseDishSort(params.get('sort'))
-  // Today for «Частые», fixed while the menu is open.
+  // Today for «Часто готовишь», fixed while the menu is open.
   const [today] = useState(() => localDay(new Date()))
-  const { own, popular } = dishMenu(dishes, missingPresets(dishes), { query, kind, sort, today })
+  const byCategory = usePrefsStore((s) => s.dishesByCategory)
+  const setByCategory = usePrefsStore((s) => s.setDishesByCategory)
+  const { often, rest, categories, popular } = dishMenu(dishes, missingPresets(dishes), { query, today, byCategory })
+  const typed = query.trim() !== ''
+  const createText = createDishText(dishes, query)
+  const noDishes = dishes.length === 0
+  const nothing = often.length + rest.length + categories.length + popular.length === 0
 
-  // The row Enter opens: the one picked with ↑ / ↓ or the pointer while it is still listed, else the first.
-  const [picked, setPicked] = useState<string>()
-  const values = [...own.map((d) => d.id), ...popular.map(presetValue)]
-  const selected = picked !== undefined && values.includes(picked) ? picked : (values[0] ?? '')
+  // Typing replaces the entry: «назад» leaves the menu, not each letter. Opened by a direct link,
+  // the menu still has no previous screen of the app (useBack).
+  const update = (q: string) =>
+    setParams(q ? { q } : {}, { replace: true, preventScrollReset: true, state: hasPrevious ? undefined : noPreviousState })
 
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  // Typing and switching replace the entry: «назад» leaves the menu, not each letter. Defaults stay out
-  // of the address. Opened by a direct link, the menu still has no previous screen of the app (useBack).
-  const update = (next: { q?: string; kind?: KindFilter; sort?: DishSort }) => {
-    const merged = { q: query, kind, sort, ...next }
-    const search = new URLSearchParams()
-    if (merged.q) search.set('q', merged.q)
-    if (merged.kind !== 'all') search.set('kind', merged.kind)
-    if (merged.sort !== 'frequent') search.set('sort', merged.sort)
-    setParams(search, { replace: true, preventScrollReset: true, state: hasPrevious ? undefined : noPreviousState })
-    setPicked(undefined)
-  }
-
-  // Letters typed right after 🔍, before the menu showed up, went to the invisible field (KEYBOARD_PROXY_ID):
-  // they move over here, so the first letters are not lost. Checked after every render, a no-op
-  // once the invisible field is empty; its letters come before anything already in this field.
-  useEffect(() => {
-    const proxy = document.getElementById(KEYBOARD_PROXY_ID)
-    if (!(proxy instanceof HTMLInputElement) || !proxy.value) return
-    const typed = proxy.value
-    proxy.value = ''
-    update({ q: typed + (inputRef.current?.value ?? '') })
-  })
-
-  const clear = () => {
-    update({ q: '' })
-    // In the tap itself: the field keeps the focus and the phone its keyboard.
-    inputRef.current?.focus()
-  }
-
+  // No toast: the dish opens at once, that is the result (docs/UX.md §3а «Тосты — редко»).
   const add = (preset: PresetDish) => {
     const dish = presetDish(preset, newId, nowIso())
     addDishes([dish])
     navigate(dishPath(dish.id))
-    toast('Блюдо добавлено', {
-      description: `${preset.name} · ${dishSummary(dish.ingredients)}`,
-      action: { label: 'Отменить', onClick: () => deleteDish(dish.id) },
-    })
   }
 
+  const values = [
+    ...often.map((d) => d.id),
+    ...rest.map((d) => d.id),
+    ...categories.flatMap((c) => c.dishes.map((d) => d.id)),
+    ...popular.map(presetValue),
+    ...(createText ? [CREATE_VALUE] : []),
+  ]
+
+  // Under a category heading a dish found by its category does not repeat it: the heading is marked.
+  const ownRows = (list: typeof rest, underCategory = false) =>
+    list.map((dish) => (
+      <DishSearchRow
+        key={dish.id}
+        value={dish.id}
+        row={dishRow(dish, query, { underCategory })}
+        category={dishCategory(dish)}
+        query={query}
+        onSelect={() => navigate(dishPath(dish.id))}
+      />
+    ))
+
   return (
-    // cmdk without its own filter: the list is the domain's (`dishMenu`), cmdk gives ↑ / ↓ and Enter.
-    <Command
-      shouldFilter={false}
-      value={selected}
-      onValueChange={setPicked}
-      loop
-      label="Блюда"
-      className="size-auto gap-3 overflow-visible rounded-none! bg-transparent p-0"
+    <DishSearch
+      query={query}
+      onQueryChange={update}
+      onClose={back}
+      placeholder="Гречка, суп…"
+      values={values}
+      grouping={{ on: byCategory, onToggle: () => setByCategory(!byCategory) }}
+      before={
+        noDishes &&
+        !typed && (
+          <div className="flex flex-col gap-2 pt-2">
+            <h2 className="text-lg font-semibold">Пока нет блюд</h2>
+            <p className="text-muted-foreground">
+              Добавь блюдо один раз — дальше у плиты вводи только готовый вес.
+            </p>
+            <Button size="lg" className="mt-2 h-12 w-full text-base" asChild>
+              <Link to={newDishPath()}>
+                <PlusIcon data-icon="inline-start" />
+                Добавить блюдо
+              </Link>
+            </Button>
+          </div>
+        )
+      }
+      after={
+        noDishes &&
+        !typed &&
+        popular.length > 0 && (
+          <Button variant="outline" size="lg" className="mt-2 h-12 w-full text-base" onClick={addAllPresets}>
+            <ListPlusIcon data-icon="inline-start" />
+            {`Добавить все ${popular.length}`}
+          </Button>
+        )
+      }
     >
-      <InputGroup className="h-12">
-        <InputGroupAddon>
-          <SearchIcon />
-        </InputGroupAddon>
-        <InputGroupInput
-          ref={inputRef}
-          // The field is what the menu is for: typed into at once. On an iPhone the keyboard is already
-          // open — 🔍 focused the invisible field in its tap (KEYBOARD_PROXY_ID), this one takes it over.
-          autoFocus
-          value={query}
-          onChange={(e) => update({ q: e.target.value })}
-          onKeyDown={(e) => {
-            if (e.key !== 'Escape') return
-            e.preventDefault()
-            if (query) update({ q: '' })
-            else back()
-          }}
-          placeholder="Гречка, суп…"
-          aria-label="Найти блюдо"
-          type="text"
-          enterKeyHint="go"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          // 16 px and more, on every width: a smaller field makes the iPhone zoom in on focus.
-          className="text-base md:text-base"
-        />
-        {query && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-sm"
-              className="size-10 rounded-full"
-              aria-label="Очистить"
-              // Not on pointer down: the field would lose the focus and the phone its keyboard.
-              onPointerDown={(e) => e.preventDefault()}
-              onClick={clear}
-            >
-              <XIcon />
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-      </InputGroup>
-      {/* Their own arrows and Esc: not the list's. */}
-      <div className="flex flex-wrap items-center justify-between gap-2" onKeyDown={(e) => e.stopPropagation()}>
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          aria-label="Тип блюда"
-          value={kind}
-          onValueChange={(v) => v && update({ kind: parseKindFilter(v) })}
+      {typed && nothing && <p className="py-4 text-center text-sm text-muted-foreground">Ничего не нашлось</p>}
+      {categories.map(({ category, dishes: list }) => (
+        <DishSearchGroup
+          key={category}
+          heading={categoryMatches(query, category) ? <Highlight text={CATEGORY_LABELS[category]} query={query} /> : CATEGORY_LABELS[category]}
+          count={list.length}
         >
-          {KINDS.map((k) => (
-            <ToggleGroupItem key={k.value} value={k.value} className="min-h-11 px-3">
-              {k.label}
-            </ToggleGroupItem>
+          {ownRows(list, true)}
+        </DishSearchGroup>
+      ))}
+      {often.length > 0 && <DishSearchGroup heading="Часто готовишь">{ownRows(often)}</DishSearchGroup>}
+      {rest.length > 0 && (
+        <DishSearchGroup
+          heading={typed ? 'Твои блюда' : often.length > 0 ? 'Остальные · по алфавиту' : 'Твои блюда · по алфавиту'}
+        >
+          {ownRows(rest)}
+        </DishSearchGroup>
+      )}
+      {popular.length > 0 && (
+        <DishSearchGroup heading={noDishes ? (typed ? 'Популярные' : 'Или возьми из популярных') : 'Добавить из популярных'}>
+          {popular.map((preset) => (
+            <DishSearchRow
+              key={preset.name}
+              value={presetValue(preset)}
+              row={dishRow(preset, query)}
+              category={dishCategory(preset)}
+              query={query}
+              mark="add"
+              onSelect={() => add(preset)}
+            />
           ))}
-        </ToggleGroup>
-        <Select value={sort} onValueChange={(v) => update({ sort: parseDishSort(v) })}>
-          <SelectTrigger aria-label="Сортировка" className="min-w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORTS.map((s) => (
-              <SelectItem key={s.value} value={s.value} className="min-h-11">
-                {s.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {/* The page scrolls, not the list: as long as the dishes are. */}
-      <CommandList className="max-h-none overflow-visible">
-        <CommandEmpty>Ничего не нашлось</CommandEmpty>
-        {own.length > 0 && (
-          <CommandGroup heading="Твои блюда" className="px-0">
-            {own.map((dish) => (
-              <DishMenuRow
-                key={dish.id}
-                value={dish.id}
-                title={dishTitle(dish)}
-                summary={dishSummary(dish.ingredients)}
-                onSelect={() => navigate(dishPath(dish.id))}
-              />
-            ))}
-          </CommandGroup>
-        )}
-        {popular.length > 0 && (
-          <CommandGroup heading="Популярные — добавить" className="px-0">
-            {popular.map((preset) => (
-              <DishMenuRow
-                key={preset.name}
-                value={presetValue(preset)}
-                title={preset.name}
-                summary={dishSummary(preset.ingredients)}
-                onSelect={() => add(preset)}
-              />
-            ))}
-          </CommandGroup>
-        )}
-      </CommandList>
-    </Command>
+        </DishSearchGroup>
+      )}
+      {createText && (
+        <DishSearchRow
+          value={CREATE_VALUE}
+          row={{ title: `Создать «${createText}»`, second: 'Откроется форма с этим словом', foundBy: false }}
+          query={query}
+          mark="create"
+          onSelect={() => navigate(newDishWithTextPath(createText))}
+        />
+      )}
+    </DishSearch>
   )
 }

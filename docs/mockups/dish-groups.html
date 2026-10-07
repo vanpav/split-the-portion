@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Группы блюд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+/* «Ланчбокс» tokens — copied from src/index.css (light :root, dark .dark). */
+:root {
+  --background: oklch(0.969 0.006 255.5);
+  --foreground: oklch(0.267 0.054 269.1);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.514 0.192 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.929 0.013 255.5);
+  --muted: oklch(0.944 0.01 252.8);
+  --muted-foreground: oklch(0.526 0.045 262.7);
+  --accent: oklch(0.938 0.018 261.3);
+  --border: oklch(0.898 0.016 257.2);
+  --input: oklch(0.873 0.019 255.5);
+  --radius: 0.875rem;
+  --page: oklch(0.935 0.011 257);
+  --phone-shadow: 0 1px 2px oklch(0.267 0.054 269.1 / 0.06), 0 18px 40px -22px oklch(0.267 0.054 269.1 / 0.45);
+  --pop-shadow: 0 2px 6px oklch(0.267 0.054 269.1 / 0.08), 0 14px 32px -12px oklch(0.267 0.054 269.1 / 0.4);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --background: oklch(0.212 0.035 268.5);
+  --foreground: oklch(0.96 0.009 258.3);
+  --card: oklch(0.255 0.04 266.9);
+  --popover: oklch(0.255 0.04 266.9);
+  --primary: oklch(0.722 0.143 268.2);
+  --primary-foreground: oklch(0.21 0.052 270.1);
+  --secondary: oklch(0.312 0.047 267);
+  --muted: oklch(0.288 0.044 267.3);
+  --muted-foreground: oklch(0.724 0.039 265);
+  --accent: oklch(0.321 0.055 266.3);
+  --border: oklch(0.34 0.048 267.7);
+  --input: oklch(0.396 0.05 266.3);
+  --page: oklch(0.18 0.03 268.5);
+  --phone-shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+  --pop-shadow: 0 2px 6px oklch(0 0 0 / 0.3), 0 14px 32px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.212 0.035 268.5);
+    --foreground: oklch(0.96 0.009 258.3);
+    --card: oklch(0.255 0.04 266.9);
+    --popover: oklch(0.255 0.04 266.9);
+    --primary: oklch(0.722 0.143 268.2);
+    --primary-foreground: oklch(0.21 0.052 270.1);
+    --secondary: oklch(0.312 0.047 267);
+    --muted: oklch(0.288 0.044 267.3);
+    --muted-foreground: oklch(0.724 0.039 265);
+    --accent: oklch(0.321 0.055 266.3);
+    --border: oklch(0.34 0.048 267.7);
+    --input: oklch(0.396 0.05 266.3);
+    --page: oklch(0.18 0.03 268.5);
+    --phone-shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 18px 40px -22px oklch(0 0 0 / 0.8);
+    --pop-shadow: 0 2px 6px oklch(0 0 0 / 0.3), 0 14px 32px -12px oklch(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--foreground);
+  font: 400 1rem/1.5 Rubik, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+::selection { background: color-mix(in oklab, var(--primary) 25%, transparent); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid color-mix(in oklab, var(--primary) 50%, transparent); outline-offset: 2px; }
+svg.lucide { width: 1em; height: 1em; stroke-width: 2; flex: none; }
+
+/* ---- page ---- */
+.page { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
+.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+.top h1 { font-size: 1.75rem; font-weight: 600; margin: 0 0 6px; line-height: 1.2; }
+.top p { margin: 0; max-width: 62ch; color: var(--muted-foreground); }
+.theme { display: inline-flex; background: var(--muted); border-radius: var(--radius); padding: 2px; }
+.theme button { border: 0; background: none; padding: 0 14px; height: 40px; border-radius: calc(var(--radius) - 2px); color: var(--muted-foreground); cursor: pointer; }
+.theme button[aria-pressed="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+
+.phones { display: flex; gap: 28px; overflow-x: auto; padding: 4px 4px 24px; scroll-snap-type: x mandatory; }
+.shot { flex: none; width: 375px; max-width: calc(100vw - 32px); scroll-snap-align: start; }
+.shot figcaption { margin-top: 12px; font-size: 0.875rem; color: var(--muted-foreground); max-width: 46ch; }
+.shot figcaption b { color: var(--foreground); font-weight: 600; display: block; font-size: 1rem; margin-bottom: 2px; }
+.phone {
+  position: relative; height: 720px; overflow: hidden;
+  background: var(--background); border-radius: 28px; box-shadow: var(--phone-shadow);
+}
+
+/* ---- app pieces ---- */
+.hdr { position: sticky; top: 0; display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 12px;
+  background: color-mix(in oklab, var(--background) 95%, transparent); border-bottom: 1px solid var(--border); }
+.hdr h2 { flex: 1; margin: 0; font-size: 1.125rem; font-weight: 600; }
+.round { width: 44px; height: 44px; border-radius: 999px; border: 0; background: var(--secondary); display: grid; place-items: center; font-size: 20px; flex: none; }
+.ghost-ico { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; font-size: 22px; flex: none; }
+
+.shelf { gap: 6px; }
+.chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 24px), transparent); padding: 4px 10px; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px 0 11px; border-radius: 999px;
+  background: var(--secondary); font-size: 0.875rem; font-weight: 500; white-space: nowrap; }
+.chip svg { font-size: 16px; color: var(--muted-foreground); }
+.chip.current { background: var(--card); font-weight: 600; box-shadow: inset 0 0 0 2px var(--foreground); }
+.chip.current svg { color: var(--foreground); }
+
+.body { padding: 16px 12px; display: grid; gap: 12px; align-content: start; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { border-radius: 1.225rem; padding: 10px 16px; background: color-mix(in oklab, var(--muted) 60%, transparent); }
+.tile.on { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+.tile small { display: block; font-size: 0.875rem; color: var(--muted-foreground); }
+.tile.on small { color: var(--foreground); font-weight: 500; }
+.tile strong { font-size: 1.875rem; font-weight: 500; line-height: 1.25; }
+.tile strong span { font-size: 1rem; font-weight: 400; color: var(--muted-foreground); margin-left: 3px; }
+.quiet { font-size: 0.875rem; color: var(--muted-foreground); }
+.ghosted { opacity: 0.35; }
+
+.field { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 12px; border: 1px solid var(--input); border-radius: var(--radius); }
+.field svg { color: var(--muted-foreground); font-size: 18px; }
+.field .ph { color: var(--muted-foreground); }
+.caret { display: inline-block; width: 2px; height: 1.15em; background: var(--primary); vertical-align: -0.2em; margin-left: 1px; }
+
+.toolbar { display: flex; justify-content: space-between; gap: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--input); border-radius: var(--radius); overflow: hidden; }
+.seg span { height: 44px; padding: 0 11px; display: grid; place-items: center; font-size: 0.875rem; }
+.seg span + span { border-left: 1px solid var(--input); }
+.seg span.on { background: var(--accent); font-weight: 500; }
+.select { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; height: 44px; padding: 0 12px; min-width: 132px;
+  border: 1px solid var(--input); border-radius: var(--radius); font-size: 0.875rem; }
+.select svg { color: var(--muted-foreground); }
+
+.group-h { display: flex; align-items: center; gap: 8px; padding: 14px 4px 4px; font-size: 0.8125rem; font-weight: 500; color: var(--muted-foreground); }
+.group-h svg { font-size: 16px; color: var(--foreground); }
+.group-h em { font-style: normal; margin-left: auto; }
+.row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 8px; border-radius: calc(var(--radius) - 4px); }
+.row.sel { background: var(--accent); }
+.row .name { flex: none; max-width: 62%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .sum { flex: 1; min-width: 0; text-align: right; font-size: 0.875rem; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .ico { font-size: 18px; color: var(--muted-foreground); }
+.row mark { background: none; color: inherit; font-weight: 600; }
+.list { display: grid; }
+
+.label { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+.label span { font-weight: 400; color: var(--muted-foreground); }
+.input { height: 44px; display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--input); border-radius: var(--radius); }
+.input.focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 50%, transparent); }
+.textarea { padding: 10px 12px; border: 1px solid var(--input); border-radius: var(--radius); line-height: 1.5; min-height: 72px; }
+.group-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.group-line .select { min-width: 0; flex: 1; font-size: 1rem; }
+.group-line .select .v { display: inline-flex; align-items: center; gap: 8px; }
+.group-line .select .v svg { color: var(--foreground); font-size: 18px; }
+.hint { font-size: 0.875rem; color: var(--muted-foreground); margin-top: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.link { border: 0; background: none; padding: 0 4px; min-height: 44px; color: var(--primary); font-size: 0.875rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.chips-row { display: flex; gap: 6px; overflow: hidden; }
+.tchip { flex: none; height: 36px; padding: 0 14px; display: grid; place-items: center; border-radius: 999px; background: var(--secondary); font-size: 0.875rem; }
+.tchip.on { background: var(--card); box-shadow: inset 0 0 0 2px var(--foreground); font-weight: 600; }
+.bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px; display: flex; gap: 8px; background: var(--background); border-top: 1px solid var(--border); }
+.btn { flex: 1; height: 48px; border-radius: var(--radius); border: 1px solid var(--input); background: var(--background); display: grid; place-items: center; font-weight: 500; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+
+.pop { position: absolute; left: 12px; right: 12px; background: var(--popover); border-radius: var(--radius); box-shadow: var(--pop-shadow); padding: 4px; z-index: 2; }
+.opt { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border-radius: calc(var(--radius) - 4px); }
+.opt svg { font-size: 18px; color: var(--muted-foreground); }
+.opt .chk { margin-left: auto; color: var(--foreground); }
+.opt.hl { background: var(--accent); }
+.opt.hl > svg:first-child { color: var(--foreground); }
+.opt small { color: var(--muted-foreground); font-size: 0.8125rem; margin-left: auto; }
+.sep { height: 1px; background: var(--border); margin: 4px 6px; }
+.dim { position: absolute; inset: 0; background: oklch(0.2 0.045 268 / 0.12); z-index: 1; }
+
+/* ---- notes ---- */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 28px 40px; margin-top: 40px; }
+.notes section h3 { margin: 0 0 10px; font-size: 1.125rem; font-weight: 600; }
+.notes p, .notes li { color: color-mix(in oklab, var(--foreground) 82%, var(--background)); max-width: 68ch; }
+.notes ul { padding-left: 1.1em; margin: 0; }
+.notes li + li { margin-top: 6px; }
+code { font-size: 0.875em; background: var(--muted); padding: 1px 5px; border-radius: 5px; }
+
+.lab { background: var(--card); border-radius: 1.225rem; padding: 16px; box-shadow: inset 0 0 0 1px var(--border); }
+.lab .input { background: var(--background); }
+.lab input { border: 0; outline: 0; background: none; width: 100%; height: 100%; font-size: 1rem; }
+.verdict { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-top: 12px; }
+.verdict .big { width: 48px; height: 48px; border-radius: 14px; background: var(--secondary); display: grid; place-items: center; font-size: 24px;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1); }
+.verdict .big.pop-in { transform: scale(1.12); }
+.verdict b { display: block; font-size: 1.125rem; font-weight: 600; }
+.verdict span { font-size: 0.875rem; color: var(--muted-foreground); }
+.tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tries button { border: 0; height: 36px; padding: 0 12px; border-radius: 999px; background: var(--secondary); cursor: pointer; font-size: 0.875rem; }
+.tries button:hover { background: var(--accent); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+th, td { text-align: left; padding: 8px 8px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-weight: 500; color: var(--muted-foreground); }
+td:first-child { white-space: nowrap; }
+td .g { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) { .verdict .big { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Группы блюд: иконка у названия</h1>
+      <p>Группа определяется по словарю слов на русском, английском и испанском. Если словарь промахнулся, группу меняют в редакторе блюда. Иконка группы стоит у блюда на полке и в поиске, а меню блюд разбито по группам.</p>
+    </div>
+    <div class="theme" role="group" aria-label="Тема">
+      <button type="button" data-t="light" aria-pressed="true">Светлая</button>
+      <button type="button" data-t="dark" aria-pressed="false">Тёмная</button>
+    </div>
+  </header>
+
+  <div class="phones">
+    <!-- 1. Shelf -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="hdr shelf">
+          <button class="round" aria-label="Найти блюдо"><i data-lucide="search"></i></button>
+          <button class="round" aria-label="Все блюда"><i data-lucide="layout-grid"></i></button>
+          <div class="chips">
+            <span class="chip current"><i data-lucide="soup"></i>Суп с гречкой</span>
+            <span class="chip"><i data-lucide="wheat"></i>Гречка</span>
+            <span class="chip"><i data-lucide="drumstick"></i>Котлеты</span>
+            <span class="chip"><i data-lucide="egg-fried"></i>Овсянка</span>
+          </div>
+          <button class="round" aria-label="Ещё"><i data-lucide="ellipsis"></i></button>
+        </div>
+        <div class="body">
+          <div class="tiles">
+            <div class="tile"><small>Сырой ⌄</small><strong>1 080<span>г</span></strong></div>
+            <div class="tile on"><small>Готовый · 19:40</small><strong>2 950<span>г</span></strong></div>
+          </div>
+          <div class="quiet">Кастрюля 2 л · без тары 2 100 г · k = 1,94</div>
+          <div class="ghosted">
+            <div class="tiles" style="grid-template-columns:1fr"><div class="tile" style="height:48px"></div></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Полка калькулятора</b>Иконка 16 px в цвете подписи, у текущего блюда — в цвете текста. Цвета крышек остаются за людьми: иконки только чернилами.</figcaption>
+    </figure>
+
+    <!-- 2. Dish menu grouped -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="hdr"><button class="ghost-ico" aria-label="Назад"><i data-lucide="arrow-left"></i></button><h2>Блюда</h2><button class="round" aria-label="Ещё"><i data-lucide="ellipsis"></i></button></div>
+        <div class="body" style="gap:10px">
+          <div class="field"><i data-lucide="search"></i><span class="ph">Гречка, суп…</span></div>
+          <div class="toolbar">
+            <div class="seg"><span class="on">Все</span><span>Простые</span><span>Составные</span></div>
+            <div class="select">По группам <i data-lucide="chevron-down"></i></div>
+          </div>
+          <div class="list">
+            <div class="group-h"><i data-lucide="soup"></i>Первые<em>2</em></div>
+            <div class="row sel"><span class="name">Суп с гречкой</span><span class="sum">Гречка, Курица, Лук</span></div>
+            <div class="row"><span class="name">Борщ</span><span class="sum">Свёкла, Говядина, Капуста</span></div>
+            <div class="group-h"><i data-lucide="drumstick"></i>Вторые<em>2</em></div>
+            <div class="row"><span class="name">Котлеты</span><span class="sum">Фарш, Лук, Яйцо</span></div>
+            <div class="row"><span class="name">Курица с рисом</span><span class="sum">Курица, Рис</span></div>
+            <div class="group-h"><i data-lucide="wheat"></i>Гарниры<em>3</em></div>
+            <div class="row"><span class="name">Гречка</span><span class="sum">70 г</span></div>
+            <div class="row"><span class="name">Макароны</span><span class="sum">90 г</span></div>
+            <div class="row"><span class="name">Булгур</span><span class="sum">60 г</span></div>
+            <div class="group-h"><i data-lucide="egg-fried"></i>Завтраки<em>1</em></div>
+            <div class="row"><span class="name">Овсянка</span><span class="sum">50 г</span></div>
+            <div class="group-h"><i data-lucide="cup-soda"></i>Напитки<em>1</em></div>
+            <div class="row"><span class="name">Компот</span><span class="sum">Яблоки, Сахар, Вода</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Меню блюд, «По группам»</b>Новый пункт в сортировке рядом с «Частые» и «По названию». Внутри группы — частые сверху. Пустые группы не показываются.</figcaption>
+    </figure>
+
+    <!-- 3. Search flat -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="hdr"><button class="ghost-ico" aria-label="Назад"><i data-lucide="arrow-left"></i></button><h2>Блюда</h2><button class="round" aria-label="Ещё"><i data-lucide="ellipsis"></i></button></div>
+        <div class="body" style="gap:10px">
+          <div class="field" style="border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 50%,transparent)"><i data-lucide="search"></i><span>гре<span class="caret"></span></span><i data-lucide="x" style="margin-left:auto"></i></div>
+          <div class="toolbar">
+            <div class="seg"><span class="on">Все</span><span>Простые</span><span>Составные</span></div>
+            <div class="select">По группам <i data-lucide="chevron-down"></i></div>
+          </div>
+          <div class="list">
+            <div class="group-h">Твои блюда</div>
+            <div class="row sel"><i class="ico" data-lucide="wheat"></i><span class="name"><mark>Гре</mark>чка</span><span class="sum">70 г</span></div>
+            <div class="row"><i class="ico" data-lucide="soup"></i><span class="name">Суп с <mark>гре</mark>чкой</span><span class="sum">Гречка, Курица, Лук</span></div>
+            <div class="group-h">Популярные — добавить</div>
+            <div class="row"><i class="ico" data-lucide="wheat"></i><span class="name"><mark>Гре</mark>чка с грибами</span><span class="sum">Гречка, Шампиньоны</span></div>
+            <div class="row"><i class="ico" data-lucide="salad"></i><span class="name"><mark>Гре</mark>ческий салат</span><span class="sum">Огурцы, Томаты, Фета</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Поиск</b>С запросом список плоский, как сейчас, а группа видна иконкой в начале строки. Так ↑ / ↓ и Enter работают без разрывов.</figcaption>
+    </figure>
+
+    <!-- 4. Editor -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="hdr"><button class="ghost-ico" aria-label="Назад"><i data-lucide="arrow-left"></i></button><h2>Добавить блюдо</h2><button class="round" aria-label="Ещё"><i data-lucide="ellipsis"></i></button></div>
+        <div class="body" style="gap:16px">
+          <div>
+            <div class="label">Название <span>можно не писать</span></div>
+            <div class="input focus">Сырники<span class="caret"></span></div>
+          </div>
+          <div>
+            <div class="label">Группа</div>
+            <div class="group-line">
+              <div class="select"><span class="v"><i data-lucide="utensils"></i>Другое</span><i data-lucide="chevron-down"></i></div>
+            </div>
+            <div class="hint">По названию группу не угадать — выбери сам</div>
+          </div>
+          <div>
+            <div class="label">Что в блюде <span>Вставить · Из блюда</span></div>
+            <div class="textarea">Творог 400, яйцо 1, мука 60, сахар 30</div>
+          </div>
+          <div>
+            <div class="label">В чём взвешиваешь</div>
+            <div class="chips-row"><span class="tchip">+</span><span class="tchip on">Без тары</span><span class="tchip">Сковорода 1 200 г</span></div>
+          </div>
+        </div>
+        <div class="bar"><span class="btn">Отмена</span><span class="btn primary">Создать</span></div>
+      </div>
+      <figcaption><b>Редактор: словарь не сработал</b>Поле «Группа» сразу под названием и меняется, пока название печатают. «Сырников» в словаре нет — выпало «Другое» и подсказка.</figcaption>
+    </figure>
+
+    <!-- 5. Editor with select open -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="hdr"><button class="ghost-ico" aria-label="Назад"><i data-lucide="arrow-left"></i></button><h2>Суп с гречкой</h2><button class="round" aria-label="Ещё"><i data-lucide="ellipsis"></i></button></div>
+        <div class="body" style="gap:16px">
+          <div>
+            <div class="label">Название <span>можно не писать</span></div>
+            <div class="input">Суп с гречкой</div>
+          </div>
+          <div>
+            <div class="label">Группа</div>
+            <div class="group-line">
+              <div class="select" style="border-color:var(--primary)"><span class="v"><i data-lucide="soup"></i>Первые</span><i data-lucide="chevron-up"></i></div>
+            </div>
+            <div class="hint">Выбрано вручную · <button class="link" type="button">Определять по названию</button></div>
+          </div>
+        </div>
+        <div class="dim"></div>
+        <div class="pop" style="top:236px">
+          <div class="opt"><i data-lucide="sparkles"></i>По названию<small>Первые</small></div>
+          <div class="sep"></div>
+          <div class="opt hl"><i data-lucide="soup"></i>Первые<i class="chk" data-lucide="check"></i></div>
+          <div class="opt"><i data-lucide="drumstick"></i>Вторые</div>
+          <div class="opt"><i data-lucide="wheat"></i>Гарниры</div>
+          <div class="opt"><i data-lucide="salad"></i>Салаты</div>
+          <div class="opt"><i data-lucide="egg-fried"></i>Завтраки</div>
+          <div class="opt"><i data-lucide="cake-slice"></i>Выпечка и сладкое</div>
+          <div class="opt"><i data-lucide="cup-soda"></i>Напитки</div>
+          <div class="opt"><i data-lucide="utensils"></i>Другое</div>
+        </div>
+        <div class="bar"><span class="btn">Отмена</span><span class="btn primary">Сохранить</span></div>
+      </div>
+      <figcaption><b>Ручная правка</b>Обычный <code>Select</code> без поиска — восемь пунктов, поверх экрана можно. Первый пункт возвращает автоопределение и показывает, что оно выберет.</figcaption>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h3>Попробуй словарь</h3>
+      <div class="lab">
+        <div class="input"><input id="try" type="text" value="Курица с рисом" aria-label="Название блюда" autocomplete="off" spellcheck="false"></div>
+        <div class="verdict" aria-live="polite">
+          <div class="big" id="vIcon"></div>
+          <div><b id="vName"></b><span id="vWhy"></span></div>
+        </div>
+        <div class="tries" id="tries"></div>
+      </div>
+    </section>
+
+    <section>
+      <h3>Как определяется группа</h3>
+      <ul>
+        <li>Название в нижнем регистре, «ё» → «е», режется на слова. Слово совпадает, если начинается с основы из словаря: «гречк» ловит «гречка», «гречкой», «гречку».</li>
+        <li>Язык не определяем: проверяем все словари сразу. «Sopa de pollo» и «Chicken soup» одинаково дают «Первые».</li>
+        <li>Если подошли несколько групп, побеждает старшая по порядку: Первые → Напитки → Салаты → Завтраки → Выпечка → Вторые → Гарниры. Поэтому «Суп с гречкой» — первое, а «Курица с рисом» — второе.</li>
+        <li>Ничего не нашлось — «Другое».</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Что хранится</h3>
+      <ul>
+        <li><code>Dish.group: DishGroup | null</code>. <code>null</code> — «по названию»: группа вычисляется в <code>src/domain</code> и не сохраняется, как и всё производное. Переименовал «Суп» в «Борщ» — группа поехала следом.</li>
+        <li>Ручной выбор сохраняется значением и синхронизируется с группой как обычное поле блюда. Миграция v12 → v13 ставит <code>group: null</code>.</li>
+        <li>Словарь и порядок групп — в <code>src/domain/dishGroups.ts</code> с тестами на каждый язык.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Словарь (начало)</h3>
+      <table>
+        <thead><tr><th>Группа</th><th>Основы: ru · en · es</th></tr></thead>
+        <tbody id="dict"></tbody>
+      </table>
+    </section>
+  </div>
+</div>
+
+<script>
+// Mockup only: the real dictionary lives in src/domain with tests.
+const GROUPS = [
+  { id: 'first', name: 'Первые', icon: 'soup', stems: ['суп', 'борщ', 'щи', 'солянк', 'бульон', 'уха', 'рассольник', 'харчо', 'окрошк', 'soup', 'broth', 'ramen', 'chowder', 'sopa', 'caldo', 'gazpacho', 'crema'] },
+  { id: 'drinks', name: 'Напитки', icon: 'cup-soda', stems: ['компот', 'кисел', 'морс', 'смузи', 'какао', 'чай', 'кофе', 'сок', 'smoothie', 'juice', 'tea', 'coffee', 'lemonade', 'batido', 'zumo', 'jugo', 'cafe', 'limonada'] },
+  { id: 'salads', name: 'Салаты', icon: 'salad', stems: ['салат', 'винегрет', 'оливье', 'salad', 'slaw', 'ensalada'] },
+  { id: 'breakfast', name: 'Завтраки', icon: 'egg-fried', stems: ['каш', 'овсянк', 'омлет', 'яичниц', 'гранол', 'oatmeal', 'porridge', 'omelet', 'granola', 'avena', 'tortilla', 'huevos'] },
+  { id: 'baking', name: 'Выпечка и сладкое', icon: 'cake-slice', stems: ['пирог', 'пирож', 'торт', 'блин', 'оладь', 'кекс', 'печень', 'запеканк', 'cake', 'pie', 'pancake', 'muffin', 'cookie', 'tarta', 'pastel', 'galleta', 'bizcocho'] },
+  { id: 'mains', name: 'Вторые', icon: 'drumstick', stems: ['котлет', 'плов', 'гуляш', 'курин', 'куриц', 'рыб', 'жарк', 'тефтел', 'голубц', 'рагу', 'мясо', 'chicken', 'stew', 'curry', 'beef', 'fish', 'meatball', 'pollo', 'estofado', 'pescado', 'carne', 'albondig'] },
+  { id: 'sides', name: 'Гарниры', icon: 'wheat', stems: ['гречк', 'рис', 'макарон', 'паст', 'спагетт', 'булгур', 'кускус', 'киноа', 'пюре', 'картоф', 'перлов', 'rice', 'pasta', 'noodle', 'quinoa', 'couscous', 'potato', 'mash', 'arroz', 'fideo', 'patata', 'pure'] },
+]
+const OTHER = { id: 'other', name: 'Другое', icon: 'utensils' }
+
+function detect(title) {
+  const words = title.toLowerCase().replaceAll('ё', 'е').normalize('NFD').replace(/\p{M}/gu, '').split(/[^\p{L}]+/u).filter(Boolean)
+  for (const g of GROUPS) {
+    for (const w of words) {
+      const stem = g.stems.find((s) => w.startsWith(s))
+      if (stem) return { group: g, word: w, stem }
+    }
+  }
+  return { group: OTHER }
+}
+
+const icon = (name) => `<i data-lucide="${name}"></i>`
+const input = document.getElementById('try')
+const vIcon = document.getElementById('vIcon')
+let last = ''
+function render() {
+  const { group, word, stem } = detect(input.value)
+  document.getElementById('vName').textContent = group.name
+  document.getElementById('vWhy').textContent = !input.value.trim() ? 'Введи название' : word ? `по слову «${word}» (основа «${stem}»)` : 'в словаре нет — выбери вручную'
+  if (group.id !== last) {
+    vIcon.innerHTML = icon(group.icon)
+    lucide.createIcons({ root: vIcon })
+    vIcon.classList.add('pop-in'); setTimeout(() => vIcon.classList.remove('pop-in'), 180)
+    last = group.id
+  }
+}
+input.addEventListener('input', render)
+
+const tries = ['Суп с гречкой', 'Chicken soup', 'Sopa de lentejas', 'Arroz con pollo', 'Компот', 'Сырники', 'Греческий салат', 'Шарлотка']
+document.getElementById('tries').innerHTML = tries.map((t) => `<button type="button">${t}</button>`).join('')
+document.getElementById('tries').addEventListener('click', (e) => {
+  if (e.target.tagName !== 'BUTTON') return
+  input.value = e.target.textContent; render(); input.focus()
+})
+
+document.getElementById('dict').innerHTML = GROUPS.map((g) =>
+  `<tr><td><span class="g">${icon(g.icon)}${g.name}</span></td><td>${g.stems.join(', ')}</td></tr>`).join('') +
+  `<tr><td><span class="g">${icon(OTHER.icon)}${OTHER.name}</span></td><td>всё, что не нашлось</td></tr>`
+
+render()
+lucide.createIcons()
+
+// Theme toggle (mockup page only).
+const root = document.documentElement
+const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches
+const setTheme = (t) => {
+  root.dataset.theme = t
+  document.querySelectorAll('.theme button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === t)))
+}
+setTheme(prefersDark ? 'dark' : 'light')
+document.querySelectorAll('.theme button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.t)))
+</script>
+</body>
+</html>

@@ -61,6 +61,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 - Styles: Tailwind classes in JSX, `cn()` from `@/lib/utils`. Colors only via shadcn theme variables, no hardcoded colors.
 - Gram fields only via `components/NumberField` (`inputMode="decimal"`, comma and dot, font ≥ 16 px, height ≥ 44 px).
 - **Screens, not overlays** (UX §3а). Anything with a lot of content (input, search, scrolling list) opens as its own full-screen route: own address, "←" and system back return to the exact previous state. From a `Select` or menu: close the list first, then open the screen. Over a screen only: `AlertDialog` confirmations, menus, `Select` without search, hints, toasts.
+- **Toasts (Sonner) — rarely** (UX §3а «Тосты — редко»): only for what happened out of sight (background events, an error with no place next to a field) or to offer «Отменить» after a delete or a mass change. If a tap's result is already on screen (a screen opened, a row appeared), no toast.
 - Components are functions, one per file. Imports from `src` via the `@/` alias.
 
 ### Don't reinvent wheels
@@ -72,6 +73,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 
 ### Git
 - The project has its own `git init` in this folder (it sits inside a foreign repo `~/Projects`; commit nothing there).
+- Draft PRs are never touched or merged by Claude (no pushes, edits, ready-for-review, merge) — only the user moves them out of draft.
 - Commits and PR titles: short `type: what was done` (`feat`, `fix`, `design`, `refactor`, `docs`, `chore`), no assistant mentions, no `Co-Authored-By` lines.
 
 ## Skills (loaded on demand)

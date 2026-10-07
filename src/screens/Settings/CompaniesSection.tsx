@@ -16,9 +16,12 @@ export function CompaniesSection() {
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
         <h2 className="text-base font-semibold max-md:sr-only">Компании</h2>
-        <p className="text-sm text-muted-foreground">Кто ест вместе и в каком соотношении.</p>
+        <p className="text-sm text-muted-foreground">
+          Кто ест вместе и в каком соотношении. Выбери компанию в калькуляторе в «Кто ест» — блюдо разделится по её
+          долям.
+        </p>
       </div>
-      <ul className="divide-y overflow-hidden rounded-xl border">
+      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
         {companies.map((company) => (
           <CompanyCard
             key={company.id}

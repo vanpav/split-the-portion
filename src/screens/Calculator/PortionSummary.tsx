@@ -14,7 +14,7 @@ import {
 } from '@/domain'
 import { cn } from '@/lib/utils'
 import { portionsWord, rawWord } from './messages'
-import { Recipe } from './Recipe'
+import { PortionRecipe } from './PortionRecipe'
 
 interface PortionSummaryProps {
   cooking: Cooking
@@ -88,7 +88,7 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, unit,
         />
       </div>
       {recipe && summary.same !== null && (
-        <Recipe cooking={cooking} raw={first.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="px-1" />
+        <PortionRecipe cooking={cooking} raw={first.raw} open={recipe.open} oneColumn={recipe.oneColumn} className="px-1" />
       )}
     </div>
   )

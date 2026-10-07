@@ -5,7 +5,7 @@ import { formatGrams, formatPercent, portionRawGrams, rawAmountsCopyText, type C
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
-import { Recipe } from './Recipe'
+import { PortionRecipe } from './PortionRecipe'
 
 interface PortionTileProps {
   cooking: Cooking
@@ -120,7 +120,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
       </label>
       {recipe && computed.share !== null && (
         <div className="px-2.5">
-          <Recipe
+          <PortionRecipe
             cooking={cooking}
             raw={computed.raw}
             open={recipe.open}

@@ -15,7 +15,7 @@ export function TaresSection() {
         <h2 className="text-base font-semibold max-md:sr-only">Тара</h2>
         <p className="text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
       </div>
-      <ul className="divide-y overflow-hidden rounded-xl border">
+      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
         {tares.map((tare) => (
           <TareRow
             key={tare.id}

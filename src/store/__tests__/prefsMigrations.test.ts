@@ -24,16 +24,23 @@ describe('migratePrefs', () => {
 
   it('v2 keeps «Доли» and gets hints with nothing shown', () => {
     const v2 = { splitMode: 'shares', portions: { d1: [{ id: 'a', weight: 1 }] } }
-    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS, composition: false })
+    expect(migratePrefs(v2, 2, counter())).toEqual({ ...v2, hints: EMPTY_HINTS, dishesByCategory: false, composition: false })
     // A stray `hints` in a v2 record is not trusted.
     expect(migratePrefs({ ...v2, hints: { off: true } }, 2, counter()).hints).toEqual(EMPTY_HINTS)
   })
 
-  it('v3 gets «Состав» off', () => {
-    const v3 = { splitMode: 'shares', portions: {}, hints: { settled: true, off: false, welcome: true, tour: 'done' } }
-    expect(migratePrefs(v3, 3, counter())).toMatchObject({ splitMode: 'shares', composition: false })
+  it('v3 starts with the flat dish list; v4 keeps the choice', () => {
+    const v3 = { splitMode: 'people', portions: {}, hints: EMPTY_HINTS, dishesByCategory: true }
+    expect(migratePrefs(v3, 3, counter()).dishesByCategory).toBe(false)
+    expect(migratePrefs(v3, 4, counter()).dishesByCategory).toBe(true)
+    expect(migratePrefs({ ...v3, dishesByCategory: 'yes' }, 4, counter()).dishesByCategory).toBe(false)
+  })
+
+  it('v4 gets «Состав» off and keeps «По категориям»', () => {
+    const v4 = { splitMode: 'shares', portions: {}, hints: { settled: true, off: false, welcome: true, tour: 'done' }, dishesByCategory: true }
+    expect(migratePrefs(v4, 4, counter())).toMatchObject({ splitMode: 'shares', dishesByCategory: true, composition: false })
     // A stray `composition` in an older record is not trusted.
-    expect(migratePrefs({ ...v3, composition: true }, 3, counter()).composition).toBe(false)
+    expect(migratePrefs({ ...v4, composition: true }, 4, counter()).composition).toBe(false)
   })
 
   it('the current version is kept; junk becomes the defaults', () => {
@@ -41,6 +48,7 @@ describe('migratePrefs', () => {
       splitMode: 'shares',
       portions: { d1: [{ id: 'a', weight: 1 }] },
       hints: { settled: true, off: true, welcome: true, tour: 2 },
+      dishesByCategory: true,
       composition: true,
     }
     expect(migratePrefs(v3, PREFS_VERSION, counter())).toEqual(v3)

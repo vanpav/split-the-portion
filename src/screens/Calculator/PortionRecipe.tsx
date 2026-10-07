@@ -1,7 +1,7 @@
 import { formatGrams, ingredientNames, type Cooking, type RawAmount } from '@/domain'
 import { cn } from '@/lib/utils'
 
-interface RecipeProps {
+interface PortionRecipeProps {
   cooking: Cooking
   /** Raw grams of the counted ingredients in this portion. */
   raw: RawAmount[]
@@ -17,7 +17,7 @@ interface RecipeProps {
  * ingredients. Always in the page, opened by a grid-rows reveal; closed, it is out of the way of the
  * keyboard and the screen reader. A name wraps up to two lines (the full one in the title), the grams never.
  */
-export function Recipe({ cooking, raw, open, oneColumn, className }: RecipeProps) {
+export function PortionRecipe({ cooking, raw, open, oneColumn, className }: PortionRecipeProps) {
   const names = ingredientNames(cooking)
   return (
     <div

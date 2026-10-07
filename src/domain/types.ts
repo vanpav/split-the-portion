@@ -114,6 +114,9 @@ export interface CookedWeight {
   at: string
 }
 
+/** Where a dish stands in the menu: first courses, mains, sides… (`dishCategories.ts`). */
+export type DishCategory = 'first' | 'mains' | 'sides' | 'salads' | 'breakfast' | 'baking' | 'drinks' | 'other'
+
 /**
  * A dish is a preset (docs/SPEC.md §3а): what is cooked and what was typed last time — the raw weights,
  * the tare, the last cooked weight. The calculator writes them as they are typed.
@@ -122,6 +125,11 @@ export interface Dish {
   id: Id
   kind: CookingKind
   name: string
+  /**
+   * Chosen by hand in the editor (since v13); null — «по названию»: the category is detected from the
+   * title and never stored (docs/SPEC.md §3б «Категории блюд»).
+   */
+  category: DishCategory | null
   createdAt: string
   updatedAt: string
   /** rawGrams — the weight typed last time. */

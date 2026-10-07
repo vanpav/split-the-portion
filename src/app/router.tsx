@@ -12,10 +12,12 @@ import { DishMenuScreen } from '@/screens/DishList/DishMenuScreen'
 import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
+import { AvatarCropScreen } from '@/screens/Settings/AvatarCropScreen'
+import { GroupScreen } from '@/screens/Settings/GroupScreen'
 import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
-import { COPY_TEXT, FROM_SIMPLE_DISH, INGREDIENTS, NEW_TARE } from './paths'
+import { AVATAR_CROP, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, INGREDIENTS, NEW_TARE } from './paths'
 import { RootLayout } from './RootLayout'
 
 // Screens opened over another one (docs/UX.md §3а) are its child routes: the screen under them stays
@@ -45,7 +47,15 @@ export const router = createHashRouter([
       },
       { path: 'd/:id/edit', element: <DishEditorScreen />, children: [fromSimpleDish, newTare] },
       { path: 'settings', element: <SettingsScreen /> },
-      { path: 'settings/:section', element: <SettingsScreen />, children: [copyText] },
+      {
+        path: 'settings/:section',
+        element: <SettingsScreen />,
+        children: [
+          copyText,
+          { path: AVATAR_CROP, element: <AvatarCropScreen /> },
+          { path: GROUP_SCREEN, element: <GroupScreen /> },
+        ],
+      },
       { path: 'account', element: <AccountScreen /> },
       { path: 'account/reset', element: <ResetPasswordScreen /> },
       { path: 'groups/new', element: <NewGroupScreen /> },

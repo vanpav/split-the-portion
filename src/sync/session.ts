@@ -134,14 +134,24 @@ export async function refreshGroups() {
   }
   for (const group of gone) {
     await Promise.all([del(groupDataKey(group.id)), forgetOutbox(group.id)])
-    toast(`Ты больше не в группе «${groupLabel(group)}»`)
+    toast(`Ты больше не в группе «${groupLabel(group, me()?.user.id)}»`)
   }
 }
 
-/** «Открывать при запуске» (online: the choice is the account's, the same on every device). */
+/** The group that opens at launch (online: the choice is the account's, the same on every device). */
 export async function makeDefaultGroup(groupId: string) {
   await groupsApi.setDefault(groupId)
   await refreshAccount()
+}
+
+/**
+ * «Открыть эту группу»: it is on screen now and opens at the next launch too — the open group and the
+ * launch group are one choice (docs/SPEC.md §13.3). Offline it opens anyway; the launch choice
+ * catches up the next time the group is opened online.
+ */
+export async function switchGroup(groupId: string) {
+  await openGroup(groupId)
+  await makeDefaultGroup(groupId).catch(() => undefined)
 }
 
 /** A code accepted: the new group's data comes on opening it. */

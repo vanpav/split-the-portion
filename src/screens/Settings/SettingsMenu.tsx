@@ -1,79 +1,69 @@
-import { ChevronRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { SETTINGS_PATH, settingsPath } from '@/app/paths'
 import { useBack } from '@/app/useBack'
-import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item'
-import { groupLabel } from '@/account/groupLabel'
+import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
-import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections'
+import { CLUSTER_TITLES, SETTINGS_SECTIONS, type SettingsCluster, type SettingsSectionId } from './sections'
 
 interface SettingsMenuProps {
   /** The subsection open by its address. */
   current?: SettingsSectionId
-  /** Shown on the right from `md` without being in the address (`#/settings`): highlighted from `md` only. */
+  /** Shown on the right without being in the address (`#/settings`). */
   shown?: SettingsSectionId
-  /**
-   * The menu beside a subsection (from `md`): switching replaces the address, so «←» and the system
-   * «назад» leave the settings in one step instead of walking through every subsection seen.
-   * The phone's list adds an entry: «←» in a subsection goes back to it.
-   */
-  replace?: boolean
   className?: string
 }
 
+const CLUSTERS: SettingsCluster[] = ['account', 'kitchen', 'app']
+
 /**
- * Settings subsections. On a phone a list of rows leading to their screens;
- * from `md` a menu on the left of the open subsection.
+ * From `md`: the menu on the left of the open subsection, in the same clusters as the phone's hub
+ * (SettingsHub). Switching replaces the address, so «←» and the system «назад» leave the settings in
+ * one step instead of walking through every subsection seen.
  */
-export function SettingsMenu({ current, shown, replace = false, className }: SettingsMenuProps) {
-  const me = useAccountStore((s) => s.me)
-  const openId = useSyncStore((s) => s.groupId)
-  const openGroup = me?.groups.find((g) => g.id === openId)
-  const groupName = openGroup && groupLabel(openGroup)
+export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
+  const inGroup = useSyncStore((s) => s.groupId !== null)
+  const signedIn = useAccountStore((s) => s.me !== null)
   const { hasPrevious, noPreviousState } = useBack(SETTINGS_PATH)
-  // What is said under a title: the account's email and the open group instead of the defaults.
-  const said = (id: SettingsSectionId, description: string) =>
-    (id === 'account' && me?.user.email) || (id === 'group' && groupName) || description
+  const sections = SETTINGS_SECTIONS.filter((s) => s.id !== 'group' || (signedIn && inGroup))
+
   return (
-    <nav aria-label="Подразделы настроек" className={className}>
-      <ul className="divide-y overflow-hidden rounded-xl border md:flex md:flex-col md:gap-1 md:divide-y-0 md:rounded-none md:border-0">
-        {SETTINGS_SECTIONS.filter((s) => s.id !== 'group' || groupName).map(({ id, title, description, Icon }) => (
-          <li key={id}>
-            <Item
-              asChild
-              className={cn(
-                'min-h-14 flex-nowrap rounded-none md:min-h-11 md:rounded-lg',
-                id === current && 'bg-muted',
-                id === shown && 'md:bg-muted',
-              )}
-            >
-              <Link
-                to={settingsPath(id)}
-                replace={replace}
-                state={replace && !hasPrevious ? noPreviousState : undefined}
-                aria-current={id === current ? 'page' : undefined}
-              >
-                <ItemMedia variant="icon">
-                  <Icon className="size-5 text-muted-foreground" />
-                </ItemMedia>
-                <ItemContent className="min-w-0 gap-0.5">
-                  <ItemTitle className={cn('text-base', (id === current || id === shown) && 'md:font-semibold')}>
-                    {title}
-                  </ItemTitle>
-                  <ItemDescription className="truncate md:hidden">
-                    {said(id, description)}
-                  </ItemDescription>
-                </ItemContent>
-                <ItemActions className="md:hidden">
-                  <ChevronRightIcon className="size-4 text-muted-foreground" />
-                </ItemActions>
-              </Link>
-            </Item>
-          </li>
-        ))}
-      </ul>
+    <nav aria-label="Подразделы настроек" className={cn('flex flex-col gap-5', className)}>
+      {CLUSTERS.map((cluster) => {
+        const title = CLUSTER_TITLES[cluster]
+        return (
+          <div key={cluster} className="flex flex-col gap-1">
+            {title && <h2 className="px-3 pb-1 text-sm font-medium text-muted-foreground">{title}</h2>}
+            <ul className="flex flex-col gap-1">
+              {sections
+                .filter((s) => s.cluster === cluster)
+                .map(({ id, title, Icon }) => {
+                  const active = id === current || id === shown
+                  return (
+                    <li key={id}>
+                      <Item asChild className={cn('min-h-11 flex-nowrap rounded-lg py-2', active && 'bg-card ring-2 ring-foreground ring-inset')}>
+                        <Link
+                          to={settingsPath(id)}
+                          replace
+                          state={hasPrevious ? undefined : noPreviousState}
+                          aria-current={id === current ? 'page' : undefined}
+                        >
+                          <ItemMedia variant="icon">
+                            <Icon className={cn('size-5', active ? 'text-foreground' : 'text-muted-foreground')} />
+                          </ItemMedia>
+                          <ItemContent>
+                            <ItemTitle className={cn('text-base', active && 'font-semibold')}>{title}</ItemTitle>
+                          </ItemContent>
+                        </Link>
+                      </Item>
+                    </li>
+                  )
+                })}
+            </ul>
+          </div>
+        )
+      })}
     </nav>
   )
 }

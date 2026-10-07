@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { groupLabel } from '@/account/groupLabel'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { adoptLocalData, keepLocalDataApart } from '@/sync/session'
@@ -19,7 +20,9 @@ import { adoptLocalData, keepLocalDataApart } from '@/sync/session'
  */
 export function LocalDataDialog() {
   const localData = useSyncStore((s) => s.localData)
-  const groupName = useAccountStore((s) => s.me?.groups.find((g) => g.id === s.me?.defaultGroupId)?.name ?? '')
+  const me = useAccountStore((s) => s.me)
+  const group = me?.groups.find((g) => g.id === me.defaultGroupId)
+  const groupName = group ? groupLabel(group, me?.user.id) : ''
 
   return (
     <AlertDialog open={localData !== null} onOpenChange={(open) => !open && keepLocalDataApart()}>

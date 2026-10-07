@@ -2,6 +2,7 @@ import { Share2Icon, UserPlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { groupsApi } from '@/account/groupsApi'
+import { customName } from '@/account/groupLabel'
 import { formatInviteCode } from '@/account/inviteCode'
 import { groupErrorText } from '@/account/networkText'
 import type { AccountGroup, Invite } from '@/account/types'
@@ -31,20 +32,36 @@ export function InviteCard({ group }: { group: AccountGroup }) {
     }
   }
   const share = () =>
-    void navigator.share({ title: 'Порции', text: `Вступай в группу «${group.name}»: код ${formatInviteCode(invite!.code)}`, url: link }).catch(() => undefined)
+    void navigator
+      .share({
+        title: 'Порции',
+        text: customName(group.name)
+          ? `Вступай в группу «${customName(group.name)}» в «Порциях»: код ${formatInviteCode(invite!.code)}`
+          : `Давай вести блюда вместе в «Порциях»: код ${formatInviteCode(invite!.code)}`,
+        url: link,
+      })
+      .catch(() => undefined)
 
   if (!invite) {
     return (
-      <Button className="self-start" disabled={busy} onClick={() => void run(async () => setInvite(await groupsApi.invite(group.id)))}>
-        <UserPlusIcon data-icon="inline-start" />
-        Пригласить
-      </Button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void run(async () => setInvite(await groupsApi.invite(group.id)))}
+        className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60 disabled:opacity-50"
+      >
+        <UserPlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="font-medium">Пригласить</span>
+          <span className="text-sm text-muted-foreground">Код или ссылка для мессенджера</span>
+        </span>
+      </button>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border p-4">
-      <p className="text-sm text-muted-foreground">Код приглашения в «{group.name}»</p>
+    <div className="flex flex-col gap-3 bg-muted/40 px-4 py-4">
+      <p className="text-sm text-muted-foreground">Код приглашения</p>
       <div className="flex items-center gap-2">
         <span className="flex-1 text-3xl font-medium tracking-widest tabular-nums">{formatInviteCode(invite.code)}</span>
         <CopyButton label="Скопировать ссылку-приглашение" getText={() => link} />
@@ -54,7 +71,7 @@ export function InviteCard({ group }: { group: AccountGroup }) {
           </Button>
         )}
       </div>
-      <p className="break-all text-sm text-muted-foreground">{link}</p>
+      <p className="text-sm break-all text-muted-foreground">{link}</p>
       <div className="flex flex-wrap items-center gap-2">
         <span className="flex-1 text-sm text-muted-foreground">Действует до {until.format(new Date(invite.expiresAt))}</span>
         {group.role === 'owner' && (

@@ -2,11 +2,13 @@ import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { csrf } from 'hono/csrf'
 import { parseInviteCode } from '../src/account/inviteCode'
-import { MAX_GROUP_NAME } from '../src/account/types'
+import { parseProfile } from '../src/account/profile'
+import { MAX_AVATAR_BYTES, MAX_GROUP_NAME } from '../src/account/types'
 import { SYNC_LIMITS } from '../src/sync/protocol'
 import { type Auth, createAuth } from './auth'
 import { acceptInvite, createGroup, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
 import { getMe, setDefaultGroup } from './me'
+import { imageType, readAvatar, removeAvatar, saveAvatar, saveProfile } from './profile'
 import { isMember, syncGroup } from './sync'
 import { parseSyncRequest } from './syncRequest'
 
@@ -77,6 +79,40 @@ app.put('/me/default-group', async (c) => {
   if (typeof groupId !== 'string' || !(await isMember(c.env.DB, groupId, userId))) return c.json({ error: 'forbidden' }, 403)
   await setDefaultGroup(c.env.DB, userId, groupId)
   return c.json({ ok: true })
+})
+
+app.put('/me/profile', async (c) => {
+  const profile = parseProfile(await c.req.json().catch(() => null))
+  if (!profile) return c.json({ error: 'bad_profile' }, 400)
+  await saveProfile(c.env.DB, c.get('session').user.id, profile)
+  return c.json({ ok: true })
+})
+
+// The photo arrives as the bytes of a 256×256 image cut on the phone (docs/SPEC.md §13.2).
+const avatarBodyLimit = bodyLimit({ maxSize: MAX_AVATAR_BYTES, onError: (c) => c.json({ error: 'too_large' }, 413) })
+
+app.put('/me/avatar', avatarBodyLimit, async (c) => {
+  const bytes = new Uint8Array(await c.req.arrayBuffer())
+  const type = imageType(bytes)
+  if (!type) return c.json({ error: 'bad_image' }, 400)
+  const image = await saveAvatar(c.env.DB, c.get('session').user.id, bytes, type, new Date().toISOString())
+  return c.json({ image })
+})
+
+app.delete('/me/avatar', async (c) => {
+  await removeAvatar(c.env.DB, c.get('session').user.id)
+  return c.json({ ok: true })
+})
+
+// Seen by its owner and by the people in their groups. The address carries the version: cached for good.
+app.get('/avatars/:userId', async (c) => {
+  const avatar = await readAvatar(c.env.DB, c.get('session').user.id, c.req.param('userId'))
+  if (!avatar) return c.json({ error: 'not_found' }, 404)
+  return c.body(avatar.bytes, 200, {
+    'content-type': avatar.type,
+    'cache-control': 'private, max-age=31536000, immutable',
+    'x-content-type-options': 'nosniff',
+  })
 })
 
 app.post('/invites/:code/accept', async (c) => {

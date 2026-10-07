@@ -202,7 +202,8 @@
  * «Ланчбокс» (DESIGN.md): frosted polypropylene ground, navy ink, a cobalt primary,
  * and a lid color per person — `--chart-1..10`, by the person's place in today's lineup.
  */
-:root {
+:root,
+.light {
     --background: oklch(0.969 0.006 255.5);
     --foreground: oklch(0.267 0.054 269.1);
     --card: oklch(1 0 0);
