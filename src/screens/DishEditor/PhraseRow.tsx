@@ -2,7 +2,7 @@ import { TriangleAlertIcon, XIcon } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import type { PhraseItem } from '@/domain'
-import { phraseIssueText, phraseWeightText } from '@/domain/phraseText'
+import { phraseIssueText, phraseWeightText } from '@/domain'
 import { cn } from '@/lib/utils'
 
 interface PhraseRowProps {

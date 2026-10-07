@@ -23,8 +23,10 @@ import {
   looksSpoken,
   parsePhrase,
   phraseIngredients,
+  phraseIssueText,
   phraseKey,
   phraseSummary,
+  phraseSummaryText,
   productCount,
   removePhraseItem,
   spokenToPhrase,
@@ -32,7 +34,6 @@ import {
   type Id,
   type PhraseItem,
 } from '@/domain'
-import { phraseIssueText, phraseSummaryText } from '@/domain/phraseText'
 import { useSpeechRecognition, type SpeechError } from '@/lib/useSpeechRecognition'
 import { cn } from '@/lib/utils'
 import { newId } from '@/store/id'
@@ -126,6 +127,15 @@ export function DishEditorForm() {
         },
       },
     })
+
+  // The field grows with its text by `field-sizing: content`; a browser without it (older iOS Safari)
+  // gets the height set here, so the phrase is never a scroll box inside the form.
+  useLayoutEffect(() => {
+    const field = fieldRef.current
+    if (!field || CSS.supports('field-sizing', 'content')) return
+    field.style.height = 'auto'
+    field.style.height = `${field.scrollHeight + field.offsetHeight - field.clientHeight}px`
+  }, [text])
 
   // The caret on open (at the end), and after a button changed the text.
   useLayoutEffect(() => {
