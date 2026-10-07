@@ -10,6 +10,8 @@ export const newTarePath = (id: Id) => `/d/${id}/tare/new`
 export const newCompanyPath = (id: Id) => `/d/${id}/company/new`
 /** Relative to the dish editor: «Из простого блюда», a screen over the form. */
 export const FROM_SIMPLE_DISH = 'from-dish'
+/** Relative to the dish editor: «Новая тара» from «+» in the tare chips. */
+export const NEW_TARE = 'tare/new'
 /** Relative to the calculator or a settings subsection: the text the clipboard refused, to copy by hand. */
 export const COPY_TEXT = 'copy'
 /** The text goes with the navigation to `copy`: it is shown, not stored. */
