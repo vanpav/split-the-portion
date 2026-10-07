@@ -29,6 +29,12 @@ export type Weighing =
   | { id: Id; at: string; kind: 'food'; grams: number | null }
   | { id: Id; at: string; kind: 'withTare'; grams: number | null; tare: TareSnapshot }
 
+/**
+ * The `ingredientId` of a raw portion (and the `rawOf` of the calculator's view) that means the sum of
+ * all counted ingredients instead of one of them: a composite dish's «Сырой» (docs/SPEC.md §3б).
+ */
+export const RAW_SUM = 'sum'
+
 export type PortionInput =
   /** Not chosen yet: follows the dish (raw of the only counted ingredient, otherwise cooked). */
   | { basis: 'default'; grams: null }

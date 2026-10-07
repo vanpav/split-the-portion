@@ -1,6 +1,6 @@
 import { roundHalfUp } from './numbers'
 import { roundPreservingSum } from './split'
-import type { Id, PhaseResult, PortionResult } from './types'
+import { RAW_SUM, type Id, type PhaseResult, type PortionResult } from './types'
 
 /** Nobody drops out by dragging: a person keeps at least 1 %. Remove them with × instead. */
 export const MIN_PERCENT = 1
@@ -134,6 +134,7 @@ export function portionIn(
  */
 export function portionGrams(computed: Pick<PortionResult, 'cookedGrams' | 'raw'>, rawOf: Id | null): number | null {
   if (rawOf === null) return computed.cookedGrams
+  if (rawOf === RAW_SUM) return computed.raw.length > 0 ? computed.raw.reduce((sum, r) => sum + r.grams, 0) : null
   return computed.raw.find((r) => r.ingredientId === rawOf)?.grams ?? null
 }
 

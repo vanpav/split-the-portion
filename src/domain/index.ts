@@ -5,6 +5,7 @@ export { foodGrams } from './weighing'
 export type { FoodGramsResult } from './weighing'
 export {
   baseRawGrams,
+  portionRawGrams,
   computeCooking,
   countedIngredients,
   findPortionPhase,
@@ -23,7 +24,7 @@ export { cookingWarnings, isValidSplitN, isValidTareGrams, K_RANGE, MAX_SPLIT_PO
 export type { CookingWarning } from './validation'
 export { canReweigh, leftoverCookedGrams } from './phases'
 export { clockTime, cookedToday, dayLabel, sameDay } from './dates'
-export { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawFold, recentDishes, shareWeights, shelfOrder, startDish } from './dish'
+export { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, ingredientsCount, recipeInOneColumn, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawTileLines, recentDishes, shareWeights, shelfOrder, startDish } from './dish'
 export type { DishError } from './dish'
 export { companyLineup, dishLineup, lineupCompany } from './lineup'
 export { typedGrams } from './keypad'

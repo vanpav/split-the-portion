@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { baseRawGrams, computeCooking, ingredientDisplayName, ingredientNames } from '../cooking'
+import { baseRawGrams, computeCooking, ingredientDisplayName, ingredientNames, portionRawGrams } from '../cooking'
 import { basisKey, convertPortionInput, portionBasisOptions } from '../portionInput'
 import { fillRemainder } from '../remainder'
 import { splitLeftover } from '../split'
+import { RAW_SUM } from '../types'
 import { isValidSplitN, MAX_SPLIT_PORTIONS } from '../validation'
-import { auto, buckwheat, cooked, cooking, ingredient, raw, soup } from './fixtures'
+import { auto, buckwheat, cooked, cooking, food, ingredient, raw, soup } from './fixtures'
 
 const inputOf = (c: ReturnType<typeof soup>, portionId: string) =>
   computeCooking(c).phases[0].portions.find((p) => p.portionId === portionId)!.input
@@ -119,5 +120,25 @@ describe('names', () => {
     const result = computeCooking(buckwheat([raw('anya', 'buckwheat', 80)]))
     expect(baseRawGrams(result, result.phases[0].remainder.raw)).toBeCloseTo(120, 9)
     expect(baseRawGrams(computeCooking(soup()), [])).toBeNull()
+  })
+})
+
+describe('a portion in raw grams of the sum (composite dish, RAW_SUM)', () => {
+  it('170 g of the 1 360 g counted is the same 1/8 of the soup as 395 g of the 3 160 g cooked', () => {
+    const byRaw = computeCooking(soup([raw('p', RAW_SUM, 170)])).phases[0].portions[0]
+    expect(byRaw.share).toBeCloseTo(0.125, 9)
+    expect(byRaw.cookedGrams).toBeCloseTo(395, 9)
+    expect(portionRawGrams(computeCooking(soup()), byRaw.raw)).toBeCloseTo(170, 9)
+  })
+
+  it('nothing counted: the portion cannot be computed', () => {
+    const none = cooking({ ingredients: [ingredient('w', 2000, true)], weighings: [food('w0', 1000)], portions: [raw('p', RAW_SUM, 100)] })
+    expect(computeCooking(none).phases[0].portions[0]).toMatchObject({ share: null, issue: 'missingIngredient' })
+  })
+
+  it('one counted ingredient: the sum is that ingredient', () => {
+    const result = computeCooking(cooking({ ingredients: [ingredient('b', 200)], weighings: [food('w0', 560)], portions: [raw('p', RAW_SUM, 80)] }))
+    expect(result.phases[0].portions[0].cookedGrams).toBeCloseTo(224, 9)
+    expect(portionRawGrams(result, result.phases[0].portions[0].raw)).toBeCloseTo(80, 9)
   })
 })

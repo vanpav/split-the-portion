@@ -60,24 +60,39 @@ export function dishSummary(ingredients: (Pick<Ingredient, 'name' | 'rawGrams'> 
   return counted.map((i) => i.name.trim()).join(', ')
 }
 
+/** «1 ингредиент», «2 ингредиента», «5 ингредиентов». */
+export function ingredientsCount(count: number): string {
+  const last = count % 10
+  const lastTwo = count % 100
+  const word = last === 1 && lastTwo !== 11 ? 'ингредиент' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'ингредиента' : 'ингредиентов'
+  return `${count} ${word}`
+}
+
 /**
- * A composite dish folded to one readout in the calculator: the raw weight of what counts, summed
- * (null while no counted product has a weight), and a quiet note — counted products still without
- * a weight, then what is weighed in but not counted: «не в счёт: Вода 2 000 г, Соль 5 г».
+ * The «Сырой» tile of a composite dish in the calculator (docs/SPEC.md §3б): the raw weight of what
+ * counts, summed (null while no counted ingredient has a weight), and the lines under it — how many
+ * ingredients count («5 ингредиентов,»), then what is missing or left out: counted ones still without
+ * a weight («без веса: Шампиньоны»), otherwise the ones «не в счёт: Вода, Соль».
  */
-export function rawFold(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; note: string } {
+export function rawTileLines(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; lines: string[] } {
   const named = ingredients.filter((i) => i.name.trim())
   const counted = named.filter((i) => !i.excluded)
   const weighed = counted.filter((i) => i.rawGrams !== null)
   const total = weighed.length > 0 ? weighed.reduce((a, i) => a + (i.rawGrams ?? 0), 0) : null
-  const unweighed = counted.filter((i) => i.rawGrams === null).map((i) => i.name.trim())
-  const uncounted = named
-    .filter((i) => i.excluded)
-    .map((i) => (i.rawGrams !== null ? `${i.name.trim()} ${formatGrams(i.rawGrams)} г` : i.name.trim()))
-  const note = [unweighed.length > 0 && `без веса: ${unweighed.join(', ')}`, uncounted.length > 0 && `не в счёт: ${uncounted.join(', ')}`]
-    .filter((part): part is string => Boolean(part))
-    .join(' · ')
-  return { total, note }
+  const names = (list: typeof named) => list.map((i) => i.name.trim()).join(', ')
+  const unweighed = counted.filter((i) => i.rawGrams === null)
+  const uncounted = named.filter((i) => i.excluded)
+  const second = unweighed.length > 0 ? `без веса: ${names(unweighed)}` : uncounted.length > 0 ? `не в счёт: ${names(uncounted)}` : null
+  const first = ingredientsCount(counted.length)
+  return { total, lines: second !== null ? [`${first},`, second] : [first] }
+}
+
+/** A name longer than this does not fit half a column of a recipe on a phone (docs/UX.md §3). */
+const LONG_NAME_LENGTH = 13
+
+/** «Состав»: the recipe goes one column everywhere once any ingredient name of the dish is long. */
+export function recipeInOneColumn(names: readonly string[]): boolean {
+  return names.some((name) => name.length > LONG_NAME_LENGTH)
 }
 
 /** Ingredients that go to the tracker: named and not «не учитывать». The weight may still be empty. */
