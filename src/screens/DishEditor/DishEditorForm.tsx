@@ -10,9 +10,13 @@ import { MoreMenu, type MoreMenuItem } from '@/components/MoreMenu'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   appendToPhrase,
+  CATEGORY_LABELS,
   DEFAULT_PHRASE_LANGUAGE,
+  detectCategory,
+  DISH_CATEGORIES,
   dishKind,
   dishSource,
   dishTitle,
@@ -29,6 +33,7 @@ import {
   phraseSummaryText,
   removePhraseItem,
   spokenToPhrase,
+  type DishCategory,
   type ExcludedOverrides,
   type Id,
   type PhraseItem,
@@ -48,6 +53,9 @@ const SPEECH_ERROR_TEXT: Record<SpeechError, string> = {
   network: 'Нет сети — голос сейчас недоступен',
   nothingHeard: 'Ничего не расслышал — попробуйте ещё раз',
 }
+
+/** The select's value for «По названию» (null in the dish). */
+const AUTO_CATEGORY = 'auto'
 
 const canPaste = typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
 
@@ -83,6 +91,7 @@ export function DishEditorForm() {
     if (existing) {
       return {
         name: existing.name,
+        category: existing.category,
         tareId: existing.tareId,
         text: ingredientsToPhrase(existing.ingredients),
         overrides: excludedOverrides(existing.ingredients),
@@ -92,6 +101,7 @@ export function DishEditorForm() {
     const source = base && dishSource(base)
     return {
       name: '',
+      category: null,
       // Not everyone weighs in a pot: a new dish starts without tare.
       tareId: null,
       // `?from=` — a simple dish to start with; `?text=` — what was typed in the search («Создать «…»»).
@@ -100,6 +110,8 @@ export function DishEditorForm() {
     }
   })
   const [name, setName] = useState(initial.name)
+  // null — «по названию»: detected from the title, never stored.
+  const [category, setCategory] = useState<DishCategory | null>(initial.category)
   const [tareId, setTareId] = useState<Id | null>(initial.tareId)
   const [text, setText] = useState(initial.text)
   const [overrides, setOverrides] = useState<ExcludedOverrides>(initial.overrides)
@@ -249,10 +261,14 @@ export function DishEditorForm() {
     ingredients: items.map((i) => ({ id: '', name: i.name, rawGrams: i.rawGrams, excluded: i.excluded })),
   })
 
+  // «По названию» follows the name as typed, or the name the dish gets from its products.
+  const detected = detectCategory(name.trim() || titlePlaceholder)
+  const somethingTyped = name.trim() !== '' || items.some((i) => i.name)
+
   const save = () => {
     if (blocked) return
     const ingredients = phraseIngredients(items, existing?.ingredients ?? []).map((i) => ({ ...i, id: i.id ?? newId() }))
-    const savedId = saveDish({ ...existing, kind: dishKind(ingredients), name: name.trim(), tareId, ingredients })
+    const savedId = saveDish({ ...existing, kind: dishKind(ingredients), name: name.trim(), category, tareId, ingredients })
     navigate(dishPath(savedId), { replace: true })
   }
 
@@ -276,26 +292,58 @@ export function DishEditorForm() {
           action={<MoreMenu items={menu} />}
         />
         <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between px-1">
-              <label htmlFor="dish-name" className="text-sm font-medium">
-                Название
-              </label>
-              <span className="text-sm text-muted-foreground">можно не писать</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between px-1">
+                <label htmlFor="dish-name" className="text-sm font-medium">
+                  Название
+                </label>
+                <span className="text-sm text-muted-foreground">можно не писать</span>
+              </div>
+              <Input
+                id="dish-name"
+                className="h-12 text-xl md:text-xl"
+                placeholder={titlePlaceholder}
+                enterKeyHint="next"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return
+                  e.preventDefault()
+                  fieldRef.current?.focus()
+                }}
+              />
             </div>
-            <Input
-              id="dish-name"
-              className="h-12 text-xl md:text-xl"
-              placeholder={titlePlaceholder}
-              enterKeyHint="next"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key !== 'Enter') return
-                e.preventDefault()
-                fieldRef.current?.focus()
-              }}
-            />
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="dish-category" className="px-1 text-sm font-medium">
+                Категория
+              </label>
+              <Select value={category ?? AUTO_CATEGORY} onValueChange={(v) => setCategory(v === AUTO_CATEGORY ? null : (v as DishCategory))}>
+                <SelectTrigger id="dish-category" className="w-full">
+                  <span className="flex min-w-0 flex-1 justify-start truncate">
+                    <SelectValue>{CATEGORY_LABELS[category ?? detected]}</SelectValue>
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{category ? 'выбрано вручную' : 'по названию'}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={AUTO_CATEGORY}>
+                    <span>
+                      По названию <span className="text-muted-foreground">· {CATEGORY_LABELS[detected]}</span>
+                    </span>
+                  </SelectItem>
+                  <SelectSeparator />
+                  {DISH_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {CATEGORY_LABELS[c]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!category && detected === 'other' && somethingTyped && (
+                <p className="px-1 text-sm text-muted-foreground">По названию не угадать — выберите сами</p>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-3">

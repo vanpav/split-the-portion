@@ -99,3 +99,34 @@ describe('presetSource', () => {
     expect(presetSource({ name: 'Плов', ingredients: [p('Рис', 1), p('Курица', 1)] })).toBeNull()
   })
 })
+
+describe('dishRow found by category', () => {
+  const buckwheat = { ...recipe('Гречка', p('Гречка', 200)), category: null }
+
+  it('the category label is the second line and carries the highlight', () => {
+    expect(dishRow(buckwheat, 'гарн')).toEqual({ title: 'Гречка', weight: 200, second: 'Гарниры', foundBy: true })
+  })
+
+  it('a composite dish shows the label alone', () => {
+    const plov = recipe('Плов', p('Рис', 300), p('Курица', 500))
+    expect(dishRow(plov, 'втор').second).toBe('Вторые')
+  })
+
+  it('the manual category counts', () => {
+    expect(dishRow({ ...buckwheat, category: 'mains' }, 'гарн').second).toBeNull()
+    expect(dishRow({ ...buckwheat, category: 'mains' }, 'втор').second).toBe('Вторые')
+  })
+
+  it('under a category heading the label is not repeated', () => {
+    expect(dishRow(buckwheat, 'гарн', { underCategory: true })).toEqual({ title: 'Гречка', weight: 200, second: null, foundBy: false })
+  })
+
+  it('a title or product match wins over the category', () => {
+    expect(dishRow(recipe('Гарнир', p('Рис')), 'гарн').foundBy).toBe(false)
+    expect(dishRow(recipe('Суп', p('Курица'), p('Гарнир')), 'гарн').second).toBe('Гарнир, Курица')
+  })
+
+  it('no query, no label', () => {
+    expect(dishRow(buckwheat, '').second).toBeNull()
+  })
+})

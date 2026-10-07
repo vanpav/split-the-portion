@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { shelfScrollTarget } from '@/app/enterAnimation'
 import { dishEditPath, dishPath, DISHES_PATH, newDishPath } from '@/app/paths'
+import { DishCategoryIcon } from '@/components/DishCategoryIcon'
 import { MoreMenu } from '@/components/MoreMenu'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { dishTitle, recentDishes, shelfOrder, type Id } from '@/domain'
+import { dishCategory, dishTitle, recentDishes, shelfOrder, type Id } from '@/domain'
 import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
@@ -103,9 +104,9 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
         className,
       )}
     >
-      {/* As wide as the calculator under it, so the shelf lines up with the column; on a desktop both are
-          wider — more chips in sight without scrolling sideways with a mouse. */}
-      <div data-hint="shelf" className="mx-auto flex min-h-14 w-full max-w-md items-center gap-1 pr-1 pl-2 lg:max-w-2xl">
+      {/* The whole width, as every screen header: 🔍 at the left edge where «←» is elsewhere, «⋯» at the
+          right one; on a desktop all the chips are in sight without scrolling sideways with a mouse. */}
+      <div data-hint="shelf" className="flex min-h-14 w-full items-center gap-1 px-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>
@@ -158,6 +159,7 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
                     current && 'bg-card font-semibold ring-2 ring-foreground ring-inset hover:bg-card',
                   )}
                 >
+                  <DishCategoryIcon category={dishCategory(dish)} className={cn('size-4', current && 'text-foreground')} />
                   {dishTitle(dish)}
                 </span>
               </Link>

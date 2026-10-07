@@ -1,8 +1,10 @@
-import { SearchIcon, XIcon } from 'lucide-react'
+import { ListTreeIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Command, CommandList } from '@/components/ui/command'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
+import { cn } from '@/lib/utils'
 
 interface DishSearchProps {
   query: string
@@ -12,6 +14,8 @@ interface DishSearchProps {
   placeholder: string
   /** The `value`s of the rows, in the order shown: Enter takes the selected one, the first by default. */
   values: string[]
+  /** «По категориям» in the field (the dish menu only): on / off and the switch. Absent — no button. */
+  grouping?: { on: boolean; onToggle: () => void }
   /** A quiet line under the field. */
   hint?: ReactNode
   /** Between the field and the list. */
@@ -32,6 +36,7 @@ export function DishSearch({
   onClose,
   placeholder,
   values,
+  grouping,
   hint,
   before,
   children,
@@ -100,18 +105,45 @@ export function DishSearch({
           // 16 px and more, on every width: a smaller field makes the iPhone zoom in on focus.
           className="text-base md:text-base"
         />
-        {query && (
+        {(query || grouping) && (
           <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-sm"
-              className="size-10 rounded-full"
-              aria-label="Очистить"
-              // Not on pointer down: the field would lose the focus and the phone its keyboard.
-              onPointerDown={(e) => e.preventDefault()}
-              onClick={clear}
-            >
-              <XIcon />
-            </InputGroupButton>
+            {query && (
+              <InputGroupButton
+                size="icon-sm"
+                className="size-10 rounded-full"
+                aria-label="Очистить"
+                // Not on pointer down: the field would lose the focus and the phone its keyboard.
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={clear}
+              >
+                <XIcon />
+              </InputGroupButton>
+            )}
+            {grouping && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InputGroupButton
+                    size="icon-sm"
+                    aria-label="По категориям"
+                    aria-pressed={grouping.on}
+                    // The same as ✕: a tap keeps the focus in the field and the keyboard open.
+                    onPointerDown={(e) => e.preventDefault()}
+                    onClick={grouping.onToggle}
+                    className={cn(
+                      'size-10 rounded-full',
+                      grouping.on
+                        ? 'bg-secondary text-foreground ring-2 ring-foreground ring-inset hover:bg-secondary'
+                        : 'bg-transparent text-muted-foreground hover:bg-muted',
+                    )}
+                  >
+                    <ListTreeIcon />
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="end">
+                  По категориям
+                </TooltipContent>
+              </Tooltip>
+            )}
           </InputGroupAddon>
         )}
       </InputGroup>

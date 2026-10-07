@@ -32,13 +32,15 @@ const v10 = { ...v9, tares: [{ ...tare, createdAt: at(0) }] }
 /** v11: no cookings; dishes remember their last cooked weight. */
 const v11 = { dishes: [], tares: v10.tares, companies: [], lineups: {}, holdMs: 1500 }
 /** v12: dishes remember the days they were used. */
-const v12: PersistedState = v11
+const v12 = v11
+/** v13: dishes get a category chosen by hand (null — detected from the title). */
+const v13: PersistedState = v12
 
 const backups = (data: Map<string, string>) => [...data.keys()].filter((k) => k.startsWith(`${STORAGE_KEY}:backup:`))
 
 describe('migrate', () => {
   it('accepts the current version', () => {
-    expect(migrate(v12, CURRENT_VERSION)).toEqual(v12)
+    expect(migrate(v13, CURRENT_VERSION)).toEqual(v13)
   })
 
   it.each([0, CURRENT_VERSION + 1, 1.5])('rejects version %s', (version) => {
@@ -52,7 +54,7 @@ describe('migrate', () => {
   it('v5 → v6: dishes lose companyId, the rest kept', () => {
     const dish = { id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, companyId: 'c' }
     const migrated = migrate({ ...v5, dishes: [dish] }, 5)
-    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', ingredients: [], tareId: null, cooked: null, usedOn: [] }])
+    expect(migrated.dishes).toEqual([{ id: 'd', kind: 'simple', name: 'Макароны', category: null, ingredients: [], tareId: null, cooked: null, usedOn: [] }])
     expect(migrated.lineups).toEqual({})
   })
 
@@ -73,7 +75,7 @@ describe('migrate', () => {
     const migrated = migrate({ ...v8, dishes: [dish('a'), dish('b')], lineup }, 8)
     expect(migrated.lineups).toEqual({ a: { companyId: null, members: lineup }, b: { companyId: null, members: lineup } })
     expect(migrated).not.toHaveProperty('lineup')
-    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v12, dishes: [{ ...dish('a'), cooked: null, usedOn: [] }] })
+    expect(migrate({ ...v8, dishes: [dish('a')] }, 8)).toEqual({ ...v13, dishes: [{ ...dish('a'), category: null, cooked: null, usedOn: [] }] })
   })
 
   it('v9 → v10: tares and companies keep their order through createdAt, the rest kept', () => {
@@ -106,7 +108,11 @@ describe('migrate', () => {
     const broken = { ...dish, id: 'x', updatedAt: 'nope' }
     const lineups = { d: { companyId: null, members: [] } }
     const migrated = migrate({ ...v11, dishes: [dish, broken], lineups }, 11)
-    expect(migrated).toEqual({ ...v12, dishes: [{ ...dish, usedOn: ['2026-10-05'] }, { ...broken, usedOn: [] }], lineups })
+    expect(migrated).toEqual({
+      ...v13,
+      dishes: [{ ...dish, category: null, usedOn: ['2026-10-05'] }, { ...broken, category: null, usedOn: [] }],
+      lineups,
+    })
   })
 
   it('v1 → v2: empty portions follow the dish, filled ones are kept', () => {
@@ -126,6 +132,15 @@ describe('migrate', () => {
       { basis: 'default', grams: null },
       { basis: 'raw', ingredientId: 'i1', grams: 80 },
     ])
+  })
+
+  it('v12 → v13: dishes get no category chosen (detected from the title), the rest kept', () => {
+    const dish = { id: 'd', kind: 'simple', name: 'Суп', createdAt: at(5), updatedAt: at(5), ingredients: [], tareId: null, cooked: null, usedOn: ['2026-10-05'] }
+    const lineups = { d: { companyId: null, members: [] } }
+    const migrated = migrations[12]({ ...v12, dishes: [dish], lineups })
+    expect(migrated).toEqual({ ...v12, dishes: [{ ...dish, category: null }], lineups })
+    // Through migrate() from a v12 file: the same, and the dish keeps working.
+    expect(migrate({ ...v12, dishes: [dish], lineups }, 12).dishes).toEqual([{ ...dish, category: null }])
   })
 
   it('v2 → v3: one counted ingredient is a simple dish, the rest are composite', () => {
@@ -218,7 +233,7 @@ describe('store hydration', () => {
   })
 
   it('async storage (IndexedDB): ready resolves once the data is in', async () => {
-    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v12, version: CURRENT_VERSION }) })
+    const { storage } = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ state: v13, version: CURRENT_VERSION }) })
     const slow: StateStorage = {
       getItem: (k) => new Promise((resolve) => setTimeout(() => resolve(storage.getItem(k) as string | null), 5)),
       setItem: (k, v) => Promise.resolve(storage.setItem(k, v)),
@@ -227,7 +242,7 @@ describe('store hydration', () => {
     const store = createAppStore(() => slow)
     expect(store.getState().tares).toEqual([])
     await store.ready
-    expect(store.getState()).toMatchObject({ tares: v12.tares, loadError: false })
+    expect(store.getState()).toMatchObject({ tares: v13.tares, loadError: false })
   })
 
   it('async storage with unreadable data: ready still resolves, with the load error', async () => {
@@ -246,8 +261,8 @@ describe('store hydration', () => {
   it('replaceData swaps in a backup and persists it', () => {
     const { storage, data } = memoryStorage()
     const store = createAppStore(() => storage)
-    store.getState().replaceData({ ...v12, holdMs: 0 })
-    expect(store.getState()).toMatchObject({ tares: v12.tares, holdMs: 0 })
+    store.getState().replaceData({ ...v13, holdMs: 0 })
+    expect(store.getState()).toMatchObject({ tares: v13.tares, holdMs: 0 })
     expect(JSON.parse(data.get(STORAGE_KEY)!).state.tares).toEqual(v12.tares)
   })
 
@@ -264,6 +279,7 @@ describe('store hydration', () => {
 const pasta: DishDraft = {
   kind: 'simple',
   name: 'Макароны',
+  category: null,
   ingredients: [{ id: 'p', name: 'Макароны', rawGrams: 130, excluded: false }],
   tareId: null,
 }

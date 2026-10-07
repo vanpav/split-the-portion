@@ -5,7 +5,7 @@ import { DishSearch } from '@/components/DishSearch/DishSearch'
 import { DishSearchGroup } from '@/components/DishSearch/DishSearchGroup'
 import { DishSearchRow } from '@/components/DishSearch/DishSearchRow'
 import { ScreenHeader } from '@/components/ScreenHeader'
-import { dishPicks, dishRow, localDay, missingPresets } from '@/domain'
+import { dishCategory, dishPicks, dishRow, localDay, missingPresets } from '@/domain'
 import { useAppStore } from '@/store/store'
 import type { DishSourceIngredient, EditorOutlet } from './editorOutlet'
 
@@ -50,6 +50,7 @@ export function FromSimpleDishScreen() {
                   key={dish.id}
                   value={dish.id}
                   row={dishRow(dish, query, { pick: true })}
+                  category={dishCategory(dish)}
                   query={query}
                   mark="add"
                   onSelect={() => pick(source)}
@@ -64,6 +65,7 @@ export function FromSimpleDishScreen() {
                   key={preset.name}
                   value={`preset:${preset.name}`}
                   row={dishRow(preset, query, { pick: true })}
+                  category={dishCategory(preset)}
                   query={query}
                   mark="add"
                   onSelect={() => pick(source)}

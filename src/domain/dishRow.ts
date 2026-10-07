@@ -1,4 +1,5 @@
 import { dishTitle, type Recipe } from './dish'
+import { categoryMatches, CATEGORY_LABELS, dishCategory, type Categorized } from './dishCategories'
 
 /** Lower case, «е» for «ё»: nobody types «свёкла» at the stove. */
 export const plain = (text: string) => text.toLowerCase().replace(/ё/g, 'е')
@@ -57,14 +58,34 @@ export interface DishRow {
 }
 
 /**
+ * The label of the category a dish was found by, when its title and products do not match the query
+ * but the category does («гарн» → «Гарниры»); null otherwise.
+ */
+export function dishFoundByCategory(recipe: Categorized, query: string): string | null {
+  if (!query.trim() || dishFoundBy(recipe, query) !== null) return null
+  const q = plain(query).trim()
+  if (plain(dishTitle(recipe)).includes(q)) return null
+  const category = dishCategory(recipe)
+  return categoryMatches(query, category) ? CATEGORY_LABELS[category] : null
+}
+
+/**
  * A dish row (docs/UX.md «Меню блюд»): a dish with two or more products — its products, the one it was
  * found by first; one product — the one it was found by, or, picking for a composite dish (`pick`),
  * its name when it differs from the title. A dish without a name already has its products as the title.
+ * Found by its category alone, the second line is the category label (docs/SPEC.md §3б «Категории блюд»).
  */
-export function dishRow(recipe: Recipe, query: string, { pick = false }: { pick?: boolean } = {}): DishRow {
+export function dishRow(
+  recipe: Categorized,
+  query: string,
+  { pick = false, underCategory = false }: { pick?: boolean; underCategory?: boolean } = {},
+): DishRow {
   const title = dishTitle(recipe)
   const weight = dishWeight(recipe)
   const via = dishFoundBy(recipe, query)
+  // Found by its category alone: the label is the second line — unless a category heading above says it already.
+  const viaCategory = underCategory ? null : dishFoundByCategory(recipe, query)
+  if (viaCategory) return { title, weight, second: viaCategory, foundBy: true }
   const products = dishProducts(recipe)
   const base = { title, weight, foundBy: via !== null }
   if (products.length > 0) {

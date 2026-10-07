@@ -319,7 +319,7 @@ export function presetDish(preset: PresetDish, newId: () => Id, at: string): Dis
     rawGrams: i.rawGrams,
     excluded: i.excluded ?? false,
   }))
-  return { id: newId(), kind: dishKind(ingredients), name: preset.name, createdAt: at, updatedAt: at, ingredients, tareId: null, cooked: null, usedOn: [] }
+  return { id: newId(), kind: dishKind(ingredients), name: preset.name, category: null, createdAt: at, updatedAt: at, ingredients, tareId: null, cooked: null, usedOn: [] }
 }
 
 /**

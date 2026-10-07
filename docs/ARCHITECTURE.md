@@ -118,6 +118,9 @@ interface Dish {
   id: Id;
   kind: CookingKind;     // simple — один продукт
   name: string;
+  // Категория, выбранная вручную в редакторе (с v13); null — «по названию»: определяется по названию
+  // (detectCategory) и не хранится. Синхронизируется с блюдом. Значения — DishCategory (SPEC §3б).
+  category: DishCategory | null;
   createdAt: string;
   updatedAt: string;     // создание, «Сохранить», ввод сырого веса, тары, готового веса — порядок полки (UX §3); синхронизируется с блюдом
   ingredients: Ingredient[]; // rawGrams — последний введённый сырой вес
@@ -178,6 +181,7 @@ src/domain/
   phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
   phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
+  dishCategories.ts — DishCategory (тип — в types.ts), DISH_CATEGORIES (порядок показа), CATEGORY_LABELS, словарь основ и detectCategory, dishCategory(dish), categoryMatches(query, category)
   presets.ts        — PRESET_DISHES (популярные блюда) и presetDishes(existing, newId, at)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
@@ -235,7 +239,7 @@ src/domain/
 | `cookedToday(cooked, tareId, now)`, `clockTime(at)` | Последний готовый вес блюда, если он сегодняшний и в той же таре — подстановка в «Готовый»; время «19:40» к подписи (этап 15) |
 | `lineupPercents(members, portions)` | Сегодняшние части блюда целыми процентами — доли состава после своей порции |
 | `localDay(date)`, `markUsed(usedOn, day)`, `usesSince(usedOn, today)` | День «YYYY-MM-DD» по местному времени; отметка использования (раз в день, последние 30, `USED_DAYS_KEPT`); сколько разных дней за последние 60 (`FREQUENT_WINDOW_DAYS`). Дата передаётся снаружи |
-| `dishMenu(dishes, presets, { query, today })` → `{ often, rest, popular }`, `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products)`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовите» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
+| `dishMenu(dishes, presets, { query, today, byCategory? })` → `{ often, rest, categories, popular }` (`byCategory`: свои блюда в `categories`, `often` и `rest` пусты), `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products, category?)` (категория — ниже любого совпадения по названию и продукту), `detectCategory`, `dishCategory`, `categoryMatches`, `dishFoundByCategory`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовите» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
 | `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawFold(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; свёрнутое составное («Сырой» и «не учит.: …»); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
@@ -286,12 +290,13 @@ interface AppState {
 - **По группам (с этапа 13).** Без входа данные лежат под ключом `split-the-portion`, как раньше. После входа у каждой группы свой блоб `split-the-portion:group:<id>` в том же формате и с теми же миграциями. Рядом лежат неотправленные изменения и курсор: `split-the-portion:sync:<id>`. Аккаунт (кто вошёл, группы, группа по умолчанию) — отдельный стор `src/store/account.ts`, ключ `split-the-portion:account`. В копию данных он не попадает. Подробно — §10.
 - **Настройки устройства** (этап 16) — отдельный стор `src/store/prefs.ts`, ключ `split-the-portion:prefs` в той же IndexedDB: `splitMode` (`'people' | 'shares'`, люди «Кто ест» или «Доли») и `portions` (порции блюда в «Долях» по id блюда: `PortionShare[]` — `{ id, weight }` без имён, номер — по месту). Как тема и аккаунт, они не входят в `storedData`: не синхронизируются (§10), не попадают в копию данных, не зависят от открытой группы и не трогаются выходом из аккаунта. Поэтому форма данных приложения и `CURRENT_VERSION` не меняются. У стора своя версия `PREFS_VERSION = 2` и миграция `migratePrefs` (`src/store/prefsMigrations.ts`, тест на фикстуре v1): v1 — `'portions'` и `portionCounts` (N равных порций) первой версии этапа 16 → v2 — `'shares'` и N порций с долей 1. `main.tsx` ждёт `prefsReady`, как `accountReady`.
 - **Последний калькулятор** — стор `src/store/lastCalculator.ts`, ключ `split-the-portion:calculator`, на устройстве, как настройки: id блюда, открытого в калькуляторе последним, время и ввод калькулятора — тексты полей, «Готовый» тронут, свёрнуты ли ингредиенты, строка «Сухой» / «Готовый», свои порции, «г / %» полосы, ввода и людей, «На завтра». Пишется на каждое изменение (сбой ничего не теряет), только калькулятором — другие экраны не запоминаются. `#/` открывает это блюдо (`startDish`; удалено — последнее использованное). Первый калькулятор после запуска берёт ввод обратно, если он того же дня (`sameDay`) и того же блюда; при переключении блюд дальше каждое открывается заново. Производного там нет. `main.tsx` ждёт `lastCalculatorReady`.
-- **Подсказки для новых** (этап 18) — там же, `hints` (`HintPrefs` из `src/onboarding/hints.ts`): `settled` (первый запуск с подсказками разобран), `off` («Пропустить» / «Не показывать»), `welcome` (приветствие пройдено), `tour` (`'done'` или шаг, с которого продолжить). `PREFS_VERSION = 3`, миграция v2 → v3 добавляет пустые `hints` (тест на фикстуре v2). Если при первом запуске с подсказками на устройстве уже есть блюда, `settleHints` (в `main.tsx`, после загрузки данных) отмечает приветствие и тур пройденными: подсказки — для новых.
+- **Подсказки для новых** (этап 18) — там же, `hints` (`HintPrefs` из `src/onboarding/hints.ts`): `settled` (первый запуск с подсказками разобран), `off` («Пропустить» / «Не показывать»), `welcome` (приветствие пройдено), `tour` (`'done'` или шаг, с которого продолжить). `PREFS_VERSION = 4`, миграция v2 → v3 добавляет пустые `hints` (тест на фикстуре v2). Если при первом запуске с подсказками на устройстве уже есть блюда, `settleHints` (в `main.tsx`, после загрузки данных) отмечает приветствие и тур пройденными: подсказки — для новых.
+- **«По категориям»** (меню блюд) — там же, `dishesByCategory: boolean` (по умолчанию `false`), сеттер `setDishesByCategory`. Настройка устройства: не синхронизируется и не входит в копию данных. `PREFS_VERSION = 4`: миграция v3 → v4 ставит `false` (тест в `prefsMigrations.test.ts`).
 - **Копия в файле** (Настройки → «Копия данных»): «Скачать» — JSON `{ app, version, exportedAt, state }` (`src/store/backupFile.ts`); «Загрузить» — файл любой прошлой версии проходит те же миграции (`readBackupFile`), после подтверждения заменяет данные (`replaceData`), тост «Отменить» возвращает прежние. Чужой, битый или более новый файл — тост «Файл не подошёл».
 
 ### 5.3. Версия схемы и миграции
 
-- `src/store/migrations.ts`: `CURRENT_VERSION = 12` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
+- `src/store/migrations.ts`: `CURRENT_VERSION = 13` и массив чистых функций `migrations[n]: (stateVn) => stateVn+1`.
   - v1 → v2: пустые порции (`grams: null`) получают `basis: 'default'` — в v1 они и задумывались как «следуют за блюдом».
   - v2 → v3: у готовки появляется `kind`. Не больше одного ингредиента и он не «не учитывать» → `simple`, иначе `composite`.
   - v5 → v6: у блюд убран `companyId` — блюдо не привязано к людям.
@@ -302,6 +307,7 @@ interface AppState {
   - v3 → v4: блюда и компании. Старые готовки удаляются (согласовано: прототип, чистый лист), тара сохраняется, состав по умолчанию становится компанией «Обычно» с равными долями.
   - v9 → v10 (этап 13): у тары и компаний `createdAt` — их порядок на всех устройствах группы. Существующим проставляются возрастающие метки от `1970-01-01T00:00:00.000Z` с шагом 1 мс в текущем порядке; уже заданный `createdAt` не трогается.
   - v10 → v11 (этап 15): готовки удаляются (истории больше нет; снимок v10 остаётся в `…:backup:v10:…`), у блюд `cooked: null`.
+  - v12 → v13: у блюд `category: null` («по названию»). Записи `dish` с `v: 12` из группы мигрируют так же (`migrateChange`); сервер (`worker/`, D1) хранит запись как JSON-текст и версию `v`, схема таблиц не меняется, миграции D1 не нужно. Устройство со старой версией, получив запись v13, ставит синхронизацию на паузу — «Обновите приложение» (§10).
   - v11 → v12 (#42): у блюд `usedOn = [день из updatedAt]` (по местному времени) — сразу после обновления «Частые» совпадают с прежним порядком по последнему использованию. Записи `dish` с `v: 11`, пришедшие из группы, мигрируют так же (`migrateChange`); устройство со старой версией, получив запись v12, ставит синхронизацию на паузу — «Обновите приложение» (§10).
 - **С синхронизацией** (этап 13) изменение формы данных касается и сервера: каждая запись на сервере несёт свою версию `v`. Записи старших версий клиент мигрирует теми же шагами. Запись новее `CURRENT_VERSION` ставит синхронизацию группы на паузу — «Обновите приложение» (§10).
 - `persist({ version: CURRENT_VERSION, migrate })`: `migrate` по очереди применяет шаги от сохранённой версии до текущей.
@@ -333,7 +339,7 @@ src/
     router.tsx          — createHashRouter: корневой layout (шапка, <Outlet />) + маршруты экранов; экраны поверх другого (UX §3а) — его дочерние маршруты
     paths.ts            — адреса экранов
   screens/
-    DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка с «+» и «⋯»), DishMenu (поле, разделы, строка «Создать», пустое приложение; состояние в адресе — только `q`), OpenGroupLink; `src/components/DishSearch/` (DishSearch, DishSearchGroup, DishSearchRow, Highlight) — общий поиск, раздел и строка для меню и «Из блюда»; `src/lib/addAllPresets.ts` — «Добавить все» из Настроек и пустого меню
+    DishList/           — HomeScreen (#/ → последнее блюдо или пустое меню), DishMenuScreen (меню блюд: шапка с «+» и «⋯»), DishMenu (поле, разделы, строка «Создать», пустое приложение; состояние в адресе — только `q`), OpenGroupLink; `src/components/DishSearch/` (DishSearch, DishSearchGroup, DishSearchRow, Highlight) — общий поиск (в поле у меню блюд — кнопка «По категориям»), раздел (с числом блюд справа) и строка (с иконкой категории в начале) для меню и «Из блюда»; `src/components/DishCategoryIcon.tsx` — единственная карта «категория → иконка» (lucide: Soup, Drumstick, Wheat, Salad, EggFried, CakeSlice, CupSoda, Utensils) — в строках списка и на чипах полки; `src/lib/addAllPresets.ts` — «Добавить все» из Настроек и пустого меню
     DishEditor/         — создание и правка блюда, вариант «Одной строкой» (этап 19): DishEditorScreen пересоздаёт DishEditorForm при смене блюда (не при переходе на `from-dish`, `tare/new`); черновик — название, фраза, свои «не учитывать», тара — в состоянии формы, «Создать» / «Сохранить»
       PhraseField.tsx — «Что в блюде»: Textarea, «Вставить», «Из блюда», микрофон, подсказка / «Слушаю…» / «Сказали»
       PhraseList.tsx, PhraseRow.tsx — разбор: строка на продукт (тап — учитывать или нет, × — убрать), пометки
@@ -403,7 +409,8 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | «Не учитывать» | `Checkbox` или `Switch` |
 | «Без тары / С тарой» | `ToggleGroup` (или `Tabs`) |
 | База порции «сырой / готовый / сырой: курица» | `Select` |
-| Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ (`InputGroupButton`), строка — `CommandItem` (общая с «Из блюда»); фильтра и сортировки нет; «+» в шапке — `Button` `secondary` `icon` |
+| Категория блюда (редактор) | `Select` без поиска под «Название»: «По названию · <угадано>» (→ `category: null`), `SelectSeparator`, восемь категорий |
+| Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ и кнопкой «По категориям» (`InputGroupButton`, `ListTreeIcon`, `aria-pressed`, `Tooltip`), строка — `CommandItem` (общая с «Из блюда»); фильтра и сортировки нет; «+» в шапке — `Button` `secondary` `icon` |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказка «Найти блюдо ⌘K /» | `Tooltip` + `Kbd` |
 | «Что в блюде» в редакторе | `Textarea` (16 px, растёт по тексту — `field-sizing: content`); «Вставить», «Из блюда» — `Button` variant `ghost` над полем |

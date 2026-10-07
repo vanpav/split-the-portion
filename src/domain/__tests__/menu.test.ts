@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { compareNames, createDishText, dishMenu, dishPicks, matchRank, type DishMenuOptions } from '../menu'
 import { missingPresets, type PresetDish } from '../presets'
-import type { Dish } from '../types'
+import type { Dish, DishCategory } from '../types'
 
 const TODAY = '2026-10-06'
 
@@ -9,6 +9,7 @@ const dish = (name: string, parts: Partial<Dish> = {}): Dish => ({
   id: name,
   kind: 'simple',
   name,
+  category: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   ingredients: [{ id: `${name}-i`, name, rawGrams: 100, excluded: false }],
@@ -193,5 +194,110 @@ describe('createDishText', () => {
     expect(createDishText([dish('Свёкла')], 'свекла')).toBeNull()
     expect(createDishText([soup('', ['Курица', 'Рис'])], 'курица, рис')).toBeNull()
     expect(createDishText([dish('Гречка')], 'греч')).toBe('Греч')
+  })
+})
+
+describe('matchRank by category', () => {
+  it('a category found by its label ranks below any title or product match', () => {
+    const byCategory = matchRank('гарн', 'Гречка', ['Гречка'], 'sides')
+    expect(byCategory).toBeGreaterThan(0)
+    expect(byCategory).toBeLessThan(matchRank('гарн', 'Суп', ['Гарнир']))
+    expect(matchRank('гарн', 'Гарнир', [], 'sides')).toBeGreaterThan(byCategory)
+  })
+
+  it('does not match without the category or with another one', () => {
+    expect(matchRank('гарн', 'Гречка', ['Гречка'])).toBe(0)
+    expect(matchRank('гарн', 'Гречка', ['Гречка'], 'first')).toBe(0)
+  })
+})
+
+describe('dishMenu with a query, found by category', () => {
+  it('dishes of the category come after the title and product matches', () => {
+    const own = [dish('Гречка'), dish('Макароны'), dish('Борщ'), dish('Салат гарнир', { category: 'salads' }), soup('Плов', ['Рис', 'Гарнир'])]
+    const menu = dishMenu(own, [], options({ query: 'гарн' }))
+    // «Салат гарнир» by the title, «Плов» by a product, then the sides found by the category.
+    expect(names(menu.rest)).toEqual(['Салат гарнир', 'Плов', 'Гречка', 'Макароны'])
+  })
+
+  it('the manual category counts, the detected one is replaced', () => {
+    const own = [dish('Гречка', { category: 'mains' }), dish('Хачапури', { category: 'sides' })]
+    expect(names(dishMenu(own, [], options({ query: 'гарн' })).rest)).toEqual(['Хачапури'])
+    expect(names(dishMenu(own, [], options({ query: 'втор' })).rest)).toEqual(['Гречка'])
+  })
+
+  it('the popular ones are found by their detected category, too', () => {
+    const popular = [preset('Рис'), preset('Борщ'), preset('Омлет')]
+    expect(names(dishMenu([], popular, options({ query: 'перв' })).popular)).toEqual(['Борщ'])
+  })
+})
+
+describe('dishMenu by category', () => {
+  const sections = (menu: ReturnType<typeof dishMenu<Dish, PresetDish>>) =>
+    menu.categories.map((c) => [c.category, names(c.dishes)] as [DishCategory, string[]])
+
+  const own = [
+    dish('Гречка', { usedOn: ['2026-10-06'] }),
+    dish('Макароны', { usedOn: ['2026-10-05', '2026-10-06'] }),
+    dish('Борщ'),
+    dish('Хачапури'),
+    dish('Котлеты', { category: 'sides' }),
+  ]
+
+  it('without a query: sections in display order, the frequent order inside, empty ones left out', () => {
+    const menu = dishMenu(own, [], options({ byCategory: true }))
+    expect(sections(menu)).toEqual([
+      ['first', ['Борщ']],
+      ['sides', ['Макароны', 'Гречка', 'Котлеты']],
+      ['other', ['Хачапури']],
+    ])
+    // No separate «Часто готовите» and no flat rest.
+    expect(menu.often).toEqual([])
+    expect(menu.rest).toEqual([])
+  })
+
+  it('the popular ones stay a flat list at the end', () => {
+    const popular = [preset('Рис'), preset('Борщ')]
+    expect(names(dishMenu(own, popular, options({ byCategory: true })).popular)).toEqual(['Рис', 'Борщ'])
+  })
+
+  it('without byCategory it is the flat menu as before', () => {
+    const menu = dishMenu(own, [], options())
+    expect(menu.categories).toEqual([])
+    expect(names(menu.often)).toEqual(['Макароны'])
+  })
+
+  it('with a query: only categories with matches, the one with the best match first', () => {
+    const list = [dish('Суп с рисом'), dish('Рис'), dish('Рисовый пудинг'), dish('Рис с курицей', { category: 'mains' }), dish('Борщ')]
+    const menu = dishMenu(list, [], options({ query: 'рис', byCategory: true }))
+    // «Рис» (an exact match, a side) leads, so the sides come first; then equal bests keep the display order.
+    expect(sections(menu)).toEqual([
+      ['sides', ['Рис', 'Рисовый пудинг']],
+      ['first', ['Суп с рисом']],
+      ['mains', ['Рис с курицей']],
+    ])
+  })
+
+  it('with a query: inside a category the better match first, then the frequent order', () => {
+    const list = [
+      dish('Гречка', { usedOn: ['2026-10-06'] }),
+      dish('Греческий салат', { category: 'sides' }),
+      dish('Макароны', { category: 'sides', ingredients: [{ id: 'g', name: 'Гречка', rawGrams: 1, excluded: false }] }),
+      dish('Рис', { category: 'sides', usedOn: ['2026-10-06'] }),
+    ]
+    const menu = dishMenu(list, [], options({ query: 'гре', byCategory: true }))
+    expect(sections(menu)).toEqual([['sides', ['Гречка', 'Греческий салат', 'Макароны']]])
+  })
+
+  it('with a query: found by the category — the whole category, below title matches', () => {
+    const list = [dish('Гречка'), dish('Рис'), dish('Гарнир дня', { category: 'salads' })]
+    const menu = dishMenu(list, [], options({ query: 'гарн', byCategory: true }))
+    expect(sections(menu)).toEqual([
+      ['salads', ['Гарнир дня']],
+      ['sides', ['Гречка', 'Рис']],
+    ])
+  })
+
+  it('with a query and nothing found: no sections', () => {
+    expect(dishMenu(own, [], options({ query: 'zzz', byCategory: true })).categories).toEqual([])
   })
 })

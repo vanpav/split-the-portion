@@ -1,8 +1,9 @@
 import { dishSource, dishTitle } from './dish'
+import { categoryMatches, dishCategory, DISH_CATEGORIES } from './dishCategories'
 import { plain } from './dishRow'
 import type { PresetDish } from './presets'
 import { presetSource } from './presets'
-import type { Dish } from './types'
+import type { Dish, DishCategory } from './types'
 import { lastUsedDay, usesSince } from './usage'
 
 export interface DishMenuOptions {
@@ -10,6 +11,8 @@ export interface DishMenuOptions {
   query: string
   /** Today, «YYYY-MM-DD» (`localDay`): passed in to keep the domain pure. */
   today: string
+  /** «По категориям» (`dishMenu` only): own dishes in sections by category (docs/SPEC.md §3б). */
+  byCategory?: boolean
 }
 
 /**
@@ -19,6 +22,8 @@ export interface DishMenuOptions {
 export interface DishMenu<D, P> {
   often: D[]
   rest: D[]
+  /** «По категориям»: own dishes by category, empty categories left out; then `often` and `rest` are empty. */
+  categories: { category: DishCategory; dishes: D[] }[]
   popular: P[]
 }
 
@@ -49,9 +54,10 @@ export function compareNames(a: string, b: string): number {
 /**
  * How well a dish matches the search, 0 — not at all. As text, not fuzzy: «бул» is булгур, not «Борщ».
  * The title before the products, a word that starts with the query before one that only contains it:
- * «рис» puts «Рис» above «Суп» with rice in it. An empty query matches everything alike.
+ * «рис» puts «Рис» above «Суп» with rice in it. An empty query matches everything alike. A dish whose
+ * `category` label starts with the query («гарн») is found below every title and product match.
  */
-export function matchRank(query: string, title: string, products: readonly string[]): number {
+export function matchRank(query: string, title: string, products: readonly string[], category?: DishCategory): number {
   const q = plain(query).trim()
   if (!q) return 1
   const name = plain(title)
@@ -61,10 +67,14 @@ export function matchRank(query: string, title: string, products: readonly strin
   if (startsWord(name)) return 4
   if (name.includes(q)) return 3
   if (names.some(startsWord)) return 2
-  return names.some((n) => n.includes(q)) ? 1 : 0
+  if (names.some((n) => n.includes(q))) return 1
+  return category !== undefined && categoryMatches(q, category) ? CATEGORY_RANK : 0
 }
 
-type MenuDish = Pick<Dish, 'kind' | 'name' | 'ingredients' | 'updatedAt' | 'usedOn'>
+/** Found by its category alone: below any title or product match. */
+const CATEGORY_RANK = 0.5
+
+type MenuDish = Pick<Dish, 'kind' | 'name' | 'category' | 'ingredients' | 'updatedAt' | 'usedOn'>
 
 interface Ranked<D> {
   dish: D
@@ -92,7 +102,7 @@ function rankOwn<D extends MenuDish>(dishes: readonly D[], query: string, today:
       return {
         dish,
         title,
-        rank: matchRank(query, title, dish.ingredients.map((i) => i.name)),
+        rank: matchRank(query, title, dish.ingredients.map((i) => i.name), dishCategory(dish)),
         uses: usesSince(dish.usedOn, today),
         last: lastUsedDay(dish.usedOn),
       }
@@ -104,7 +114,7 @@ function rankOwn<D extends MenuDish>(dishes: readonly D[], query: string, today:
 /** Presets that match the query, best match first; among equals — the catalogue order. */
 function rankPresets<P extends PresetDish>(presets: readonly P[], query: string): P[] {
   return presets
-    .map((preset, order) => ({ preset, order, rank: matchRank(query, preset.name, preset.ingredients.map((i) => i.name)) }))
+    .map((preset, order) => ({ preset, order, rank: matchRank(query, preset.name, preset.ingredients.map((i) => i.name), dishCategory(preset)) }))
     .filter((row) => row.rank > 0)
     .sort((a, b) => b.rank - a.rank || a.order - b.order)
     .map((row) => row.preset)
@@ -115,18 +125,36 @@ function rankPresets<P extends PresetDish>(presets: readonly P[], query: string)
  * distinct days in the last 60, five at most, most days first; `rest` — every other own dish by name;
  * `popular` — the presets in catalogue order. With a query: only matches, `often` is empty, `rest`
  * holds the own ones (better match first, then the «Часто готовите» order), `popular` the presets.
+ *
+ * `byCategory`: the own dishes go to `categories` instead (`often` and `rest` are empty). No query:
+ * the categories in display order, the «Часто готовите» order inside. With one: only categories with
+ * matches, the one holding the best match first (then display order), inside — better match first,
+ * then the «Часто готовите» order.
  */
 export function dishMenu<D extends MenuDish, P extends PresetDish>(
   dishes: readonly D[],
   presets: readonly P[],
-  { query, today }: DishMenuOptions,
+  { query, today, byCategory = false }: DishMenuOptions,
 ): DishMenu<D, P> {
   const own = rankOwn(dishes, query, today)
-  if (query.trim()) return { often: [], rest: own.map((r) => r.dish), popular: rankPresets(presets, query) }
+  const popular = rankPresets(presets, query)
+  const typed = query.trim() !== ''
+  if (byCategory) {
+    const categories = DISH_CATEGORIES.map((category, order) => ({
+      category,
+      order,
+      rows: own.filter((r) => dishCategory(r.dish) === category).sort(typed ? (a, b) => b.rank - a.rank || byFrequent(a, b) : byFrequent),
+    }))
+      .filter((c) => c.rows.length > 0)
+      .sort(typed ? (a, b) => b.rows[0].rank - a.rows[0].rank || a.order - b.order : (a, b) => a.order - b.order)
+      .map((c) => ({ category: c.category, dishes: c.rows.map((r) => r.dish) }))
+    return { often: [], rest: [], categories, popular }
+  }
+  if (typed) return { often: [], rest: own.map((r) => r.dish), categories: [], popular }
 
   const often = own.filter((r) => r.uses >= OFTEN_MIN_USES).sort(byFrequent).slice(0, OFTEN_LIMIT)
   const rest = own.filter((r) => !often.includes(r)).sort((a, b) => compareNames(a.title, b.title))
-  return { often: often.map((r) => r.dish), rest: rest.map((r) => r.dish), popular: rankPresets(presets, query) }
+  return { often: often.map((r) => r.dish), rest: rest.map((r) => r.dish), categories: [], popular }
 }
 
 /**

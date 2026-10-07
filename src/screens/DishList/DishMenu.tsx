@@ -7,9 +7,13 @@ import { useBack } from '@/app/useBack'
 import { DishSearch } from '@/components/DishSearch/DishSearch'
 import { DishSearchGroup } from '@/components/DishSearch/DishSearchGroup'
 import { DishSearchRow } from '@/components/DishSearch/DishSearchRow'
+import { Highlight } from '@/components/DishSearch/Highlight'
 import { Button } from '@/components/ui/button'
 import {
+  CATEGORY_LABELS,
+  categoryMatches,
   createDishText,
+  dishCategory,
   dishMenu,
   dishRow,
   dishSummary,
@@ -20,6 +24,7 @@ import {
 } from '@/domain'
 import { addAllPresets } from '@/lib/addAllPresets'
 import { newId } from '@/store/id'
+import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
 
 const presetValue = (preset: PresetDish) => `preset:${preset.name}`
@@ -29,7 +34,8 @@ const CREATE_VALUE = 'create'
 const nowIso = () => new Date().toISOString()
 
 /**
- * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовите», the other own dishes,
+ * The dish menu's search and list (docs/UX.md «Меню блюд»): «Часто готовите», the other own dishes
+ * (or, with «По категориям», the own dishes in sections by category),
  * the popular ones to add, «Создать «…»» while something is typed. With no dishes it is the first
  * screen: «Добавить блюдо» and the whole catalogue at once.
  */
@@ -43,11 +49,13 @@ export function DishMenu() {
   const query = params.get('q') ?? ''
   // Today for «Часто готовите», fixed while the menu is open.
   const [today] = useState(() => localDay(new Date()))
-  const { often, rest, popular } = dishMenu(dishes, missingPresets(dishes), { query, today })
+  const byCategory = usePrefsStore((s) => s.dishesByCategory)
+  const setByCategory = usePrefsStore((s) => s.setDishesByCategory)
+  const { often, rest, categories, popular } = dishMenu(dishes, missingPresets(dishes), { query, today, byCategory })
   const typed = query.trim() !== ''
   const createText = createDishText(dishes, query)
   const noDishes = dishes.length === 0
-  const nothing = often.length + rest.length + popular.length === 0
+  const nothing = often.length + rest.length + categories.length + popular.length === 0
 
   // Typing replaces the entry: «назад» leaves the menu, not each letter. Opened by a direct link,
   // the menu still has no previous screen of the app (useBack).
@@ -67,13 +75,22 @@ export function DishMenu() {
   const values = [
     ...often.map((d) => d.id),
     ...rest.map((d) => d.id),
+    ...categories.flatMap((c) => c.dishes.map((d) => d.id)),
     ...popular.map(presetValue),
     ...(createText ? [CREATE_VALUE] : []),
   ]
 
-  const ownRows = (list: typeof rest) =>
+  // Under a category heading a dish found by its category does not repeat it: the heading is marked.
+  const ownRows = (list: typeof rest, underCategory = false) =>
     list.map((dish) => (
-      <DishSearchRow key={dish.id} value={dish.id} row={dishRow(dish, query)} query={query} onSelect={() => navigate(dishPath(dish.id))} />
+      <DishSearchRow
+        key={dish.id}
+        value={dish.id}
+        row={dishRow(dish, query, { underCategory })}
+        category={dishCategory(dish)}
+        query={query}
+        onSelect={() => navigate(dishPath(dish.id))}
+      />
     ))
 
   return (
@@ -83,6 +100,7 @@ export function DishMenu() {
       onClose={back}
       placeholder="Гречка, суп…"
       values={values}
+      grouping={{ on: byCategory, onToggle: () => setByCategory(!byCategory) }}
       before={
         noDishes &&
         !typed && (
@@ -112,6 +130,15 @@ export function DishMenu() {
       }
     >
       {typed && nothing && <p className="py-4 text-center text-sm text-muted-foreground">Ничего не нашлось</p>}
+      {categories.map(({ category, dishes: list }) => (
+        <DishSearchGroup
+          key={category}
+          heading={categoryMatches(query, category) ? <Highlight text={CATEGORY_LABELS[category]} query={query} /> : CATEGORY_LABELS[category]}
+          count={list.length}
+        >
+          {ownRows(list, true)}
+        </DishSearchGroup>
+      ))}
       {often.length > 0 && <DishSearchGroup heading="Часто готовите">{ownRows(often)}</DishSearchGroup>}
       {rest.length > 0 && (
         <DishSearchGroup
@@ -127,6 +154,7 @@ export function DishMenu() {
               key={preset.name}
               value={presetValue(preset)}
               row={dishRow(preset, query)}
+              category={dishCategory(preset)}
               query={query}
               mark="add"
               onSelect={() => add(preset)}
