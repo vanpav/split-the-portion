@@ -24,7 +24,7 @@ const PILL = 'h-9 rounded-full px-3.5 text-sm group-focus-visible/chip:ring-[3px
 const SELECTED = 'bg-card font-semibold ring-2 ring-foreground ring-inset hover:bg-card'
 
 /**
- * «В чём взвешиваете» in the dish editor (docs/UX.md §3): a row of chips scrolling sideways as a whole,
+ * «В чём взвешиваешь» in the dish editor (docs/UX.md §3): a row of chips scrolling sideways as a whole,
  * «+» first (a new tare on a screen over the form), then «Без тары» and the tares with their weight.
  */
 export function TareChips({ tares, tareId, onChange, addTo, addRef, onAdd }: TareChipsProps) {

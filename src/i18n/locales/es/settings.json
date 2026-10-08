@@ -1,0 +1,147 @@
+{
+  "avatar": { "title": "Foto", "lead": "Mueve y amplía para que la cara quede en el círculo.", "zoom": "Zoom" },
+  "sync": {
+    "syncing": "Sincronizando…",
+    "synced": "Sincronizado · {{time}}",
+    "offline": "Sin conexión — los cambios están guardados en el dispositivo",
+    "failed": "No se pudo sincronizar — lo intentaremos de nuevo",
+    "noAccess": "Sin acceso al grupo — pide una invitación nueva",
+    "update": "Actualiza la app para sincronizar: ciérrala y vuelve a abrirla",
+    "signIn": "Vuelve a entrar para sincronizar",
+    "signInAction": "Volver a entrar"
+  },
+  "company": { "deleted": "Mesa eliminada" },
+  "group": {
+    "nameHint": "Vacío — el grupo se llama por sus personas. Todos en el grupo ven el nombre",
+    "membersShared": "Grupo: platos, recipientes y mesas compartidos",
+    "membersInvite": "Grupo. Invita a tu familia — los platos serán compartidos"
+  },
+  "invite": {
+    "shareNamed": "Únete al grupo «{{group}}» en Portions: código {{code}}",
+    "share": "Llevemos los platos juntos en Portions: código {{code}}",
+    "title": "Invitar",
+    "hint": "Un código o un enlace para el chat",
+    "code": "Código de invitación",
+    "copyLink": "Copiar enlace de invitación",
+    "shareAction": "Compartir invitación",
+    "until": "Válido hasta el {{date}}",
+    "revoked": "Código revocado",
+    "revoke": "Revocar"
+  },
+  "profile": { "firstName": "Nombre", "lastName": "Apellido", "nickname": "Nombre corto", "nicknameHint": "Así te ven en el grupo. Vacío — {{fallback}}" },
+  "tares": {
+    "title": "Recipientes",
+    "lead": "Peso del recipiente vacío — lo restamos nosotros.",
+    "new": "Nuevo recipiente",
+    "deleted": "«{{name}}» eliminado",
+    "nameLabel": "Nombre del recipiente",
+    "weightOf": "Peso de «{{name}}»",
+    "delete": "Eliminar «{{name}}»"
+  },
+  "passkey": {
+    "added": "Passkey añadida",
+    "removed": "Passkey eliminada",
+    "addedAt": "Añadida el {{date}}",
+    "remove": "Eliminar passkey «{{name}}»",
+    "add": "Añadir passkey",
+    "addHint": "Entra con Face ID o huella en este dispositivo",
+    "removeTitle": "¿Eliminar la passkey «{{name}}»?",
+    "removeText": "Ya no podrás entrar con ella. La contraseña y las otras passkeys se quedan."
+  },
+  "account": {
+    "title": "Cuenta",
+    "localLead": "Los datos se guardan solo en este dispositivo. Entra y estarán en todos tus dispositivos y en un grupo compartido.",
+    "offlineSignOut": "Sin conexión — podrás salir cuando vuelva",
+    "about": "Sobre ti",
+    "signIn": "Acceso",
+    "unsentTitle": "No se enviaron todos los cambios",
+    "unsentText": "Algunos cambios solo están en este dispositivo. Se perderán al salir.",
+    "stay": "Quedarme",
+    "localOnly": "Platos solo en este dispositivo",
+    "localOnlyText": "Entra — estarán en todos tus dispositivos y podrás compartirlos con tu familia."
+  },
+  "sections": { "account": "Cuenta", "group": "Grupo", "companies": "Mesas", "tares": "Recipientes", "appearance": "Apariencia", "data": "Copia de datos" },
+  "clusters": { "kitchen": "Cocina", "app": "App" },
+  "subsections": "Secciones de ajustes",
+  "groupScreen": {
+    "open": "Abierto: sus platos están en pantalla y se abren al iniciar",
+    "otherOpen": "Ahora está abierto otro: {{group}}",
+    "members": "Miembros",
+    "openThis": "Abrir este grupo",
+    "openBadge": "Abierto"
+  },
+  "groups": {
+    "lead": "Con quién compartes platos, recipientes y mesas: lo que cambia uno, todos lo ven en un minuto. Quién come cuánto — en",
+    "leadLink": "Mesas",
+    "yours": "Tus grupos",
+    "create": "Crear grupo",
+    "joinByCode": "Unirse con código",
+    "memberLeft": "{{name}} ya no está en el grupo",
+    "you": " · tú",
+    "owner": "propietario",
+    "removeMember": "Quitar del grupo: {{name}}",
+    "newTitle": "Nuevo grupo",
+    "newPlaceholder": "Familia",
+    "newHint": "Un grupo nuevo tiene sus propios platos y recipientes. Puedes invitar a gente después.",
+    "createAction": "Crear",
+    "leave": "Salir del grupo",
+    "leaveTitle": "¿Salir del grupo «{{group}}»?",
+    "leaveText": "Sus platos se quitarán de este dispositivo; los demás miembros lo conservan todo. Puedes volver con una invitación nueva."
+  },
+  "data": {
+    "wrongFile": "Archivo equivocado",
+    "wrongFileHint": "Hace falta una copia descargada en esta app: Ajustes → Copia de datos.",
+    "loaded": "Datos cargados",
+    "title": "Copia de datos",
+    "leadGroup": "Los platos, recipientes y mesas del grupo ya se guardan en el servidor. El archivo es una copia de reserva en tu dispositivo.",
+    "leadLocal": "Los platos, recipientes y mesas se guardan solo en este navegador. Descarga el archivo para no perderlos al cambiar de teléfono o borrar el navegador.",
+    "download": "Descargar copia",
+    "downloadHint": "Un archivo con todo lo que hay en la app",
+    "upload": "Cargar desde archivo",
+    "uploadHintGroup": "Reemplaza los datos del grupo «{{group}}» para todos sus miembros",
+    "uploadHint": "Reemplaza todo lo que hay ahora en la app",
+    "iphoneTitle": "La app en la pantalla de inicio del iPhone",
+    "iphoneText": "Tiene su propio almacenamiento, aparte de Safari. Descarga una copia en Safari y cárgala en la app. O entra en tu cuenta en los dos — así no hay nada que pasar.",
+    "replaceTitle": "¿Reemplazar los datos con el archivo?",
+    "replaceCounts": "En el archivo — platos: {{dishes}}, recipientes: {{tares}}, mesas: {{companies}}.",
+    "replaceGroup": "Reemplazarán los datos del grupo «{{group}}» para todos sus miembros.",
+    "replaceLocal": "Reemplazarán lo que hay ahora en la app.",
+    "replace": "Reemplazar"
+  },
+  "hub": {
+    "theme": "Tema",
+    "dataHint": "Un archivo con todos los platos — por si cambias de teléfono",
+    "companiesHint": "Quién come y en qué partes",
+    "companiesHintEmpty": "Quién come y en qué partes. Aún ninguna",
+    "taresHint": "Peso de los recipientes vacíos",
+    "taresHintEmpty": "Peso de los recipientes vacíos. Añade una olla o un bol"
+  },
+  "companies": {
+    "title": "Mesas",
+    "lead": "Quién come junto y en qué proporción. Elige una mesa en la calculadora, en «Quién come» — el plato se reparte según sus partes."
+  },
+  "photo": {
+    "notImage": "Eso no es una foto — elige una imagen de la galería",
+    "removed": "Foto quitada",
+    "profile": "Perfil",
+    "label": "Foto de perfil",
+    "choose": "Elegir otra foto",
+    "remove": "Quitar foto",
+    "add": "Añadir foto"
+  },
+  "appearance": {
+    "theme": "Tema",
+    "lead": "La elección se guarda en este dispositivo.",
+    "system": "Como el sistema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "language": "Idioma"
+  },
+  "hints": {
+    "on": "Mostraremos los consejos en la calculadora",
+    "title": "Consejos",
+    "onText": "Te mostramos en la calculadora qué peso escribir y cómo repartir",
+    "offText": "Actívalos — el recorrido por la calculadora empezará de nuevo"
+  },
+  "version": "Versión {{version}}"
+}

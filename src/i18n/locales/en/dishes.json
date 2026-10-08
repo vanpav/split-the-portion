@@ -1,0 +1,37 @@
+{
+  "popular": {
+    "title": "Popular dishes",
+    "add": "Add",
+    "addCount_one": "Add {{count}} dish",
+    "addCount_other": "Add {{count}} dishes",
+    "skip": "Skip",
+    "leadGroup": "The new group has no dishes yet. Mark what you cook: the dishes will be shared.",
+    "lead": "Mark what you cook. On the right is the usual weight per batch — you can adjust it.",
+    "nothingPicked": "Nothing marked yet",
+    "filter": "Filter",
+    "all": "All",
+    "picked": "Marked",
+    "exists": "already added",
+    "pick": "Mark: {{name}}",
+    "unpick": "Unmark: {{name}}",
+    "pickAll": "Mark all",
+    "unpickAll": "Unmark all"
+  },
+  "menu": {
+    "emptyTitle": "No dishes yet",
+    "emptyText": "Add a dish once — after that, at the stove you only enter the cooked weight.",
+    "add": "Add a dish",
+    "fromPopular": "Pick from popular",
+    "often": "Cooked often",
+    "yours": "Your dishes",
+    "restAbc": "Others · A–Z",
+    "yoursAbc": "Your dishes · A–Z",
+    "popular": "Popular",
+    "orPopular": "Or pick from popular",
+    "addPopular": "Add from popular",
+    "create": "Create “{{text}}”",
+    "createHint": "Opens the form with this word",
+    "addPopularDishes": "Add popular dishes",
+    "groupSwitch": "Group “{{group}}”, switch"
+  }
+}

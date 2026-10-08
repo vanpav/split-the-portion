@@ -25,11 +25,6 @@ export function portionName(index: number): string {
   return i18n.t('calculator.portionName', { n: index + 1 })
 }
 
-/** «1 порция», «3 порции», «7 порций»: the word alone. */
-export function portionsWord(count: number): string {
-  return i18n.t('calculator.portionsWord', { count })
-}
-
 export const kHintTitle = () => i18n.t('calculator.k.hintTitle')
 
 /** What k tells, shown in a tooltip (desktop) or a bottom sheet (touch). */

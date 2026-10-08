@@ -9,6 +9,7 @@ import { HubLink } from './HubLink'
 import { HubTares } from './HubTares'
 import { ThemeSetting } from './ThemeSetting'
 import { t } from '@/i18n'
+import { LanguageSetting } from './LanguageSetting'
 
 /**
  * `#/settings` on a phone (docs/UX.md «Настройки»): what is set up, read without opening anything —
@@ -28,6 +29,7 @@ export function SettingsHub({ className }: { className?: string }) {
           <h3 className="px-1 font-medium">{t('settings.hub.theme')}</h3>
           <ThemeSetting />
         </div>
+        <LanguageSetting />
         <HintsSetting />
         <HubLink
           to="data"

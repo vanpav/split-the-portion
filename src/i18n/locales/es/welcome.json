@@ -1,0 +1,20 @@
+{
+  "about": {
+    "portions": { "title": "Cuánto servir a cada uno", "text": "Pesa el plato cocinado y verás al instante cuántos gramos van en cada plato — y cuánto es en seco para tu contador de calorías." },
+    "oneWeight": { "title": "Escribe un solo peso", "text": "El plato recuerda el peso en seco, el recipiente, la mesa y las partes. En la cocina solo queda escribir el peso cocinado." },
+    "shares": { "title": "A partes iguales o por partes", "text": "Guarda una parte para mañana o reparte la tanda de la semana en raciones sin nombre. Desliza una ración para copiarla al contador." }
+  },
+  "withAccount1": "Platos en todos tus dispositivos, también al cambiar de teléfono",
+  "withAccount2": "Con tu familia: el peso cocinado que escribe uno lo ven todos al momento",
+  "step": "Paso {{n}} de {{count}}",
+  "steps": "Pasos",
+  "skip": "Omitir",
+  "accountTitle": "Cuenta o este dispositivo",
+  "withAccount": "Con cuenta",
+  "withoutAccount": "Sin cuenta",
+  "withoutAccountText": "Los datos se guardan solo en este navegador. Puedes entrar más tarde en Ajustes — los datos pasarán a tu cuenta.",
+  "haveAccount": "¿Ya tienes cuenta?",
+  "start": "Empezar",
+  "next": "Siguiente",
+  "demo": { "dry": "Seco", "cooked": "Cocinado", "noTare": "Sin recipiente · k = {{k}}", "person1": "Ana", "person2": "Luis", "tomorrow": "mañana" }
+}

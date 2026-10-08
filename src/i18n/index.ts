@@ -10,18 +10,14 @@ export const LANGUAGE_STORAGE_KEY = 'language'
 /** Locale for numbers and dates of each UI language. */
 const LOCALES: Record<Language, Locale> = { en: 'en-US', ru: 'ru-RU', es: 'es-ES' }
 
-/**
- * Stage 1 of docs/roadmap/21-i18n.md: only Russian is written yet, so the app stays Russian whatever
- * the device says. Stage 2 drops this and lets the detector choose.
- */
-const FORCED_LANGUAGE: Language | undefined = 'ru'
+/** Each language by its own name: the same in every UI language, so anyone finds theirs. */
+export const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', ru: 'Русский', es: 'Español' }
 
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: FORCED_LANGUAGE,
     supportedLngs: LANGUAGES,
     nonExplicitSupportedLngs: true,
     load: 'languageOnly',
@@ -45,8 +41,32 @@ export function currentLocale(): Locale {
   return LOCALES[currentLanguage()]
 }
 
+/** The language picked in Settings on this device; null — follow the device. */
+export function storedLanguage(): Language | null {
+  try {
+    const value = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    return value && isLanguage(value) ? value : null
+  } catch {
+    return null
+  }
+}
+
+/** Pick a language for this device, or (null) follow the device's own again. */
+export function setLanguage(lang: Language | null): void {
+  try {
+    if (lang) localStorage.setItem(LANGUAGE_STORAGE_KEY, lang)
+    else localStorage.removeItem(LANGUAGE_STORAGE_KEY)
+  } catch {
+    // Storage blocked: the choice lasts until the page is closed.
+  }
+  // Without an argument i18next asks the detector again: the device's language.
+  void i18n.changeLanguage(lang ?? undefined)
+}
+
 const syncHtmlLang = () => {
-  if (typeof document !== 'undefined') document.documentElement.lang = currentLanguage()
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = currentLanguage()
+  document.title = i18n.t('common.appName')
 }
 syncHtmlLang()
 i18n.on('languageChanged', syncHtmlLang)

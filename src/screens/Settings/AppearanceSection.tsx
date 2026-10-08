@@ -1,9 +1,10 @@
 import { HintsSetting } from './HintsSetting'
 import { ThemeSetting } from './ThemeSetting'
 import { t } from '@/i18n'
+import { LanguageSetting } from './LanguageSetting'
 
 /**
- * «Оформление»: the theme and the hints, both settings of this device (docs/UX.md «Настройки»).
+ * «Оформление»: the theme, the language and the hints, all settings of this device (docs/UX.md «Настройки»).
  * On a phone the hub shows the same controls in place.
  */
 export function AppearanceSection() {
@@ -16,7 +17,8 @@ export function AppearanceSection() {
         </div>
         <ThemeSetting />
       </section>
-      <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="divide-y overflow-hidden rounded-xl border bg-card">
+        <LanguageSetting />
         <HintsSetting />
       </div>
     </div>

@@ -1,0 +1,147 @@
+{
+  "avatar": { "title": "Photo", "lead": "Move and zoom so your face is in the circle.", "zoom": "Zoom" },
+  "sync": {
+    "syncing": "Syncing…",
+    "synced": "Synced · {{time}}",
+    "offline": "No connection — changes are saved on this device",
+    "failed": "Couldn't sync — we'll try again",
+    "noAccess": "No access to the group — ask for a new invite",
+    "update": "Update the app to sync: close it and open it again",
+    "signIn": "Sign in again to sync",
+    "signInAction": "Sign in again"
+  },
+  "company": { "deleted": "Party deleted" },
+  "group": {
+    "nameHint": "Empty — the group is named after its people. Everyone in the group sees the name",
+    "membersShared": "Group: shared dishes, containers and parties",
+    "membersInvite": "Group. Invite family — your dishes become shared"
+  },
+  "invite": {
+    "shareNamed": "Join the group “{{group}}” in Portions: code {{code}}",
+    "share": "Let's keep our dishes together in Portions: code {{code}}",
+    "title": "Invite",
+    "hint": "A code or a link for a messenger",
+    "code": "Invite code",
+    "copyLink": "Copy invite link",
+    "shareAction": "Share invite",
+    "until": "Valid until {{date}}",
+    "revoked": "Code revoked",
+    "revoke": "Revoke"
+  },
+  "profile": { "firstName": "First name", "lastName": "Last name", "nickname": "Short name", "nicknameHint": "How others in the group see you. Empty — {{fallback}}" },
+  "tares": {
+    "title": "Containers",
+    "lead": "Weight of the empty container — we'll subtract it.",
+    "new": "New container",
+    "deleted": "“{{name}}” deleted",
+    "nameLabel": "Container name",
+    "weightOf": "Weight of “{{name}}”",
+    "delete": "Delete “{{name}}”"
+  },
+  "passkey": {
+    "added": "Passkey added",
+    "removed": "Passkey removed",
+    "addedAt": "Added {{date}}",
+    "remove": "Delete passkey “{{name}}”",
+    "add": "Add a passkey",
+    "addHint": "Sign in with Face ID or a fingerprint on this device",
+    "removeTitle": "Delete passkey “{{name}}”?",
+    "removeText": "You won't be able to sign in with it. Your password and other passkeys stay."
+  },
+  "account": {
+    "title": "Account",
+    "localLead": "Data is kept only on this device. Sign in and it'll be on all your devices and in a shared group.",
+    "offlineSignOut": "No connection — you can sign out once you're online",
+    "about": "About you",
+    "signIn": "Sign-in",
+    "unsentTitle": "Not all changes are sent",
+    "unsentText": "Some edits exist only on this device. They'll be lost when you sign out.",
+    "stay": "Stay",
+    "localOnly": "Dishes only on this device",
+    "localOnlyText": "Sign in — they'll be on all your devices, and you can share them with family."
+  },
+  "sections": { "account": "Account", "group": "Group", "companies": "Parties", "tares": "Containers", "appearance": "Appearance", "data": "Data backup" },
+  "clusters": { "kitchen": "Kitchen", "app": "App" },
+  "subsections": "Settings sections",
+  "groupScreen": {
+    "open": "Open: its dishes are on screen now and open at launch",
+    "otherOpen": "Another one is open now: {{group}}",
+    "members": "Members",
+    "openThis": "Open this group",
+    "openBadge": "Open"
+  },
+  "groups": {
+    "lead": "Who you share dishes, containers and parties with: what one person edits, everyone sees within a minute. Who eats how much — see",
+    "leadLink": "Parties",
+    "yours": "Your groups",
+    "create": "Create a group",
+    "joinByCode": "Join with a code",
+    "memberLeft": "{{name}} is no longer in the group",
+    "you": " · you",
+    "owner": "owner",
+    "removeMember": "Remove from group: {{name}}",
+    "newTitle": "New group",
+    "newPlaceholder": "Family",
+    "newHint": "A new group has its own dishes and containers. You can invite people later.",
+    "createAction": "Create",
+    "leave": "Leave group",
+    "leaveTitle": "Leave the group “{{group}}”?",
+    "leaveText": "Its dishes will be removed from this device; the other members keep everything. You can come back with a new invite."
+  },
+  "data": {
+    "wrongFile": "Wrong file",
+    "wrongFileHint": "You need a backup downloaded from this app: Settings → Data backup.",
+    "loaded": "Data loaded",
+    "title": "Data backup",
+    "leadGroup": "The group's dishes, containers and parties are already stored on the server. The file is a spare copy on your device.",
+    "leadLocal": "Dishes, containers and parties are stored only in this browser. Download the file so you don't lose them when you change phones or clear the browser.",
+    "download": "Download backup",
+    "downloadHint": "A file with everything in the app",
+    "upload": "Load from file",
+    "uploadHintGroup": "Replaces the data of the group “{{group}}” for all its members",
+    "uploadHint": "Replaces everything in the app now",
+    "iphoneTitle": "The app on the iPhone home screen",
+    "iphoneText": "It has its own storage, separate from Safari. Download a backup in Safari and load it in the app. Or sign in to your account in both — then there's nothing to move.",
+    "replaceTitle": "Replace data from the file?",
+    "replaceCounts": "The file has dishes: {{dishes}}, containers: {{tares}}, parties: {{companies}}.",
+    "replaceGroup": "They'll replace the data of the group “{{group}}” for all its members.",
+    "replaceLocal": "They'll replace what's in the app now.",
+    "replace": "Replace"
+  },
+  "hub": {
+    "theme": "Theme",
+    "dataHint": "A file with all your dishes — in case of a new phone",
+    "companiesHint": "Who eats, and in what shares",
+    "companiesHintEmpty": "Who eats, and in what shares. None yet",
+    "taresHint": "Weight of empty containers",
+    "taresHintEmpty": "Weight of empty containers. Add a pot or a bowl"
+  },
+  "companies": {
+    "title": "Parties",
+    "lead": "Who eats together, and in what proportion. Pick a party in the calculator under “Who's eating” — the dish is split by its shares."
+  },
+  "photo": {
+    "notImage": "That's not a photo — pick a picture from your gallery",
+    "removed": "Photo removed",
+    "profile": "Profile",
+    "label": "Profile photo",
+    "choose": "Choose another photo",
+    "remove": "Remove photo",
+    "add": "Add a photo"
+  },
+  "appearance": {
+    "theme": "Theme",
+    "lead": "Your choice is kept on this device.",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language"
+  },
+  "hints": {
+    "on": "Hints will show on the calculator",
+    "title": "Hints",
+    "onText": "We'll show on the calculator which weight to enter and how to split",
+    "offText": "Turn on — the calculator tour starts over"
+  },
+  "version": "Version {{version}}"
+}

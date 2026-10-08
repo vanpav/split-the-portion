@@ -1,0 +1,21 @@
+{
+  "byCode": {
+    "title": "Join with a code",
+    "invalid": "8 letters and digits, like K7MR-Q2XD",
+    "code": "Code",
+    "hint": "The person inviting you will send the code.",
+    "check": "Check"
+  },
+  "title": "Join a group",
+  "loading": "Checking the code…",
+  "gone": "Code not found or expired. Ask for a new one.",
+  "offline": "No connection — you can join once you're online.",
+  "invitedBy": "Invited by {{name}}",
+  "invites": "{{name}} invites you",
+  "shared": "Dishes, containers and parties will be shared",
+  "already": "You're already in this group — open it",
+  "join": "Join",
+  "signInToJoin": "Sign in to join",
+  "installed": "Is the app on your home screen? Open it: Settings → Group → Join with a code.",
+  "groupBack": "Group"
+}

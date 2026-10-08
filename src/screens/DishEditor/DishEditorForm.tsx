@@ -45,7 +45,7 @@ import type { EditorOutlet } from './editorOutlet'
 import { PhraseField } from './PhraseField'
 import { PhraseList } from './PhraseList'
 import { TareChips } from './TareChips'
-import { t } from '@/i18n'
+import { currentLanguage, t } from '@/i18n'
 import { categoryLabel, dishTitle } from '@/i18n/format'
 
 const speechErrorText = (error: SpeechError) => t(`editor.speech.${error}`)
@@ -356,7 +356,8 @@ export function DishEditorForm() {
               fromDishTo={{ pathname: FROM_SIMPLE_DISH, search }}
               onFromDish={() => (refocus.current = 'phrase')}
               voice={
-                speech.supported
+                // The phrase speaks Russian only for now: in another UI language the mic would hear the wrong one.
+                speech.supported && currentLanguage() === DEFAULT_PHRASE_LANGUAGE.locale
                   ? {
                       listening: speech.listening,
                       transcript: speech.transcript,

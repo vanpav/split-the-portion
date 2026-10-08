@@ -16,10 +16,6 @@
   "rawWordSimple": "сухого",
   "rawWordComposite": "сырого",
   "portionName": "Порция {{n}}",
-  "portionsWord_one": "порция",
-  "portionsWord_few": "порции",
-  "portionsWord_many": "порций",
-  "portionsWord_other": "порции",
   "copyLine": "{{name}} (сырой вес) — {{grams}} г",
   "raw": {
     "count_one": "{{count}} ингредиент",
