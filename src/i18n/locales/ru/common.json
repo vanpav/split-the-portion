@@ -90,5 +90,10 @@
   "signOut": "Выйти",
   "enterName": "Введи название",
   "personN": "Человек {{n}}",
-  "nobody": "Никого"
+  "nobody": "Никого",
+  "holdSeconds_one": "Удерживай {{count}} секунду",
+  "holdSeconds_few": "Удерживай {{count}} секунды",
+  "holdSeconds_many": "Удерживай {{count}} секунд",
+  "holdSeconds_other": "Удерживай {{count}} секунды",
+  "holdLeft": "Держи ещё {{count}} с"
 }

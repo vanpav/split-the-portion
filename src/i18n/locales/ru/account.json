@@ -17,7 +17,9 @@
     "linkExpired": "Ссылка устарела — попроси новую",
     "passkeyExists": "Passkey на этом устройстве уже добавлен",
     "passkeyReauth": "Чтобы добавить passkey, выйди и войди снова",
-    "passkeyFailed": "Passkey не сработал — войди паролем"
+    "passkeyFailed": "Passkey не сработал — войди паролем",
+    "passwordLong": "Максимум 128 символов",
+    "wrongCurrentPassword": "Неверный текущий пароль"
   },
   "people": {
     "you": "ты",

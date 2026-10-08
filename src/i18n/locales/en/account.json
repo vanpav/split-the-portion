@@ -17,9 +17,15 @@
     "linkExpired": "The link has expired — ask for a new one",
     "passkeyExists": "A passkey is already added on this device",
     "passkeyReauth": "To add a passkey, sign out and sign in again",
-    "passkeyFailed": "The passkey didn't work — sign in with your password"
+    "passkeyFailed": "The passkey didn't work — sign in with your password",
+    "passwordLong": "At most 128 characters",
+    "wrongCurrentPassword": "Wrong current password"
   },
-  "people": { "you": "you", "onlyYou": "Just you", "andMore": "{{count}} more" },
+  "people": {
+    "you": "you",
+    "onlyYou": "Just you",
+    "andMore": "{{count}} more"
+  },
   "title": "Account",
   "lead": "With an account, your dishes are on all your devices, and you can keep them together with family. Without one, everything stays here.",
   "signIn": "Sign in",
@@ -32,5 +38,9 @@
   "resetAsked": "The app owner will send you a link for a new password — message them.",
   "signInPasskey": "Sign in with a passkey",
   "forgotPassword": "Forgot your password?",
-  "reset": { "title": "New password", "save": "Save password", "done": "Password changed — sign in with it" }
+  "reset": {
+    "title": "New password",
+    "save": "Save password",
+    "done": "Password changed — sign in with it"
+  }
 }

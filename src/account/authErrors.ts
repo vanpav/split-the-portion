@@ -11,6 +11,10 @@ export function authErrorText(error: { code?: string; status?: number } | null |
       return t('account.errors.wrongCredentials')
     case 'PASSWORD_TOO_SHORT':
       return t('account.errors.passwordShort')
+    case 'PASSWORD_TOO_LONG':
+      return t('account.errors.passwordLong')
+    case 'INVALID_PASSWORD':
+      return t('account.errors.wrongCurrentPassword')
     case 'USER_ALREADY_EXISTS':
     case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
       return t('account.errors.emailTaken')

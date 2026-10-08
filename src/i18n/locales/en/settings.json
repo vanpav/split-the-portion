@@ -1,5 +1,9 @@
 {
-  "avatar": { "title": "Photo", "lead": "Move and zoom so your face is in the circle.", "zoom": "Zoom" },
+  "avatar": {
+    "title": "Photo",
+    "lead": "Move and zoom so your face is in the circle.",
+    "zoom": "Zoom"
+  },
   "sync": {
     "syncing": "Syncing…",
     "synced": "Synced · {{time}}",
@@ -10,7 +14,9 @@
     "signIn": "Sign in again to sync",
     "signInAction": "Sign in again"
   },
-  "company": { "deleted": "Party deleted" },
+  "company": {
+    "deleted": "Party deleted"
+  },
   "group": {
     "nameHint": "Empty — the group is named after its people. Everyone in the group sees the name",
     "membersShared": "Group: shared dishes, containers and parties",
@@ -28,7 +34,12 @@
     "revoked": "Code revoked",
     "revoke": "Revoke"
   },
-  "profile": { "firstName": "First name", "lastName": "Last name", "nickname": "Short name", "nicknameHint": "How others in the group see you. Empty — {{fallback}}" },
+  "profile": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "nickname": "Short name",
+    "nicknameHint": "How others in the group see you. Empty — {{fallback}}"
+  },
   "tares": {
     "title": "Containers",
     "lead": "Weight of the empty container — we'll subtract it.",
@@ -60,8 +71,18 @@
     "localOnly": "Dishes only on this device",
     "localOnlyText": "Sign in — they'll be on all your devices, and you can share them with family."
   },
-  "sections": { "account": "Account", "group": "Group", "companies": "Parties", "tares": "Containers", "appearance": "Appearance", "data": "Data backup" },
-  "clusters": { "kitchen": "Kitchen", "app": "App" },
+  "sections": {
+    "account": "Account",
+    "group": "Group",
+    "companies": "Parties",
+    "tares": "Containers",
+    "appearance": "Appearance",
+    "data": "Data backup"
+  },
+  "clusters": {
+    "kitchen": "Kitchen",
+    "app": "App"
+  },
   "subsections": "Settings sections",
   "groupScreen": {
     "open": "Open: its dishes are on screen now and open at launch",
@@ -143,5 +164,36 @@
     "onText": "We'll show on the calculator which weight to enter and how to split",
     "offText": "Turn on — the calculator tour starts over"
   },
-  "version": "Version {{version}}"
+  "version": "Version {{version}}",
+  "password": {
+    "change": "Change password",
+    "enterCurrent": "Enter your current password",
+    "changedOthers": "Password changed — sign in with it on your other devices",
+    "changed": "Password changed",
+    "current": "Current password",
+    "new": "New password",
+    "signOutOthers": "Sign out on other devices",
+    "signOutOthersHint": "You'll need to sign in there with the new password"
+  },
+  "danger": {
+    "shared": "You'll leave shared groups; the other members keep everything.",
+    "backup": "This can't be undone. If you want a copy of your dishes, download it first: Settings → Data backup.",
+    "reset": {
+      "title": "Reset account",
+      "hint": "Data and profile are deleted, sign-in stays",
+      "question": "Reset account?",
+      "text": "Groups where you're the only member are deleted with their dishes, containers and parties, along with your profile and photo. {{shared}} You'll sign in as before: with your password or a passkey. The app starts over, as on the first day.",
+      "hold": "Hold to reset",
+      "busy": "Resetting…"
+    },
+    "delete": {
+      "title": "Delete account",
+      "hint": "For good, with your data and sign-in",
+      "question": "Delete account?",
+      "text": "Deleted: groups where you're the only member, with their dishes, containers and parties; your profile, photo, password and passkeys. {{shared}}",
+      "hold": "Hold to delete",
+      "busy": "Deleting…"
+    },
+    "deleted": "Account deleted"
+  }
 }

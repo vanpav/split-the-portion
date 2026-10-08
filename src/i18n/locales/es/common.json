@@ -27,9 +27,21 @@
   "dishes": "Platos",
   "findDish": "Buscar un plato",
   "byCategory": "Por categorías",
-  "person": { "add": "Añadir persona", "remove": "Quitar persona" },
-  "company": { "nameLabel": "Nombre de la mesa", "namePlaceholder": "Ana y Luis", "addPeople": "Añade personas", "default": "Mesa" },
-  "tare": { "namePlaceholder": "Olla de 3 l", "weightPositive": "El peso debe ser mayor que 0", "add": "Añadir recipiente" },
+  "person": {
+    "add": "Añadir persona",
+    "remove": "Quitar persona"
+  },
+  "company": {
+    "nameLabel": "Nombre de la mesa",
+    "namePlaceholder": "Ana y Luis",
+    "addPeople": "Añade personas",
+    "default": "Mesa"
+  },
+  "tare": {
+    "namePlaceholder": "Olla de 3 l",
+    "weightPositive": "El peso debe ser mayor que 0",
+    "add": "Añadir recipiente"
+  },
   "share": {
     "ownPortion": "{{name}}: ración fija",
     "ownPortionLabel": "{{name}}: ración fija, {{label}}",
@@ -39,8 +51,14 @@
     "keepForTomorrow": "Guardar para mañana",
     "tomorrowValue": "Para mañana: {{percent}} % del plato"
   },
-  "update": { "available": "Hay una versión nueva", "action": "Actualizar" },
-  "storageBroken": { "title": "No se pudieron leer los datos", "text": "Queda una copia en el navegador; la app empezó desde cero." },
+  "update": {
+    "available": "Hay una versión nueva",
+    "action": "Actualizar"
+  },
+  "storageBroken": {
+    "title": "No se pudieron leer los datos",
+    "text": "Queda una copia en el navegador; la app empezó desde cero."
+  },
   "localData": {
     "title": "¿Pasar los datos de este dispositivo?",
     "text": "Platos en este dispositivo: {{count}}. El grupo «{{group}}» ya tiene otros platos. ¿Pasar estos al grupo? Los iguales pueden duplicarse.",
@@ -49,7 +67,11 @@
   },
   "leftGroup": "Ya no estás en el grupo «{{group}}»",
   "done": "Listo",
-  "copyManually": { "title": "Cópialo a mano", "text": "El navegador no dejó copiar. El texto ya está seleccionado.", "label": "Texto para copiar" },
+  "copyManually": {
+    "title": "Cópialo a mano",
+    "text": "El navegador no dejó copiar. El texto ya está seleccionado.",
+    "label": "Texto para copiar"
+  },
   "searchPlaceholder": "Arroz, sopa…",
   "nothingFound": "No se encontró nada",
   "group": "Grupo",
@@ -68,5 +90,9 @@
   "signOut": "Salir",
   "enterName": "Escribe un nombre",
   "personN": "Persona {{n}}",
-  "nobody": "Nadie"
+  "nobody": "Nadie",
+  "holdSeconds_one": "Mantén pulsado {{count}} segundo",
+  "holdSeconds_many": "Mantén pulsado {{count}} segundos",
+  "holdSeconds_other": "Mantén pulsado {{count}} segundos",
+  "holdLeft": "Sigue pulsando: {{count}} s"
 }

@@ -27,9 +27,21 @@
   "dishes": "Dishes",
   "findDish": "Find a dish",
   "byCategory": "By category",
-  "person": { "add": "Add a person", "remove": "Remove person" },
-  "company": { "nameLabel": "Party name", "namePlaceholder": "Sam and Alex", "addPeople": "Add people", "default": "Party" },
-  "tare": { "namePlaceholder": "3 L pot", "weightPositive": "Weight must be more than 0", "add": "Add a container" },
+  "person": {
+    "add": "Add a person",
+    "remove": "Remove person"
+  },
+  "company": {
+    "nameLabel": "Party name",
+    "namePlaceholder": "Sam and Alex",
+    "addPeople": "Add people",
+    "default": "Party"
+  },
+  "tare": {
+    "namePlaceholder": "3 L pot",
+    "weightPositive": "Weight must be more than 0",
+    "add": "Add a container"
+  },
   "share": {
     "ownPortion": "{{name}}: fixed portion",
     "ownPortionLabel": "{{name}}: fixed portion, {{label}}",
@@ -39,8 +51,14 @@
     "keepForTomorrow": "Save for tomorrow",
     "tomorrowValue": "For tomorrow: {{percent}}% of the dish"
   },
-  "update": { "available": "A new version is available", "action": "Update" },
-  "storageBroken": { "title": "Couldn't read your data", "text": "A copy stays in the browser; the app started from scratch." },
+  "update": {
+    "available": "A new version is available",
+    "action": "Update"
+  },
+  "storageBroken": {
+    "title": "Couldn't read your data",
+    "text": "A copy stays in the browser; the app started from scratch."
+  },
   "localData": {
     "title": "Move this device's data?",
     "text": "Dishes on this device: {{count}}. The group “{{group}}” already has other dishes. Move these into the group? Identical ones may be duplicated.",
@@ -49,7 +67,11 @@
   },
   "leftGroup": "You're no longer in the group “{{group}}”",
   "done": "Done",
-  "copyManually": { "title": "Copy it yourself", "text": "The browser didn't allow copying. The text is already selected.", "label": "Text to copy" },
+  "copyManually": {
+    "title": "Copy it yourself",
+    "text": "The browser didn't allow copying. The text is already selected.",
+    "label": "Text to copy"
+  },
   "searchPlaceholder": "Rice, soup…",
   "nothingFound": "Nothing found",
   "group": "Group",
@@ -68,5 +90,8 @@
   "signOut": "Sign out",
   "enterName": "Enter a name",
   "personN": "Person {{n}}",
-  "nobody": "Nobody"
+  "nobody": "Nobody",
+  "holdSeconds_one": "Hold for {{count}} second",
+  "holdSeconds_other": "Hold for {{count}} seconds",
+  "holdLeft": "Keep holding: {{count}} s"
 }

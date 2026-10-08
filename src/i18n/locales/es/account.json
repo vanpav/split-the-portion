@@ -17,9 +17,15 @@
     "linkExpired": "El enlace caducó — pide uno nuevo",
     "passkeyExists": "Ya hay una passkey en este dispositivo",
     "passkeyReauth": "Para añadir una passkey, sal y vuelve a entrar",
-    "passkeyFailed": "La passkey no funcionó — entra con tu contraseña"
+    "passkeyFailed": "La passkey no funcionó — entra con tu contraseña",
+    "passwordLong": "Máximo 128 caracteres",
+    "wrongCurrentPassword": "Contraseña actual incorrecta"
   },
-  "people": { "you": "tú", "onlyYou": "Solo tú", "andMore": "{{count}} más" },
+  "people": {
+    "you": "tú",
+    "onlyYou": "Solo tú",
+    "andMore": "{{count}} más"
+  },
   "title": "Cuenta",
   "lead": "Con una cuenta, tus platos están en todos tus dispositivos y puedes llevarlos junto con tu familia. Sin ella, todo se guarda solo aquí.",
   "signIn": "Entrar",
@@ -32,5 +38,9 @@
   "resetAsked": "El responsable de la app te enviará un enlace para una contraseña nueva — escríbele.",
   "signInPasskey": "Entrar con passkey",
   "forgotPassword": "¿Olvidaste la contraseña?",
-  "reset": { "title": "Contraseña nueva", "save": "Guardar contraseña", "done": "Contraseña cambiada — entra con ella" }
+  "reset": {
+    "title": "Contraseña nueva",
+    "save": "Guardar contraseña",
+    "done": "Contraseña cambiada — entra con ella"
+  }
 }

@@ -1,5 +1,9 @@
 {
-  "avatar": { "title": "Foto", "lead": "Mueve y amplía para que la cara quede en el círculo.", "zoom": "Zoom" },
+  "avatar": {
+    "title": "Foto",
+    "lead": "Mueve y amplía para que la cara quede en el círculo.",
+    "zoom": "Zoom"
+  },
   "sync": {
     "syncing": "Sincronizando…",
     "synced": "Sincronizado · {{time}}",
@@ -10,7 +14,9 @@
     "signIn": "Vuelve a entrar para sincronizar",
     "signInAction": "Volver a entrar"
   },
-  "company": { "deleted": "Mesa eliminada" },
+  "company": {
+    "deleted": "Mesa eliminada"
+  },
   "group": {
     "nameHint": "Vacío — el grupo se llama por sus personas. Todos en el grupo ven el nombre",
     "membersShared": "Grupo: platos, recipientes y mesas compartidos",
@@ -28,7 +34,12 @@
     "revoked": "Código revocado",
     "revoke": "Revocar"
   },
-  "profile": { "firstName": "Nombre", "lastName": "Apellido", "nickname": "Nombre corto", "nicknameHint": "Así te ven en el grupo. Vacío — {{fallback}}" },
+  "profile": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "nickname": "Nombre corto",
+    "nicknameHint": "Así te ven en el grupo. Vacío — {{fallback}}"
+  },
   "tares": {
     "title": "Recipientes",
     "lead": "Peso del recipiente vacío — lo restamos nosotros.",
@@ -60,8 +71,18 @@
     "localOnly": "Platos solo en este dispositivo",
     "localOnlyText": "Entra — estarán en todos tus dispositivos y podrás compartirlos con tu familia."
   },
-  "sections": { "account": "Cuenta", "group": "Grupo", "companies": "Mesas", "tares": "Recipientes", "appearance": "Apariencia", "data": "Copia de datos" },
-  "clusters": { "kitchen": "Cocina", "app": "App" },
+  "sections": {
+    "account": "Cuenta",
+    "group": "Grupo",
+    "companies": "Mesas",
+    "tares": "Recipientes",
+    "appearance": "Apariencia",
+    "data": "Copia de datos"
+  },
+  "clusters": {
+    "kitchen": "Cocina",
+    "app": "App"
+  },
   "subsections": "Secciones de ajustes",
   "groupScreen": {
     "open": "Abierto: sus platos están en pantalla y se abren al iniciar",
@@ -143,5 +164,36 @@
     "onText": "Te mostramos en la calculadora qué peso escribir y cómo repartir",
     "offText": "Actívalos — el recorrido por la calculadora empezará de nuevo"
   },
-  "version": "Versión {{version}}"
+  "version": "Versión {{version}}",
+  "password": {
+    "change": "Cambiar contraseña",
+    "enterCurrent": "Escribe tu contraseña actual",
+    "changedOthers": "Contraseña cambiada — en tus otros dispositivos entra con ella",
+    "changed": "Contraseña cambiada",
+    "current": "Contraseña actual",
+    "new": "Contraseña nueva",
+    "signOutOthers": "Salir en otros dispositivos",
+    "signOutOthersHint": "Allí tendrás que entrar con la contraseña nueva"
+  },
+  "danger": {
+    "shared": "Saldrás de los grupos compartidos; los demás miembros lo conservan todo.",
+    "backup": "No se puede deshacer. Si quieres una copia de los platos, descárgala antes: Ajustes → Copia de datos.",
+    "reset": {
+      "title": "Restablecer cuenta",
+      "hint": "Se borran los datos y el perfil, el acceso se queda",
+      "question": "¿Restablecer la cuenta?",
+      "text": "Los grupos donde estás solo se eliminan con sus platos, recipientes y mesas, junto con tu perfil y tu foto. {{shared}} Entrarás como antes: con contraseña o passkey. La app empezará de cero, como el primer día.",
+      "hold": "Mantén pulsado para restablecer",
+      "busy": "Restableciendo…"
+    },
+    "delete": {
+      "title": "Eliminar cuenta",
+      "hint": "Para siempre, con tus datos y tu acceso",
+      "question": "¿Eliminar la cuenta?",
+      "text": "Se eliminan los grupos donde estás solo, con sus platos, recipientes y mesas, tu perfil, foto, contraseña y passkeys. {{shared}}",
+      "hold": "Mantén pulsado para eliminar",
+      "busy": "Eliminando…"
+    },
+    "deleted": "Cuenta eliminada"
+  }
 }
