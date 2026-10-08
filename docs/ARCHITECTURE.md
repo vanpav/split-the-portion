@@ -181,7 +181,7 @@ src/domain/
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
   phrase.ts         — «Что в блюде» (этап 19): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
   speech.ts         — сказанное → фраза: spokenToPhrase (числа словами, единицы, паразиты), looksSpoken
-  phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
+  phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); RU, EN, ES и `phraseLanguageOf(язык интерфейса)`
   phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
   dishCategories.ts — DishCategory (тип — в types.ts), DISH_CATEGORIES (порядок показа), CATEGORY_LABELS (на всех языках интерфейса: поиск ищет по любому), словарь основ и detectCategory, dishCategory(dish), categoryMatches(query, category)
