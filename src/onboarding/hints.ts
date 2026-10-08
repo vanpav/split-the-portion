@@ -58,6 +58,12 @@ export const setHintsOff = (hints: HintPrefs, off: boolean): HintPrefs => ({ ...
 /** «Показать заново»: the tour from the start. The welcome stays gone through. */
 export const hintsAgain = (hints: HintPrefs): HintPrefs => ({ ...hints, off: false, tour: 0 })
 
+/**
+ * After «Сбросить аккаунт»: the app starts over as on a new device — the welcome, then the tour.
+ * Settled: the empty account has no dishes, nothing to sort out at the next launch.
+ */
+export const restartHints = (): HintPrefs => ({ ...EMPTY_HINTS, settled: true })
+
 /** Hint prefs read back from storage: anything unexpected becomes the default. */
 export function readHints(value: unknown): HintPrefs {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return EMPTY_HINTS

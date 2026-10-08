@@ -5,6 +5,7 @@ import {
   finishWelcome,
   hintsAgain,
   readHints,
+  restartHints,
   setHintsOff,
   settleHints,
   showWelcome,
@@ -94,5 +95,14 @@ describe('readHints', () => {
     expect(readHints({ tour: -1 }).tour).toBe(0)
     expect(readHints(null)).toEqual(EMPTY_HINTS)
     expect(readHints([])).toEqual(EMPTY_HINTS)
+  })
+})
+
+describe('restartHints', () => {
+  it('brings back the welcome and the tour from the start, even after «Не показывать»', () => {
+    const fresh = restartHints()
+    expect(fresh).toEqual({ settled: true, off: false, welcome: false, tour: 0 })
+    expect(showWelcome(fresh, false)).toBe(true)
+    expect(settleHints(fresh, false)).toBe(fresh)
   })
 })

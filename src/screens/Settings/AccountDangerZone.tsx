@@ -1,5 +1,6 @@
 import { RotateCcwIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { groupErrorText } from '@/account/networkText'
 import { HoldToConfirmButton } from '@/components/HoldToConfirmButton'
@@ -12,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { restartHints } from '@/onboarding/hints'
+import { usePrefsStore } from '@/store/prefs'
 import { deleteAccount, resetAccount } from '@/sync/session'
 
 type Kind = 'reset' | 'delete'
@@ -25,7 +28,7 @@ const ACTIONS = {
     title: 'Сбросить аккаунт',
     hint: 'Данные и профиль удалятся, вход останется',
     question: 'Сбросить аккаунт?',
-    text: `Группы, где ты один, удалятся вместе с блюдами, тарой и компаниями, а с ними профиль и фото. ${SHARED} Войти можно будет как раньше: паролем или по passkey.`,
+    text: `Группы, где ты один, удалятся вместе с блюдами, тарой и компаниями, а с ними профиль и фото. ${SHARED} Войти можно будет как раньше: паролем или по passkey. Приложение начнётся сначала, как в первый раз.`,
     hold: 'Удерживай, чтобы сбросить',
     busy: 'Сбрасываем…',
     run: resetAccount,
@@ -47,6 +50,7 @@ const ACTIONS = {
  * аккаунт», each confirmed by holding the button for 5 seconds.
  */
 export function AccountDangerZone() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState<Kind | null>(null)
   // The dialog keeps its text while it closes.
   const [shown, setShown] = useState<Kind>('reset')
@@ -66,8 +70,13 @@ export function AccountDangerZone() {
     try {
       await action.run()
       setOpen(null)
+      if (shown === 'reset') {
+        // As on a new device: the welcome, the popular dishes, the calculator tour.
+        usePrefsStore.getState().updateHints(restartHints)
+        navigate('/', { replace: true })
+      }
       // Signed out, the screen looks just like after «Выйти»: say what happened.
-      if (shown === 'delete') toast('Аккаунт удалён')
+      else toast('Аккаунт удалён')
     } catch (e) {
       setError(groupErrorText(e))
     } finally {
