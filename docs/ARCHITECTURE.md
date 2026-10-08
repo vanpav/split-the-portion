@@ -417,7 +417,7 @@ wrangler.preview-db.jsonc — только база превью, для `pnpm d
 | «Не учитывать» | `Checkbox` или `Switch` |
 | «Без тары / С тарой» | `ToggleGroup` (или `Tabs`) |
 | База порции «сырой / готовый / сырой: курица» | `Select` |
-| Категория блюда (редактор) | `Select` без поиска под «Название»: «По названию · <угадано>» (→ `category: null`), `SelectSeparator`, восемь категорий |
+| Категория блюда (редактор) | `Select` без поиска под «Название»: «По названию · <угадано>» (→ `category: null`), `SelectSeparator`, восемь категорий с `DishCategoryIcon`. На телефоне (меньше 768 px, `md:`) тот же выбор — кнопка и `Sheet` снизу с прокручиваемым списком; `Select` и кнопка показываются по брейкпойнту, оба не в a11y-дереве одновременно |
 | Меню блюд | Экран: `Command` без своего фильтра (`shouldFilter={false}`, список готовит `dishMenu` в домене; cmdk даёт ↑ / ↓ / Enter), поле — `InputGroup` с ✕ и кнопкой «По категориям» (`InputGroupButton`, `ListTreeIcon`, `aria-pressed`, `Tooltip`), строка — `CommandItem` (общая с «Из блюда»); фильтра и сортировки нет; «+» в шапке — `Button` `secondary` `icon` |
 | «⋯» в шапках | `DropdownMenu` |
 | Подсказка «Найти блюдо ⌘K /» | `Tooltip` + `Kbd` |

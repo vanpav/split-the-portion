@@ -5,7 +5,9 @@ import { toast } from 'sonner'
 import { OverScreen } from '@/app/OverScreen'
 import { DISHES_PATH, dishPath, FROM_SIMPLE_DISH, NEW_TARE, newDishPath } from '@/app/paths'
 import { useReturnAnimation } from '@/app/screenAnimation'
+import { CategorySheet } from '@/screens/DishEditor/CategorySheet'
 import { BottomBar } from '@/components/BottomBar'
+import { DishCategoryIcon } from '@/components/DishCategoryIcon'
 import { MoreMenu, type MoreMenuItem } from '@/components/MoreMenu'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
@@ -312,30 +314,47 @@ export function DishEditorForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="dish-category" className="px-1 text-sm font-medium">
+              <label id="dish-category-label" htmlFor="dish-category" className="px-1 text-sm font-medium">
                 {t('editor.category')}
               </label>
-              <Select value={category ?? AUTO_CATEGORY} onValueChange={(v) => setCategory(v === AUTO_CATEGORY ? null : (v as DishCategory))}>
-                <SelectTrigger id="dish-category" className="w-full">
-                  <span className="flex min-w-0 flex-1 justify-start truncate">
-                    <SelectValue>{categoryLabel(category ?? detected)}</SelectValue>
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{t(category ? 'editor.categoryManual' : 'editor.categoryAuto')}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={AUTO_CATEGORY}>
-                    <span>
-                      {t('editor.categoryAutoItem')} <span className="text-muted-foreground">· {categoryLabel(detected)}</span>
+              <CategorySheet
+                id="dish-category-sheet"
+                labelId="dish-category-label"
+                value={category}
+                detected={detected}
+                onChange={setCategory}
+                className="md:hidden"
+              />
+              <div className="hidden md:block">
+                <Select value={category ?? AUTO_CATEGORY} onValueChange={(v) => setCategory(v === AUTO_CATEGORY ? null : (v as DishCategory))}>
+                  <SelectTrigger id="dish-category" aria-labelledby="dish-category-label" className="w-full">
+                    <span className="flex min-w-0 flex-1 justify-start">
+                      <SelectValue>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <DishCategoryIcon category={category ?? detected} className="size-4" />
+                          <span className="truncate">{categoryLabel(category ?? detected)}</span>
+                        </span>
+                      </SelectValue>
                     </span>
-                  </SelectItem>
-                  <SelectSeparator />
-                  {DISH_CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {categoryLabel(c)}
+                    <span className="shrink-0 text-xs text-muted-foreground">{t(category ? 'editor.categoryManual' : 'editor.categoryAuto')}</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={AUTO_CATEGORY}>
+                      <DishCategoryIcon category={detected} className="size-4 text-muted-foreground" />
+                      <span>
+                        {t('editor.categoryAutoItem')} <span className="text-muted-foreground">· {categoryLabel(detected)}</span>
+                      </span>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    <SelectSeparator />
+                    {DISH_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        <DishCategoryIcon category={c} className="size-4 text-muted-foreground" />
+                        <span>{categoryLabel(c)}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {!category && detected === 'other' && somethingTyped && (
                 <p className="px-1 text-sm text-muted-foreground">{t('editor.categoryUnknown')}</p>
               )}
