@@ -1,3 +1,5 @@
+import type { Language } from './language'
+
 /** A unit of the phrase: grams, litres taken as grams, or a count with no weight. */
 export type PhraseUnit = 'g' | 'kg' | 'l' | 'ml' | 'pieces' | 'spoons'
 
@@ -7,7 +9,7 @@ export type NounGender = 'm' | 'f' | 'n' | 'pl'
 /**
  * Everything the phrase parser needs to know about a language (docs/SPEC.md §7а «Языки»): number words,
  * units, separators, filler words, the case dictionary, «не учитывать» by name. The parser itself does
- * not depend on the language; a new language is a new description. Only Russian for now.
+ * not depend on the language; a new language is a new description. Russian, English, Spanish.
  */
 export interface PhraseLanguage {
   /** BCP 47 tag for speech recognition. */
@@ -29,12 +31,16 @@ export interface PhraseLanguage {
   excludedNames: readonly string[]
 
   // What was said → the phrase.
-  /** Number words: «шестьсот» → 600, «полтора» → 1.5. */
+  /** Number words: «шестьсот» → 600, «полтора» → 1.5; «thirty-five» → 35. */
   numberWords: Readonly<Record<string, number>>
-  /** Words multiplying what was said before by 1000: «две тысячи». */
-  thousandWords: readonly string[]
-  /** «с половиной» after a number: + 0.5. */
-  andHalf: readonly [string, string]
+  /** Words multiplying what was said before: «две тысячи» (1000), «two hundred» (100). */
+  multipliers: Readonly<Record<string, number>>
+  /** A word between tens and units: «treinta y cinco» → 35. `null` where the units are one word. */
+  tensJoiner: string | null
+  /** «с половиной» after a number: + 0.5; «and a half» («two and a half kilos»). Empty if the language has none. */
+  andHalf: readonly string[]
+  /** Words before a product that carry no name: «de» in «200 gramos de harina», «of» in «200 grams of rice». */
+  linkWords: readonly string[]
   /** «пол» before a unit («пол литра») is 0.5; «пол-литра» is read as «поллитра». */
   halfPrefix: string
   /** One-word halves: «полкило» → 0.5 kg. */
@@ -52,8 +58,11 @@ export interface PhraseLanguage {
   stopWords: readonly string[]
   /** «600 грамм курицы»: the noun's case form → its nominative and gender. */
   nouns: Readonly<Record<string, { nominative: string; gender: NounGender }>>
-  /** An adjective in an oblique case: it belongs to the noun after it. */
-  adjectiveEnding: RegExp
+  /**
+   * An adjective in an oblique case: it belongs to the noun after it. `null` — the language has no such
+   * endings: a name after a quantity runs until a separator or the next quantity.
+   */
+  adjectiveEnding: RegExp | null
   /** «сливочного» + n → «сливочное». */
   adjectiveToNominative: (word: string, gender: NounGender) => string
 }
@@ -101,8 +110,10 @@ export const RU: PhraseLanguage = {
     сто: 100, двести: 200, триста: 300, четыреста: 400, пятьсот: 500, шестьсот: 600, семьсот: 700,
     восемьсот: 800, девятьсот: 900, полтора: 1.5, полторы: 1.5,
   },
-  thousandWords: ['тысяча', 'тысячи', 'тысяч', 'тысячу'],
+  multipliers: { тысяча: 1000, тысячи: 1000, тысяч: 1000, тысячу: 1000 },
+  tensJoiner: null,
   andHalf: ['с', 'половиной'],
+  linkWords: [],
   halfPrefix: 'пол',
   halfWords: { полкило: 'kg', полкилограмма: 'kg', поллитра: 'l', поллитр: 'l' },
   spoonAdjectives: ['столовая', 'столовые', 'столовых', 'столовую', 'чайная', 'чайные', 'чайных', 'чайную'],
@@ -132,6 +143,129 @@ export const RU: PhraseLanguage = {
     if (gender === 'n') return word.replace(/ого$/, 'ое').replace(/его$/, 'ее')
     return word.replace(/ого$/, 'ый').replace(/его$/, 'ий')
   },
+}
+
+const numberDigits: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+}
+
+const englishNumbers: Record<string, number> = {
+  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+  eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70,
+  eighty: 80, ninety: 90,
+}
+// «thirty-five» is one word for the tokenizer: 21–99 with a hyphen.
+for (const tens of ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']) {
+  for (const [word, value] of Object.entries(numberDigits)) englishNumbers[`${tens}-${word}`] = englishNumbers[tens] + value
+}
+
+export const EN: PhraseLanguage = {
+  speechLocale: 'en-US',
+  locale: 'en',
+  letters: 'a-z',
+  units: [
+    { unit: 'spoons', pattern: 'tablespoons?|tbsps?|teaspoons?|tsps?|spoons?' },
+    { unit: 'kg', pattern: 'kilograms?|kilos?|kgs?' },
+    { unit: 'g', pattern: 'grams?|grs?|g' },
+    { unit: 'ml', pattern: 'milliliters?|millilitres?|mls?' },
+    { unit: 'l', pattern: 'liters?|litres?|ls?' },
+    { unit: 'pieces', pattern: 'pieces?|pcs?|units?' },
+  ],
+  unitShort: { kg: 'kg', l: 'l', ml: 'ml', pieces: 'pcs', spoons: 'spoons' },
+  toTaste: 'to taste',
+  excludedNames: ['water', 'salt', 'spices', 'pepper', 'bay leaf'],
+
+  numberWords: englishNumbers,
+  multipliers: { hundred: 100, thousand: 1000 },
+  tensJoiner: null,
+  andHalf: ['and', 'a', 'half'],
+  halfPrefix: 'half',
+  halfWords: {},
+  spoonAdjectives: [],
+  separators: ['and', 'plus', 'then', 'also', 'next', 'comma', 'period'],
+  fillers: [
+    'so', 'well', 'um', 'uh', 'like', 'okay', 'ok', 'now', 'a', 'an', 'the', 'we', 'i', 'got', 'have', 'had', 'put',
+    'putting', 'add', 'added', 'there', 'is', 'are', 'some', 'just', 'in',
+  ],
+  stopWords: [
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'them', 'my', 'our', 'his', 'their', 'that',
+    'which', 'what', 'when', 'if', 'because', 'why', 'but', 'or', 'not', 'no', 'yes', 'was', 'be',
+    'were', 'should', 'must', 'can', 'could', 'would', 'maybe', 'think', 'say', 'said', 'want', 'know',
+    'good', 'fine', 'really', 'very', 'product', 'products', 'ingredient', 'ingredients', 'noted', 'write', 'wrote',
+  ],
+  linkWords: ['of'],
+  nouns: {},
+  adjectiveEnding: null,
+  adjectiveToNominative: (word) => word,
+}
+
+const spanishTens: Record<string, number> = {
+  diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciséis: 16, dieciseis: 16,
+  diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiún: 21, veintiun: 21, veintiuno: 21,
+  veintiuna: 21, veintidós: 22, veintidos: 22, veintitrés: 23, veintitres: 23, veinticuatro: 24,
+  veinticinco: 25, veintiséis: 26, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29,
+  treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90,
+  cien: 100, ciento: 100, doscientos: 200, doscientas: 200, trescientos: 300, trescientas: 300,
+  cuatrocientos: 400, cuatrocientas: 400, quinientos: 500, quinientas: 500, seiscientos: 600,
+  seiscientas: 600, setecientos: 700, setecientas: 700, ochocientos: 800, ochocientas: 800,
+  novecientos: 900, novecientas: 900,
+}
+
+export const ES: PhraseLanguage = {
+  speechLocale: 'es-ES',
+  locale: 'es',
+  letters: 'a-zñáéíóúü',
+  units: [
+    { unit: 'spoons', pattern: 'cucharadas?|cucharaditas?|cucharas?|cdas?|cdtas?' },
+    { unit: 'kg', pattern: 'kilogramos?|kilos?|kgs?' },
+    { unit: 'g', pattern: 'gramos?|grs?|g' },
+    { unit: 'ml', pattern: 'mililitros?|mls?' },
+    { unit: 'l', pattern: 'litros?|ls?' },
+    { unit: 'pieces', pattern: 'piezas?|unidades?|uds?' },
+  ],
+  unitShort: { kg: 'kg', l: 'l', ml: 'ml', pieces: 'uds', spoons: 'cucharadas' },
+  toTaste: 'al gusto',
+  excludedNames: ['agua', 'sal', 'especias', 'pimienta', 'hoja de laurel'],
+
+  numberWords: {
+    ...spanishTens,
+    cero: 0, uno: 1, un: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9,
+  },
+  multipliers: { mil: 1000 },
+  tensJoiner: 'y',
+  andHalf: ['y', 'medio'],
+  halfPrefix: 'medio',
+  halfWords: {},
+  spoonAdjectives: [],
+  separators: ['y', 'más', 'luego', 'después', 'además', 'coma', 'punto'],
+  fillers: [
+    'eh', 'em', 'mm', 'bueno', 'pues', 'o', 'sea', 'este', 'esto', 'ya', 'ah', 'así', 'entonces', 'vale', 'vamos',
+    'tengo', 'pongo', 'puse', 'pusimos', 'añadí', 'añado', 'agregué', 'echo', 'echamos', 'tenemos', 'hay', 'es',
+    'sopera', 'soperas', 'rasa', 'rasas', 'colmada', 'colmadas',
+  ],
+  stopWords: [
+    'yo', 'tú', 'él', 'ella', 'nosotros', 'ellos', 'me', 'te', 'se', 'mi', 'mis', 'su', 'sus', 'que', 'qué', 'cuando',
+    'si', 'como', 'porque', 'pero', 'no', 'sí', 'ser', 'estar', 'son', 'era', 'fue', 'debe', 'puedo', 'quiero',
+    'creo', 'digo', 'dije', 'hablo', 'muy', 'bien', 'poco', 'producto', 'productos', 'ingrediente', 'ingredientes',
+    'anoto', 'apunto', 'escribo',
+  ],
+  linkWords: ['de'],
+  nouns: {},
+  adjectiveEnding: null,
+  adjectiveToNominative: (word) => word,
+}
+
+/** The description of the phrase language for a UI language (docs/ARCHITECTURE.md §11). */
+export function phraseLanguageOf(language: Language): PhraseLanguage {
+  switch (language) {
+    case 'en':
+      return EN
+    case 'es':
+      return ES
+    case 'ru':
+      return RU
+  }
 }
 
 export const DEFAULT_PHRASE_LANGUAGE: PhraseLanguage = RU

@@ -252,9 +252,10 @@ export function removePhraseItem(text: string, index: number, options?: PhraseOp
 }
 
 /** `addition` at the end after «, », its first letter lower-cased; an empty text takes it as it is. */
-export function appendToPhrase(text: string, addition: string): string {
+export function appendToPhrase(text: string, addition: string, options?: PhraseOptions): string {
   if (!text.trim()) return addition
-  return `${text.replace(/[\s,;]+$/, '')}, ${lowerFirst(addition, DEFAULT_PHRASE_LANGUAGE)}`
+  const language = options?.language ?? DEFAULT_PHRASE_LANGUAGE
+  return `${text.replace(/[\s,;]+$/, '')}, ${lowerFirst(addition, language)}`
 }
 
 /** A dish's ingredients as a phrase for editing: «Курица 600, картофель 400, соль». */

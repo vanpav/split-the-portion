@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   appendToPhrase,
-  DEFAULT_PHRASE_LANGUAGE,
   detectCategory,
   DISH_CATEGORIES,
   dishKind,
@@ -29,6 +28,7 @@ import {
   phraseIngredients,
   phraseIssueText,
   phraseKey,
+  phraseLanguageOf,
   phraseSummary,
   phraseSummaryText,
   removePhraseItem,
@@ -74,6 +74,8 @@ type CaretTarget = number | 'end'
  * taken from the route once, on mount.
  */
 export function DishEditorForm() {
+  // The phrase is parsed by the description of the UI language: «water», «salt» by name there too.
+  const language = phraseLanguageOf(currentLanguage())
   const { id } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -91,8 +93,8 @@ export function DishEditorForm() {
         name: existing.name,
         category: existing.category,
         tareId: existing.tareId,
-        text: ingredientsToPhrase(existing.ingredients),
-        overrides: excludedOverrides(existing.ingredients),
+        text: ingredientsToPhrase(existing.ingredients, { language }),
+        overrides: excludedOverrides(existing.ingredients, { language }),
       }
     }
     const base = dishes.find((d) => d.id === params.get('from'))
@@ -103,7 +105,7 @@ export function DishEditorForm() {
       // Not everyone weighs in a pot: a new dish starts without tare.
       tareId: null,
       // `?from=` — a simple dish to start with; `?text=` — what was typed in the search («Создать «…»»).
-      text: source ? `${ingredientsToPhrase([source])}, ` : (params.get('text') ?? ''),
+      text: source ? `${ingredientsToPhrase([source], { language })}, ` : (params.get('text') ?? ''),
       overrides: {},
     }
   })
@@ -127,7 +129,7 @@ export function DishEditorForm() {
   // A text whose normalization was undone: it stays as typed when the field is left again.
   const keptAsTyped = useRef<string | null>(null)
 
-  const items = useMemo(() => parsePhrase(text, { excluded: overrides }), [text, overrides])
+  const items = useMemo(() => parsePhrase(text, { excluded: overrides, language }), [text, overrides, language])
 
   /** The phrase changed by a button, not by typing: the caret goes where it is told. */
   const replaceText = (next: string, caretTo: CaretTarget) => {
@@ -172,16 +174,16 @@ export function DishEditorForm() {
   }, [text])
 
   const speech = useSpeechRecognition({
-    lang: DEFAULT_PHRASE_LANGUAGE.speechLocale,
+    lang: language.speechLocale,
     onResult: (spokenText) => {
-      const spoken = spokenToPhrase(spokenText)
+      const spoken = spokenToPhrase(spokenText, language)
       const products = spoken.text.trim() !== ''
       if (!products && spoken.skipped.length === 0) {
         toast(speechErrorText('nothingHeard'))
         return
       }
       // Said goes straight into the field; «Сказали» under it shows what was heard.
-      if (products) replaceText(appendToPhrase(text, spoken.text), 'end')
+      if (products) replaceText(appendToPhrase(text, spoken.text, { language }), 'end')
       setSaid({ text: spokenText, skipped: spoken.skipped })
     },
     onError: (error) => toast(speechErrorText(error)),
@@ -192,7 +194,7 @@ export function DishEditorForm() {
   const outlet = useOutlet({
     onPick: (source) => {
       nextCaret.current = 'end'
-      setText((t) => appendToPhrase(t, ingredientsToPhrase([source])))
+      setText((t) => appendToPhrase(t, ingredientsToPhrase([source], { language }), { language }))
       setSaid(null)
     },
     onTare: (tare) => setTareId(tare.id),
@@ -220,13 +222,13 @@ export function DishEditorForm() {
     const item = items[index]
     if (!item) return
     const before = text
-    replaceText(removePhraseItem(text, index, { excluded: overrides }), item.start)
+    replaceText(removePhraseItem(text, index, { excluded: overrides, language }), item.start)
     undoable(t('editor.removed', { name: item.name || t('common.untitled') }), before)
   }
   // Dictated with the phone keyboard's mic: brought to «продукт вес» on leaving the field.
   const leave = () => {
-    if (!text.trim() || text === keptAsTyped.current || !looksSpoken(text)) return
-    const next = spokenToPhrase(text).text
+    if (!text.trim() || text === keptAsTyped.current || !looksSpoken(text, language)) return
+    const next = spokenToPhrase(text, language).text
     if (next === text) return
     const before = text
     setText(next)
@@ -237,7 +239,7 @@ export function DishEditorForm() {
       const clip = (await navigator.clipboard.readText()).trim()
       if (!clip) return
       nextCaret.current = 'end'
-      setText((t) => appendToPhrase(t, clip))
+      setText((t) => appendToPhrase(t, clip, { language }))
       setSaid(null)
     } catch {
       // Refused by the browser or the user: nothing to paste.
@@ -375,8 +377,7 @@ export function DishEditorForm() {
               fromDishTo={{ pathname: FROM_SIMPLE_DISH, search }}
               onFromDish={() => (refocus.current = 'phrase')}
               voice={
-                // The phrase speaks Russian only for now: in another UI language the mic would hear the wrong one.
-                speech.supported && currentLanguage() === DEFAULT_PHRASE_LANGUAGE.locale
+                speech.supported
                   ? {
                       listening: speech.listening,
                       transcript: speech.transcript,

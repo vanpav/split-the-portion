@@ -38,6 +38,15 @@ function tokensOf(said: string, language: PhraseLanguage): string[] {
     .filter(Boolean)
 }
 
+/**
+ * A word after a quantity that ends the name: a noun, or any word that is not an adjective. Without
+ * adjective endings nothing ends it: «two tablespoons of olive oil» stays one product.
+ */
+function closesName(word: string, language: PhraseLanguage): boolean {
+  if (language.adjectiveEnding === null) return false
+  return Object.hasOwn(language.nouns, word) || !language.adjectiveEnding.test(word)
+}
+
 /** The order of a number word, so «сто шестьдесят» adds up and «сто сто» does not. */
 const magnitude = (x: number) => (x >= 100 ? 100 : x >= 20 ? 10 : 1)
 
@@ -72,15 +81,23 @@ function readNumber(ts: readonly string[], i: number, language: PhraseLanguage):
       j++
       continue
     }
-    if (seen && language.thousandWords.includes(t)) {
-      total += (cur || 1) * 1000
+    if (seen && Object.hasOwn(language.multipliers, t)) {
+      total += (cur || 1) * language.multipliers[t]
       cur = 0
       last = Infinity
       j++
       continue
     }
-    if (seen && t === language.andHalf[0] && ts[j + 1] === language.andHalf[1]) {
+    if (seen && language.andHalf.length > 0 && language.andHalf.every((w, k) => ts[j + k] === w)) {
       cur += 0.5
+      j += language.andHalf.length
+      continue
+    }
+    // «treinta y cinco»: the units after the tens word and the joiner.
+    const units = ts[j + 1] !== undefined && Object.hasOwn(language.numberWords, ts[j + 1]) ? language.numberWords[ts[j + 1]] : undefined
+    if (seen && t === language.tensJoiner && last === cur && cur >= 20 && cur <= 90 && cur % 10 === 0 && units !== undefined && units < 10) {
+      cur += units
+      last = units
       j += 2
       continue
     }
@@ -188,11 +205,14 @@ export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_
       dropped.push(t)
       continue
     }
-    if (cur.quantityFirst && cur.closed) flush()
+    const link = language.linkWords.includes(t)
+    if (cur.quantityFirst && cur.closed && !link) flush()
     // «двести грамм я …»: talk right after the quantity does not take the product's place.
     if (cur.quantityFirst && isStop(t)) continue
+    // «200 грамм муки», «200 grams of rice»: the link word before the name is not a part of it.
+    if (link && cur.words.length === 0) continue
     cur.words.push(t)
-    if (cur.quantityFirst && (Object.hasOwn(language.nouns, t) || !language.adjectiveEnding.test(t))) cur.closed = true
+    if (cur.quantityFirst) cur.closed = !link && closesName(t, language)
   }
   flush()
   return {
@@ -207,7 +227,7 @@ export function spokenToPhrase(said: string, language: PhraseLanguage = DEFAULT_
 export function looksSpoken(text: string, language: PhraseLanguage = DEFAULT_PHRASE_LANGUAGE): boolean {
   if (!text.trim()) return false
   const numberWord = tokensOf(text, language).some(
-    (t) => Object.hasOwn(language.numberWords, t) || Object.hasOwn(language.halfWords, t) || language.thousandWords.includes(t),
+    (t) => Object.hasOwn(language.numberWords, t) || Object.hasOwn(language.halfWords, t) || Object.hasOwn(language.multipliers, t),
   )
   return numberWord || spokenToPhrase(text, language).count > phraseSegments(text).length
 }
