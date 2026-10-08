@@ -5,6 +5,7 @@ import { parseInviteCode } from '../src/account/inviteCode'
 import { parseProfile } from '../src/account/profile'
 import { MAX_AVATAR_BYTES, MAX_GROUP_NAME } from '../src/account/types'
 import { SYNC_LIMITS } from '../src/sync/protocol'
+import { deleteAccount, resetAccount } from './account'
 import { type Auth, createAuth } from './auth'
 import { acceptInvite, createGroup, inviteCode, previewInvite, revokeInvite, roleIn } from './invites'
 import { getMe, setDefaultGroup } from './me'
@@ -101,6 +102,23 @@ app.put('/me/avatar', avatarBodyLimit, async (c) => {
 
 app.delete('/me/avatar', async (c) => {
   await removeAvatar(c.env.DB, c.get('session').user.id)
+  return c.json({ ok: true })
+})
+
+// «Сбросить аккаунт» and «Удалить аккаунт» (docs/SPEC.md §13.2): only one's own, by the session, and
+// only with the word for it in the body — a stray request with the cookie wipes nothing.
+const confirmed = async (req: Request, word: 'reset' | 'delete') =>
+  ((await req.json().catch(() => null)) as { confirm?: unknown } | null)?.confirm === word
+
+app.post('/me/reset', async (c) => {
+  if (!(await confirmed(c.req.raw, 'reset'))) return c.json({ error: 'not_confirmed' }, 400)
+  const groupId = await resetAccount(c.env.DB, c.get('session').user.id, new Date())
+  return c.json({ groupId })
+})
+
+app.delete('/me', async (c) => {
+  if (!(await confirmed(c.req.raw, 'delete'))) return c.json({ error: 'not_confirmed' }, 400)
+  await deleteAccount(c.env.DB, c.get('session').user.id)
   return c.json({ ok: true })
 })
 

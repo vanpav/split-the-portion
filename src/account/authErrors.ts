@@ -10,6 +10,10 @@ export function authErrorText(error: { code?: string; status?: number } | null |
       return 'Неверная почта или пароль'
     case 'PASSWORD_TOO_SHORT':
       return 'Минимум 8 символов'
+    case 'PASSWORD_TOO_LONG':
+      return 'Максимум 128 символов'
+    case 'INVALID_PASSWORD':
+      return 'Неверный текущий пароль'
     case 'USER_ALREADY_EXISTS':
     case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
       return 'Такая почта уже зарегистрирована'

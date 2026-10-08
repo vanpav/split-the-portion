@@ -13,12 +13,13 @@ import { HomeScreen } from '@/screens/DishList/HomeScreen'
 import { JoinByCodeScreen } from '@/screens/Join/JoinByCodeScreen'
 import { JoinScreen } from '@/screens/Join/JoinScreen'
 import { AvatarCropScreen } from '@/screens/Settings/AvatarCropScreen'
+import { ChangePasswordScreen } from '@/screens/Settings/ChangePasswordScreen'
 import { GroupScreen } from '@/screens/Settings/GroupScreen'
 import { NewGroupScreen } from '@/screens/Settings/NewGroupScreen'
 import { PopularScreen } from '@/screens/Popular/PopularScreen'
 import { SettingsScreen } from '@/screens/Settings/SettingsScreen'
 import { WelcomeScreen } from '@/screens/Welcome/WelcomeScreen'
-import { AVATAR_CROP, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, INGREDIENTS, NEW_TARE } from './paths'
+import { AVATAR_CROP, CHANGE_PASSWORD, COPY_TEXT, FROM_SIMPLE_DISH, GROUP_SCREEN, INGREDIENTS, NEW_TARE } from './paths'
 import { RootLayout } from './RootLayout'
 
 // Screens opened over another one (docs/UX.md §3а) are its child routes: the screen under them stays
@@ -55,6 +56,7 @@ export const router = createHashRouter([
         children: [
           copyText,
           { path: AVATAR_CROP, element: <AvatarCropScreen /> },
+          { path: CHANGE_PASSWORD, element: <ChangePasswordScreen /> },
           { path: GROUP_SCREEN, element: <GroupScreen /> },
         ],
       },
