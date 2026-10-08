@@ -12,6 +12,7 @@ import { findSettingsSection, SETTINGS_SECTIONS, type SettingsSectionId } from '
 import { SettingsHub } from './SettingsHub'
 import { SettingsMenu } from './SettingsMenu'
 import { SettingsSectionContent } from './SettingsSectionContent'
+import { t } from '@/i18n'
 
 const NO_SWITCH: SettingsSwitch = { page: 'none', content: 'none' }
 
@@ -67,11 +68,11 @@ export function SettingsScreen() {
           {/* The header stays sticky: this box is as tall as the screen. A subsection on a phone has its own header leading back to the list. */}
           {section && (
             <div className="contents md:hidden">
-              <ScreenHeader title={section.title} back backTo={SETTINGS_PATH} backLabel="Настройки" />
+              <ScreenHeader title={section.title} back backTo={SETTINGS_PATH} backLabel={t('common.settings')} />
             </div>
           )}
           <div className={section ? 'hidden md:contents' : 'contents'}>
-            <ScreenHeader title="Настройки" back backTo="/" backLabel="Калькулятор" />
+            <ScreenHeader title={t('common.settings')} back backTo="/" backLabel={t('common.calculator')} />
           </div>
           <main className="mx-auto grid w-full max-w-2xl flex-1 grid-cols-[minmax(0,1fr)] content-start gap-8 p-4 md:max-w-5xl md:grid-cols-[13rem_minmax(0,1fr)] md:items-start lg:py-8">
             {!section && <SettingsHub className="md:hidden" />}

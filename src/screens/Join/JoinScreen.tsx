@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { groupsApi } from '@/account/groupsApi'
 import { formatInviteCode, parseInviteCode } from '@/account/inviteCode'
-import { GROUP_LIMIT_TEXT, groupErrorText } from '@/account/networkText'
+import { groupErrorText, groupLimitText } from '@/account/networkText'
 import { customName } from '@/account/groupLabel'
 import { MAX_GROUPS, type InvitePreview } from '@/account/types'
 import { ACCOUNT_PATH, joinPath } from '@/app/paths'
@@ -11,6 +11,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
 import { joinGroup, switchGroup } from '@/sync/session'
+import { t } from '@/i18n'
 
 type Loaded = { kind: 'loading' } | { kind: 'found'; invite: InvitePreview } | { kind: 'gone' } | { kind: 'offline' }
 
@@ -64,47 +65,47 @@ export function JoinScreen() {
 
   return (
     <>
-      <ScreenHeader title="Вступить в группу" back backTo="/" />
+      <ScreenHeader title={t('join.title')} back backTo="/" />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4 lg:py-8">
-        {state.kind === 'loading' && <p className="px-1 text-muted-foreground">Проверяем код…</p>}
-        {state.kind === 'gone' && <p className="px-1">Код не найден или устарел. Попроси новый.</p>}
-        {state.kind === 'offline' && <p className="px-1">Нет сети — вступить можно, когда она появится.</p>}
+        {state.kind === 'loading' && <p className="px-1 text-muted-foreground">{t('join.loading')}</p>}
+        {state.kind === 'gone' && <p className="px-1">{t('join.gone')}</p>}
+        {state.kind === 'offline' && <p className="px-1">{t('join.offline')}</p>}
         {state.kind === 'found' && (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1 px-1">
               {customName(state.invite.groupName) ? (
                 <>
                   <p className="text-2xl font-medium">«{customName(state.invite.groupName)}»</p>
-                  <p className="text-muted-foreground">Пригласил: {state.invite.invitedBy}</p>
+                  <p className="text-muted-foreground">{t('join.invitedBy', { name: state.invite.invitedBy })}</p>
                 </>
               ) : (
                 // Someone's own group has no name of its own: who invites says what it is.
                 <>
-                  <p className="text-2xl font-medium">{state.invite.invitedBy} зовёт тебя</p>
-                  <p className="text-muted-foreground">Блюда, тара и компании станут общими</p>
+                  <p className="text-2xl font-medium">{t('join.invites', { name: state.invite.invitedBy })}</p>
+                  <p className="text-muted-foreground">{t('join.shared')}</p>
                 </>
               )}
             </div>
             {already ? (
               <Button size="lg" onClick={() => void open(state.invite.groupId)}>
-                Ты уже в этой группе — открыть
+                {t('join.already')}
               </Button>
             ) : me && me.groups.length >= MAX_GROUPS ? (
-              <p className="px-1 text-muted-foreground">{GROUP_LIMIT_TEXT}</p>
+              <p className="px-1 text-muted-foreground">{groupLimitText()}</p>
             ) : me ? (
               <Button size="lg" disabled={busy} onClick={() => void join()}>
-                Вступить
+                {t('join.join')}
               </Button>
             ) : (
               <Button size="lg" asChild>
-                <Link to={`${ACCOUNT_PATH}?next=${encodeURIComponent(joinPath(code!))}`}>Войти, чтобы вступить</Link>
+                <Link to={`${ACCOUNT_PATH}?next=${encodeURIComponent(joinPath(code!))}`}>{t('join.signInToJoin')}</Link>
               </Button>
             )}
           </div>
         )}
         {code && !standalone() && (
           <div className="flex flex-col gap-2 border-t pt-6 text-sm text-muted-foreground">
-            <p>Приложение уже на экране «Домой»? Открой его: Настройки → Группа → Вступить по коду.</p>
+            <p>{t('join.installed')}</p>
             <p className="text-3xl font-medium tracking-widest text-foreground tabular-nums">{formatInviteCode(code)}</p>
           </div>
         )}

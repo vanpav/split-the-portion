@@ -404,11 +404,3 @@ export function pickedDishes(
     return { ...dish, updatedAt: new Date(start - index).toISOString() }
   })
 }
-
-const dishPlural = new Intl.PluralRules('ru')
-const DISH_WORDS: Partial<Record<Intl.LDMLPluralRule, string>> = { one: 'блюдо', few: 'блюда' }
-
-/** «1 блюдо», «3 блюда», «5 блюд», «21 блюдо». */
-export function dishCountText(count: number): string {
-  return `${count} ${DISH_WORDS[dishPlural.select(count)] ?? 'блюд'}`
-}

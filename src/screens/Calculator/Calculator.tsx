@@ -11,22 +11,17 @@ import { Button } from '@/components/ui/button'
 import { Toggle } from '@/components/ui/toggle'
 import {
   addPortion,
-  clockTime,
   companyLineup,
   computeCooking,
   cookedToday,
   cookingDraft,
-  dishTitle,
   defaultShareWeight,
   dishLineup,
   dishPortions,
   exactPercents,
-  formatGrams,
-  formatInput,
+  keypadText,
   keepLimit,
-  ingredientDisplayName,
   lineupCompany,
-  lineupName,
   lineupPercents,
   liveTareId,
   matchingCompany,
@@ -35,7 +30,7 @@ import {
   portionIn,
   portionRawGrams,
   RAW_SUM,
-  rawTileLines,
+  rawTile,
   recipeInOneColumn,
   removeLastPortion,
   splitAmounts,
@@ -58,7 +53,7 @@ import { useAppStore } from '@/store/store'
 import type { CalculatorOutlet } from './calculatorOutlet'
 import { CompanyPicker } from './CompanyPicker'
 import { DisplayRow } from './DisplayRow'
-import { portionName, rawWord } from './messages'
+import { portionName, rawTileLines, rawWord } from './messages'
 import { KHint } from './KHint'
 import { PersonResult } from './PersonResult'
 import { PortionStepper } from './PortionStepper'
@@ -66,6 +61,8 @@ import { PortionSummary } from './PortionSummary'
 import { PortionTile } from './PortionTile'
 import { RawTile } from './RawTile'
 import { TareSelect } from './TareSelect'
+import { t } from '@/i18n'
+import { clockTime, dishTitle, formatGrams, gramsText, ingredientDisplayName, lineupName } from '@/i18n/format'
 
 /** Row id of the weight after cooking; the other rows are ingredient ids. */
 const COOKED = 'cooked'
@@ -118,7 +115,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
 
   // Raw weights come from the dish (what was typed last time).
   const [texts, setTexts] = useState<Record<string, string>>(
-    () => restored?.texts ?? Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, formatInput(i.rawGrams)])),
+    () => restored?.texts ?? Object.fromEntries((dish?.ingredients ?? []).map((i) => [i.id, keypadText(i.rawGrams)])),
   )
   // «Готовый» is today's weighing of this dish, here or on another device of the group; once typed into
   // here, it is what is typed.
@@ -128,7 +125,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   const tareId = liveTareId(dish?.tareId ?? null, tares)
   const tare = tares.find((t) => t.id === tareId) ?? null
   const cookedHere = useMemo(() => (dish ? cookedToday(dish.cooked, tareId, new Date(now)) : null), [dish, tareId, now])
-  const textOf = (row: string) => (row === COOKED && !cookedTouched ? formatInput(cookedHere) : (texts[row] ?? ''))
+  const textOf = (row: string) => (row === COOKED && !cookedTouched ? keypadText(cookedHere) : (texts[row] ?? ''))
   const cookedText = textOf(COOKED)
   // A simple dish shows its product only: water or salt «не учитывать» do not change the portions.
   const shownIngredients = (dish?.ingredients ?? []).filter((i) => dish?.kind !== 'simple' || !i.excluded)
@@ -202,7 +199,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
         dish,
         {
           rawGrams: Object.fromEntries(dish.ingredients.map((i) => [i.id, toNumber(texts[i.id] ?? '')])),
-          scaleGrams: toNumber(cookedTouched ? (texts[COOKED] ?? '') : formatInput(cookedHere)),
+          scaleGrams: toNumber(cookedTouched ? (texts[COOKED] ?? '') : keypadText(cookedHere)),
           tare,
           people,
           companyId,
@@ -282,7 +279,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     const computed = phase?.portions.find((p) => p.portionId === personId)
     const sameView = own && (own.raw ?? null) === rawOf
     const value = !own ? null : sameView ? own.value : computed ? portionIn(computed, 'g', rawOf) : null
-    setTexts((t) => ({ ...t, [key]: value !== null ? formatInput(value) : '' }))
+    setTexts((t) => ({ ...t, [key]: value !== null ? keypadText(value) : '' }))
     setActive(key)
   }
   // ↓ ↑ walk the weights; from a person they go back to «Готовый». Enter moves on to «Готовый»
@@ -344,14 +341,14 @@ export function Calculator({ id }: { id: Id | undefined }) {
   // mounted under them, hidden, keeping what is typed today; a result comes back through the outlet.
   const navigate = useNavigate()
   // «Сырой» of a composite dish: the weights as typed, summed, with a note of what is not counted.
-  const rawTile = rawTileLines(shownIngredients.map((i) => ({ ...i, rawGrams: toNumber(texts[i.id] ?? '') })))
+  const raw = rawTile(shownIngredients.map((i) => ({ ...i, rawGrams: toNumber(texts[i.id] ?? '') })))
   // The field focused again once the screen is gone: the one it was opened from, or «+ Имя» after a new company.
   const refocus = useRef<string | null>(null)
   const outlet = useOutlet({
     dishId: id ?? '',
     onTare: (picked) => changeTare(picked.id),
-    backLabel: 'Калькулятор',
-    ingredients: { dishName: dish ? dishTitle(dish) : '', list: shownIngredients, texts, total: rawTile.total, onText: type },
+    backLabel: t('common.calculator'),
+    ingredients: { dishName: dish ? dishTitle(dish) : '', list: shownIngredients, texts, total: raw.total, onText: type },
     onCompany: (added) => {
       choosePreset(added)
       refocus.current = ADD_PERSON_ID
@@ -393,10 +390,10 @@ export function Calculator({ id }: { id: Id | undefined }) {
     setFixed(({ [personId]: _removed, ...rest }) => rest)
     leavePerson(personId)
     // A swipe can remove by accident: the toast brings the person back with their share.
-    toast(name ? `Убрано: ${name}` : 'Человек убран', {
+    toast(name ? t('editor.removed', { name }) : t('calculator.personRemoved'), {
       duration: 5000,
       action: {
-        label: 'Отменить',
+        label: t('common.undo'),
         onClick: () => {
           setLineup(dish.id, lineup)
           // Today's own portion only while the same list is shown: switching clears them.
@@ -433,9 +430,9 @@ export function Calculator({ id }: { id: Id | undefined }) {
     if (active !== null && personTarget(active)) focusOrBlur(null)
   }
   const saveAsCompany = () => {
-    const saved = upsertCompany({ name: lineupName(people), members: people.map((p) => ({ ...p })) })
+    const saved = upsertCompany({ name: lineupName(people) || t('common.company.default'), members: people.map((p) => ({ ...p })) })
     if (dish) setLineup(dish.id, { companyId: saved, members: people })
-    toast('Компания сохранена', { description: lineupName(people) })
+    toast(t('calculator.companySaved'), { description: lineupName(people) })
   }
 
   // A person's or a portion's amount as a field: tap it and type their own portion.
@@ -449,7 +446,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
     onText: (typed: string) => type(personKey(personId), typed),
     onKeyDown: fieldKeys(personKey(personId)),
   })
-  const gramsLabel = (grams: number | null) => (grams !== null ? `${formatGrams(grams)} г` : null)
+  const gramsLabel = (grams: number | null) => (grams !== null ? gramsText(grams) : null)
   // A person's place in today's lineup: their lid color on the bar and in their row.
   const placeOf = (personId: Id) => Math.max(people.findIndex((x) => x.id === personId), 0)
   // Each person's part of the whole dish, for the bar.
@@ -497,7 +494,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
   })()
 
   // Under the readouts, after the tare: the weight without it and k.
-  const tareNote = tare && phase.foodGrams !== null ? `${formatGrams(phase.foodGrams)} г без тары` : null
+  const tareNote = tare && phase.foodGrams !== null ? t('calculator.foodGrams', { grams: formatGrams(phase.foodGrams) }) : null
   const note = tareNote !== null || phase.k !== null
   const tareExceeds = phase.weighingError === 'tareExceeds'
 
@@ -510,14 +507,14 @@ export function Calculator({ id }: { id: Id | undefined }) {
           returnAnimation,
         )}
       >
-        <section aria-label="Вес" className="flex flex-col gap-1">
+        <section aria-label={t('calculator.weight')} className="flex flex-col gap-1">
           {/* «Сухой | Готовый» side by side for one product, «Сырой | Готовый» for a composite dish: the layout
               never changes, the ingredients are on a screen of their own. */}
           <div data-hint="tiles" className="grid grid-cols-2 gap-2">
             {composite ? (
               <RawTile
-                total={rawTile.total}
-                lines={rawTile.lines}
+                total={raw.total}
+                lines={rawTileLines(raw)}
                 selected={weightRow === RAW_SUM}
                 onSelect={selectRaw}
                 onOpen={openIngredients}
@@ -528,7 +525,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 <DisplayRow
                   key={i.id}
                   {...weightField(i.id)}
-                  label={simple ? 'Сухой' : `${ingredientDisplayName(i)}${i.excluded ? ' · не в счёт' : ''}`}
+                  label={simple ? t('calculator.dry') : i.excluded ? t('calculator.notCountedSuffix', { name: ingredientDisplayName(i) }) : ingredientDisplayName(i)}
                   text={texts[i.id] ?? ''}
                   lids={people.length}
                 />
@@ -537,7 +534,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
             <DisplayRow
               {...weightField(COOKED)}
               last
-              label={cookedHere !== null && dish.cooked ? `Готовый · ${clockTime(dish.cooked.at)}` : 'Готовый'}
+              label={cookedHere !== null && dish.cooked ? t('calculator.cookedAt', { time: clockTime(dish.cooked.at) }) : t('calculator.cooked')}
               text={cookedText}
               invalid={tareExceeds}
               lids={people.length}
@@ -548,7 +545,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
           <div className="-my-1.5 flex flex-wrap items-center gap-x-2">
             <TareSelect tares={tares} tareId={tareId} onTare={changeTare} onAdd={() => openScreen(newTarePath(dish.id), TARE_SELECT_ID)} />
             {tareExceeds ? (
-              <span className="text-sm text-destructive">вес меньше тары</span>
+              <span className="text-sm text-destructive">{t('calculator.lessThanTare')}</span>
             ) : (
               note && (
                 <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
@@ -561,7 +558,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
           </div>
         </section>
 
-        <section aria-label="Кто ест" data-hint="who" className="flex flex-col gap-2 px-1">
+        <section aria-label={t('calculator.who')} data-hint="who" className="flex flex-col gap-2 px-1">
           {/* In «Доли» the number of portions sits beside the field: «Доли [− 7 +]», the bar below gets the width. */}
           <div className="flex items-center gap-2">
             <CompanyPicker
@@ -570,11 +567,11 @@ export function Calculator({ id }: { id: Id | undefined }) {
               // Ticked only while the shares are the company's own: picking it again brings them back.
               ticked={matching && matching.id === companyId ? companyId : null}
               // Nobody yet: the field is named by its question, not «Свой состав · 0».
-              customLabel={lineup.members.length > 0 ? `Свой состав · ${lineup.members.length}` : 'Кто ест'}
+              customLabel={lineup.members.length > 0 ? t('calculator.ownLineupCount', { count: lineup.members.length }) : t('calculator.who')}
               onChange={choosePreset}
               onAdd={() => openScreen(newCompanyPath(dish.id), COMPANY_SELECT_ID)}
               onSaveCurrent={!inShares && people.length > 0 && !matching ? saveAsCompany : undefined}
-              shares={{ active: inShares, label: 'Доли', onPick: () => switchMode('shares') }}
+              shares={{ active: inShares, label: t('calculator.shares'), onPick: () => switchMode('shares') }}
               onOwnLineup={inShares && companyId === null ? () => switchMode('people') : undefined}
             />
             {inShares && <PortionStepper count={people.length} onRemove={fewerPortions} onAdd={morePortions} />}
@@ -586,7 +583,7 @@ export function Calculator({ id }: { id: Id | undefined }) {
                 // On: the card's ground and the ring of the current dish chip.
                 className="shrink-0 data-[state=on]:bg-card data-[state=on]:shadow-[inset_0_0_0_2px_var(--foreground)] aria-pressed:bg-card"
               >
-                Состав
+                {t('calculator.composition')}
               </Toggle>
             )}
           </div>
@@ -606,17 +603,17 @@ export function Calculator({ id }: { id: Id | undefined }) {
             numbered={inShares}
             // Nobody yet: the bar's place is kept, so switching to «Доли» and back does not move anything;
             // a tap on it puts the cursor into «+ Имя».
-            empty={{ label: 'Добавь людей', fieldId: ADD_PERSON_ID }}
+            empty={{ label: t('common.company.addPeople'), fieldId: ADD_PERSON_ID }}
             hint="bar"
             chosenId={chosenId}
             onChoose={setChosen}
           />
           {Object.keys(fixed).length > 0 && (
             <div className="flex min-h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
-              <span>Есть свои порции</span>
+              <span>{t('calculator.hasOwn')}</span>
               <Button variant="outline" onClick={allToShares}>
                 <Undo2Icon data-icon="inline-start" />
-                Сбросить свои
+                {t('calculator.resetOwn')}
               </Button>
             </div>
           )}
@@ -689,12 +686,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
           {/* Own portions may leave part of the dish in the pot — say it, and say how much. */}
           {people.length > 0 && phase.remainder.state === 'some' && phase.remainder.cookedGrams !== null && (
             <p className="flex items-baseline justify-between gap-2 border-t pt-3 text-sm">
-              <span>В кастрюле останется — на завтра</span>
+              <span>{t('calculator.potLeft')}</span>
               <span className="text-right whitespace-nowrap tabular-nums">
-                <span className="text-xl font-semibold">{formatGrams(phase.remainder.cookedGrams)} г</span>
+                <span className="text-xl font-semibold">{gramsText(phase.remainder.cookedGrams)}</span>
                 {potRaw !== null && (
                   <span className="block text-muted-foreground">
-                    {formatGrams(potRaw)} г {rawWord(dish.kind)}
+                    {t('calculator.rawGrams', { grams: formatGrams(potRaw), raw: rawWord(dish.kind) })}
                   </span>
                 )}
               </span>
@@ -702,12 +699,12 @@ export function Calculator({ id }: { id: Id | undefined }) {
           )}
           {phase.remainder.state === 'over' && phase.foodGrams !== null && (
             <p className="border-t pt-3 text-sm text-destructive">
-              Своих порций больше, чем сварено: не хватает {formatGrams(-phase.remainder.share * phase.foodGrams)} г.
+              {t('calculator.over', { grams: formatGrams(-phase.remainder.share * phase.foodGrams) })}
             </p>
           )}
         </section>
 
-        <p className="hidden px-1 text-sm text-muted-foreground lg:block">Enter или ↓ — следующее поле.</p>
+        <p className="hidden px-1 text-sm text-muted-foreground lg:block">{t('calculator.enterHint')}</p>
       </main>
       {outlet && <OverScreen>{outlet}</OverScreen>}
     </>

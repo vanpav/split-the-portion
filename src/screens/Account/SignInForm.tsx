@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { PASSWORD_RESET_PATH } from '@/app/paths'
+import { t } from '@/i18n'
 
 type AuthCall = () => Promise<{ error: { code?: string; status?: number } | null }>
 
@@ -40,7 +41,7 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
   }
 
   const askReset = () => {
-    if (!email.trim()) return setError('Введи почту')
+    if (!email.trim()) return setError(t('account.enterEmail'))
     void run(
       () => authClient.requestPasswordReset({ email: email.trim(), redirectTo: `/#${PASSWORD_RESET_PATH}` }),
       () => setResetAsked(true),
@@ -50,7 +51,7 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
   return (
     <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
       <Field>
-        <FieldLabel htmlFor={emailId}>Почта</FieldLabel>
+        <FieldLabel htmlFor={emailId}>{t('account.email')}</FieldLabel>
         <Input
           id={emailId}
           type="email"
@@ -64,7 +65,7 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
         />
       </Field>
       <Field>
-        <FieldLabel htmlFor={passwordId}>Пароль</FieldLabel>
+        <FieldLabel htmlFor={passwordId}>{t('account.password')}</FieldLabel>
         <Input
           id={passwordId}
           type="password"
@@ -76,11 +77,11 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
         />
         {error && <FieldError>{error}</FieldError>}
         {resetAsked && (
-          <FieldDescription>Ссылку для нового пароля пришлёт владелец приложения — напиши ему.</FieldDescription>
+          <FieldDescription>{t('account.resetAsked')}</FieldDescription>
         )}
       </Field>
       <Button type="submit" size="lg" disabled={busy}>
-        Войти
+        {t('account.signIn')}
       </Button>
       <Button
         type="button"
@@ -90,10 +91,10 @@ export function SignInForm({ onSignedIn }: { onSignedIn(): void }) {
         onClick={() => void run(() => authClient.signIn.passkey(), onSignedIn)}
       >
         <KeyRoundIcon data-icon="inline-start" />
-        Войти с passkey
+        {t('account.signInPasskey')}
       </Button>
       <Button type="button" variant="link" className="self-start px-1" disabled={busy} onClick={askReset}>
-        Не помнишь пароль?
+        {t('account.forgotPassword')}
       </Button>
     </form>
   )

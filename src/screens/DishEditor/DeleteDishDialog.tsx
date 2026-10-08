@@ -9,8 +9,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { dishTitle, type Dish } from '@/domain'
+import type { Dish } from '@/domain'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
+import { dishTitle } from '@/i18n/format'
 
 interface DeleteDishDialogProps {
   dish: Dish
@@ -32,13 +34,13 @@ export function DeleteDishDialog({ dish, open, onOpenChange }: DeleteDishDialogP
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Удалить «{dishTitle(dish)}»?</AlertDialogTitle>
-          <AlertDialogDescription>Вместе с блюдом удалятся компания и доли. Вернуть не получится.</AlertDialogDescription>
+          <AlertDialogTitle>{t('editor.deleteTitle', { name: dishTitle(dish) })}</AlertDialogTitle>
+          <AlertDialogDescription>{t('editor.deleteText')}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={remove}>
-            Удалить
+            {t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

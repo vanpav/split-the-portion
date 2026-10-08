@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SyncStatusLine } from './SyncStatusLine'
+import { t } from '@/i18n'
 
 /** The round camera mark on the avatar, the hint that a tap changes the photo. */
 const BADGE =
@@ -37,7 +38,7 @@ export function ProfileHeader({ user }: { user: Me['user'] }) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (!file.type.startsWith('image/')) return void toast('Это не фото — выбери снимок из галереи')
+    if (!file.type.startsWith('image/')) return void toast(t('settings.photo.notImage'))
     const state: AvatarCropState = { photo: URL.createObjectURL(file) }
     navigate(`${settingsPath('account')}/${AVATAR_CROP}`, { state })
   }
@@ -47,7 +48,7 @@ export function ProfileHeader({ user }: { user: Me['user'] }) {
     try {
       await profileApi.removeAvatar()
       await refreshAccount()
-      toast('Фото убрано')
+      toast(t('settings.photo.removed'))
     } catch (e) {
       toast(groupErrorText(e))
     } finally {
@@ -65,26 +66,26 @@ export function ProfileHeader({ user }: { user: Me['user'] }) {
   )
 
   return (
-    <section aria-label="Профиль" className="flex flex-col items-center gap-3 rounded-xl border bg-card px-4 pt-6 pb-5 text-center">
+    <section aria-label={t('settings.photo.profile')} className="flex flex-col items-center gap-3 rounded-xl border bg-card px-4 pt-6 pb-5 text-center">
       {user.image ? (
         <DropdownMenu>
-          <DropdownMenuTrigger className={AVATAR_BUTTON} aria-label="Фото профиля" disabled={busy}>
+          <DropdownMenuTrigger className={AVATAR_BUTTON} aria-label={t('settings.photo.label')} disabled={busy}>
             {avatar}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-56">
             {/* The menu closes first, then the system's photo picker opens. */}
             <DropdownMenuItem className="min-h-11 text-base" onSelect={() => inputRef.current?.click()}>
               <ImageIcon />
-              Выбрать другое фото
+              {t('settings.photo.choose')}
             </DropdownMenuItem>
             <DropdownMenuItem className="min-h-11 text-base" variant="destructive" onSelect={() => void remove()}>
               <Trash2Icon />
-              Убрать фото
+              {t('settings.photo.remove')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <button type="button" className={AVATAR_BUTTON} aria-label="Добавить фото" onClick={() => inputRef.current?.click()}>
+        <button type="button" className={AVATAR_BUTTON} aria-label={t('settings.photo.add')} onClick={() => inputRef.current?.click()}>
           {avatar}
         </button>
       )}

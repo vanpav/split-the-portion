@@ -5,9 +5,11 @@ import { DishSearch } from '@/components/DishSearch/DishSearch'
 import { DishSearchGroup } from '@/components/DishSearch/DishSearchGroup'
 import { DishSearchRow } from '@/components/DishSearch/DishSearchRow'
 import { ScreenHeader } from '@/components/ScreenHeader'
-import { dishCategory, dishPicks, dishRow, localDay, missingPresets } from '@/domain'
+import { dishCategory, dishPicks, localDay, missingPresets } from '@/domain'
 import { useAppStore } from '@/store/store'
 import type { DishSourceIngredient, EditorOutlet } from './editorOutlet'
+import { t } from '@/i18n'
+import { dishRow } from '@/i18n/format'
 
 /**
  * «Из блюда» (`…/from-dish` under the dish editor, docs/UX.md §3а): a whole simple dish, own or popular,
@@ -32,19 +34,19 @@ export function FromSimpleDishScreen() {
 
   return (
     <>
-      <ScreenHeader title="Из блюда" back backTo={formPath + search} backLabel="Блюдо" />
+      <ScreenHeader title={t('editor.phrase.fromDish')} back backTo={formPath + search} backLabel={t('common.dish')} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4">
         <DishSearch
           query={query}
           onQueryChange={setQuery}
           onClose={back}
-          placeholder="Гречка, рис…"
-          hint="Блюда из одного ингредиента — добавятся с обычным весом"
+          placeholder={t('editor.fromDish.placeholder')}
+          hint={t('editor.fromDish.hint')}
           values={values}
         >
-          {values.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ничего не нашлось</p>}
+          {values.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('common.nothingFound')}</p>}
           {own.length > 0 && (
-            <DishSearchGroup heading="Твои блюда">
+            <DishSearchGroup heading={t('dishes.menu.yours')}>
               {own.map(({ dish, source }) => (
                 <DishSearchRow
                   key={dish.id}
@@ -59,7 +61,7 @@ export function FromSimpleDishScreen() {
             </DishSearchGroup>
           )}
           {popular.length > 0 && (
-            <DishSearchGroup heading="Популярные">
+            <DishSearchGroup heading={t('dishes.menu.popular')}>
               {popular.map(({ preset, source }) => (
                 <DishSearchRow
                   key={preset.name}

@@ -29,6 +29,7 @@
 | `tailwindcss`, `@tailwindcss/vite` | dev | Без Tailwind shadcn/ui не работает; стили пишем утилитарными классами |
 | shadcn/ui (пресет `radix-nova`) и его зависимости: `radix-ui`, `class-variance-authority`, `cn` (официальная замена `clsx` + `tailwind-merge` от shadcn), `lucide-react`, `tw-animate-css`; `sonner` + `next-themes` — приходят с `shadcn add sonner` | prod | Ставятся через `shadcn init` / `shadcn add`. Radix даёт доступность (фокус, клавиатура, ARIA), lucide — иконки, sonner — тосты, `next-themes` — светлая/тёмная тема по настройке системы; `tw-animate-css` — анимации shadcn и переходы между экранами (`app/ScreenTransition.tsx`, без отдельной библиотеки анимаций) |
 | `@fontsource-variable/rubik` | prod | Шрифт стиля «Ланчбокс» (DESIGN.md): кириллица, моноширинные цифры (`tnum`). Заменил Geist. Согласовано 2026-10-06 |
+| `i18next`, `react-i18next`, `i18next-browser-languagedetector` | prod | Языки интерфейса (§11): тексты по ключам, плюралы через `Intl.PluralRules`, определение языка устройства. Согласовано 2026-10-07: стандарт де-факто, чистый JS — работает и в обёртке для App Store / Google Play (WebView), ≈ 20 КБ gzip |
 | `shadcn` | dev | CLI и MCP-сервер shadcn (`.mcp.json`); из него же импортируется `shadcn/tailwind.css` |
 | `vite-plugin-pwa` (v2, поддерживает Vite 8), `workbox-build` (его peer), `workbox-window` | dev, dev, prod | PWA (этап 11): манифест, Service Worker с precache всей сборки (Workbox), `useRegisterSW` для тоста «Есть новая версия». Свой Service Worker не пишем. Согласовано 2026-10-06 |
 | `wrangler` | dev | CLI Cloudflare: D1, миграции, секреты, деплой, типы окружения (`pnpm wrangler types`), `getPlatformProxy` для `pnpm db:auth-schema` ([CLOUDFLARE.md](CLOUDFLARE.md)). Согласовано 2026-10-06 |
@@ -166,7 +167,8 @@ interface Cooking {
 ```
 src/domain/
   types.ts          — типы §3 и типы результатов
-  numbers.ts        — parseGrams(), formatGrams(), formatK(), formatPercent(), roundHalfUp()
+  numbers.ts        — parseGrams(), formatGrams(), formatK(), formatPercent(), formatTyped(), formatInput(), decimalSeparator(), roundHalfUp(); форматтеры принимают локаль (`ru-RU`, `en-US`)
+  language.ts       — LANGUAGES (en, ru, es), Language, isLanguage()
   weighing.ts       — foodGrams(weighing) → { ok, grams } | { ok:false, error:'tareExceeds'|'empty' }
   cooking.ts        — computeCooking(cooking) → CookingResult (этапы, доли, остатки, k)
   reconcile.ts      — reconcilePhase(phase) → { basis, distributed, total, diff, status }
@@ -174,7 +176,7 @@ src/domain/
   split.ts          — splitEqual(totalGrams, n) → number[] (наибольший остаток)
   swipe.ts          — settleSwipe (куда доехать строке после отпускания), rubberBand (сопротивление за краем), settleDuration — для components/SwipeRow
   portions.ts       — «Доли» (этапы 16–17): dishPortions, addPortion, removeLastPortion, DEFAULT_PORTIONS, splitSummary
-  copyText.ts       — portionCopyText(result, portionId) → string
+  copyText.ts       — portionCopyLines(cooking, result, portionId) → { name, grams }[]; слова строки — в UI (§11)
   phases.ts         — canReweigh(result), leftoverCookedGrams(result)
   dish.ts           — dishTitle, dishErrors, dishSource, shareWeights, defaultShareWeight
   phrase.ts         — «Что в блюде» (этап 19): parsePhrase → PhraseItem[] с пометками, removePhraseItem, appendToPhrase, ingredientsToPhrase, phraseIngredients, phraseSummary
@@ -182,11 +184,11 @@ src/domain/
   phraseLanguage.ts — PhraseLanguage: всё языковое для фразы (числа словами, единицы, словарь падежей, «не учитывать»); пока только RU
   phraseText.ts     — тексты разбора: phraseIssueText (пометки), phraseWeightText (вес в строке), phraseSummaryText (итог)
   keypad.ts         — typedGrams (что набрано в поле калькулятора), applyKey
-  dishCategories.ts — DishCategory (тип — в types.ts), DISH_CATEGORIES (порядок показа), CATEGORY_LABELS, словарь основ и detectCategory, dishCategory(dish), categoryMatches(query, category)
-  presets.ts        — PRESET_DISHES (популярные блюда), presetDishes(existing, newId, at), presetWeight, scalePreset (вес под новый), pickedDishes (отмеченные с весом, в порядке отметки), dishCountText
+  dishCategories.ts — DishCategory (тип — в types.ts), DISH_CATEGORIES (порядок показа), CATEGORY_LABELS (на всех языках интерфейса: поиск ищет по любому), словарь основ и detectCategory, dishCategory(dish), categoryMatches(query, category)
+  presets.ts        — PRESET_DISHES (популярные блюда), presetDishes(existing, newId, at), presetWeight, scalePreset (вес под новый), pickedDishes (отмеченные с весом, в порядке отметки)
   lineup.ts         — companyLineup, dishLineup, lineupCompany: «Кто ест» у каждого блюда
   draft.ts          — cookingDraft(dish, input, at): готовка калькулятора, не хранится
-  dates.ts          — dayLabel(at, now) → «сегодня» / «вчера» / «12 окт.»
+  dates.ts          — shortDate(at, locale) → «7 окт.», clockTime(at, locale) → «19:40», sameDay, cookedToday
   validation.ts     — warnings(cooking, result) → Warning[]
   index.ts          — публичный API
   __tests__/
@@ -194,7 +196,7 @@ src/domain/
     numbers.test.ts
     split.test.ts
     cooking.test.ts   — граничные случаи SPEC §8
-    phases.test.ts    — перевзвешивание (кнопка, остаток в списке, составное блюдо), dayLabel
+    phases.test.ts    — перевзвешивание (кнопка, остаток в списке, составное блюдо)
     share.test.ts     — порции по доле (70 : 60, порция в граммах + доли, без готового веса)
     presets.test.ts   — популярные блюда валидны для модели, повторно не добавляются; вес, масштаб рецепта, порядок отметки
     dish.test.ts      — проверка блюда перед сохранением, «Из блюда», доля нового человека
@@ -215,11 +217,12 @@ src/domain/
 
 | Функция | Что делает |
 |---|---|
-| `parseGrams`, `formatGrams`, `formatK`, `formatPercent`, `roundHalfUp` | Ввод и вывод чисел (SPEC §6–7) |
+| `parseGrams`, `formatGrams`, `formatK`, `formatPercent`, `roundHalfUp` | Ввод и вывод чисел (SPEC §6–7); вывод — в локали, которую передал UI |
+| `keypadText(value)` | Значение как набранный текст клавиатуры калькулятора: всегда с запятой, на экране — разделитель локали (`formatTyped`) |
 | `foodGrams(weighing)` | Вес без тары или ошибка |
 | `computeCooking(cooking)` | Все производные значения |
 | `fillRemainder(cooking, result, portionId)`, `splitEqual`, `splitLeftover(result, n)`, `cookingWarnings`, `convertPortionInput`, `portionBasisOptions` | «Остаток», «Разделить на N», предупреждения, единицы порции — модель и тесты; экрана готовки, который их показывал, с этапа 15 нет |
-| `portionCopyText`, `rawAmountsCopyText` | Текст для трекера (SPEC §9) |
+| `portionCopyLines`, `rawAmountsCopyLines` | Строки для трекера (SPEC §9): имя и граммы; текст собирает `copyText` из `src/i18n/format.ts` |
 | `cookingWarnings(cooking, result)` | Предупреждения SPEC §8 |
 | `isValidTareGrams(grams)` | Вес тары > 0 |
 | `portionBasisOptions(result)`, `basisKey` | В каких единицах можно вводить порцию (по умолчанию — первым) |
@@ -233,7 +236,7 @@ src/domain/
 | `dishTitle(dish)`, `dishErrors(dish)` | Название блюда; что мешает нажать «Создать» / «Сохранить» (нужен учитываемый продукт) |
 | `dishKind(ingredients)` | Вид блюда по составу: один учитываемый продукт — простое |
 | `shareWeights(portions)`, `defaultShareWeight(weights)` | Доля нового человека — среднее долей остальных |
-| `matchingCompany(lineup, companies)`, `lineupName(lineup)` | Какой пресет совпадает с составом; имя нового пресета |
+| `matchingCompany(lineup, companies)`, `lineupName(lineup, locale)` | Какой пресет совпадает с составом; имя нового пресета через `Intl.ListFormat` («Ваня, Ксюша и Тёща»); пусто — без имён |
 | `companyLineup(company)`, `dishLineup(lineups, dishId, companies)`, `lineupCompany(lineup, companies)` | Состав блюда из компании (её доли по умолчанию); состав блюда в калькуляторе (свой или первая компания); какая компания показана в списке (выбранная, если она ещё есть, иначе совпадающая) |
 | `toPercents`, `percentShares`, `moveBoundary`, `nudgePercent`, `equalPercents`, `portionIn`, `portionGrams`, `keepAt`, `keepLimit` | Ползунок долей: целые проценты (и они же частями целого — для полосы компании в настройках), сдвиг границы, ±1 % с пропорциональным перераспределением, отсечение «на завтра» с правого края; порция в граммах вида — готовых или сухого продукта k (`portionGrams`, `portionIn(computed, unit, rawOf)`) |
 | `liveTareId(tareId, tares)` | Тара блюда, если она ещё есть в библиотеке, иначе `null` — «Без тары» (SPEC §8: тару удалили). Калькулятор и редактор читают тару блюда только через неё |
@@ -242,12 +245,11 @@ src/domain/
 | `localDay(date)`, `markUsed(usedOn, day)`, `usesSince(usedOn, today)` | День «YYYY-MM-DD» по местному времени; отметка использования (раз в день, последние 30, `USED_DAYS_KEPT`); сколько разных дней за последние 60 (`FREQUENT_WINDOW_DAYS`). Дата передаётся снаружи |
 | `popularView(query, filter, picked)` → `{ counts, sections }` | Экран «Популярные блюда» (UX §3г): разделы по категориям / один список по `matchRank` / «Отмечено» / одна категория; числа на чипах по найденному |
 | `dishMenu(dishes, presets, { query, today, byCategory? })` → `{ often, rest, categories, popular }` (`byCategory`: свои блюда в `categories`, `often` и `rest` пусты), `dishPicks(dishes, presets, { query, today })`, `matchRank(query, title, products, category?)` (категория — ниже любого совпадения по названию и продукту), `detectCategory`, `dishCategory`, `categoryMatches`, `dishFoundByCategory`, `compareNames(a, b)`, `dishWeight`, `dishProducts`, `dishFoundBy`, `highlightRange` | Меню блюд (SPEC §3б): совпадение с запросом (название раньше продуктов, начало слова раньше середины; «ё» = «е»), разделы «Часто готовишь» (≥ 2 дней за 60, не больше 5) / «Остальные» (`Intl.Collator('ru')`) / популярные; список «Из блюда»; что показывает строка: вес, продукты, по какому продукту нашлось, подсветка |
-| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `dishSummary(ingredients)`, `rawTileLines(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; вес или состав блюда в поиске; строки плитки «Сырой» составного («5 ингредиентов,», «не в счёт: …» / «без веса: …»); «Простое» в редакторе |
+| `recentDishes(dishes)`, `shelfOrder(dishes, order)`, `rawTile(ingredients)`, `asSimple(ingredients)` | Порядок по последнему использованию (последнее сверху); полка, пока открыта: порядок на момент открытия, новые блюда — в начало; плитка «Сырой» составного: сумма, сколько в счёте, без веса / не в счёт (слова — `rawTileLines` в `screens/Calculator/messages.ts`); «Простое» в редакторе |
 | `typedGrams`, `applyKey` | Ввод в поле калькулятора: цифры и одна запятая (точка — тоже), до 99 999,9; остальное отбрасывается |
 | `presetDishes(existing, newId, at)`, `missingPresets(existing)`, `presetDish(preset, newId, at)`, `PRESET_DISHES` | Популярные блюда, которых ещё нет у пользователя (сравнение по названию без регистра); одно популярное как своё; вид — по `dishKind`, без тары. Id и время передаются снаружи |
 | `cookingDraft(dish, input, at)` | Черновик готовки из блюда и сегодняшних цифр; `computeCooking` считает по нему. Свои порции — в готовых граммах (`fixedCooked`), в сухом виде (`fixedRaw`, сырой вес продукта) или в процентах (`fixedPercent`) |
 | `canReweigh(result)`, `leftoverCookedGrams(result)` | Перевзвешивание и остаток этапа — в домене и тестах; в интерфейсе с этапа 15 не используются |
-| `dayLabel(at, now)` | Подпись дня этапа; `now` передаётся снаружи, домен остаётся чистым |
 | `defaultTitle`, `countedIngredients`, `findPortionPhase` | Вспомогательные |
 
 ### Правила для домена
@@ -534,6 +536,8 @@ Hash-маршруты выбраны потому, что работают на 
 2. ~~**PWA**~~ — решено 2026-10-06: `vite-plugin-pwa`, этап [11](roadmap/11-pwa.md).
 3. ~~**Свайп строк**~~ — решено 2026-10-06: `@use-gesture/react` (#27); `react-swipeable` и `motion` не взяли (§2).
 4. ~~**Подсказки для новых**~~ — решено 2026-10-07: тур — `driver.js` (§2, этап [18](roadmap/18-onboarding-hints.md)); подсказки по месту (`Alert`) сделали и убрали.
+5. ~~**Языки интерфейса**~~ — решено 2026-10-07: i18next (§2, §11, этап [21](roadmap/21-i18n.md)).
+6. ~~**Название приложения на en/es**~~ — решено 2026-10-08: рабочее «Portions», по-русски «Порции». Не продуктовое: смена — правка мест из §11 «Название», данные и passkey не затрагивает.
 
 ## 9. Сервер
 
@@ -689,3 +693,18 @@ type SyncResponse = { cursor: number; changes: Change[]; more: boolean };
 - *Другие группы аккаунта* (этап 14) синхронизируются фоном, по тем же поводам и по очереди, прямо в их сохранённой копии (`syncStoredGroup`): любая уже открывавшаяся на устройстве группа без сети открывается свежей, а правки, оставленные в ней перед переключением, уходят. Группу, которую здесь ещё не открывали, заранее не скачиваем. Открытие группы (`openGroup`) ждёт её фонового прогона.
 - *Группа ушла* (вышел, убрали; 403 или её нет в `/api/me`): `refreshGroups` удаляет её данные и outbox с устройства, тост «Ты больше не в группе «…»»; если она была открыта — открывается группа по умолчанию.
 - *Несколько вкладок* одной группы на десктопе друг о друге не знают — в бэклоге.
+
+## 11. Языки интерфейса
+
+Этап [21](roadmap/21-i18n.md). Языки: английский (по умолчанию), русский, испанский — `LANGUAGES` в `src/domain/language.ts`.
+
+- **Тексты** — `src/i18n/locales/<язык>/<область>.json` (`common`, `calculator`, `dishes`, `editor`, `settings`, `account`, `join`, `onboarding`, `welcome`), один неймспейс `translation`, ключи вида `calculator.k.dish`. Русский — источник: из него выводятся типы ключей (`src/i18n/i18next.d.ts`), опечатка в ключе ломает `tsc`. Все языки в бандле: офлайн и в обёртке для сторов работают без загрузки.
+- **Плюралы** — суффиксы i18next (`_one`, `_few`, `_many`, `_other`) с `count`, правила — `Intl.PluralRules`. Самописных склонений нет.
+- **`t()`** — из `@/i18n`, одна функция для компонентов, тостов и подсказок вне React. Смена языка перемонтирует приложение, поэтому текст, прочитанный при рендере, не устаревает (этап 21.2).
+- **Domain без языка.** Форматтеры принимают локаль; тексты собирает UI. Чего нет — домен отдаёт пустую строку (`dishTitle`, `ingredientDisplayName`), подпись «Без названия» ставит UI. Обёртки с текущей локалью — `src/i18n/format.ts` (`formatGrams`, `gramsText`, `dishTitle`, `dishRow`, `categoryLabel`, `copyText`…); компоненты берут форматтеры оттуда, не из `@/domain`.
+- **Набранные граммы калькулятора** хранятся с запятой (`keypadText`, `typedGrams`), на экране — разделитель локали (`formatTyped`, `typedText`). Ввод принимает и запятую, и точку.
+- **Категории блюд** — данные домена (`CATEGORY_LABELS[язык]`): поиск находит категорию по названию на любом языке («гарн», «sides», «guarn»).
+- **Определение языка**: сохранённый выбор (`localStorage`, ключ `language`) → `navigator.languages` (`es-MX` → `es`) → английский. Выбор — настройка устройства, как тема: не в сторе и не в копии данных, читается синхронно до первого рендера.
+- **Не переводится**: что хранится в данных — имя личной группы на сервере (`PERSONAL_GROUP_NAME`, UI её имя не показывает), имена из старых миграций; пресеты популярных блюд и фразовый ввод — пока только русские (бэклог).
+- **Название** — рабочее: «Portions» (en, es), «Порции» (ru). Живёт в `common.appName` и текстах приглашения каждого языка (по-русски склоняется: «в «Порциях»»), `index.html` (`<title>`, `apple-mobile-web-app-title`), манифесте PWA (`vite.config.ts`: `name`, `short_name`) и `worker/auth.ts` (`appName`, `rpName` — только подпись passkey; привязка идёт по `rpID` = домен, поэтому смена имени passkey не ломает). Установленная PWA на iOS сохраняет имя, с которым её поставили; Android подтягивает новое из манифеста. В сторах имя меняется с обновлением, а id пакета (bundle id) — нет: его делать нейтральным, без названия.
+- **Обёртка для сторов** (бэклог): iOS — `CFBundleLocalizations` (en, ru, es) в Info.plist, иначе WKWebView отдаёт `navigator.language = en`; Android 13+ — `locales_config.xml`; название и описание в сторах — нативные ресурсы, не i18next.

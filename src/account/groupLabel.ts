@@ -1,5 +1,6 @@
 import { shortName } from './profile'
 import { PERSONAL_GROUP_NAME, type AccountGroup, type GroupMember } from './types'
+import { currentLocale, t } from '@/i18n'
 
 /** How many names a label lists before «и ещё N». */
 const NAMED = 3
@@ -21,11 +22,12 @@ const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
  */
 export function peopleLabel(members: readonly GroupMember[], myId: string | undefined): string {
   const ordered = [...members].sort((a, b) => Number(b.role === 'owner') - Number(a.role === 'owner'))
-  const names = ordered.map((m) => (m.userId === myId ? 'ты' : shortName(m)))
+  const you = t('account.people.you')
+  const names = ordered.map((m) => (m.userId === myId ? you : shortName(m)))
   if (names.length === 0) return ''
-  if (names.length === 1) return names[0] === 'ты' ? 'Только ты' : capital(names[0])
-  if (names.length > NAMED) return capital(`${names.slice(0, NAMED - 1).join(', ')} и ещё ${names.length - (NAMED - 1)}`)
-  return capital(`${names.slice(0, -1).join(', ')} и ${names[names.length - 1]}`)
+  if (names.length === 1) return names[0] === you ? t('account.people.onlyYou') : capital(names[0])
+  const shown = names.length > NAMED ? [...names.slice(0, NAMED - 1), t('account.people.andMore', { count: names.length - (NAMED - 1) })] : names
+  return capital(new Intl.ListFormat(currentLocale(), { type: 'conjunction' }).format(shown))
 }
 
 /** How a group is named everywhere: its own name if it was given one, else its people. */

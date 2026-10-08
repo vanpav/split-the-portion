@@ -3,8 +3,9 @@ import { Link } from 'react-router'
 import { ACCOUNT_PATH } from '@/app/paths'
 import { Button } from '@/components/ui/button'
 import { useSyncStore } from '@/store/sync'
+import { t } from '@/i18n'
+import { clockTime } from '@/i18n/format'
 
-const time = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' })
 
 /**
  * How the open group's sync is doing, in one line (docs/UX.md «Аккаунт и группа», словарь §6).
@@ -23,24 +24,24 @@ export function SyncStatusLine({ withAction = true }: { withAction?: boolean }) 
     case 'idle':
       return null
     case 'syncing':
-      return line(LoaderCircleIcon, 'Синхронизация…')
+      return line(LoaderCircleIcon, t('settings.sync.syncing'))
     case 'synced':
-      return line(CheckIcon, `Синхронизировано · ${time.format(new Date(status.at))}`)
+      return line(CheckIcon, t('settings.sync.synced', { time: clockTime(status.at) }))
     case 'offline':
-      return line(CloudOffIcon, 'Нет сети — изменения сохранены на устройстве')
+      return line(CloudOffIcon, t('settings.sync.offline'))
     case 'failed':
-      return line(CloudOffIcon, 'Не удалось синхронизировать — попробуем ещё раз')
+      return line(CloudOffIcon, t('settings.sync.failed'))
     case 'forbidden':
-      return line(TriangleAlertIcon, 'Нет доступа к группе — попроси новое приглашение', true)
+      return line(TriangleAlertIcon, t('settings.sync.noAccess'), true)
     case 'needsUpdate':
-      return line(TriangleAlertIcon, 'Обнови приложение, чтобы синхронизировать: закрой его и открой снова', true)
+      return line(TriangleAlertIcon, t('settings.sync.update'), true)
     case 'needsLogin':
-      if (!withAction) return line(TriangleAlertIcon, 'Войди снова, чтобы синхронизировать', true)
+      if (!withAction) return line(TriangleAlertIcon, t('settings.sync.signIn'), true)
       return (
         <div className="flex flex-col gap-2">
-          {line(TriangleAlertIcon, 'Войди снова, чтобы синхронизировать', true)}
+          {line(TriangleAlertIcon, t('settings.sync.signIn'), true)}
           <Button asChild variant="outline" className="self-start">
-            <Link to={ACCOUNT_PATH}>Войти снова</Link>
+            <Link to={ACCOUNT_PATH}>{t('settings.sync.signInAction')}</Link>
           </Button>
         </div>
       )

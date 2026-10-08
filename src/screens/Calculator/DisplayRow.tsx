@@ -1,7 +1,8 @@
 import type { KeyboardEvent } from 'react'
-import { formatTyped } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
+import { t } from '@/i18n'
+import { formatTyped, typedText } from '@/i18n/format'
 
 interface DisplayRowProps {
   id: string
@@ -65,12 +66,12 @@ export function DisplayRow({
       >
         <DigitsInput
           id={id}
-          aria-label={`${label}, граммы`}
+          aria-label={t('calculator.gramsLabel', { name: label })}
           aria-invalid={invalid || undefined}
           enterKeyHint={last ? 'done' : 'next'}
           autoFocus={autoFocus}
           lids={lids}
-          value={active ? text : formatTyped(text)}
+          value={active ? typedText(text) : formatTyped(text)}
           placeholder="0"
           onFocus={onFocus}
           onBlur={onBlur}
@@ -78,7 +79,7 @@ export function DisplayRow({
           onKeyDown={onKeyDown}
         />
         <span aria-hidden className="ml-1 text-base font-normal text-muted-foreground">
-          г
+          {t('common.gramsUnit')}
         </span>
       </span>
     </label>

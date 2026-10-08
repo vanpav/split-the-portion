@@ -2,8 +2,10 @@ import { CheckIcon, SearchIcon, XIcon } from 'lucide-react'
 import { DishCategoryIcon } from '@/components/DishCategoryIcon'
 import { buttonVariants } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { CATEGORY_LABELS, type PopularFilter, type PopularView } from '@/domain'
+import { type PopularFilter, type PopularView } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
+import { categoryLabel } from '@/i18n/format'
 
 interface PopularFiltersProps {
   query: string
@@ -61,8 +63,8 @@ export function PopularFilters({ query, onQueryChange, filter, onFilterChange, c
             e.preventDefault()
             onQueryChange('')
           }}
-          placeholder="Гречка, суп…"
-          aria-label="Найти блюдо"
+          placeholder={t('common.searchPlaceholder')}
+          aria-label={t('common.findDish')}
           type="text"
           enterKeyHint="search"
           autoComplete="off"
@@ -75,7 +77,7 @@ export function PopularFilters({ query, onQueryChange, filter, onFilterChange, c
             <InputGroupButton
               size="icon-sm"
               className="size-10 rounded-full"
-              aria-label="Очистить"
+              aria-label={t('common.clear')}
               onPointerDown={(e) => e.preventDefault()}
               onClick={() => onQueryChange('')}
             >
@@ -86,13 +88,13 @@ export function PopularFilters({ query, onQueryChange, filter, onFilterChange, c
       </InputGroup>
       <div
         role="group"
-        aria-label="Фильтр"
+        aria-label={t('dishes.popular.filter')}
         className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {chip('all', 'Все', counts.all)}
-        {(anyPicked || filter === 'picked') && chip('picked', 'Отмечено', counts.picked, <CheckIcon className="size-4" />)}
+        {chip('all', t('dishes.popular.all'), counts.all)}
+        {(anyPicked || filter === 'picked') && chip('picked', t('dishes.popular.picked'), counts.picked, <CheckIcon className="size-4" />)}
         {counts.categories.map(({ category, count }) =>
-          chip(category, CATEGORY_LABELS[category], count, <DishCategoryIcon category={category} className={cn('size-4', filter === category && 'text-foreground')} />),
+          chip(category, categoryLabel(category), count, <DishCategoryIcon category={category} className={cn('size-4', filter === category && 'text-foreground')} />),
         )}
       </div>
     </div>

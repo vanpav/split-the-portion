@@ -4,8 +4,10 @@ import { AddPersonRow } from '@/components/AddPersonRow'
 import { HoldButton } from '@/components/HoldButton'
 import { ShareSlider, type DishSegment } from '@/components/ShareSlider'
 import { Input } from '@/components/ui/input'
-import { defaultShareWeight, exactPercents, lineupName, type Company, type CompanyMember } from '@/domain'
+import { defaultShareWeight, exactPercents, type Company, type CompanyMember } from '@/domain'
 import { newId } from '@/store/id'
+import { t } from '@/i18n'
+import { lineupName } from '@/i18n/format'
 
 /** What the form edits: a company without its id (a new one has none yet). */
 export type CompanyDraft = Pick<Company, 'name' | 'members'>
@@ -45,8 +47,8 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
   return (
     <div className="flex flex-col gap-3">
       <Input
-        aria-label="Название компании"
-        placeholder={lineupName(members) || 'Ваня и Ксюша'}
+        aria-label={t('common.company.nameLabel')}
+        placeholder={lineupName(members) || t('common.company.namePlaceholder')}
         className="font-medium"
         value={value.name}
         onChange={(e) => onChange({ ...value, name: e.target.value })}
@@ -59,14 +61,14 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
         onChange={setPercents}
         chosenId={chosenId}
         onChoose={setChosenId}
-        empty={{ label: 'Добавь людей', fieldId: addPersonId }}
+        empty={{ label: t('common.company.addPeople'), fieldId: addPersonId }}
       />
       <ul className="flex flex-col divide-y">
         {members.map((m, index) => (
           <li key={m.id} className="flex items-center gap-2 py-1">
             <Input
-              aria-label={`Имя ${index + 1}`}
-              placeholder="Имя"
+              aria-label={t('common.nameN', { n: index + 1 })}
+              placeholder={t('common.name')}
               value={m.name}
               enterKeyHint="done"
               onChange={(e) => setMember(m.id, { name: e.target.value })}
@@ -75,7 +77,7 @@ export function CompanyForm({ value, onChange, autoFocus }: CompanyFormProps) {
             />
             <HoldButton
               className="w-10 text-muted-foreground"
-              label={m.name ? `Убрать: ${m.name}` : 'Убрать человека'}
+              label={m.name ? t('common.removeNamed', { name: m.name }) : t('common.person.remove')}
               onConfirm={() => removeMember(m.id)}
             >
               <XIcon />

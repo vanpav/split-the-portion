@@ -6,9 +6,11 @@ import type { SwipeRowHandle } from '@/components/SwipeRow'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { formatGrams, isValidTareGrams, type Tare } from '@/domain'
+import { isValidTareGrams, type Tare } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { SettingsRow } from './SettingsRow'
+import { t } from '@/i18n'
+import { gramsText } from '@/i18n/format'
 
 interface TareRowProps {
   tare: Tare
@@ -26,9 +28,9 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
 
   const remove = () => {
     deleteTare(tare.id)
-    toast(`«${tare.name}» удалена`, {
+    toast(t('settings.tares.deleted', { name: tare.name }), {
       duration: 5000,
-      action: { label: 'Отменить', onClick: () => upsertTare(tare) },
+      action: { label: t('common.undo'), onClick: () => upsertTare(tare) },
     })
   }
 
@@ -37,7 +39,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={tare.name}
-      value={`${formatGrams(tare.grams)} г`}
+      value={gramsText(tare.grams)}
       onSwipeRemove={remove}
       itemId={tare.id}
       ref={rowRef}
@@ -45,7 +47,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
       <div className="flex items-start gap-2">
         <Field className="min-w-0 flex-1" data-invalid={nameEmpty || undefined}>
           <Input
-            aria-label="Название тары"
+            aria-label={t('settings.tares.nameLabel')}
             aria-invalid={nameEmpty || undefined}
             value={nameDraft ?? tare.name}
             onFocus={() => setNameDraft(tare.name)}
@@ -56,13 +58,13 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
               if (name) upsertTare({ ...tare, name })
             }}
           />
-          {nameEmpty && <FieldError>Введи название</FieldError>}
+          {nameEmpty && <FieldError>{t('common.enterName')}</FieldError>}
         </Field>
         <NumberField
           className="w-28 shrink-0"
-          ariaLabel={`Вес тары «${tare.name}»`}
+          ariaLabel={t('settings.tares.weightOf', { name: tare.name })}
           value={tare.grams}
-          validate={(grams) => (isValidTareGrams(grams) ? null : 'Вес должен быть больше 0')}
+          validate={(grams) => (isValidTareGrams(grams) ? null : t('common.tare.weightPositive'))}
           onValueChange={(grams) => isValidTareGrams(grams) && upsertTare({ ...tare, grams })}
         />
         {/* On a touch screen the row is swiped left instead; the button stays for the keyboard. */}
@@ -70,7 +72,7 @@ export function TareRow({ tare, open, onOpenChange }: TareRowProps) {
           variant="ghost"
           size="icon"
           className="pointer-coarse:sr-only"
-          aria-label={`Удалить «${tare.name}»`}
+          aria-label={t('settings.tares.delete', { name: tare.name })}
           // The row slides out and folds up, as after a swipe.
           onClick={() => rowRef.current?.remove()}
         >

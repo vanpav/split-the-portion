@@ -8,6 +8,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { t } from '@/i18n'
 
 /**
  * `/?token=…#/account/reset`: a new password by the link the owner passed on (docs/CLOUDFLARE.md §10).
@@ -30,7 +31,7 @@ export function ResetPasswordScreen() {
     try {
       const { error } = await authClient.resetPassword({ newPassword: password, token })
       if (error) return setError(authErrorText(error))
-      toast('Пароль изменён — войди с ним')
+      toast(t('account.reset.done'))
       // The used token leaves the address, so a reload does not try it again.
       window.history.replaceState(null, '', window.location.pathname + window.location.hash)
       navigate(ACCOUNT_PATH, { replace: true })
@@ -43,11 +44,11 @@ export function ResetPasswordScreen() {
 
   return (
     <>
-      <ScreenHeader title="Новый пароль" back backTo={ACCOUNT_PATH} backLabel="Вход" />
+      <ScreenHeader title={t('account.reset.title')} back backTo={ACCOUNT_PATH} backLabel={t('account.signInTitle')} />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4 lg:py-8">
         <form className="flex flex-col gap-4" noValidate onSubmit={(e) => void submit(e)}>
           <Field>
-            <FieldLabel htmlFor={passwordId}>Новый пароль</FieldLabel>
+            <FieldLabel htmlFor={passwordId}>{t('account.reset.title')}</FieldLabel>
             <Input
               id={passwordId}
               type="password"
@@ -60,7 +61,7 @@ export function ResetPasswordScreen() {
             {error && <FieldError>{error}</FieldError>}
           </Field>
           <Button type="submit" size="lg" disabled={busy || !token}>
-            Сохранить пароль
+            {t('account.reset.save')}
           </Button>
         </form>
       </main>

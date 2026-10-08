@@ -1,5 +1,7 @@
-import { formatGrams, ingredientNames, type Cooking, type RawAmount } from '@/domain'
+import { ingredientNames, type Cooking, type RawAmount } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
+import { gramsText } from '@/i18n/format'
 
 interface PortionRecipeProps {
   cooking: Cooking
@@ -19,6 +21,7 @@ interface PortionRecipeProps {
  */
 export function PortionRecipe({ cooking, raw, open, oneColumn, className }: PortionRecipeProps) {
   const names = ingredientNames(cooking)
+  const nameOf = (id: string) => names.get(id) || t('common.untitled')
   return (
     <div
       aria-hidden={!open}
@@ -33,10 +36,10 @@ export function PortionRecipe({ cooking, raw, open, oneColumn, className }: Port
         <ul className={cn('grid gap-x-4 gap-y-1 pt-2 text-sm leading-snug', oneColumn ? 'grid-cols-1' : 'grid-cols-2')}>
           {raw.map((r) => (
             <li key={r.ingredientId} className="flex min-w-0 items-baseline justify-between gap-2.5">
-              <span title={names.get(r.ingredientId)} className="line-clamp-2 min-w-0 text-muted-foreground hyphens-auto wrap-anywhere">
-                {names.get(r.ingredientId)}
+              <span title={nameOf(r.ingredientId)} className="line-clamp-2 min-w-0 text-muted-foreground hyphens-auto wrap-anywhere">
+                {nameOf(r.ingredientId)}
               </span>
-              <span className="shrink-0 whitespace-nowrap tabular-nums">{formatGrams(r.grams)} г</span>
+              <span className="shrink-0 whitespace-nowrap tabular-nums">{gramsText(r.grams)}</span>
             </li>
           ))}
         </ul>

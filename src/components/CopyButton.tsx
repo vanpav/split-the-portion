@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { COPY_TEXT, type CopyTextState } from '@/app/paths'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface CopyButtonProps {
   /** Built on click only: the text is not needed on every render. */
@@ -31,7 +32,7 @@ export function CopyButton({ getText, disabled, label, size = 'default', ref, cl
     if (!text) return
     try {
       await navigator.clipboard.writeText(text)
-      toast('Скопировано', { description: text.split('\n')[0] + (text.includes('\n') ? ' …' : '') })
+      toast(t('common.copied'), { description: text.split('\n')[0] + (text.includes('\n') ? ' …' : '') })
     } catch {
       navigate(COPY_TEXT, { state: { copyText: text } satisfies CopyTextState })
     }

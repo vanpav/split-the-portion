@@ -1,7 +1,7 @@
 // Reference examples from docs/SPEC.md §11. Do not change without changing the spec.
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
-import { portionCopyText } from '../copyText'
+import { portionCopyLines } from '../copyText'
 import { formatGrams, formatK } from '../numbers'
 import { fillRemainder } from '../remainder'
 import { splitLeftover } from '../split'
@@ -9,14 +9,14 @@ import { cookingWarnings } from '../validation'
 import { buckwheat, cooked, food, raw, soup, withTare } from './fixtures'
 
 const grams = (amounts: { ingredientId: string; grams: number }[]) =>
-  Object.fromEntries(amounts.map((a) => [a.ingredientId, formatGrams(a.grams)]))
+  Object.fromEntries(amounts.map((a) => [a.ingredientId, formatGrams(a.grams, 'ru-RU')]))
 
 describe('Example 1: buckwheat', () => {
   it('1.0 food weight 560, k = 2.8', () => {
     const phase = computeCooking(buckwheat()).phases[0]
     expect(phase.foodGrams).toBe(560)
     expect(phase.k).toEqual({ kind: 'base', value: expect.closeTo(2.8, 9) })
-    expect(formatK(phase.k!.value)).toBe('2,8')
+    expect(formatK(phase.k!.value, 'ru-RU')).toBe('2,8')
   })
 
   it('1.1 Anya 80 raw → 224 cooked, Boris 120 raw → 336 cooked, reconciled, nothing left', () => {
@@ -37,7 +37,7 @@ describe('Example 1: buckwheat', () => {
     expect(r.status).toBe('under')
     expect(r.distributed).toBeCloseTo(180, 9)
     expect(r.total).toBe(200)
-    expect(formatGrams(-r.diff)).toBe('20')
+    expect(formatGrams(-r.diff, 'ru-RU')).toBe('20')
   })
 
   it('1.3 Anya 80 + Boris 130 = 210 of 200 → over by 10 g', () => {
@@ -45,13 +45,13 @@ describe('Example 1: buckwheat', () => {
       .phases[0].reconcile!
     expect(r.status).toBe('over')
     expect(r.distributed).toBeCloseTo(210, 9)
-    expect(formatGrams(r.diff)).toBe('10')
+    expect(formatGrams(r.diff, 'ru-RU')).toBe('10')
   })
 
   it('1.4 portion of 250 cooked ≈ 89 g dry', () => {
     const portion = computeCooking(buckwheat([cooked('me', 250)])).phases[0].portions[0]
     expect(portion.raw[0].grams).toBeCloseTo(89.2857142857, 9)
-    expect(formatGrams(portion.raw[0].grams)).toBe('89')
+    expect(formatGrams(portion.raw[0].grams, 'ru-RU')).toBe('89')
   })
 
   it('1.5 Anya 224 cooked + Boris 120 raw reconcile (cooked converted to raw)', () => {
@@ -99,7 +99,7 @@ describe('Example 2: soup', () => {
   it('2.2 «I want 100 g raw chicken» → ≈ 527 g of soup', () => {
     const portion = computeCooking(soup([raw('me', 'chicken', 100)])).phases[0].portions[0]
     expect(portion.cookedGrams).toBeCloseTo(526.6666666667, 9)
-    expect(formatGrams(portion.cookedGrams!)).toBe('527')
+    expect(formatGrams(portion.cookedGrams!, 'ru-RU')).toBe('527')
   })
 
   it('2.3 split into 8 equal portions → 395 each', () => {
@@ -112,20 +112,20 @@ describe('Example 2: soup', () => {
     const { k } = computeCooking(soup()).phases[0]
     expect(k!.kind).toBe('dish')
     expect(k!.value).toBeCloseTo(3160 / 3376, 12)
-    expect(formatK(k!.value)).toBe('0,94')
+    expect(formatK(k!.value, 'ru-RU')).toBe('0,94')
   })
 
   it('2.5 copy text for the 395 g portion', () => {
     const c = soup([cooked('me', 395)])
-    expect(portionCopyText(c, computeCooking(c), 'me')).toBe(
-      [
-        'Курица (сырой вес) — 75 г',
-        'Картофель (сырой вес) — 50 г',
-        'Морковь (сырой вес) — 20 г',
-        'Лук (сырой вес) — 15 г',
-        'Рис (сырой вес) — 10 г',
-      ].join('\n'),
-    )
+    // The UI words each line «Курица (сырой вес) — 75 г» (src/i18n/__tests__/format.test.ts).
+    const lines = portionCopyLines(c, computeCooking(c), 'me')
+    expect(lines?.map((l) => `${l.name} — ${formatGrams(l.grams, 'ru-RU')}`)).toEqual([
+      'Курица — 75',
+      'Картофель — 50',
+      'Морковь — 20',
+      'Лук — 15',
+      'Рис — 10',
+    ])
   })
 })
 
@@ -146,7 +146,7 @@ describe('Example 3: buckwheat leftover re-weighed', () => {
     const phase = computeCooking(nextDay()).phases[1]
     expect(phase.available).toBeCloseTo(0.6, 12)
     expect(phase.k!.value).toBeCloseTo(310 / 120, 12)
-    expect(formatK(phase.k!.value)).toBe('2,58')
+    expect(formatK(phase.k!.value, 'ru-RU')).toBe('2,58')
   })
 
   it('3.3 portion of 155 cooked on day two = 60 dry; 155 / 60 left', () => {

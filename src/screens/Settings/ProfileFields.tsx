@@ -7,6 +7,7 @@ import { refreshAccount } from '@/account/refreshAccount'
 import { PROFILE_LIMITS, type Me } from '@/account/types'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { t } from '@/i18n'
 
 type Draft = { firstName: string; lastName: string; nickname: string }
 
@@ -52,14 +53,14 @@ export function ProfileFields({ user }: { user: Me['user'] }) {
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-      {field('firstName', 'Имя', PROFILE_LIMITS.name, 'given-name')}
-      {field('lastName', 'Фамилия', PROFILE_LIMITS.name, 'family-name')}
+      {field('firstName', t('settings.profile.firstName'), PROFILE_LIMITS.name, 'given-name')}
+      {field('lastName', t('settings.profile.lastName'), PROFILE_LIMITS.name, 'family-name')}
       {field(
         'nickname',
-        'Короткое имя',
+        t('settings.profile.nickname'),
         PROFILE_LIMITS.nickname,
         'nickname',
-        `Так тебя видят в группе. Пусто — ${user.email.split('@')[0]}`,
+        t('settings.profile.nicknameHint', { fallback: user.email.split('@')[0] }),
       )}
     </div>
   )

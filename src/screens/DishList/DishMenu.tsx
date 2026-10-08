@@ -9,12 +9,10 @@ import { DishSearchRow } from '@/components/DishSearch/DishSearchRow'
 import { Highlight } from '@/components/DishSearch/Highlight'
 import { Button } from '@/components/ui/button'
 import {
-  CATEGORY_LABELS,
   categoryMatches,
   createDishText,
   dishCategory,
   dishMenu,
-  dishRow,
   localDay,
   missingPresets,
   presetDish,
@@ -23,6 +21,8 @@ import {
 import { newId } from '@/store/id'
 import { usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
+import { categoryLabel, dishRow } from '@/i18n/format'
 
 const presetValue = (preset: PresetDish) => `preset:${preset.name}`
 const CREATE_VALUE = 'create'
@@ -91,21 +91,21 @@ export function DishMenu() {
       query={query}
       onQueryChange={update}
       onClose={back}
-      placeholder="Гречка, суп…"
+      placeholder={t('common.searchPlaceholder')}
       values={values}
       grouping={{ on: byCategory, onToggle: () => setByCategory(!byCategory) }}
       before={
         noDishes &&
         !typed && (
           <div className="flex flex-col gap-2 pt-2">
-            <h2 className="text-lg font-semibold">Пока нет блюд</h2>
+            <h2 className="text-lg font-semibold">{t('dishes.menu.emptyTitle')}</h2>
             <p className="text-muted-foreground">
-              Добавь блюдо один раз — дальше у плиты вводи только готовый вес.
+              {t('dishes.menu.emptyText')}
             </p>
             <Button size="lg" className="mt-2 h-12 w-full text-base" asChild>
               <Link to={newDishPath()}>
                 <PlusIcon data-icon="inline-start" />
-                Добавить блюдо
+                {t('dishes.menu.add')}
               </Link>
             </Button>
           </div>
@@ -118,32 +118,32 @@ export function DishMenu() {
           <Button variant="outline" size="lg" className="mt-2 h-12 w-full text-base" asChild>
             <Link to={POPULAR_PATH}>
               <ListChecksIcon data-icon="inline-start" />
-              Выбрать из популярных
+              {t('dishes.menu.fromPopular')}
             </Link>
           </Button>
         )
       }
     >
-      {typed && nothing && <p className="py-4 text-center text-sm text-muted-foreground">Ничего не нашлось</p>}
+      {typed && nothing && <p className="py-4 text-center text-sm text-muted-foreground">{t('common.nothingFound')}</p>}
       {categories.map(({ category, dishes: list }) => (
         <DishSearchGroup
           key={category}
-          heading={categoryMatches(query, category) ? <Highlight text={CATEGORY_LABELS[category]} query={query} /> : CATEGORY_LABELS[category]}
+          heading={categoryMatches(query, category) ? <Highlight text={categoryLabel(category)} query={query} /> : categoryLabel(category)}
           count={list.length}
         >
           {ownRows(list, true)}
         </DishSearchGroup>
       ))}
-      {often.length > 0 && <DishSearchGroup heading="Часто готовишь">{ownRows(often)}</DishSearchGroup>}
+      {often.length > 0 && <DishSearchGroup heading={t('dishes.menu.often')}>{ownRows(often)}</DishSearchGroup>}
       {rest.length > 0 && (
         <DishSearchGroup
-          heading={typed ? 'Твои блюда' : often.length > 0 ? 'Остальные · по алфавиту' : 'Твои блюда · по алфавиту'}
+          heading={t(typed ? 'dishes.menu.yours' : often.length > 0 ? 'dishes.menu.restAbc' : 'dishes.menu.yoursAbc')}
         >
           {ownRows(rest)}
         </DishSearchGroup>
       )}
       {popular.length > 0 && (
-        <DishSearchGroup heading={noDishes ? (typed ? 'Популярные' : 'Или возьми из популярных') : 'Добавить из популярных'}>
+        <DishSearchGroup heading={t(noDishes ? (typed ? 'dishes.menu.popular' : 'dishes.menu.orPopular') : 'dishes.menu.addPopular')}>
           {popular.map((preset) => (
             <DishSearchRow
               key={preset.name}
@@ -160,7 +160,7 @@ export function DishMenu() {
       {createText && (
         <DishSearchRow
           value={CREATE_VALUE}
-          row={{ title: `Создать «${createText}»`, second: 'Откроется форма с этим словом', foundBy: false }}
+          row={{ title: t('dishes.menu.create', { text: createText }), second: t('dishes.menu.createHint'), foundBy: false }}
           query={query}
           mark="create"
           onSelect={() => navigate(newDishWithTextPath(createText))}

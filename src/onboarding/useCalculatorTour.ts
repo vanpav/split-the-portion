@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent } from 'react'
 import { toast } from 'sonner'
 import { usePrefsStore } from '@/store/prefs'
 import { finishTour, skipHints, tourAt, tourFrom, tourSteps } from './hints'
+import { t } from '@/i18n'
 
 /** The screen's entrance is 200 ms: the tour starts on a screen at rest. */
 const START_MS = 500
@@ -54,9 +55,9 @@ export function useCalculatorTour({ paused, composite, people }: CalculatorTourP
       if (how === 'done') return updateHints(finishTour)
       const before = usePrefsStore.getState().hints
       updateHints(skipHints)
-      toast('Подсказки выключены', {
-        description: 'Включить снова — в Настройках',
-        action: { label: 'Вернуть', onClick: () => updateHints(() => before) },
+      toast(t('onboarding.hintsOff'), {
+        description: t('onboarding.hintsOffDescription'),
+        action: { label: t('onboarding.undo'), onClick: () => updateHints(() => before) },
       })
     }
 
@@ -83,9 +84,10 @@ export function useCalculatorTour({ paused, composite, people }: CalculatorTourP
       skipMissingElement: true,
       showButtons: ['next'],
       showProgress: true,
-      progressText: '{{current}} из {{total}}',
-      nextBtnText: 'Далее',
-      doneBtnText: 'Готово',
+      // driver.js fills these placeholders itself.
+      progressText: t('onboarding.tour.progress', { current: '{{current}}', total: '{{total}}' }),
+      nextBtnText: t('onboarding.tour.next'),
+      doneBtnText: t('onboarding.tour.done'),
       // The step it goes on from next time, as soon as it is chosen.
       onHighlightStarted: (_element, step) => {
         const index: unknown = step.data?.index
@@ -99,7 +101,7 @@ export function useCalculatorTour({ paused, composite, people }: CalculatorTourP
         const skip = document.createElement('button')
         skip.type = 'button'
         skip.className = 'driver-popover-footer-btn hint-skip'
-        skip.textContent = 'Пропустить'
+        skip.textContent = t('onboarding.tour.skip')
         skip.addEventListener('click', () => {
           d.destroy()
           end('skip')

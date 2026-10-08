@@ -12,6 +12,7 @@ import { groupLabel } from '@/account/groupLabel'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { adoptLocalData, keepLocalDataApart } from '@/sync/session'
+import { t } from '@/i18n'
 
 /**
  * First sign-in on a device that has its own data while the group already has some
@@ -28,16 +29,14 @@ export function LocalDataDialog() {
     <AlertDialog open={localData !== null} onOpenChange={(open) => !open && keepLocalDataApart()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Перенести данные этого устройства?</AlertDialogTitle>
+          <AlertDialogTitle>{t('common.localData.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {localData &&
-              `На этом устройстве блюд: ${localData.dishes.length}. ` +
-                `В группе «${groupName}» уже есть другие блюда. Перенести эти в группу? Одинаковые могут продублироваться.`}
+            {localData && t('common.localData.text', { count: localData.dishes.length, group: groupName })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={keepLocalDataApart}>Не переносить</AlertDialogCancel>
-          <AlertDialogAction onClick={adoptLocalData}>Перенести</AlertDialogAction>
+          <AlertDialogCancel onClick={keepLocalDataApart}>{t('common.localData.keepApart')}</AlertDialogCancel>
+          <AlertDialogAction onClick={adoptLocalData}>{t('common.localData.adopt')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -10,6 +10,7 @@ import { askPersistentStorage } from '@/store/idbStorage'
 import { lastCalculatorReady } from '@/store/lastCalculator'
 import { prefsReady, usePrefsStore } from '@/store/prefs'
 import { useAppStore } from '@/store/store'
+import '@/i18n'
 import './index.css'
 
 // Data lives in IndexedDB and is read asynchronously: render once it is in, so nothing typed

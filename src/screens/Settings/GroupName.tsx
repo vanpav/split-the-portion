@@ -8,6 +8,7 @@ import { MAX_GROUP_NAME, PERSONAL_GROUP_NAME, type AccountGroup } from '@/accoun
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useAccountStore } from '@/store/account'
+import { t } from '@/i18n'
 
 /**
  * The group's name, for its owner: saved on leaving the field. Empty — the group is named by its
@@ -36,7 +37,7 @@ export function GroupName({ group }: { group: AccountGroup }) {
 
   return (
     <Field>
-      <FieldLabel htmlFor={id}>Название</FieldLabel>
+      <FieldLabel htmlFor={id}>{t('common.title')}</FieldLabel>
       <Input
         id={id}
         value={name}
@@ -47,7 +48,7 @@ export function GroupName({ group }: { group: AccountGroup }) {
         onBlur={() => void save()}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       />
-      <FieldDescription>Пусто — группа называется по людям. Название видят все в группе</FieldDescription>
+      <FieldDescription>{t('settings.group.nameHint')}</FieldDescription>
     </Field>
   )
 }

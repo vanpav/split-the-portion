@@ -15,29 +15,27 @@ import { WelcomeBoxes } from './WelcomeBoxes'
 import { WelcomeDevices } from './WelcomeDevices'
 import { WelcomeShares } from './WelcomeShares'
 import { WelcomeTiles } from './WelcomeTiles'
+import { t } from '@/i18n'
 
 interface Step {
   art: ReactNode
-  title: string
-  text: string
+  /** Its title and text under `welcome.about`. */
+  key: 'portions' | 'oneWeight' | 'shares'
 }
 
 /** What the app is, in three screens (docs/UX.md §3в); the account comes after them. */
 const ABOUT: Step[] = [
   {
     art: <WelcomeBoxes />,
-    title: 'Сколько положить каждому',
-    text: 'Взвесь готовое блюдо — и сразу видно, сколько граммов на чью тарелку и сколько это в сухом виде для трекера калорий.',
+    key: 'portions',
   },
   {
     art: <WelcomeTiles />,
-    title: 'Вводи один вес',
-    text: 'Сухой вес, тару, компанию и доли блюдо запоминает. У плиты остаётся ввести вес готового.',
+    key: 'oneWeight',
   },
   {
     art: <WelcomeShares />,
-    title: 'Поровну или по долям',
-    text: 'Часть можно отложить на завтра, а на неделю вперёд разделить на порции без имён. Порцию для трекера копируй свайпом.',
+    key: 'shares',
   },
 ]
 
@@ -48,10 +46,7 @@ const dot = (current: boolean) =>
     current ? 'w-6 bg-primary' : 'w-1.5 bg-border',
   )
 
-const WITH_ACCOUNT = [
-  'Блюда на всех твоих устройствах, в том числе после смены телефона',
-  'Общий учёт с близкими: готовый вес, который ввёл один, сразу у всех',
-]
+const WITH_ACCOUNT = ['welcome.withAccount1', 'welcome.withAccount2'] as const
 
 /**
  * `#/welcome`: the first screen of a new device (docs/UX.md §3в) — what the app does, then the account
@@ -113,19 +108,19 @@ export function WelcomeScreen() {
       <header className="sticky top-0 z-10 flex min-h-14 items-center gap-2 bg-background/95 pt-[max(0.25rem,env(safe-area-inset-top))] pr-2 pb-1 pl-5 backdrop-blur">
         {touch ? (
           // A finger swipes: the dots only show where it is.
-          <div role="img" aria-label={`Шаг ${step + 1} из ${count}`} className="flex flex-1 items-center gap-1.5">
+          <div role="img" aria-label={t('welcome.step', { n: step + 1, count })} className="flex flex-1 items-center gap-1.5">
             {Array.from({ length: count }, (_, i) => (
               <span key={i} className={dot(i === step)} />
             ))}
           </div>
         ) : (
           // A mouse: each dot opens its step.
-          <nav aria-label="Шаги" className="-ml-1 flex flex-1 items-center">
+          <nav aria-label={t('welcome.steps')} className="-ml-1 flex flex-1 items-center">
             {Array.from({ length: count }, (_, i) => (
               <button
                 key={i}
                 type="button"
-                aria-label={`Шаг ${i + 1} из ${count}`}
+                aria-label={t('welcome.step', { n: i + 1, count })}
                 aria-current={i === step ? 'step' : undefined}
                 onClick={() => go(i)}
                 className="group/dot flex h-8 cursor-pointer items-center rounded-full px-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -137,7 +132,7 @@ export function WelcomeScreen() {
         )}
         {/* On every step, the account one too: straight into the app, without an account. */}
         <Button variant="ghost" className="text-muted-foreground" onClick={() => start()}>
-          Пропустить
+          {t('welcome.skip')}
         </Button>
       </header>
       <main
@@ -156,38 +151,38 @@ export function WelcomeScreen() {
           <div className={cn('flex items-center justify-center', about && 'min-h-52')}>{about ? about.art : <WelcomeDevices />}</div>
           {about ? (
             <div className="flex flex-col gap-2 px-1">
-              <h1 className="text-[1.75rem] leading-tight font-semibold text-balance">{about.title}</h1>
-              <p className="text-pretty text-muted-foreground">{about.text}</p>
+              <h1 className="text-[1.75rem] leading-tight font-semibold text-balance">{t(`welcome.about.${about.key}.title`)}</h1>
+              <p className="text-pretty text-muted-foreground">{t(`welcome.about.${about.key}.text`)}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-4 px-1">
-              <h1 className="text-[1.75rem] leading-tight font-semibold text-balance">Аккаунт или это устройство</h1>
-              <section aria-label="С аккаунтом" className="flex flex-col gap-2">
-                <h2 className="font-semibold">С аккаунтом</h2>
+              <h1 className="text-[1.75rem] leading-tight font-semibold text-balance">{t('welcome.accountTitle')}</h1>
+              <section aria-label={t('welcome.withAccount')} className="flex flex-col gap-2">
+                <h2 className="font-semibold">{t('welcome.withAccount')}</h2>
                 <ul className="flex flex-col gap-1.5">
                   {WITH_ACCOUNT.map((line) => (
                     <li key={line} className="flex gap-2 text-pretty">
                       <CheckIcon className="mt-1 size-4 shrink-0 text-primary" />
-                      {line}
+                      {t(line)}
                     </li>
                   ))}
                 </ul>
               </section>
-              <section aria-label="Без аккаунта" className="flex flex-col gap-2">
-                <h2 className="font-semibold">Без аккаунта</h2>
+              <section aria-label={t('welcome.withoutAccount')} className="flex flex-col gap-2">
+                <h2 className="font-semibold">{t('welcome.withoutAccount')}</h2>
                 <p className="flex gap-2 text-pretty text-muted-foreground">
                   <SmartphoneIcon className="mt-1 size-4 shrink-0" />
-                  Данные хранятся только в этом браузере. Войти можно потом в Настройках — данные переедут в аккаунт.
+                  {t('welcome.withoutAccountText')}
                 </p>
               </section>
               <p className="text-sm text-muted-foreground">
-                Уже есть аккаунт?{' '}
+                {t('welcome.haveAccount')}{' '}
                 <Link
                   to={accountPath({ next: '/' })}
                   onClick={() => updateHints(finishWelcome)}
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
-                  Войти
+                  {t('account.signIn')}
                 </Link>
               </p>
             </div>
@@ -197,15 +192,15 @@ export function WelcomeScreen() {
           {onAccount ? (
             <>
               <Button size="lg" onClick={() => finish(accountPath({ signUp: true, next: POPULAR_PATH }), false)}>
-                Создать аккаунт
+                {t('account.signUp')}
               </Button>
               <Button size="lg" variant="outline" onClick={() => start()}>
-                Без аккаунта
+                {t('welcome.withoutAccount')}
               </Button>
             </>
           ) : (
             <Button size="lg" className="flex-1" onClick={() => (last ? start() : go(step + 1))}>
-              {last ? 'Начать' : 'Далее'}
+              {t(last ? 'welcome.start' : 'welcome.next')}
             </Button>
           )}
         </BottomBar>

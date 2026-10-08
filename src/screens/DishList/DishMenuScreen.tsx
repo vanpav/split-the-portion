@@ -8,6 +8,7 @@ import { missingPresets } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { DishMenu } from './DishMenu'
 import { OpenGroupLink } from './OpenGroupLink'
+import { t } from '@/i18n'
 
 /**
  * `#/dishes`: the dish menu — one search over the user's dishes and the popular ones they do not have
@@ -22,15 +23,15 @@ export function DishMenuScreen({ home }: { home?: boolean }) {
   return (
     <>
       <ScreenHeader
-        title="Блюда"
+        title={t('common.dishes')}
         back={!home}
         backTo="/"
-        backLabel="Калькулятор"
+        backLabel={t('common.calculator')}
         action={
           <>
             <OpenGroupLink />
             {hasDishes && (
-              <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" aria-label="Добавить блюдо" asChild>
+              <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" aria-label={t('dishes.menu.add')} asChild>
                 <Link to={newDishPath()}>
                   <PlusIcon />
                 </Link>
@@ -39,7 +40,7 @@ export function DishMenuScreen({ home }: { home?: boolean }) {
             <MoreMenu
               items={
                 hasDishes && somePopularMissing
-                  ? [{ label: 'Добавить популярные блюда', icon: BookOpenIcon, to: POPULAR_PATH }]
+                  ? [{ label: t('dishes.menu.addPopularDishes'), icon: BookOpenIcon, to: POPULAR_PATH }]
                   : []
               }
             />

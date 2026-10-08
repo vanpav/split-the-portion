@@ -6,9 +6,8 @@ import { lidFill } from '@/components/lids'
 import { SwipeRow, type SwipeRowHandle } from '@/components/SwipeRow'
 import { Input } from '@/components/ui/input'
 import {
-  formatGrams,
   portionRawGrams,
-  rawAmountsCopyText,
+  rawAmountsCopyLines,
   type Cooking,
   type CookingResult,
   type PortionResult,
@@ -17,6 +16,8 @@ import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
 import { rawWord } from './messages'
 import { PortionRecipe } from './PortionRecipe'
+import { t } from '@/i18n'
+import { copyText, formatGrams } from '@/i18n/format'
 
 interface PersonResultProps {
   cooking: Cooking
@@ -81,8 +82,8 @@ export function PersonResult({
   // Under the name: the other view — raw under cooked, cooked under dry. Grams only, no percent.
   const subline = (
     dry
-      ? [computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`]
-      : [baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`]
+      ? [computed.cookedGrams !== null && t('calculator.cookedGrams', { grams: formatGrams(computed.cookedGrams) })]
+      : [baseRaw !== null && t('calculator.rawGrams', { grams: formatGrams(baseRaw), raw: rawWord(cooking.kind) })]
   ).filter((part): part is string => Boolean(part))
 
   // The answer in the view's grams. Not weighed yet: no answer at all, only the name (docs/SPEC.md §3б).
@@ -117,8 +118,8 @@ export function PersonResult({
             />
             {onRename ? (
               <Input
-                aria-label="Имя"
-                placeholder="Имя"
+                aria-label={t('common.name')}
+                placeholder={t('common.name')}
                 value={name}
                 enterKeyHint="done"
                 onChange={(e) => onRename(e.target.value)}
@@ -142,12 +143,12 @@ export function PersonResult({
                 <button
                   type="button"
                   onClick={onReleaseOwn}
-                  aria-label={`${name || 'Человек'}: вернуть к доле`}
+                  aria-label={t('calculator.backToShare', { name: name || t('calculator.person') })}
                   // Small to look at, 44 px to hit: the padding reaches out, the margin pulls it back.
                   className="-my-3 mr-1 inline-flex items-center gap-0.5 rounded-full py-3 whitespace-nowrap outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   <span className="inline-flex items-center gap-0.5 rounded-full border px-1.5 py-px">
-                    своя
+                    {t('calculator.own', { count: 1 })}
                     <XIcon className="size-3" />
                   </span>
                 </button>
@@ -176,7 +177,7 @@ export function PersonResult({
             <span className="flex items-baseline text-3xl leading-tight font-medium whitespace-nowrap tabular-nums max-[360px]:text-2xl">
               <DigitsInput
                 id={grams.id}
-                aria-label={`${name || 'Человек'}: своя порция, ${dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+                aria-label={dry ? t('calculator.ownPortionRawGrams', { name: name || t('calculator.person'), raw: rawWord(cooking.kind) }) : t('calculator.ownPortionGrams', { name: name || t('calculator.person') })}
                 enterKeyHint="done"
                 lids={lids}
                 // Until something is typed: today's number, faded — the field keeps its width.
@@ -188,7 +189,7 @@ export function PersonResult({
                 onKeyDown={grams.onKeyDown}
               />
               <span aria-hidden className="ml-1 text-base font-normal text-muted-foreground">
-                г
+                {t('common.gramsUnit')}
               </span>
             </span>
           </label>
@@ -199,13 +200,13 @@ export function PersonResult({
           <CopyButton
             ref={copyRef}
             size="sm"
-            label={`Скопировать для трекера: ${name}`}
+            label={t('calculator.copyFor', { name })}
             disabled={computed.share === null}
-            getText={() => rawAmountsCopyText(cooking, computed.raw) || null}
+            getText={() => copyText(rawAmountsCopyLines(cooking, computed.raw)) || null}
           />
           <HoldButton
             className="w-10 text-muted-foreground"
-            label={name ? `Убрать: ${name}` : 'Убрать человека'}
+            label={name ? t('common.removeNamed', { name }) : t('common.person.remove')}
             // The row slides out and folds up, as after a swipe.
             onConfirm={() => rowRef.current?.remove()}
           >

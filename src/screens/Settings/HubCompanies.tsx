@@ -1,9 +1,10 @@
 import { UsersIcon } from 'lucide-react'
 import { lidFill } from '@/components/lids'
-import { lineupName } from '@/domain'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
 import { HubLink } from './HubLink'
+import { t } from '@/i18n'
+import { lineupName } from '@/i18n/format'
 
 /**
  * «Компании» on the hub: each company as its people's lids, stacked like lids on containers, its
@@ -16,8 +17,8 @@ export function HubCompanies() {
     <HubLink
       to="companies"
       Icon={UsersIcon}
-      title="Компании"
-      description={companies.length ? 'Кто ест и в каких долях' : 'Кто ест и в каких долях. Пока ни одной'}
+      title={t('settings.companies.title')}
+      description={t(companies.length ? 'settings.hub.companiesHint' : 'settings.hub.companiesHintEmpty')}
     >
       {companies.length > 0 && (
         <ul className="mt-2 flex flex-col gap-2">
@@ -29,7 +30,7 @@ export function HubCompanies() {
                 ))}
               </span>
               <span className="min-w-0 flex-1 truncate">
-                {company.name.trim() || lineupName(company.members) || 'Без названия'}
+                {company.name.trim() || lineupName(company.members) || t('common.untitled')}
               </span>
             </li>
           ))}

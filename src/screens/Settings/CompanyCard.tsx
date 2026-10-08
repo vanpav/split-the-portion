@@ -2,9 +2,11 @@ import { Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { CompanyForm } from '@/components/CompanyForm'
 import { Button } from '@/components/ui/button'
-import { lineupName, type Company, type CompanyMember } from '@/domain'
+import type { Company, CompanyMember } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { SettingsRow } from './SettingsRow'
+import { t } from '@/i18n'
+import { lineupName } from '@/i18n/format'
 
 interface CompanyCardProps {
   company: Company
@@ -19,14 +21,14 @@ interface CompanyCardProps {
 export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
   const upsertCompany = useAppStore((s) => s.upsertCompany)
   const deleteCompany = useAppStore((s) => s.deleteCompany)
-  const personName = (m: CompanyMember, index: number) => m.name.trim() || `Человек ${index + 1}`
+  const personName = (m: CompanyMember, index: number) => m.name.trim() || t('common.personN', { n: index + 1 })
 
   const remove = () => {
     deleteCompany(company.id)
-    toast('Компания удалена', {
+    toast(t('settings.company.deleted'), {
       description: company.name.trim() || lineupName(company.members),
       duration: 5000,
-      action: { label: 'Отменить', onClick: () => upsertCompany(company) },
+      action: { label: t('common.undo'), onClick: () => upsertCompany(company) },
     })
   }
 
@@ -34,15 +36,15 @@ export function CompanyCard({ company, open, onOpenChange }: CompanyCardProps) {
     <SettingsRow
       open={open}
       onOpenChange={onOpenChange}
-      title={company.name.trim() || lineupName(company.members) || 'Без названия'}
-      detail={company.members.map((m, i) => personName(m, i)).join(', ') || 'Никого'}
+      title={company.name.trim() || lineupName(company.members) || t('common.untitled')}
+      detail={company.members.map((m, i) => personName(m, i)).join(', ') || t('common.nobody')}
     >
       {/* A new company is empty: the first name is typed right away. */}
       <CompanyForm value={company} onChange={(next) => upsertCompany({ ...company, ...next })} autoFocus />
       <div className="flex justify-end">
         <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={remove}>
           <Trash2Icon data-icon="inline-start" />
-          Удалить
+          {t('common.delete')}
         </Button>
       </div>
     </SettingsRow>

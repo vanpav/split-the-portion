@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Id } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { CompanyCard } from './CompanyCard'
+import { t } from '@/i18n'
 
 export function CompaniesSection() {
   const companies = useAppStore((s) => s.companies)
@@ -15,10 +16,9 @@ export function CompaniesSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold max-md:sr-only">Компании</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">{t('settings.companies.title')}</h2>
         <p className="text-sm text-muted-foreground">
-          Кто ест вместе и в каком соотношении. Выбери компанию в калькуляторе в «Кто ест» — блюдо разделится по её
-          долям.
+          {t('settings.companies.lead')}
         </p>
       </div>
       <ul className="divide-y overflow-hidden rounded-xl border bg-card">
@@ -37,7 +37,7 @@ export function CompaniesSection() {
             className="flex min-h-14 w-full items-center gap-3 px-4 font-medium outline-none hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
           >
             <PlusIcon className="size-4" />
-            Добавить компанию
+            {t('calculator.addCompany')}
           </button>
         </li>
       </ul>

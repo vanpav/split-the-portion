@@ -4,7 +4,7 @@ import type { DishCategory } from '../types'
 
 describe('the categories', () => {
   it('are shown in this order, each with a label', () => {
-    expect(DISH_CATEGORIES.map((c) => CATEGORY_LABELS[c])).toEqual([
+    expect(DISH_CATEGORIES.map((c) => CATEGORY_LABELS.ru[c])).toEqual([
       'Первые',
       'Вторые',
       'Гарниры',
@@ -110,6 +110,10 @@ describe('categoryMatches', () => {
     // the second word of «Выпечка и сладкое»
     expect(categoryMatches('слад', 'baking')).toBe(true)
     expect(categoryMatches('вторые', 'mains')).toBe(true)
+    // a label in any UI language finds it
+    expect(categoryMatches('sides', 'sides')).toBe(true)
+    expect(categoryMatches('guarn', 'sides')).toBe(true)
+    expect(categoryMatches('repost', 'baking')).toBe(true)
   })
 
   it('not from the middle of a word, not for an empty query', () => {

@@ -14,7 +14,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { shortDate } from '@/domain/dates'
+import { t } from '@/i18n'
+import { shortDate } from '@/i18n/format'
 
 type Passkey = { id: string; name?: string | null; createdAt: Date | string }
 
@@ -34,7 +35,7 @@ export function PasskeySetting() {
     setBusy(true)
     try {
       const { error } = await authClient.passkey.addPasskey()
-      if (!error) toast('Passkey добавлен')
+      if (!error) toast(t('settings.passkey.added'))
       // A closed prompt is the user's choice, not an error worth a message.
       else if (
         !error.status ||
@@ -52,7 +53,7 @@ export function PasskeySetting() {
     setBusy(true)
     try {
       const { error } = await authClient.passkey.deletePasskey({ id: passkey.id })
-      toast(error ? authErrorText(error) : 'Passkey удалён')
+      toast(error ? authErrorText(error) : t('settings.passkey.removed'))
     } catch {
       toast(authErrorText(null))
     } finally {
@@ -68,12 +69,12 @@ export function PasskeySetting() {
           <KeyRoundIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate font-medium">{label(passkey)}</span>
-            <span className="text-sm text-muted-foreground">Добавлен {shortDate(passkey.createdAt)}</span>
+            <span className="text-sm text-muted-foreground">{t('settings.passkey.addedAt', { date: shortDate(passkey.createdAt) })}</span>
           </span>
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label={`Удалить passkey «${label(passkey)}»`}
+            aria-label={t('settings.passkey.remove', { name: label(passkey) })}
             disabled={busy}
             onClick={() => setRemoving(passkey)}
           >
@@ -89,20 +90,20 @@ export function PasskeySetting() {
       >
         <PlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-medium">Добавить passkey</span>
-          <span className="text-sm text-muted-foreground">Вход по Face ID или отпечатку на этом устройстве</span>
+          <span className="font-medium">{t('settings.passkey.add')}</span>
+          <span className="text-sm text-muted-foreground">{t('settings.passkey.addHint')}</span>
         </span>
       </button>
       <AlertDialog open={removing !== null} onOpenChange={(open) => !open && setRemoving(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить passkey «{removing ? label(removing) : ''}»?</AlertDialogTitle>
-            <AlertDialogDescription>Войти с ним больше не получится. Пароль и другие passkey останутся.</AlertDialogDescription>
+            <AlertDialogTitle>{t('settings.passkey.removeTitle', { name: removing ? label(removing) : '' })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('settings.passkey.removeText')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={() => removing && void remove(removing)}>
-              Удалить
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

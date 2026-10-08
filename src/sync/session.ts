@@ -13,6 +13,7 @@ import { groupDataKey } from './keys'
 import { mergeLocal } from './merge'
 import { isEmptyData } from './records'
 import { backgroundDone, forgetOutbox, startSync, stopSync, syncedGroup, syncStoredGroup } from './runner'
+import { t } from '@/i18n'
 
 export { groupDataKey }
 
@@ -134,7 +135,7 @@ export async function refreshGroups() {
   }
   for (const group of gone) {
     await Promise.all([del(groupDataKey(group.id)), forgetOutbox(group.id)])
-    toast(`Ты больше не в группе «${groupLabel(group, me()?.user.id)}»`)
+    toast(t('common.leftGroup', { group: groupLabel(group, me()?.user.id) }))
   }
 }
 

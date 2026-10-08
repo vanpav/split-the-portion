@@ -1,9 +1,8 @@
 import { CopyButton } from '@/components/CopyButton'
 import {
-  formatGrams,
   portionGrams,
   portionRawGrams,
-  rawAmountsCopyText,
+  rawAmountsCopyLines,
   splitAmounts,
   splitSummary,
   type Cooking,
@@ -12,8 +11,10 @@ import {
   type PortionResult,
 } from '@/domain'
 import { cn } from '@/lib/utils'
-import { portionsWord, rawWord } from './messages'
+import { rawWord } from './messages'
 import { PortionRecipe } from './PortionRecipe'
+import { t } from '@/i18n'
+import { copyText, formatGrams, gramsText } from '@/i18n/format'
 
 interface PortionSummaryProps {
   cooking: Cooking
@@ -43,24 +44,30 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, numbe
   const summary = inPercent ? null : splitSummary(values)
   if (!summary) return null
 
-  const shown = (value: number) => `${formatGrams(value)} г`
+  const shown = (value: number) => gramsText(value)
   const first = sharing[0]
   // Beside it: the other view of one of them, the way a portion's tile has it.
   const other = (() => {
     if (summary.same === null) return null
-    if (rawOf !== null) return first.cookedGrams !== null ? `${formatGrams(first.cookedGrams)} г готового` : null
+    if (rawOf !== null) return first.cookedGrams !== null ? t('calculator.cookedGrams', { grams: formatGrams(first.cookedGrams) }) : null
     const raw = portionRawGrams(result, first.raw)
-    return raw !== null ? `${formatGrams(raw)} г ${rawWord(cooking.kind)}` : null
+    return raw !== null ? t('calculator.rawGrams', { grams: formatGrams(raw), raw: rawWord(cooking.kind) }) : null
   })()
-  const head = summary.same !== null ? `по ${shown(summary.same)}` : `${formatGrams(summary.least)}–${shown(summary.most)}`
-  const tail = summary.same !== null ? [`× ${summary.count}`, other].filter(Boolean).join(' · ') : `${summary.count} ${portionsWord(summary.count)} по долям`
+  const head =
+    summary.same !== null
+      ? t('calculator.summary.each', { grams: shown(summary.same) })
+      : t('calculator.summary.range', { least: formatGrams(summary.least), most: shown(summary.most) })
+  const tail = summary.same !== null ? [`× ${summary.count}`, other].filter(Boolean).join(' · ') : t('calculator.summary.byShares', { count: summary.count })
   const ownAmount = (p: PortionResult) => {
     const value = portionGrams(p, rawOf)
     return value !== null ? shown(value) : '—'
   }
   const ownLine =
     own.length > 0 &&
-    `${own.length === 1 ? 'своя' : 'свои'}: ${own.map((p) => `${numberOf(p.portionId)} — ${ownAmount(p)}`).join(', ')}`
+    t('calculator.summary.own', {
+      own: t('calculator.own', { count: own.length }),
+      list: own.map((p) => `${numberOf(p.portionId)} — ${ownAmount(p)}`).join(', '),
+    })
 
   return (
     <div>
@@ -74,8 +81,8 @@ export function PortionSummary({ cooking, result, portions, ownIds, rawOf, numbe
             height when they turn equal or unequal. */}
         <CopyButton
           className={cn('text-muted-foreground', summary.same === null && 'invisible')}
-          label="Скопировать для трекера: одна порция"
-          getText={() => (summary.same !== null && rawAmountsCopyText(cooking, first.raw)) || null}
+          label={t('calculator.copyOne')}
+          getText={() => (summary.same !== null && copyText(rawAmountsCopyLines(cooking, first.raw))) || null}
         />
       </div>
       {recipe && summary.same !== null && (

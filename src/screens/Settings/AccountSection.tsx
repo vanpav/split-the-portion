@@ -21,6 +21,7 @@ import { leaveAccount } from '@/sync/session'
 import { PasskeySetting } from './PasskeySetting'
 import { ProfileFields } from './ProfileFields'
 import { ProfileHeader } from './ProfileHeader'
+import { t } from '@/i18n'
 
 /** Settings → «Аккаунт» (docs/UX.md «Настройки»): sign in, or who is signed in, passkeys and «Выйти». */
 export function AccountSection() {
@@ -33,15 +34,15 @@ export function AccountSection() {
     return (
       <section className="flex flex-col gap-3">
         <div className="flex flex-col gap-1 px-1">
-          <h2 className="text-base font-semibold max-md:sr-only">Аккаунт</h2>
+          <h2 className="text-base font-semibold max-md:sr-only">{t('settings.account.title')}</h2>
           <p className="text-sm text-muted-foreground">
-            Данные хранятся только на этом устройстве. Войди — они появятся на всех устройствах и в общей группе.
+            {t('settings.account.localLead')}
           </p>
         </div>
         <Button asChild className="self-start">
           <Link to={ACCOUNT_PATH}>
             <LogInIcon data-icon="inline-start" />
-            Войти
+            {t('common.signIn')}
           </Link>
         </Button>
       </section>
@@ -59,7 +60,7 @@ export function AccountSection() {
       if (error && !error.status) throw new Error('offline')
       await leaveAccount()
     } catch {
-      toast('Нет сети — выйти можно, когда она появится')
+      toast(t('settings.account.offlineSignOut'))
     } finally {
       setBusy(false)
     }
@@ -68,14 +69,14 @@ export function AccountSection() {
 
   return (
     <section className="flex flex-col gap-6">
-      <h2 className="sr-only">Аккаунт</h2>
+      <h2 className="sr-only">{t('settings.account.title')}</h2>
       <ProfileHeader user={me.user} />
       <div className="flex flex-col gap-2">
-        <h3 className="px-1 text-sm font-medium text-muted-foreground">О себе</h3>
+        <h3 className="px-1 text-sm font-medium text-muted-foreground">{t('settings.account.about')}</h3>
         <ProfileFields key={me.user.id} user={me.user} />
       </div>
       <div className="flex flex-col gap-2">
-        <h3 className="px-1 text-sm font-medium text-muted-foreground">Вход</h3>
+        <h3 className="px-1 text-sm font-medium text-muted-foreground">{t('settings.account.signIn')}</h3>
         <div className="divide-y overflow-hidden rounded-xl border bg-card">
           <PasskeySetting />
           <button
@@ -85,7 +86,7 @@ export function AccountSection() {
             className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60 disabled:opacity-50"
           >
             <LogOutIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-            <span className="font-medium">Выйти</span>
+            <span className="font-medium">{t('common.signOut')}</span>
           </button>
         </div>
       </div>
@@ -93,15 +94,15 @@ export function AccountSection() {
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Не все изменения отправлены</AlertDialogTitle>
+            <AlertDialogTitle>{t('settings.account.unsentTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Часть правок есть только на этом устройстве. После выхода они пропадут.
+              {t('settings.account.unsentText')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Остаться</AlertDialogCancel>
+            <AlertDialogCancel>{t('settings.account.stay')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={() => void signOut()}>
-              Выйти
+              {t('common.signOut')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

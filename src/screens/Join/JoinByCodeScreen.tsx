@@ -8,6 +8,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { t } from '@/i18n'
 
 /**
  * `#/join` — «Вступить по коду» from Settings → «Группа»: a link from a messenger opens in Safari,
@@ -25,17 +26,17 @@ export function JoinByCodeScreen() {
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const code = parseInviteCode(text)
-    if (!code) return setError('8 букв и цифр, например K7MR-Q2XD')
+    if (!code) return setError(t('join.byCode.invalid'))
     navigate(joinPath(code), { replace: true, state: hasPrevious ? undefined : noPreviousState })
   }
 
   return (
     <>
-      <ScreenHeader title="Вступить по коду" back backTo={settingsPath('group')} backLabel="Группа" />
+      <ScreenHeader title={t('join.byCode.title')} back backTo={settingsPath('group')} backLabel={t('join.groupBack')} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
         <form id={formId} noValidate onSubmit={submit}>
           <Field data-invalid={error !== null || undefined}>
-            <FieldLabel htmlFor={inputId}>Код</FieldLabel>
+            <FieldLabel htmlFor={inputId}>{t('join.byCode.code')}</FieldLabel>
             <Input
               id={inputId}
               autoFocus
@@ -53,12 +54,12 @@ export function JoinByCodeScreen() {
                 setError(null)
               }}
             />
-            {error ? <FieldError>{error}</FieldError> : <FieldDescription>Код пришлёт тот, кто зовёт в группу.</FieldDescription>}
+            {error ? <FieldError>{error}</FieldError> : <FieldDescription>{t('join.byCode.hint')}</FieldDescription>}
           </Field>
         </form>
         <BottomBar>
           <Button type="submit" form={formId} size="lg" className="flex-1 lg:flex-none">
-            Проверить
+            {t('join.byCode.check')}
           </Button>
         </BottomBar>
       </main>

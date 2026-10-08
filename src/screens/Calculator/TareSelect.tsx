@@ -8,8 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatGrams, type Id, type Tare } from '@/domain'
+import type { Id, Tare } from '@/domain'
 import { TARE_SELECT_ID } from '@/lib/domIds'
+import { t } from '@/i18n'
+import { formatGrams } from '@/i18n/format'
 
 const NO_TARE = 'none'
 // Not a tare: picking it opens the «Новая тара» screen, the select keeps its value.
@@ -40,7 +42,7 @@ export function TareSelect({ tares, tareId, onTare, onAdd }: TareSelectProps) {
       <SelectTrigger
         id={TARE_SELECT_ID}
         data-hint="tare"
-        aria-label="Тара"
+        aria-label={t('calculator.tare')}
         className="h-11 w-auto max-w-full min-w-0 gap-1 border-none bg-transparent px-1 text-sm text-muted-foreground shadow-none hover:text-foreground dark:bg-transparent dark:hover:bg-transparent"
       >
         <SelectValue />
@@ -55,16 +57,16 @@ export function TareSelect({ tares, tareId, onTare, onAdd }: TareSelectProps) {
           onAdd()
         }}
       >
-        <SelectItem value={NO_TARE}>Без тары</SelectItem>
-        {tares.map((t) => (
-          <SelectItem key={t.id} value={t.id}>
-            {t.name} · {formatGrams(t.grams)} г
+        <SelectItem value={NO_TARE}>{t('common.noTare')}</SelectItem>
+        {tares.map((tare) => (
+          <SelectItem key={tare.id} value={tare.id}>
+            {t('calculator.tareOption', { name: tare.name, grams: formatGrams(tare.grams) })}
           </SelectItem>
         ))}
         <SelectSeparator />
         <SelectItem value={ADD_TARE}>
           <PlusIcon />
-          Добавить тару
+          {t('common.tare.add')}
         </SelectItem>
       </SelectContent>
     </Select>

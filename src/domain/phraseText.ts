@@ -2,12 +2,15 @@ import { formatGrams, roundHalfUp } from './numbers'
 import type { PhraseIssue, PhraseItem } from './phrase'
 import type { CookingKind } from './types'
 
+/** The phrase input speaks Russian only for now (docs/roadmap/backlog.md): its texts and numbers are Russian. */
+const PHRASE_LOCALE = 'ru-RU'
+
 /*
  * Texts of the dish editor's parse list (docs/UX.md §6 «Разбор фразы»): the weight at the right of a
  * row, the notes under it, the summary line under the list.
  */
 
-const amountFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
+const amountFormat = new Intl.NumberFormat(PHRASE_LOCALE, { maximumFractionDigits: 2 })
 const amount = (x: number) => amountFormat.format(roundHalfUp(x, 2))
 
 /** «нет названия», «из 2 л: считаем 1 мл ≈ 1 г», «8 кг — точно?»… */
@@ -40,7 +43,7 @@ export function phraseWeightText(item: Pick<PhraseItem, 'rawGrams' | 'approx' | 
   if (item.amount?.kind === 'spoons') return 'ложки'
   if (item.toTaste) return 'по вкусу'
   if (item.rawGrams === null) return 'без веса'
-  return `${item.approx ? '≈ ' : ''}${formatGrams(item.rawGrams)} г`
+  return `${item.approx ? '≈ ' : ''}${formatGrams(item.rawGrams, PHRASE_LOCALE)} г`
 }
 
 /** The summary under the list: «Простое» + «сухой 200 г», «Составное» + «сырой 1 360 г · не в счёт 2 016 г». */
@@ -48,7 +51,7 @@ export function phraseSummaryText(summary: { kind: CookingKind; countedGrams: nu
   kind: string
   details: string
 } {
-  const counted = `${summary.kind === 'simple' ? 'сухой' : 'сырой'} ${formatGrams(summary.countedGrams)} г`
-  const excluded = summary.excludedGrams > 0 ? ` · не в счёт ${formatGrams(summary.excludedGrams)} г` : ''
+  const counted = `${summary.kind === 'simple' ? 'сухой' : 'сырой'} ${formatGrams(summary.countedGrams, PHRASE_LOCALE)} г`
+  const excluded = summary.excludedGrams > 0 ? ` · не в счёт ${formatGrams(summary.excludedGrams, PHRASE_LOCALE)} г` : ''
   return { kind: summary.kind === 'simple' ? 'Простое' : 'Составное', details: counted + excluded }
 }

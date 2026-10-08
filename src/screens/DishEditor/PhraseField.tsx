@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 export const PHRASE_FIELD_ID = 'dish-phrase'
 
@@ -60,7 +61,7 @@ export function PhraseField({
         <div className="flex-1">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="group/fold -ml-2 h-11 px-2 text-sm font-medium">
-              Что в блюде
+              {t('editor.phrase.title')}
               <ChevronDownIcon
                 data-icon="inline-end"
                 className="text-muted-foreground transition-transform group-data-[state=closed]/fold:-rotate-90 motion-reduce:transition-none"
@@ -71,13 +72,13 @@ export function PhraseField({
         {onPaste && (
           <Button variant="ghost" size="sm" className="h-11 px-2" onMouseDown={keepFocus} onClick={onPaste}>
             <ClipboardPasteIcon data-icon="inline-start" />
-            Вставить
+            {t('editor.phrase.paste')}
           </Button>
         )}
         <Button variant="ghost" size="sm" className="h-11 px-2" asChild>
           <Link to={fromDishTo} onClick={onFromDish}>
             <CookingPotIcon data-icon="inline-start" />
-            Из блюда
+            {t('editor.phrase.fromDish')}
           </Link>
         </Button>
       </div>
@@ -86,10 +87,10 @@ export function PhraseField({
         <div className="relative">
           <Textarea
             id={PHRASE_FIELD_ID}
-            aria-label="Что в блюде"
+            aria-label={t('editor.phrase.title')}
             ref={fieldRef}
             aria-describedby={`${PHRASE_FIELD_ID}-hint`}
-            placeholder="Гречка 200"
+            placeholder={t('editor.phrase.placeholder')}
             autoCapitalize="sentences"
             enterKeyHint="enter"
             value={text}
@@ -113,7 +114,7 @@ export function PhraseField({
             <Button
               size="icon"
               variant={listening ? 'default' : 'secondary'}
-              aria-label={listening ? 'Остановить' : 'Сказать голосом'}
+              aria-label={t(listening ? 'editor.speech.stop' : 'editor.speech.start')}
               aria-pressed={listening}
               onMouseDown={keepFocus}
               onClick={voice.onMic}
@@ -130,17 +131,17 @@ export function PhraseField({
         <div id={`${PHRASE_FIELD_ID}-hint`} aria-live="polite" className="px-1 text-sm text-muted-foreground">
           {listening ? (
             <p>
-              <span className="text-primary">●</span> Слушаю… <span className="text-foreground">{voice?.transcript}</span>
+              <span className="text-primary">●</span> {t('editor.speech.listening')} <span className="text-foreground">{voice?.transcript}</span>
             </p>
           ) : said !== null ? (
             <>
-              <p className="line-clamp-2">Услышано: «{said.text}»</p>
+              <p className="line-clamp-2">{t('editor.speech.heard', { text: said.text })}</p>
               {said.skipped.length > 0 && (
-                <p className="truncate">Пропущено: {said.skipped.map((phrase) => `«${phrase}»`).join(', ')}</p>
+                <p className="truncate">{t('editor.speech.skipped', { list: said.skipped.map((phrase) => `«${phrase}»`).join(', ') })}</p>
               )}
             </>
           ) : (
-            <p>{voice ? 'Ингредиент и вес — через запятую, с новой строки или голосом.' : 'Ингредиент и вес — через запятую или с новой строки.'}</p>
+            <p>{t(voice ? 'editor.phrase.hintVoice' : 'editor.phrase.hint')}</p>
           )}
         </div>
       </CollapsibleContent>

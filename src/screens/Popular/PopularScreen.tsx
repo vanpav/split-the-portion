@@ -4,12 +4,13 @@ import { dishPath, settingsPath } from '@/app/paths'
 import { useBack } from '@/app/useBack'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
-import { dishCountText, missingPresets, pickedDishes, popularView, presetWeight, PRESET_DISHES, type PopularFilter, type PresetDish } from '@/domain'
+import { missingPresets, pickedDishes, popularView, presetWeight, PRESET_DISHES, type PopularFilter, type PresetDish } from '@/domain'
 import { cn } from '@/lib/utils'
 import { newId } from '@/store/id'
 import { useAppStore } from '@/store/store'
 import { PopularFilters } from './PopularFilters'
 import { PopularSection } from './PopularSection'
+import { t } from '@/i18n'
 
 const fieldId = (preset: PresetDish) => `popular-weight-${preset.name}`
 
@@ -83,27 +84,25 @@ export function PopularScreen() {
   return (
     <>
       <ScreenHeader
-        title="Популярные блюда"
+        title={t('dishes.popular.title')}
         back
         compactTitle
         backTo={afterGroup ? settingsPath('group') : '/'}
-        backLabel={afterGroup ? 'Группа' : 'Блюда'}
+        backLabel={t(afterGroup ? 'common.group' : 'common.dishes')}
         action={
           <Button
             variant="ghost"
             className={cn('-mr-1 px-2 text-base', any ? 'font-semibold text-primary hover:bg-primary/12 hover:text-primary' : 'font-medium text-muted-foreground')}
-            aria-label={any ? `Добавить ${dishCountText(order.length)}` : undefined}
+            aria-label={any ? t('dishes.popular.addCount', { count: order.length }) : undefined}
             onClick={any ? add : back}
           >
-            {any ? 'Добавить' : 'Пропустить'}
+            {t(any ? 'dishes.popular.add' : 'dishes.popular.skip')}
           </Button>
         }
       />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p className="text-sm text-muted-foreground">
-          {afterGroup
-            ? 'В новой группе блюд пока нет. Отметь, что готовишь: блюда будут общими.'
-            : 'Отметь, что готовишь. Справа обычный вес на раз — его можно поправить.'}
+          {t(afterGroup ? 'dishes.popular.leadGroup' : 'dishes.popular.lead')}
         </p>
         <PopularFilters
           query={query}
@@ -116,7 +115,7 @@ export function PopularScreen() {
         <div ref={listRef}>
           {nothing ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              {filter === 'picked' && query.trim() === '' ? 'Пока ничего не отмечено' : 'Ничего не нашлось'}
+              {t(filter === 'picked' && query.trim() === '' ? 'dishes.popular.nothingPicked' : 'common.nothingFound')}
             </p>
           ) : (
             view.sections.map((section) => (

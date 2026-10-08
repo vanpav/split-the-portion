@@ -3,6 +3,7 @@ import { TareForm } from '@/components/TareForm'
 import type { Id } from '@/domain'
 import { useAppStore } from '@/store/store'
 import { TareRow } from './TareRow'
+import { t } from '@/i18n'
 
 export function TaresSection() {
   const tares = useAppStore((s) => s.tares)
@@ -12,8 +13,8 @@ export function TaresSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold max-md:sr-only">Тара</h2>
-        <p className="text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
+        <h2 className="text-base font-semibold max-md:sr-only">{t('settings.tares.title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('settings.tares.lead')}</p>
       </div>
       <ul className="divide-y overflow-hidden rounded-xl border bg-card">
         {tares.map((tare) => (
@@ -26,7 +27,7 @@ export function TaresSection() {
         ))}
         {/* The same form as «Добавить тару» in the calculator; a new tare shows up as a row above it. */}
         <li className="flex flex-col gap-3 px-4 py-4">
-          <h3 className="font-medium">Новая тара</h3>
+          <h3 className="font-medium">{t('settings.tares.new')}</h3>
           <TareForm />
         </li>
       </ul>

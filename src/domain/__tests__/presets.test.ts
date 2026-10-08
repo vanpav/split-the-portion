@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dishErrors, dishKind } from '../dish'
-import { dishCountText, missingPresets, pickedDishes, PRESET_DISHES, presetDish, presetDishes, presetWeight, scalePreset } from '../presets'
+import { missingPresets, pickedDishes, PRESET_DISHES, presetDish, presetDishes, presetWeight, scalePreset } from '../presets'
 import { shelfOrder } from '../dish'
 import type { Dish } from '../types'
 
@@ -188,13 +188,5 @@ describe('pickedDishes', () => {
   it('fresh ids', () => {
     const all = pickedDishes([], picked('Борщ', 'Гречка'), ids(), AT).flatMap((d) => [d.id, ...d.ingredients.map((i) => i.id)])
     expect(new Set(all).size).toBe(all.length)
-  })
-})
-
-describe('dishCountText', () => {
-  it('Russian plural of «блюдо»', () => {
-    expect([1, 2, 3, 5, 11, 12, 21, 22, 25].map(dishCountText)).toEqual([
-      '1 блюдо', '2 блюда', '3 блюда', '5 блюд', '11 блюд', '12 блюд', '21 блюдо', '22 блюда', '25 блюд',
-    ])
   })
 })

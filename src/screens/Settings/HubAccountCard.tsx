@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { SyncStatusLine } from './SyncStatusLine'
+import { t } from '@/i18n'
 
 const ROW =
   'flex min-h-16 items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted/60'
@@ -24,22 +25,22 @@ export function HubAccountCard() {
 
   if (!me) {
     return (
-      <section aria-label="Аккаунт" className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+      <section aria-label={t('settings.account.title')} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
         <div className="flex items-start gap-3">
           <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary">
             <SmartphoneIcon className="size-5" />
           </span>
           <div className="flex min-w-0 flex-col gap-1">
-            <h2 className="font-medium">Блюда только на этом устройстве</h2>
+            <h2 className="font-medium">{t('settings.account.localOnly')}</h2>
             <p className="text-sm text-muted-foreground">
-              Войди — они будут на всех твоих устройствах, и ими можно поделиться с близкими.
+              {t('settings.account.localOnlyText')}
             </p>
           </div>
         </div>
         <Button asChild size="lg">
           <Link to={ACCOUNT_PATH}>
             <LogInIcon data-icon="inline-start" />
-            Войти
+            {t('common.signIn')}
           </Link>
         </Button>
       </section>
@@ -50,7 +51,7 @@ export function HubAccountCard() {
   const name = fullName(me.user)
 
   return (
-    <section aria-label="Аккаунт" className="divide-y overflow-hidden rounded-xl border bg-card">
+    <section aria-label={t('settings.account.title')} className="divide-y overflow-hidden rounded-xl border bg-card">
       <Link to={settingsPath('account')} className={ROW}>
         <PersonAvatar person={me.user} className="size-11 text-base" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -72,9 +73,7 @@ export function HubAccountCard() {
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate font-medium">{groupLabel(group, me.user.id)}</span>
             <span className="text-sm text-muted-foreground">
-              {group.members.length > 1 || me.groups.length > 1
-                ? 'Группа: общие блюда, тара и компании'
-                : 'Группа. Пригласи близких — блюда станут общими'}
+              {t(group.members.length > 1 || me.groups.length > 1 ? 'settings.group.membersShared' : 'settings.group.membersInvite')}
             </span>
           </span>
           <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />

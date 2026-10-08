@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { computeCooking } from '../cooking'
-import { dayLabel } from '../dates'
 import { canReweigh, leftoverCookedGrams } from '../phases'
 import { buckwheat, cooked, cooking, food, raw, soup, withTare } from './fixtures'
 
@@ -44,19 +43,6 @@ describe('leftoverCookedGrams', () => {
   it('is null when nothing is left or the weight is unknown', () => {
     expect(leftoverCookedGrams(computeCooking(buckwheat([raw('anya', 'buckwheat', 200)])))).toBeNull()
     expect(leftoverCookedGrams(computeCooking({ ...nextDay(), weighings: [withTare('w0', 1410, 850), food('w1', null)] }))).toBeNull()
-  })
-})
-
-describe('dayLabel', () => {
-  const now = new Date(2026, 9, 1, 0, 30)
-
-  it('today and yesterday by calendar day, not by 24 hours', () => {
-    expect(dayLabel(new Date(2026, 9, 1, 0, 5).toISOString(), now)).toBe('сегодня')
-    expect(dayLabel(new Date(2026, 8, 30, 23, 50).toISOString(), now)).toBe('вчера')
-  })
-
-  it('older dates as day and month', () => {
-    expect(dayLabel(new Date(2026, 8, 12, 12).toISOString(), now)).toBe('12 сент.')
   })
 })
 

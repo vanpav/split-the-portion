@@ -18,6 +18,7 @@ import { groupLabel } from '@/account/groupLabel'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
 
 /**
  * «Копия данных»: everything lives in this browser; a file outside it survives a cleared browser,
@@ -49,7 +50,7 @@ export function DataSection() {
     try {
       setPending(readBackupFile(await file.text()))
     } catch {
-      toast('Не тот файл', { description: 'Нужна копия, скачанная в этом приложении: Настройки → Копия данных.' })
+      toast(t('settings.data.wrongFile'), { description: t('settings.data.wrongFileHint') })
     }
   }
 
@@ -58,9 +59,9 @@ export function DataSection() {
     const before = storedData(useAppStore.getState())
     replaceData(pending)
     setPending(null)
-    toast('Данные загружены', {
+    toast(t('settings.data.loaded'), {
       duration: 8000,
-      action: { label: 'Отменить', onClick: () => replaceData(before) },
+      action: { label: t('common.undo'), onClick: () => replaceData(before) },
     })
   }
 
@@ -70,27 +71,25 @@ export function DataSection() {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-base font-semibold max-md:sr-only">Копия данных</h2>
+        <h2 className="text-base font-semibold max-md:sr-only">{t('settings.data.title')}</h2>
         <p className="text-sm text-muted-foreground">
-          {groupName
-            ? 'Блюда, тара и компании группы и так хранятся на сервере. Файл — запасная копия на твоём устройстве.'
-            : 'Блюда, тара и компании хранятся только в этом браузере. Скачай файл, чтобы не потерять их при смене телефона или очистке браузера.'}
+          {t(groupName ? 'settings.data.leadGroup' : 'settings.data.leadLocal')}
         </p>
       </div>
       <div className="divide-y overflow-hidden rounded-xl border bg-card">
         <button type="button" className={action} onClick={download}>
           <DownloadIcon aria-hidden className="mt-0.5 size-5 shrink-0 self-start text-muted-foreground" />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="font-medium">Скачать копию</span>
-            <span className="text-sm text-muted-foreground">Файл со всем, что есть в приложении</span>
+            <span className="font-medium">{t('settings.data.download')}</span>
+            <span className="text-sm text-muted-foreground">{t('settings.data.downloadHint')}</span>
           </span>
         </button>
         <button type="button" className={action} onClick={() => inputRef.current?.click()}>
           <UploadIcon aria-hidden className="mt-0.5 size-5 shrink-0 self-start text-muted-foreground" />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="font-medium">Загрузить из файла</span>
+            <span className="font-medium">{t('settings.data.upload')}</span>
             <span className="text-sm text-muted-foreground">
-              {groupName ? `Заменит данные группы «${groupName}» у всех её участников` : 'Заменит всё, что сейчас в приложении'}
+              {groupName ? t('settings.data.uploadHintGroup', { group: groupName }) : t('settings.data.uploadHint')}
             </span>
           </span>
         </button>
@@ -99,10 +98,9 @@ export function DataSection() {
       {/* Without an account a file is the only way across: an installed app does not share Safari's storage. */}
       {!groupName && (
         <div className="flex flex-col gap-1 px-1">
-          <h3 className="text-sm font-medium">Приложение на экране «Домой» iPhone</h3>
+          <h3 className="text-sm font-medium">{t('settings.data.iphoneTitle')}</h3>
           <p className="text-sm text-muted-foreground">
-            У него своё хранилище, не общее с Safari. Скачай копию в Safari и загрузи её в приложении. Или войди в
-            аккаунт и там, и там — тогда переносить ничего не нужно.
+            {t('settings.data.iphoneText')}
           </p>
         </div>
       )}
@@ -110,15 +108,15 @@ export function DataSection() {
       <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Заменить данные из файла?</AlertDialogTitle>
+            <AlertDialogTitle>{t('settings.data.replaceTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {pending &&
-                `В файле — блюда: ${pending.dishes.length}, тара: ${pending.tares.length}, компании: ${pending.companies.length}. ${groupName ? `Они заменят данные группы «${groupName}» у всех её участников.` : 'Они заменят то, что сейчас в приложении.'}`}
+                `${t('settings.data.replaceCounts', { dishes: pending.dishes.length, tares: pending.tares.length, companies: pending.companies.length })} ${groupName ? t('settings.data.replaceGroup', { group: groupName }) : t('settings.data.replaceLocal')}`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={replace}>Заменить</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={replace}>{t('settings.data.replace')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

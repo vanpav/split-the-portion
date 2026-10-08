@@ -1,8 +1,10 @@
 import { useId, useRef, useState } from 'react'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
-import { formatInput, parseGrams } from '@/domain'
+import { parseGrams } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
+import { formatInput } from '@/i18n/format'
 
 interface NumberFieldProps {
   value: number | null
@@ -48,7 +50,7 @@ export function NumberField({
   ariaLabel,
   placeholder,
   validate,
-  suffix = 'г',
+  suffix = t('common.gramsUnit'),
   onEnter,
   id,
   className,
@@ -82,7 +84,7 @@ export function NumberField({
     parsed === null
       ? null
       : !parsed.ok
-        ? 'Введи число, например 1240 или 12,5'
+        ? t('common.numberInvalid')
         : (validate?.(parsed.value) ?? null)
   const invalid = error !== null
 
