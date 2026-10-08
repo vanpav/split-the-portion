@@ -8,6 +8,7 @@ import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { SignInForm } from './SignInForm'
 import { SignUpForm } from './SignUpForm'
+import { t } from '@/i18n'
 
 const BACK = settingsPath('account')
 
@@ -35,19 +36,18 @@ export function AccountScreen() {
 
   return (
     <>
-      <ScreenHeader title="Аккаунт" back backTo={BACK} backLabel="Настройки" />
+      <ScreenHeader title={t('account.title')} back backTo={BACK} backLabel={t('common.settings')} />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4 lg:py-8">
         <p className="px-1 text-sm text-muted-foreground">
-          С аккаунтом блюда есть на всех твоих устройствах, а вести их можно вместе с близкими. Без него всё
-          хранится только здесь.
+          {t('account.lead')}
         </p>
         <Tabs defaultValue={tab} className="gap-6">
           <TabsList className="h-11 w-full">
             <TabsTrigger value="sign-in" className="min-h-10">
-              Войти
+              {t('account.signIn')}
             </TabsTrigger>
             <TabsTrigger value="sign-up" className="min-h-10">
-              Создать аккаунт
+              {t('account.signUp')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="sign-in">

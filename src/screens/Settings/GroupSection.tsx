@@ -1,13 +1,14 @@
 import { PlusIcon, TicketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
-import { GROUP_LIMIT_TEXT } from '@/account/networkText'
+import { groupLimitText } from '@/account/networkText'
 import { MAX_GROUPS } from '@/account/types'
 import { JOIN_PATH, NEW_GROUP_PATH, settingsPath } from '@/app/paths'
 import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { GroupList } from './GroupList'
+import { t } from '@/i18n'
 
 const HEADING = 'px-1 text-sm font-medium text-muted-foreground'
 const ROW =
@@ -24,29 +25,29 @@ export function GroupSection() {
   if (!me || !openId) return null
   const full = me.groups.length >= MAX_GROUPS
   // At the limit the rows stay and say why, instead of vanishing.
-  const atLimit = (e: { preventDefault(): void }) => full && (e.preventDefault(), toast(GROUP_LIMIT_TEXT))
+  const atLimit = (e: { preventDefault(): void }) => full && (e.preventDefault(), toast(groupLimitText()))
 
   return (
     <section className="flex flex-col gap-6">
       <p className="px-1 text-sm text-muted-foreground">
-        С кем у тебя общие блюда, тара и компании: что поправит один, через минуту увидят все. Кто сколько ест — в{' '}
+        {t('settings.groups.lead')}{' '}
         <Link to={settingsPath('companies')} className="text-foreground underline underline-offset-4">
-          Компаниях
+          {t('settings.groups.leadLink')}
         </Link>
         .
       </p>
       <div className="flex flex-col gap-2">
-        <h2 className={HEADING}>Твои группы</h2>
+        <h2 className={HEADING}>{t('settings.groups.yours')}</h2>
         <GroupList groups={me.groups} openId={openId} myId={me.user.id} />
       </div>
       <div className="divide-y overflow-hidden rounded-xl border bg-card">
         <Link to={NEW_GROUP_PATH} onClick={atLimit} className={cn(ROW)}>
           <PlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-          <span className="font-medium">Создать группу</span>
+          <span className="font-medium">{t('settings.groups.create')}</span>
         </Link>
         <Link to={JOIN_PATH} onClick={atLimit} className={cn(ROW)}>
           <TicketIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-          <span className="font-medium">Вступить по коду</span>
+          <span className="font-medium">{t('settings.groups.joinByCode')}</span>
         </Link>
       </div>
     </section>

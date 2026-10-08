@@ -1,0 +1,46 @@
+{
+  "errors": {
+    "offline": "No connection — try again once you're online",
+    "noAnswer": "The server isn't responding — try again in a minute",
+    "groupLimit": "You're already in {{max}} groups — leave one to create or join another",
+    "server": "Server error — try again in a minute",
+    "tooMany": "Too many attempts — wait a minute",
+    "rejected": "Request rejected — update the app and try again",
+    "app": "App error — reload the page and try again",
+    "signInAgain": "Sign in again",
+    "noGroupAccess": "No access to the group — ask for a new invite",
+    "offlineSignIn": "No connection — you can sign in once you're online",
+    "wrongCredentials": "Wrong email or password",
+    "passwordShort": "At least 8 characters",
+    "emailTaken": "This email is already registered",
+    "emailInvalid": "Invalid email address",
+    "linkExpired": "The link has expired — ask for a new one",
+    "passkeyExists": "A passkey is already added on this device",
+    "passkeyReauth": "To add a passkey, sign out and sign in again",
+    "passkeyFailed": "The passkey didn't work — sign in with your password",
+    "passwordLong": "At most 128 characters",
+    "wrongCurrentPassword": "Wrong current password"
+  },
+  "people": {
+    "you": "you",
+    "onlyYou": "Just you",
+    "andMore": "{{count}} more"
+  },
+  "title": "Account",
+  "lead": "With an account, your dishes are on all your devices, and you can keep them together with family. Without one, everything stays here.",
+  "signIn": "Sign in",
+  "signUp": "Create account",
+  "signInTitle": "Sign in",
+  "email": "Email",
+  "password": "Password",
+  "passwordHint": "At least 8 characters",
+  "enterEmail": "Enter your email",
+  "resetAsked": "The app owner will send you a link for a new password — message them.",
+  "signInPasskey": "Sign in with a passkey",
+  "forgotPassword": "Forgot your password?",
+  "reset": {
+    "title": "New password",
+    "save": "Save password",
+    "done": "Password changed — sign in with it"
+  }
+}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import type { PhraseItem } from '@/domain'
 import { phraseIssueText, phraseWeightText } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface PhraseRowProps {
   item: PhraseItem
@@ -21,13 +22,13 @@ const keepFocus = (e: MouseEvent) => e.preventDefault()
  * × cuts it out of the phrase. Its notes under it: errors red, warnings amber.
  */
 export function PhraseRow({ item, current, onToggle, onRemove }: PhraseRowProps) {
-  const name = item.name || 'Без названия'
+  const name = item.name || t('common.untitled')
   return (
     <li className={cn('flex flex-col rounded-lg transition-colors', current && 'bg-card shadow-xs')}>
       <div className="flex items-center">
         <button
           type="button"
-          aria-label={`${name}: ${item.excluded ? 'не учитывается' : 'в учёте'}`}
+          aria-label={t('editor.phrase.rowState', { name, state: t(item.excluded ? 'editor.phrase.excluded' : 'editor.phrase.counted') })}
           aria-pressed={!item.excluded}
           onMouseDown={keepFocus}
           onClick={onToggle}
@@ -37,7 +38,7 @@ export function PhraseRow({ item, current, onToggle, onRemove }: PhraseRowProps)
             {name}
           </span>
           {item.excluded && (
-            <span className="shrink-0 rounded-md bg-background px-1.5 py-0.5 text-xs text-muted-foreground">не в счёт</span>
+            <span className="shrink-0 rounded-md bg-background px-1.5 py-0.5 text-xs text-muted-foreground">{t('editor.phrase.notCounted')}</span>
           )}
           <span
             className={cn(
@@ -53,7 +54,7 @@ export function PhraseRow({ item, current, onToggle, onRemove }: PhraseRowProps)
           variant="ghost"
           size="icon"
           className="size-11 shrink-0 text-muted-foreground"
-          aria-label={`Убрать: ${name}`}
+          aria-label={t('common.removeNamed', { name })}
           onMouseDown={keepFocus}
           onClick={onRemove}
         >

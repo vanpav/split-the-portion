@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { needsAttention, useSyncStore } from '@/store/sync'
+import { t } from '@/i18n'
 
 export type MoreMenuItem = {
   label: string
@@ -36,7 +37,7 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="secondary" size="icon" className="relative size-11 shrink-0 rounded-full" aria-label={attention ? 'Ещё: проблема с синхронизацией' : 'Ещё'}>
+        <Button variant="secondary" size="icon" className="relative size-11 shrink-0 rounded-full" aria-label={t(attention ? 'common.moreSyncProblem' : 'common.more')}>
           <EllipsisIcon />
           {attention && <span aria-hidden className={cn('absolute top-2 right-2', DOT)} />}
         </Button>
@@ -62,8 +63,8 @@ export function MoreMenu({ items = [] }: { items?: MoreMenuItem[] }) {
         <DropdownMenuItem asChild className={ITEM}>
           <Link to={SETTINGS_PATH}>
             <SettingsIcon />
-            Настройки
-            {attention && <span aria-label="проблема с синхронизацией" className={cn('ml-auto', DOT)} />}
+            {t('common.settings')}
+            {attention && <span aria-label={t('common.syncProblem')} className={cn('ml-auto', DOT)} />}
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

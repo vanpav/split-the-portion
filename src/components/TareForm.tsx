@@ -6,6 +6,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { isValidTareGrams, type Tare } from '@/domain'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
 
 interface TareFormProps {
   /** The tare just written to the library. */
@@ -46,12 +47,12 @@ export function TareForm({ onCreated, autoFocus }: TareFormProps) {
   return (
     <form ref={formRef} className="flex flex-col gap-4" onSubmit={submit}>
       <Field>
-        <FieldLabel htmlFor={nameId}>Название</FieldLabel>
+        <FieldLabel htmlFor={nameId}>{t('common.title')}</FieldLabel>
         <Input
           ref={nameRef}
           id={nameId}
           className="h-14 text-lg md:text-lg"
-          placeholder="Кастрюля 3 л"
+          placeholder={t('common.tare.namePlaceholder')}
           enterKeyHint="next"
           autoComplete="off"
           autoFocus={autoFocus}
@@ -68,10 +69,10 @@ export function TareForm({ onCreated, autoFocus }: TareFormProps) {
         key={round}
         id={gramsId}
         size="lg"
-        label="Вес"
+        label={t('common.weight')}
         placeholder="850"
         value={grams}
-        validate={(g) => (g === null || isValidTareGrams(g) ? null : 'Вес должен быть больше 0')}
+        validate={(g) => (g === null || isValidTareGrams(g) ? null : t('common.tare.weightPositive'))}
         onValueChange={setGrams}
         onEnter={() => {
           if (valid) formRef.current?.requestSubmit()
@@ -80,7 +81,7 @@ export function TareForm({ onCreated, autoFocus }: TareFormProps) {
       />
       <Button type="submit" className="self-end" disabled={!valid}>
         <PlusIcon data-icon="inline-start" />
-        Добавить тару
+        {t('common.tare.add')}
       </Button>
     </form>
   )

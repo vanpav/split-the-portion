@@ -13,6 +13,7 @@ import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import { t } from '@/i18n'
 
 const photoOf = (state: unknown) =>
   typeof state === 'object' && state !== null && 'photo' in state && typeof (state as AvatarCropState).photo === 'string'
@@ -53,9 +54,9 @@ export function AvatarCropScreen() {
 
   return (
     <>
-      <ScreenHeader title="Фото" back backTo={from} backLabel="Аккаунт" />
+      <ScreenHeader title={t('settings.avatar.title')} back backTo={from} backLabel={t('account.title')} />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 p-4">
-        <p className="px-1 text-sm text-muted-foreground">Подвинь и увеличь, чтобы лицо было в круге.</p>
+        <p className="px-1 text-sm text-muted-foreground">{t('settings.avatar.lead')}</p>
         <div className="relative aspect-square w-full overflow-hidden rounded-xl border bg-card">
           <Cropper
             image={photo}
@@ -76,7 +77,7 @@ export function AvatarCropScreen() {
         <div className="flex items-center gap-3 px-1">
           <ZoomOutIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
           <Slider
-            aria-label="Масштаб"
+            aria-label={t('settings.avatar.zoom')}
             min={1}
             max={MAX_ZOOM}
             step={0.01}
@@ -88,10 +89,10 @@ export function AvatarCropScreen() {
         </div>
         <BottomBar>
           <Button size="lg" variant="outline" className="flex-1 lg:flex-none" onClick={back}>
-            Отмена
+            {t('common.cancel')}
           </Button>
           <Button size="lg" className="flex-1 lg:flex-none" disabled={busy || !area} onClick={() => void save()}>
-            {busy ? 'Сохраняем…' : 'Сохранить'}
+            {t(busy ? 'common.saving' : 'common.save')}
           </Button>
         </BottomBar>
       </main>

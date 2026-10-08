@@ -1,0 +1,97 @@
+{
+  "untitled": "Untitled",
+  "unnamed": "No name",
+  "grams": "{{value}} g",
+  "gramsUnit": "g",
+  "name": "Name",
+  "nameN": "Name {{n}}",
+  "title": "Name",
+  "weight": "Weight",
+  "back": "Back",
+  "more": "More",
+  "settings": "Settings",
+  "copy": "Copy",
+  "copied": "Copied",
+  "remove": "Remove",
+  "removeNamed": "Remove: {{name}}",
+  "clear": "Clear",
+  "hold": "Hold",
+  "holdToRemove": "Hold to remove",
+  "gotIt": "Got it",
+  "equally": "Equal",
+  "less": "{{name}}: less",
+  "moreNamed": "{{name}}: more",
+  "numberInvalid": "Enter a number, like 1240 or 12.5",
+  "syncProblem": "sync problem",
+  "moreSyncProblem": "More: sync problem",
+  "dishes": "Dishes",
+  "findDish": "Find a dish",
+  "byCategory": "By category",
+  "person": {
+    "add": "Add a person",
+    "remove": "Remove person"
+  },
+  "company": {
+    "nameLabel": "Party name",
+    "namePlaceholder": "Sam and Alex",
+    "addPeople": "Add people",
+    "default": "Party"
+  },
+  "tare": {
+    "namePlaceholder": "3 L pot",
+    "weightPositive": "Weight must be more than 0",
+    "add": "Add a container"
+  },
+  "share": {
+    "ownPortion": "{{name}}: fixed portion",
+    "ownPortionLabel": "{{name}}: fixed portion, {{label}}",
+    "tomorrow": "For tomorrow",
+    "rest": "Leftover",
+    "border": "Boundary: {{a}} and {{b}}",
+    "keepForTomorrow": "Save for tomorrow",
+    "tomorrowValue": "For tomorrow: {{percent}}% of the dish"
+  },
+  "update": {
+    "available": "A new version is available",
+    "action": "Update"
+  },
+  "storageBroken": {
+    "title": "Couldn't read your data",
+    "text": "A copy stays in the browser; the app started from scratch."
+  },
+  "localData": {
+    "title": "Move this device's data?",
+    "text": "Dishes on this device: {{count}}. The group “{{group}}” already has other dishes. Move these into the group? Identical ones may be duplicated.",
+    "keepApart": "Don't move",
+    "adopt": "Move"
+  },
+  "leftGroup": "You're no longer in the group “{{group}}”",
+  "done": "Done",
+  "copyManually": {
+    "title": "Copy it yourself",
+    "text": "The browser didn't allow copying. The text is already selected.",
+    "label": "Text to copy"
+  },
+  "searchPlaceholder": "Rice, soup…",
+  "nothingFound": "Nothing found",
+  "group": "Group",
+  "calculator": "Calculator",
+  "numberPositive": "Enter a number above zero",
+  "weightOf": "Weight: {{name}}",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "undo": "Undo",
+  "dish": "Dish",
+  "noTare": "No container",
+  "appName": "Portions",
+  "save": "Save",
+  "saving": "Saving…",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "enterName": "Enter a name",
+  "personN": "Person {{n}}",
+  "nobody": "Nobody",
+  "holdSeconds_one": "Hold for {{count}} second",
+  "holdSeconds_other": "Hold for {{count}} seconds",
+  "holdLeft": "Keep holding: {{count}} s"
+}

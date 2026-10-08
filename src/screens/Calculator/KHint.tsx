@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { YieldK } from '@/domain'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { K_HINT_TITLE, kHint, kText } from './messages'
+import { kHint, kHintTitle, kText } from './messages'
 
 const hoverCapable = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
@@ -37,7 +37,7 @@ export function KHint({ k, leftover = false }: { k: YieldK; leftover?: boolean }
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="bottom" className="pb-[max(1rem,env(safe-area-inset-bottom))]">
             <SheetHeader>
-              <SheetTitle>{K_HINT_TITLE}</SheetTitle>
+              <SheetTitle>{kHintTitle()}</SheetTitle>
               <SheetDescription>{hint}</SheetDescription>
             </SheetHeader>
           </SheetContent>

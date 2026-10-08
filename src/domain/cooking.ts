@@ -24,9 +24,9 @@ export function countedIngredients(cooking: Cooking): (Ingredient & { rawGrams: 
   return cooking.ingredients.filter(hasRaw).filter((i) => !i.excluded)
 }
 
-/** Name for display and copy text; an unnamed ingredient still needs a label. */
+/** Name for display and copy text; '' — unnamed, the UI puts its placeholder. */
 export function ingredientDisplayName(ingredient: Ingredient): string {
-  return ingredient.name.trim() || 'Без названия'
+  return ingredient.name.trim()
 }
 
 /** id → display name for all ingredients of a cooking. */

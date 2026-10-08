@@ -1,0 +1,20 @@
+{
+  "about": {
+    "portions": { "title": "How much for each plate", "text": "Weigh the cooked dish and see right away how many grams go on each plate — and what that is in dry weight for your calorie tracker." },
+    "oneWeight": { "title": "Enter just one weight", "text": "The dish remembers the dry weight, the container, the party and the shares. At the stove you only enter the cooked weight." },
+    "shares": { "title": "Equal or by shares", "text": "Save some for tomorrow, or split a week's batch into portions without names. Swipe a portion to copy it for your tracker." }
+  },
+  "withAccount1": "Dishes on all your devices, even after you change phones",
+  "withAccount2": "Shared with family: a cooked weight one person enters shows up for everyone",
+  "step": "Step {{n}} of {{count}}",
+  "steps": "Steps",
+  "skip": "Skip",
+  "accountTitle": "Account or this device",
+  "withAccount": "With an account",
+  "withoutAccount": "Without an account",
+  "withoutAccountText": "Data is kept only in this browser. You can sign in later in Settings — the data will move to your account.",
+  "haveAccount": "Already have an account?",
+  "start": "Start",
+  "next": "Next",
+  "demo": { "dry": "Dry", "cooked": "Cooked", "noTare": "No container · k = {{k}}", "person1": "Sam", "person2": "Alex", "tomorrow": "tomorrow" }
+}

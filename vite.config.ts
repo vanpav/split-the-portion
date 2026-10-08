@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 import { readAppVersion } from './scripts/appVersion.ts'
+import { APP_DESCRIPTION, APP_NAME } from './src/app/brand.ts'
 
 // Ground of the light theme (DESIGN.md «frosted-ground»), same as theme-color in index.html.
 const GROUND = '#f2f5f9'
@@ -24,10 +25,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       manifest: {
-        name: 'Порции',
-        short_name: 'Порции',
-        description: 'Пересчёт веса еды «сырой ↔ готовый» с учётом тары и деление блюда на порции для калорийного трекера.',
-        lang: 'ru',
+        // One language per manifest: English, the default (docs/ARCHITECTURE.md §11).
+        name: APP_NAME,
+        short_name: APP_NAME,
+        description: APP_DESCRIPTION,
+        lang: 'en',
         start_url: '/',
         scope: '/',
         display: 'standalone',
@@ -60,5 +62,6 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'worker/**/*.test.ts', 'scripts/**/*.test.ts'],
+    setupFiles: ['src/test/setup.ts'],
   },
 })

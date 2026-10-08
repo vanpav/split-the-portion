@@ -1,18 +1,45 @@
 import { dishTitle, type Recipe } from './dish'
+import { LANGUAGES, type Language } from './language'
 import type { DishCategory } from './types'
 
 /** The categories in the order they are shown (menu sections, the editor's list). */
 export const DISH_CATEGORIES: readonly DishCategory[] = ['first', 'mains', 'sides', 'salads', 'breakfast', 'baking', 'drinks', 'other']
 
-export const CATEGORY_LABELS: Record<DishCategory, string> = {
-  first: 'Первые',
-  mains: 'Вторые',
-  sides: 'Гарниры',
-  salads: 'Салаты',
-  breakfast: 'Завтраки',
-  baking: 'Выпечка и сладкое',
-  drinks: 'Напитки',
-  other: 'Другое',
+/**
+ * Category names in every UI language. Data, not UI copy: search matches a query against all of them
+ * («гарн», «sides», «guarn» all find side dishes), and the UI shows the one of its language.
+ */
+export const CATEGORY_LABELS: Record<Language, Record<DishCategory, string>> = {
+  en: {
+    first: 'Soups',
+    mains: 'Mains',
+    sides: 'Sides',
+    salads: 'Salads',
+    breakfast: 'Breakfast',
+    baking: 'Baking and sweets',
+    drinks: 'Drinks',
+    other: 'Other',
+  },
+  ru: {
+    first: 'Первые',
+    mains: 'Вторые',
+    sides: 'Гарниры',
+    salads: 'Салаты',
+    breakfast: 'Завтраки',
+    baking: 'Выпечка и сладкое',
+    drinks: 'Напитки',
+    other: 'Другое',
+  },
+  es: {
+    first: 'Sopas',
+    mains: 'Platos principales',
+    sides: 'Guarniciones',
+    salads: 'Ensaladas',
+    breakfast: 'Desayunos',
+    baking: 'Repostería y dulces',
+    drinks: 'Bebidas',
+    other: 'Otros',
+  },
 }
 
 /**
@@ -86,8 +113,11 @@ export function dishCategory(dish: Categorized): DishCategory {
   return dish.category ?? detectCategory(dishTitle(dish))
 }
 
-/** The query starts a word of the category's label: «гарн», «перв», «выпечк» (case and «ё» aside). */
+/**
+ * The query starts a word of the category's label in any UI language: «гарн», «перв», «выпечк»,
+ * «sides» (case and «ё» aside).
+ */
 export function categoryMatches(query: string, category: DishCategory): boolean {
   const q = fold(query).trim()
-  return q !== '' && fold(CATEGORY_LABELS[category]).split(' ').some((w) => w.startsWith(q))
+  return q !== '' && LANGUAGES.some((lang) => fold(CATEGORY_LABELS[lang][category]).split(' ').some((w) => w.startsWith(q)))
 }

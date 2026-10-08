@@ -5,6 +5,7 @@ import { settingsPath } from '@/app/paths'
 import { Button } from '@/components/ui/button'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
+import { t } from '@/i18n'
 
 /** In more than one group, the list says whose dishes these are; a tap leads to switching. */
 export function OpenGroupLink() {
@@ -16,7 +17,7 @@ export function OpenGroupLink() {
   if (groups.length < 2 || !group) return null
   return (
     <Button variant="ghost" asChild className="max-w-40 text-muted-foreground">
-      <Link to={settingsPath('group')} aria-label={`Группа «${groupLabel(group, myId)}», сменить`}>
+      <Link to={settingsPath('group')} aria-label={t('dishes.menu.groupSwitch', { group: groupLabel(group, myId) })}>
         <HouseIcon data-icon="inline-start" />
         <span className="truncate">{groupLabel(group, myId)}</span>
       </Link>

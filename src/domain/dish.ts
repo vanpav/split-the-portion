@@ -1,5 +1,5 @@
 import { ingredientDisplayName } from './cooking'
-import { formatGrams } from './numbers'
+import type { Locale } from './numbers'
 import { toPercents } from './shares'
 import type { Company, CompanyMember, CookingKind, Dish, Id, Ingredient, Portion, Tare } from './types'
 
@@ -9,7 +9,7 @@ export interface Recipe {
   ingredients: readonly { name: string; rawGrams: number | null; excluded?: boolean }[]
 }
 
-/** Shown name: the dish name, or its ingredients, or a placeholder. */
+/** Shown name: the dish name, or its ingredients; '' — nothing to show, the UI puts its placeholder. */
 export function dishTitle(dish: Recipe): string {
   const name = dish.name.trim()
   if (name) return name
@@ -17,7 +17,7 @@ export function dishTitle(dish: Recipe): string {
     .filter((i) => !i.excluded)
     .map((i) => i.name.trim())
     .filter(Boolean)
-  return names.length > 0 ? names.join(', ') : 'Без названия'
+  return names.join(', ')
 }
 
 /**
@@ -57,40 +57,24 @@ export function shelfOrder<T extends Pick<Dish, 'id' | 'updatedAt'>>(dishes: T[]
 }
 
 /**
- * A dish at a glance, in a search list: the usual weight of its one counted product («200 г»),
- * or what it is made of («Курица, Картофель, Рис»). Empty for one product without a weight.
- */
-export function dishSummary(ingredients: (Pick<Ingredient, 'name' | 'rawGrams'> & { excluded?: boolean })[]): string {
-  const counted = ingredients.filter((i) => !i.excluded && i.name.trim())
-  if (counted.length === 1) return counted[0].rawGrams !== null ? `${formatGrams(counted[0].rawGrams)} г` : ''
-  return counted.map((i) => i.name.trim()).join(', ')
-}
-
-/** «1 ингредиент», «2 ингредиента», «5 ингредиентов». */
-export function ingredientsCount(count: number): string {
-  const last = count % 10
-  const lastTwo = count % 100
-  const word = last === 1 && lastTwo !== 11 ? 'ингредиент' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'ингредиента' : 'ингредиентов'
-  return `${count} ${word}`
-}
-
-/**
  * The «Сырой» tile of a composite dish in the calculator (docs/SPEC.md §3б): the raw weight of what
- * counts, summed (null while no counted ingredient has a weight), and the lines under it — how many
- * ingredients count («5 ингредиентов,»), then what is missing or left out: counted ones still without
- * a weight («без веса: Шампиньоны»), otherwise the ones «не в счёт: Вода, Соль».
+ * counts, summed (null while no counted ingredient has a weight), how many ingredients count, and what
+ * is missing or left out: counted ones still without a weight, else the ones not counted (water, salt).
+ * The UI words the lines: «5 ингредиентов,» / «без веса: Шампиньоны» / «не в счёт: Вода, Соль».
  */
-export function rawTileLines(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): { total: number | null; lines: string[] } {
+export function rawTile(ingredients: Pick<Ingredient, 'name' | 'rawGrams' | 'excluded'>[]): {
+  total: number | null
+  count: number
+  unweighed: string[]
+  uncounted: string[]
+} {
   const named = ingredients.filter((i) => i.name.trim())
   const counted = named.filter((i) => !i.excluded)
   const weighed = counted.filter((i) => i.rawGrams !== null)
   const total = weighed.length > 0 ? weighed.reduce((a, i) => a + (i.rawGrams ?? 0), 0) : null
-  const names = (list: typeof named) => list.map((i) => i.name.trim()).join(', ')
-  const unweighed = counted.filter((i) => i.rawGrams === null)
-  const uncounted = named.filter((i) => i.excluded)
-  const second = unweighed.length > 0 ? `без веса: ${names(unweighed)}` : uncounted.length > 0 ? `не в счёт: ${names(uncounted)}` : null
-  const first = ingredientsCount(counted.length)
-  return { total, lines: second !== null ? [`${first},`, second] : [first] }
+  const names = (list: typeof named) => list.map((i) => i.name.trim())
+  const unweighed = names(counted.filter((i) => i.rawGrams === null))
+  return { total, count: counted.length, unweighed, uncounted: unweighed.length > 0 ? [] : names(named.filter((i) => i.excluded)) }
 }
 
 /** A name longer than this does not fit half a column of a recipe on a phone (docs/UX.md §3). */
@@ -172,11 +156,9 @@ export function matchingCompany(lineup: CompanyMember[], companies: Company[]): 
   return companies.find((c) => key(c.members) === lineupKey) ?? null
 }
 
-/** Name for a lineup saved as a company: «Ваня, Ксюша и Тёща». */
-export function lineupName(lineup: CompanyMember[]): string {
+/** Name for a lineup saved as a company: «Ваня, Ксюша и Тёща» (`ru-RU`); '' — nobody is named. */
+export function lineupName(lineup: CompanyMember[], locale: Locale): string {
   const names = lineup.map((m) => m.name.trim()).filter(Boolean)
-  if (names.length === 0) return 'Компания'
-  if (names.length === 1) return names[0]
-  return `${names.slice(0, -1).join(', ')} и ${names.at(-1)}`
+  return new Intl.ListFormat(locale, { type: 'conjunction' }).format(names)
 }
 

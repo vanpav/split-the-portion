@@ -9,6 +9,7 @@ import { useAppStore } from '@/store/store'
 import { LocalDataDialog } from './LocalDataDialog'
 import { ScreenTransition } from './ScreenTransition'
 import { UpdatePrompt } from './UpdatePrompt'
+import { t } from '@/i18n'
 
 export function RootLayout() {
   const loadError = useAppStore((s) => s.loadError)
@@ -23,11 +24,11 @@ export function RootLayout() {
           <div className="mx-auto max-w-3xl p-4 pb-0">
             <Alert variant="destructive">
               <TriangleAlertIcon />
-              <AlertTitle>Не удалось прочитать данные</AlertTitle>
+              <AlertTitle>{t('common.storageBroken.title')}</AlertTitle>
               <AlertDescription>
-                <p>Копия осталась в браузере, приложение запущено с нуля.</p>
+                <p>{t('common.storageBroken.text')}</p>
                 <Button variant="outline" size="sm" onClick={dismissLoadError}>
-                  Понятно
+                  {t('common.gotIt')}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -41,7 +42,7 @@ export function RootLayout() {
             for a moment — so it is named as the field it stands in for. */}
         <input
           id={KEYBOARD_PROXY_ID}
-          aria-label="Найти блюдо"
+          aria-label={t('common.findDish')}
           tabIndex={-1}
           autoComplete="off"
           className="pointer-events-none fixed top-0 left-0 size-px text-base opacity-0"

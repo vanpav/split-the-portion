@@ -5,6 +5,7 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface DishSearchProps {
   query: string
@@ -75,7 +76,7 @@ export function DishSearch({
       value={selected}
       onValueChange={setPicked}
       loop
-      label="Блюда"
+      label={t('common.dishes')}
       className="size-auto gap-3 overflow-visible rounded-none! bg-transparent p-0"
     >
       <InputGroup className="h-12">
@@ -96,7 +97,7 @@ export function DishSearch({
             else onClose()
           }}
           placeholder={placeholder}
-          aria-label="Найти блюдо"
+          aria-label={t('common.findDish')}
           type="text"
           enterKeyHint="go"
           autoComplete="off"
@@ -111,7 +112,7 @@ export function DishSearch({
               <InputGroupButton
                 size="icon-sm"
                 className="size-10 rounded-full"
-                aria-label="Очистить"
+                aria-label={t('common.clear')}
                 // Not on pointer down: the field would lose the focus and the phone its keyboard.
                 onPointerDown={(e) => e.preventDefault()}
                 onClick={clear}
@@ -124,7 +125,7 @@ export function DishSearch({
                 <TooltipTrigger asChild>
                   <InputGroupButton
                     size="icon-sm"
-                    aria-label="По категориям"
+                    aria-label={t('common.byCategory')}
                     aria-pressed={grouping.on}
                     // The same as ✕: a tap keeps the focus in the field and the keyboard open.
                     onPointerDown={(e) => e.preventDefault()}
@@ -140,7 +141,7 @@ export function DishSearch({
                   </InputGroupButton>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" align="end">
-                  По категориям
+                  {t('common.byCategory')}
                 </TooltipContent>
               </Tooltip>
             )}

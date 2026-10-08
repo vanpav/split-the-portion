@@ -1,0 +1,98 @@
+{
+  "untitled": "Sin nombre",
+  "unnamed": "Sin nombre",
+  "grams": "{{value}} g",
+  "gramsUnit": "g",
+  "name": "Nombre",
+  "nameN": "Nombre {{n}}",
+  "title": "Nombre",
+  "weight": "Peso",
+  "back": "Atrás",
+  "more": "Más",
+  "settings": "Ajustes",
+  "copy": "Copiar",
+  "copied": "Copiado",
+  "remove": "Quitar",
+  "removeNamed": "Quitar: {{name}}",
+  "clear": "Borrar",
+  "hold": "Mantén pulsado",
+  "holdToRemove": "Mantén pulsado para quitar",
+  "gotIt": "Entendido",
+  "equally": "A partes iguales",
+  "less": "{{name}}: menos",
+  "moreNamed": "{{name}}: más",
+  "numberInvalid": "Escribe un número, por ejemplo 1240 o 12,5",
+  "syncProblem": "problema de sincronización",
+  "moreSyncProblem": "Más: problema de sincronización",
+  "dishes": "Platos",
+  "findDish": "Buscar un plato",
+  "byCategory": "Por categorías",
+  "person": {
+    "add": "Añadir persona",
+    "remove": "Quitar persona"
+  },
+  "company": {
+    "nameLabel": "Nombre de la mesa",
+    "namePlaceholder": "Ana y Luis",
+    "addPeople": "Añade personas",
+    "default": "Mesa"
+  },
+  "tare": {
+    "namePlaceholder": "Olla de 3 l",
+    "weightPositive": "El peso debe ser mayor que 0",
+    "add": "Añadir recipiente"
+  },
+  "share": {
+    "ownPortion": "{{name}}: ración fija",
+    "ownPortionLabel": "{{name}}: ración fija, {{label}}",
+    "tomorrow": "Para mañana",
+    "rest": "Resto",
+    "border": "Límite: {{a}} y {{b}}",
+    "keepForTomorrow": "Guardar para mañana",
+    "tomorrowValue": "Para mañana: {{percent}} % del plato"
+  },
+  "update": {
+    "available": "Hay una versión nueva",
+    "action": "Actualizar"
+  },
+  "storageBroken": {
+    "title": "No se pudieron leer los datos",
+    "text": "Queda una copia en el navegador; la app empezó desde cero."
+  },
+  "localData": {
+    "title": "¿Pasar los datos de este dispositivo?",
+    "text": "Platos en este dispositivo: {{count}}. El grupo «{{group}}» ya tiene otros platos. ¿Pasar estos al grupo? Los iguales pueden duplicarse.",
+    "keepApart": "No pasar",
+    "adopt": "Pasar"
+  },
+  "leftGroup": "Ya no estás en el grupo «{{group}}»",
+  "done": "Listo",
+  "copyManually": {
+    "title": "Cópialo a mano",
+    "text": "El navegador no dejó copiar. El texto ya está seleccionado.",
+    "label": "Texto para copiar"
+  },
+  "searchPlaceholder": "Arroz, sopa…",
+  "nothingFound": "No se encontró nada",
+  "group": "Grupo",
+  "calculator": "Calculadora",
+  "numberPositive": "Escribe un número mayor que cero",
+  "weightOf": "Peso: {{name}}",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "undo": "Deshacer",
+  "dish": "Plato",
+  "noTare": "Sin recipiente",
+  "appName": "Portions",
+  "save": "Guardar",
+  "saving": "Guardando…",
+  "signIn": "Entrar",
+  "signOut": "Salir",
+  "enterName": "Escribe un nombre",
+  "personN": "Persona {{n}}",
+  "nobody": "Nadie",
+  "holdSeconds_one": "Mantén pulsado {{count}} segundo",
+  "holdSeconds_many": "Mantén pulsado {{count}} segundos",
+  "holdSeconds_other": "Mantén pulsado {{count}} segundos",
+  "holdLeft": "Sigue pulsando: {{count}} s"
+}

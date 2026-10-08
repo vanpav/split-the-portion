@@ -4,6 +4,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { organization } from 'better-auth/plugins'
 import { nanoid } from 'nanoid'
 import { MAX_GROUPS, PERSONAL_GROUP_NAME } from '../src/account/types'
+import { APP_NAME } from '../src/app/brand'
 
 /**
  * Sign-in (docs/ARCHITECTURE.md §9): email and password, passkeys (one per device) on top, groups as
@@ -15,7 +16,7 @@ import { MAX_GROUPS, PERSONAL_GROUP_NAME } from '../src/account/types'
 /** Everything except the database, the secret and the hooks: shared with `pnpm db:auth-schema`. */
 export function authOptions(origin: string) {
   return {
-    appName: 'Порции',
+    appName: APP_NAME,
     baseURL: origin,
     basePath: '/api/auth',
     trustedOrigins: [origin],
@@ -43,7 +44,7 @@ export function authOptions(origin: string) {
         nickname: { type: 'string', required: false, input: false },
       },
     },
-    plugins: [organization(), passkey({ rpID: new URL(origin).hostname, rpName: 'Порции', origin })],
+    plugins: [organization(), passkey({ rpID: new URL(origin).hostname, rpName: APP_NAME, origin })],
   } satisfies BetterAuthOptions
 }
 
@@ -73,7 +74,7 @@ export function createAuth(env: Env, origin: string, secret: string) {
           },
         },
       }),
-      passkey({ rpID: new URL(origin).hostname, rpName: 'Порции', origin }),
+      passkey({ rpID: new URL(origin).hostname, rpName: APP_NAME, origin }),
     ],
     databaseHooks: {
       user: {

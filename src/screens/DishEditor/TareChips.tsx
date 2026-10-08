@@ -2,8 +2,10 @@ import { PlusIcon } from 'lucide-react'
 import type { Ref } from 'react'
 import { Link, type To } from 'react-router'
 import { buttonVariants } from '@/components/ui/button'
-import { formatGrams, type Id, type Tare } from '@/domain'
+import { type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
+import { formatGrams } from '@/i18n/format'
 
 interface TareChipsProps {
   tares: Tare[]
@@ -22,7 +24,7 @@ const PILL = 'h-9 rounded-full px-3.5 text-sm group-focus-visible/chip:ring-[3px
 const SELECTED = 'bg-card font-semibold ring-2 ring-foreground ring-inset hover:bg-card'
 
 /**
- * «В чём взвешиваете» in the dish editor (docs/UX.md §3): a row of chips scrolling sideways as a whole,
+ * «В чём взвешиваешь» in the dish editor (docs/UX.md §3): a row of chips scrolling sideways as a whole,
  * «+» first (a new tare on a screen over the form), then «Без тары» and the tares with their weight.
  */
 export function TareChips({ tares, tareId, onChange, addTo, addRef, onAdd }: TareChipsProps) {
@@ -32,7 +34,7 @@ export function TareChips({ tares, tareId, onChange, addTo, addRef, onAdd }: Tar
       <button key={id ?? 'none'} type="button" aria-pressed={selected} onClick={() => onChange(id)} className={CHIP}>
         <span className={cn(buttonVariants({ variant: 'secondary' }), PILL, selected && SELECTED)}>
           {label}
-          {grams !== undefined && <span className="font-normal text-muted-foreground tabular-nums">{formatGrams(grams)} г</span>}
+          {grams !== undefined && <span className="font-normal text-muted-foreground tabular-nums">{t('common.grams', { value: formatGrams(grams) })}</span>}
         </span>
       </button>
     )
@@ -45,7 +47,7 @@ export function TareChips({ tares, tareId, onChange, addTo, addRef, onAdd }: Tar
       // The fade at the right edge says «more this way»; the scrollbar would only take height.
       className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      <Link ref={addRef} to={addTo} onClick={onAdd} aria-label="Добавить тару" className={CHIP}>
+      <Link ref={addRef} to={addTo} onClick={onAdd} aria-label={t('common.tare.add')} className={CHIP}>
         <span
           className={cn(
             buttonVariants({ variant: 'ghost', size: 'icon' }),
@@ -55,7 +57,7 @@ export function TareChips({ tares, tareId, onChange, addTo, addRef, onAdd }: Tar
           <PlusIcon />
         </span>
       </Link>
-      {chip(null, 'Без тары')}
+      {chip(null, t('common.noTare'))}
       {tares.map((t) => chip(t.id, t.name, t.grams))}
     </div>
   )

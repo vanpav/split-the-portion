@@ -1,21 +1,18 @@
 import { MAX_GROUPS } from './types'
 import { GroupsApiError, OfflineError } from './groupsApi'
+import { t } from '@/i18n'
 
 /** One text per cause of a failed request, in the words of docs/UX.md §6. */
-export const OFFLINE_TEXT = 'Нет сети — попробуй, когда она появится'
-export const NO_ANSWER_TEXT = 'Сервер не отвечает — попробуй через минуту'
+export const offlineText = () => t('account.errors.offline')
+export const noAnswerText = () => t('account.errors.noAnswer')
 /** Shown before the request too, where the count is known. */
-export const GROUP_LIMIT_TEXT = `Ты уже в ${MAX_GROUPS} группах — выйди из одной, чтобы создать или вступить в другую`
-const SERVER_TEXT = 'Сбой на сервере — попробуй через минуту'
-const TOO_MANY_TEXT = 'Слишком много попыток — подожди минуту'
-const REJECTED_TEXT = 'Запрос не принят — обнови приложение и попробуй снова'
-const APP_TEXT = 'Сбой в приложении — обнови страницу и попробуй снова'
+export const groupLimitText = () => t('account.errors.groupLimit', { max: MAX_GROUPS })
 
 /** The server's answer when no status has a more precise word. */
 export function httpErrorText(status: number): string {
-  if (status === 429) return TOO_MANY_TEXT
-  if (status >= 500) return SERVER_TEXT
-  return REJECTED_TEXT
+  if (status === 429) return t('account.errors.tooMany')
+  if (status >= 500) return t('account.errors.server')
+  return t('account.errors.rejected')
 }
 
 /** The HTTP status of a failed group action: ours (GroupsApiError) or the auth client's. */
@@ -27,12 +24,12 @@ function statusOf(e: unknown): number | undefined {
 
 /** A failed group action, in the words of docs/UX.md §6. */
 export function groupErrorText(e: unknown): string {
-  if (!navigator.onLine) return OFFLINE_TEXT
-  if (e instanceof OfflineError) return NO_ANSWER_TEXT
+  if (!navigator.onLine) return offlineText()
+  if (e instanceof OfflineError) return noAnswerText()
   const status = statusOf(e)
-  if (status === undefined) return APP_TEXT
-  if (status === 401) return 'Войди снова'
-  if (status === 409) return GROUP_LIMIT_TEXT
-  if (status === 403) return 'Нет доступа к группе — попроси новое приглашение'
+  if (status === undefined) return t('account.errors.app')
+  if (status === 401) return t('account.errors.signInAgain')
+  if (status === 409) return groupLimitText()
+  if (status === 403) return t('account.errors.noGroupAccess')
   return httpErrorText(status)
 }

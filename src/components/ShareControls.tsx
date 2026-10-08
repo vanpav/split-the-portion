@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button'
 import { equalSplit, nudgePercent } from '@/domain'
 import { cn } from '@/lib/utils'
 import { lidFill } from './lids'
+import { t } from '@/i18n'
 
 interface ShareControlsProps {
   /** Names of the people who split by share, in order. */
   names: string[]
   /** Their split in whole percents, summing to 100: what ± moves, never shown. */
   percents: number[]
-  /** They split equally already (exact weights, not the rounded percents): «Поровну» is off. */
+  /** They split equally already (exact weights, not the rounded percents): «{t('common.equally')}» is off. */
   equal: boolean
   /** Who ± adjusts. */
   selectedIndex: number
@@ -20,7 +21,7 @@ interface ShareControlsProps {
 
 /**
  * Under a share bar, one line: − and + for the chosen person on the left with their lid between them (no name,
- * no grams: those are in the row); «Поровну» on the right. No percent (docs/SPEC.md §3б): each press moves 1 % of the dish, unseen.
+ * no grams: those are in the row); «{t('common.equally')}» on the right. No percent (docs/SPEC.md §3б): each press moves 1 % of the dish, unseen.
  * Nothing to show for one person.
  */
 export function ShareControls({ names, percents, equal, selectedIndex, onChange, mark }: ShareControlsProps) {
@@ -32,7 +33,7 @@ export function ShareControls({ names, percents, equal, selectedIndex, onChange,
       <Button
         variant="outline"
         size="icon"
-        aria-label={`${name}: меньше`}
+        aria-label={t('common.less', { name })}
         className="max-[360px]:w-9"
         disabled={percents[selectedIndex] <= 1}
         onClick={() => onChange(nudgePercent(percents, selectedIndex, -1))}
@@ -54,7 +55,7 @@ export function ShareControls({ names, percents, equal, selectedIndex, onChange,
       <Button
         variant="outline"
         size="icon"
-        aria-label={`${name}: больше`}
+        aria-label={t('common.moreNamed', { name })}
         className="max-[360px]:w-9"
         onClick={() => onChange(nudgePercent(percents, selectedIndex, 1))}
       >
@@ -62,13 +63,13 @@ export function ShareControls({ names, percents, equal, selectedIndex, onChange,
       </Button>
       <Button
         variant="ghost"
-        // The free space goes before it: ± is one control, «Поровну» another.
+        // The free space goes before it: ± is one control, «{t('common.equally')}» another.
         className="ml-auto px-2 max-[360px]:px-1"
         disabled={equal}
         // Exact, not whole percents: 7 portions of 560 g are 80 g each.
         onClick={() => onChange(equalSplit(names.length))}
       >
-        Поровну
+        {t('common.equally')}
       </Button>
     </div>
   )

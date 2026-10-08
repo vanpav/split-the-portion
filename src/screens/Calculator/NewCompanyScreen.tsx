@@ -9,6 +9,7 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store/store'
 import type { CalculatorOutlet } from './calculatorOutlet'
+import { t } from '@/i18n'
 
 /**
  * `#/d/:id/company/new` — «Добавить компанию» from the calculator's company list (docs/UX.md §3а):
@@ -30,14 +31,14 @@ export function NewCompanyScreen() {
 
   return (
     <>
-      <ScreenHeader title="Новая компания" back backTo={dishPath(dishId)} backLabel="Калькулятор" />
+      <ScreenHeader title={t('calculator.newCompany.title')} back backTo={dishPath(dishId)} backLabel={t('common.calculator')} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
-        <p className="px-1 text-sm text-muted-foreground">Кто ест вместе и в каком соотношении.</p>
+        <p className="px-1 text-sm text-muted-foreground">{t('calculator.newCompany.lead')}</p>
         <CompanyForm value={draft} onChange={setDraft} autoFocus />
         <BottomBar>
           <Button size="lg" className="flex-1 lg:flex-none" disabled={draft.members.length === 0} onClick={add}>
             <PlusIcon data-icon="inline-start" />
-            Добавить компанию
+            {t('calculator.addCompany')}
           </Button>
         </BottomBar>
       </main>

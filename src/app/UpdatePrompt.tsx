@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { t } from '@/i18n'
 
 /**
  * A new version of the app waits for «Обновить» (docs/roadmap/11-pwa.md): a silent reload
@@ -23,10 +24,10 @@ export function UpdatePrompt() {
 
   useEffect(() => {
     if (!needRefresh) return
-    toast('Есть новая версия', {
+    toast(t('common.update.available'), {
       id: 'app-update',
       duration: Infinity,
-      action: { label: 'Обновить', onClick: () => void updateServiceWorker(true) },
+      action: { label: t('common.update.action'), onClick: () => void updateServiceWorker(true) },
     })
   }, [needRefresh, updateServiceWorker])
 

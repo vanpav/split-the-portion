@@ -1,4 +1,5 @@
 import { dishTitle, type Recipe } from './dish'
+import type { Language } from './language'
 import { categoryMatches, CATEGORY_LABELS, dishCategory, type Categorized } from './dishCategories'
 
 /** Lower case, «е» for «ё»: nobody types «свёкла» at the stove. */
@@ -61,12 +62,12 @@ export interface DishRow {
  * The label of the category a dish was found by, when its title and products do not match the query
  * but the category does («гарн» → «Гарниры»); null otherwise.
  */
-export function dishFoundByCategory(recipe: Categorized, query: string): string | null {
+export function dishFoundByCategory(recipe: Categorized, query: string, lang: Language): string | null {
   if (!query.trim() || dishFoundBy(recipe, query) !== null) return null
   const q = plain(query).trim()
   if (plain(dishTitle(recipe)).includes(q)) return null
   const category = dishCategory(recipe)
-  return categoryMatches(query, category) ? CATEGORY_LABELS[category] : null
+  return categoryMatches(query, category) ? CATEGORY_LABELS[lang][category] : null
 }
 
 /**
@@ -78,13 +79,14 @@ export function dishFoundByCategory(recipe: Categorized, query: string): string 
 export function dishRow(
   recipe: Categorized,
   query: string,
+  lang: Language,
   { pick = false, underCategory = false }: { pick?: boolean; underCategory?: boolean } = {},
 ): DishRow {
   const title = dishTitle(recipe)
   const weight = dishWeight(recipe)
   const via = dishFoundBy(recipe, query)
   // Found by its category alone: the label is the second line — unless a category heading above says it already.
-  const viaCategory = underCategory ? null : dishFoundByCategory(recipe, query)
+  const viaCategory = underCategory ? null : dishFoundByCategory(recipe, query, lang)
   if (viaCategory) return { title, weight, second: viaCategory, foundBy: true }
   const products = dishProducts(recipe)
   const base = { title, weight, foundBy: via !== null }

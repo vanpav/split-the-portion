@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 import { lidFill, lidPale } from './lids'
 import { ShareControls } from './ShareControls'
+import { t } from '@/i18n'
 
 export interface DishSegment {
   id: Id
@@ -169,7 +170,7 @@ export function ShareSlider({
   const restStart = groupWidth + own.reduce((a, s) => a + width(s.share), 0)
 
   const selectedIndex = Math.max(0, sharing.findIndex((p) => p.id === chosenId))
-  const name = (index: number) => sharing[index]?.name.trim() || 'Без имени'
+  const name = (index: number) => sharing[index]?.name.trim() || t('common.unnamed')
   const segmentFor = (id: Id) => sharingSegments.find((s) => s.id === id)
 
   // Percent of the bar under the pointer; inside the sharing block when `inGroup`.
@@ -236,7 +237,7 @@ export function ShareSlider({
       {titleOf(title, place)}
     </span>
   )
-  const restTitle = keep > 0 ? 'На завтра' : 'Остаток'
+  const restTitle = t(keep > 0 ? 'common.share.tomorrow' : 'common.share.rest')
 
   return (
     // A little air between the bar and the controls under it: the knobs need room to be grabbed.
@@ -275,7 +276,7 @@ export function ShareSlider({
             <div
               key={segment.id}
               role="img"
-              aria-label={`${segment.name.trim() || 'Без имени'}: своя порция${segment.label ? `, ${segment.label}` : ''}`}
+              aria-label={segment.label ? t('common.share.ownPortionLabel', { name: segment.name.trim() || t('common.unnamed'), label: segment.label }) : t('common.share.ownPortion', { name: segment.name.trim() || t('common.unnamed') })}
               style={{ left: `${ownStarts[i]}%`, width: `${width(segment.share)}%` }}
               className={cn(
                 SEGMENT,
@@ -285,7 +286,7 @@ export function ShareSlider({
                 rounding(sharing.length + i),
               )}
             >
-              {labels(segment.name.trim() || 'Без имени', segment.place)}
+              {labels(segment.name.trim() || t('common.unnamed'), segment.place)}
             </div>
           ))}
 
@@ -310,7 +311,7 @@ export function ShareSlider({
               key={person.id}
               role="slider"
               tabIndex={0}
-              aria-label={`Граница: ${name(index)} и ${name(index + 1)}`}
+              aria-label={t('common.share.border', { a: name(index), b: name(index + 1) })}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={borderPercent(index)}
@@ -351,11 +352,11 @@ export function ShareSlider({
             <div
               role="slider"
               tabIndex={0}
-              aria-label="Отложить на завтра"
+              aria-label={t('common.share.keepForTomorrow')}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={keep}
-              aria-valuetext={`На завтра ${keep} % блюда`}
+              aria-valuetext={t('common.share.tomorrowValue', { percent: keep })}
               data-lit={(keep === 0 && edgeLit) || undefined}
               onPointerDown={(e) => {
                 startDrag(KEEP)(e)

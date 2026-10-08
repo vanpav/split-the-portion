@@ -1,0 +1,21 @@
+{
+  "tour": {
+    "weightsTitle": "Dos pesos",
+    "weightsComposite": "<b>Crudo</b> — todos los ingredientes del plato. <b>Cocinado</b> — el peso después de cocinar: es lo que escribes cada vez. El plato recuerda los ingredientes.",
+    "weightsSimple": "<b>Seco</b> — el peso antes de cocinar. <b>Cocinado</b> — cuánto salió después de cocinar: es lo que escribes cada vez. El plato recuerda el peso en seco.",
+    "tareTitle": "¿En qué lo pesas?",
+    "tareText": "Si es en una olla, elígela aquí. Restamos nosotros el peso del recipiente vacío.",
+    "whoTitle": "Quién come",
+    "barText": "Arrastra el límite en la barra — las partes se guardan con este plato. Otra persona — <b>+ Nombre</b> abajo.",
+    "whoText": "Escribe un nombre y confirma — así con cada uno. Repartimos lo cocinado a partes iguales; luego puedes cambiar las partes.",
+    "shelfTitle": "Otros platos",
+    "shelfText": "Toca un nombre para abrir ese plato. La búsqueda de la izquierda encuentra tus platos y añade populares con su peso habitual.",
+    "progress": "{{current}} de {{total}}",
+    "next": "Siguiente",
+    "done": "Listo",
+    "skip": "Omitir"
+  },
+  "hintsOff": "Consejos desactivados",
+  "hintsOffDescription": "Vuelve a activarlos en Ajustes",
+  "undo": "Deshacer"
+}

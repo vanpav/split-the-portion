@@ -7,6 +7,7 @@ import {
   UsersIcon,
   WeightIcon,
 } from 'lucide-react'
+import { t } from '@/i18n'
 
 export type SettingsSectionId = 'account' | 'group' | 'companies' | 'tares' | 'data' | 'appearance'
 
@@ -19,27 +20,24 @@ export type SettingsCluster = 'account' | 'kitchen' | 'app'
 export interface SettingsSection {
   /** The last part of the address: `#/settings/<id>`. */
   id: SettingsSectionId
-  title: string
+  /** In the UI language now: read when shown. */
+  readonly title: string
   cluster: SettingsCluster
   Icon: LucideIcon
 }
 
-/** Headings of the clusters; the account goes first and needs none. */
-export const CLUSTER_TITLES = {
-  account: null,
-  kitchen: 'Кухня',
-  app: 'Приложение',
-} as const satisfies Record<SettingsCluster, string | null>
+/** Heading of a cluster; the account goes first and needs none. */
+export const clusterTitle = (cluster: SettingsCluster): string | null => (cluster === 'account' ? null : t(`settings.clusters.${cluster}`))
 
 /** Settings subsections in menu order (docs/UX.md «Настройки»). The first one opens on `#/settings` from `md`. */
 export const SETTINGS_SECTIONS: readonly [SettingsSection, ...SettingsSection[]] = [
-  { id: 'account', title: 'Аккаунт', cluster: 'account', Icon: CircleUserIcon },
+  { id: 'account', get title() { return t('settings.sections.account') }, cluster: 'account', Icon: CircleUserIcon },
   // Only with an account (SettingsMenu, SettingsScreen).
-  { id: 'group', title: 'Группа', cluster: 'account', Icon: HouseIcon },
-  { id: 'companies', title: 'Компании', cluster: 'kitchen', Icon: UsersIcon },
-  { id: 'tares', title: 'Тара', cluster: 'kitchen', Icon: WeightIcon },
-  { id: 'appearance', title: 'Оформление', cluster: 'app', Icon: SunMoonIcon },
-  { id: 'data', title: 'Копия данных', cluster: 'app', Icon: HardDriveIcon },
+  { id: 'group', get title() { return t('settings.sections.group') }, cluster: 'account', Icon: HouseIcon },
+  { id: 'companies', get title() { return t('settings.sections.companies') }, cluster: 'kitchen', Icon: UsersIcon },
+  { id: 'tares', get title() { return t('settings.sections.tares') }, cluster: 'kitchen', Icon: WeightIcon },
+  { id: 'appearance', get title() { return t('settings.sections.appearance') }, cluster: 'app', Icon: SunMoonIcon },
+  { id: 'data', get title() { return t('settings.sections.data') }, cluster: 'app', Icon: HardDriveIcon },
 ]
 
 export const findSettingsSection = (id: string | undefined): SettingsSection | undefined =>

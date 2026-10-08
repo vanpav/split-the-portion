@@ -3,8 +3,10 @@ import { useEffect } from 'react'
 import { DishCategoryIcon } from '@/components/DishCategoryIcon'
 import { Highlight } from '@/components/DishSearch/Highlight'
 import { NumberField } from '@/components/NumberField'
-import { dishCategory, dishRow, type PresetDish } from '@/domain'
+import { dishCategory, type PresetDish } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
+import { dishRow } from '@/i18n/format'
 
 interface PopularRowProps {
   preset: PresetDish
@@ -23,7 +25,7 @@ interface PopularRowProps {
 }
 
 /** The weight must be a number above zero or empty. */
-const positive = (value: number | null) => (value !== null && value <= 0 ? 'Введи число больше нуля' : null)
+const positive = (value: number | null) => (value !== null && value <= 0 ? t('common.numberPositive') : null)
 
 /**
  * One popular dish (docs/UX.md §3г): category icon, title with the products of a composite one, the
@@ -57,12 +59,12 @@ export function PopularRow({ preset, query, picked, taken, grams, fieldId, onPic
         )}
       </span>
       {taken ? (
-        <span className="shrink-0 pr-1 text-sm text-muted-foreground">уже есть</span>
+        <span className="shrink-0 pr-1 text-sm text-muted-foreground">{t('dishes.popular.exists')}</span>
       ) : (
         <>
           <NumberField
             id={fieldId}
-            ariaLabel={`Вес: ${row.title}`}
+            ariaLabel={t('common.weightOf', { name: row.title })}
             value={grams}
             onValueChange={onGrams}
             validate={positive}
@@ -79,7 +81,7 @@ export function PopularRow({ preset, query, picked, taken, grams, fieldId, onPic
           />
           <button
             type="button"
-            aria-label={`${picked ? 'Снять' : 'Отметить'}: ${row.title}`}
+            aria-label={t(picked ? 'dishes.popular.unpick' : 'dishes.popular.pick', { name: row.title })}
             aria-pressed={picked}
             onClick={toggle}
             className="-mr-1.5 flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"

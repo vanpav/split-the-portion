@@ -1,0 +1,21 @@
+{
+  "tour": {
+    "weightsTitle": "Two weights",
+    "weightsComposite": "<b>Raw</b> — all the ingredients of the dish. <b>Cooked</b> — the weight after cooking: that's what you enter each time. The dish remembers the ingredients.",
+    "weightsSimple": "<b>Dry</b> — the weight before cooking. <b>Cooked</b> — how much you got after cooking: that's what you enter each time. The dish remembers the dry weight.",
+    "tareTitle": "What do you weigh it in?",
+    "tareText": "If it's in a pot, pick the pot here. We'll subtract the empty container's weight.",
+    "whoTitle": "Who's eating",
+    "barText": "Drag the boundary on the bar — the shares are saved with this dish. Another person — <b>+ Name</b> below.",
+    "whoText": "Type a name and confirm — one person at a time. We'll split the cooked dish equally; you can change the shares later.",
+    "shelfTitle": "Other dishes",
+    "shelfText": "Tap a name to open that dish. Search on the left finds your dishes and adds popular ones with their usual weight.",
+    "progress": "{{current}} of {{total}}",
+    "next": "Next",
+    "done": "Done",
+    "skip": "Skip"
+  },
+  "hintsOff": "Hints turned off",
+  "hintsOffDescription": "Turn them back on in Settings",
+  "undo": "Undo"
+}

@@ -4,6 +4,7 @@ import { authErrorText } from '@/account/authErrors'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { t } from '@/i18n'
 
 const MIN_PASSWORD = 8
 
@@ -38,7 +39,7 @@ export function SignUpForm({ onSignedIn }: { onSignedIn(): void }) {
   return (
     <form className="flex flex-col gap-4" noValidate onSubmit={(e) => void submit(e)}>
       <Field>
-        <FieldLabel htmlFor={emailId}>Почта</FieldLabel>
+        <FieldLabel htmlFor={emailId}>{t('account.email')}</FieldLabel>
         <Input
           id={emailId}
           type="email"
@@ -52,7 +53,7 @@ export function SignUpForm({ onSignedIn }: { onSignedIn(): void }) {
         />
       </Field>
       <Field>
-        <FieldLabel htmlFor={passwordId}>Пароль</FieldLabel>
+        <FieldLabel htmlFor={passwordId}>{t('account.password')}</FieldLabel>
         <Input
           id={passwordId}
           type="password"
@@ -63,10 +64,10 @@ export function SignUpForm({ onSignedIn }: { onSignedIn(): void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error ? <FieldError>{error}</FieldError> : <FieldDescription>Минимум 8 символов</FieldDescription>}
+        {error ? <FieldError>{error}</FieldError> : <FieldDescription>{t('account.passwordHint')}</FieldDescription>}
       </Field>
       <Button type="submit" size="lg" disabled={busy}>
-        Создать аккаунт
+        {t('account.signUp')}
       </Button>
     </form>
   )

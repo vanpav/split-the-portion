@@ -2,6 +2,7 @@ import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface AddPersonRowProps {
   className?: string
@@ -36,8 +37,8 @@ export function AddPersonRow({ onAdd, autoFocus, id, className }: AddPersonRowPr
         </InputGroupAddon>
         <InputGroupInput
           id={id}
-          aria-label="Добавить человека"
-          placeholder="Имя"
+          aria-label={t('common.person.add')}
+          placeholder={t('common.name')}
           value={name}
           autoFocus={autoFocus}
           enterKeyHint="done"

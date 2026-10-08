@@ -1,32 +1,33 @@
-import { httpErrorText, NO_ANSWER_TEXT } from './networkText'
+import { httpErrorText, noAnswerText } from './networkText'
+import { t } from '@/i18n'
 
 /** What went wrong with sign-in, in the words of docs/UX.md §6. */
 export function authErrorText(error: { code?: string; status?: number } | null | undefined): string {
-  if (!navigator.onLine) return 'Нет сети — войти можно, когда она появится'
+  if (!navigator.onLine) return t('account.errors.offlineSignIn')
   // No answer at all: the server is unreachable.
-  if (!error || !error.status) return NO_ANSWER_TEXT
+  if (!error || !error.status) return noAnswerText()
   switch (error.code) {
     case 'INVALID_EMAIL_OR_PASSWORD':
-      return 'Неверная почта или пароль'
+      return t('account.errors.wrongCredentials')
     case 'PASSWORD_TOO_SHORT':
-      return 'Минимум 8 символов'
+      return t('account.errors.passwordShort')
     case 'PASSWORD_TOO_LONG':
-      return 'Максимум 128 символов'
+      return t('account.errors.passwordLong')
     case 'INVALID_PASSWORD':
-      return 'Неверный текущий пароль'
+      return t('account.errors.wrongCurrentPassword')
     case 'USER_ALREADY_EXISTS':
     case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
-      return 'Такая почта уже зарегистрирована'
+      return t('account.errors.emailTaken')
     case 'INVALID_EMAIL':
-      return 'Неверный адрес почты'
+      return t('account.errors.emailInvalid')
     case 'INVALID_TOKEN':
-      return 'Ссылка устарела — попроси новую'
+      return t('account.errors.linkExpired')
     case 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED':
-      return 'Passkey на этом устройстве уже добавлен'
+      return t('account.errors.passkeyExists')
     case 'SESSION_NOT_FRESH':
-      return 'Чтобы добавить passkey, выйди и войди снова'
+      return t('account.errors.passkeyReauth')
   }
   // The passkey prompt was closed, or there is no passkey for this site on the device.
-  if (error.code === 'AUTH_CANCELLED' || error.code?.startsWith('ERROR_')) return 'Passkey не сработал — войди паролем'
+  if (error.code === 'AUTH_CANCELLED' || error.code?.startsWith('ERROR_')) return t('account.errors.passkeyFailed')
   return httpErrorText(error.status)
 }

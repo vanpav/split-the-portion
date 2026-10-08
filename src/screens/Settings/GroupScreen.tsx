@@ -15,6 +15,7 @@ import { GroupMembers } from './GroupMembers'
 import { GroupName } from './GroupName'
 import { InviteCard } from './InviteCard'
 import { LeaveGroupButton } from './LeaveGroupButton'
+import { t } from '@/i18n'
 
 const HEADING = 'px-1 text-sm font-medium text-muted-foreground'
 
@@ -48,17 +49,17 @@ export function GroupScreen() {
 
   return (
     <>
-      <ScreenHeader title={groupLabel(group, me.user.id)} back backTo={list} backLabel="Группа" />
+      <ScreenHeader title={groupLabel(group, me.user.id)} back backTo={list} backLabel={t('common.group')} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
         {me.groups.length > 1 &&
           (isOpen ? (
             <p className="flex items-center gap-2 px-1 text-sm text-muted-foreground">
               <CheckIcon aria-hidden className="size-4 shrink-0 text-foreground" />
-              Открыта: её блюда сейчас на экране и откроются при запуске
+              {t('settings.groupScreen.open')}
             </p>
           ) : (
             <p className="px-1 text-sm text-muted-foreground">
-              Сейчас открыта другая: {openGroup ? groupLabel(openGroup, me.user.id) : '—'}
+              {t('settings.groupScreen.otherOpen', { group: openGroup ? groupLabel(openGroup, me.user.id) : '—' })}
             </p>
           ))}
         {group.role === 'owner' && (
@@ -67,7 +68,7 @@ export function GroupScreen() {
           </div>
         )}
         <div className="flex flex-col gap-2">
-          <h2 className={HEADING}>Участники</h2>
+          <h2 className={HEADING}>{t('settings.groupScreen.members')}</h2>
           <div className="divide-y overflow-hidden rounded-xl border bg-card">
             <GroupMembers group={group} />
             <InviteCard key={group.id} group={group} />
@@ -77,7 +78,7 @@ export function GroupScreen() {
         {!isOpen && (
           <BottomBar>
             <Button size="lg" className="flex-1 lg:flex-none" disabled={busy} onClick={() => void open()}>
-              Открыть эту группу
+              {t('settings.groupScreen.openThis')}
             </Button>
           </BottomBar>
         )}

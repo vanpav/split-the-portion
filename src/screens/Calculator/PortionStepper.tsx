@@ -2,6 +2,7 @@ import { MinusIcon, PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupText } from '@/components/ui/button-group'
 import { MAX_SPLIT_PORTIONS } from '@/domain'
+import { t } from '@/i18n'
 
 interface PortionStepperProps {
   count: number
@@ -16,18 +17,18 @@ interface PortionStepperProps {
  */
 export function PortionStepper({ count, onRemove, onAdd }: PortionStepperProps) {
   return (
-    <ButtonGroup aria-label="Порции" className="shrink-0">
-      <Button variant="outline" size="icon" aria-label="Убрать порцию" disabled={count <= 1} onClick={onRemove}>
+    <ButtonGroup aria-label={t('calculator.portions')} className="shrink-0">
+      <Button variant="outline" size="icon" aria-label={t('calculator.removePortion')} disabled={count <= 1} onClick={onRemove}>
         <MinusIcon />
       </Button>
       <ButtonGroupText
         aria-live="polite"
-        aria-label={`Порций: ${count}`}
+        aria-label={t('calculator.portionsCount', { count })}
         className="min-w-11 justify-center bg-background px-1 text-base font-semibold tabular-nums dark:bg-input/30"
       >
         {count}
       </ButtonGroupText>
-      <Button variant="outline" size="icon" aria-label="Добавить порцию" disabled={count >= MAX_SPLIT_PORTIONS} onClick={onAdd}>
+      <Button variant="outline" size="icon" aria-label={t('calculator.addPortion')} disabled={count >= MAX_SPLIT_PORTIONS} onClick={onAdd}>
         <PlusIcon />
       </Button>
     </ButtonGroup>

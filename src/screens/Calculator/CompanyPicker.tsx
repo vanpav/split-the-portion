@@ -1,10 +1,12 @@
 import { BookmarkPlusIcon, ChartPieIcon, PlusIcon, UsersIcon } from 'lucide-react'
 import { useRef } from 'react'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { lineupName, type Company, type Id } from '@/domain'
+import { type Company, type Id } from '@/domain'
 import { COMPANY_SELECT_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
+import { lineupName } from '@/i18n/format'
 
 interface CompanyPickerProps {
   /** The company shown as picked; null — a lineup of its own. */
@@ -66,7 +68,7 @@ export function CompanyPicker({
   ticked = value,
   onChange,
   onAdd,
-  customLabel = 'Свой состав',
+  customLabel = t('calculator.ownLineup'),
   onSaveCurrent,
   shares,
   onOwnLineup,
@@ -91,7 +93,7 @@ export function CompanyPicker({
 
   return (
     <Select value={inShares ? SHARES : (ticked ?? '')} onValueChange={pick}>
-      <SelectTrigger id={COMPANY_SELECT_ID} className={cn('justify-start', className)} aria-label="Кто ест">
+      <SelectTrigger id={COMPANY_SELECT_ID} className={cn('justify-start', className)} aria-label={t('calculator.who')}>
         {inShares ? <ChartPieIcon className="text-muted-foreground" /> : <UsersIcon className="text-muted-foreground" />}
         <span className="flex min-w-0 flex-1 justify-start truncate">
           {/* The picked company stays named here even when its shares were moved and it is unticked. */}
@@ -125,8 +127,8 @@ export function CompanyPicker({
             <ChartPieIcon />
             {/* What it is before it is picked; the field itself shows «Доли» only. */}
             <span className="flex flex-col">
-              Доли
-              <span className="text-xs text-muted-foreground">Порции без имён, например на неделю</span>
+              {t('calculator.shares')}
+              <span className="text-xs text-muted-foreground">{t('calculator.sharesHint')}</span>
             </span>
           </SelectItem>
         )}
@@ -134,12 +136,12 @@ export function CompanyPicker({
         {onSaveCurrent && (
           <SelectItem value={SAVE}>
             <BookmarkPlusIcon />
-            Сохранить состав как компанию
+            {t('calculator.saveLineup')}
           </SelectItem>
         )}
         <SelectItem value={ADD}>
           <PlusIcon />
-          Добавить компанию
+          {t('calculator.addCompany')}
         </SelectItem>
       </SelectContent>
     </Select>

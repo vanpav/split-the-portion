@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { useBack } from '@/app/useBack'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface ScreenHeaderProps {
   title: string
@@ -22,10 +23,10 @@ interface ScreenHeaderProps {
 }
 
 /** On a phone the back link is an arrow only: the title needs the width. */
-export function ScreenHeader({ title, subtitle, back, backTo = '/', backLabel = 'Блюда', action, compactTitle }: ScreenHeaderProps) {
+export function ScreenHeader({ title, subtitle, back, backTo = '/', backLabel, action, compactTitle }: ScreenHeaderProps) {
   const { hasPrevious, back: goBack } = useBack(backTo)
   // The previous screen can be any, so it is named only when «←» leads to the fallback.
-  const label = hasPrevious ? 'Назад' : backLabel
+  const label = hasPrevious ? t('common.back') : (backLabel ?? t('common.dishes'))
   return (
     <header className="sticky top-0 z-10 flex min-h-14 items-center gap-1 border-b bg-background/95 px-2 pt-[max(0.25rem,env(safe-area-inset-top))] pb-1 backdrop-blur">
       {back && (

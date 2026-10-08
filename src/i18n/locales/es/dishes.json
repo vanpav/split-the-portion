@@ -1,0 +1,38 @@
+{
+  "popular": {
+    "title": "Platos populares",
+    "add": "Añadir",
+    "addCount_one": "Añadir {{count}} plato",
+    "addCount_many": "Añadir {{count}} platos",
+    "addCount_other": "Añadir {{count}} platos",
+    "skip": "Omitir",
+    "leadGroup": "El grupo nuevo aún no tiene platos. Marca lo que cocinas: los platos serán compartidos.",
+    "lead": "Marca lo que cocinas. A la derecha, el peso habitual por tanda — puedes cambiarlo.",
+    "nothingPicked": "Aún no hay nada marcado",
+    "filter": "Filtro",
+    "all": "Todos",
+    "picked": "Marcados",
+    "exists": "ya está",
+    "pick": "Marcar: {{name}}",
+    "unpick": "Desmarcar: {{name}}",
+    "pickAll": "Marcar todos",
+    "unpickAll": "Desmarcar todos"
+  },
+  "menu": {
+    "emptyTitle": "Aún no hay platos",
+    "emptyText": "Añade un plato una vez — luego, en la cocina, solo escribes el peso cocinado.",
+    "add": "Añadir plato",
+    "fromPopular": "Elegir de los populares",
+    "often": "Cocinas a menudo",
+    "yours": "Tus platos",
+    "restAbc": "Los demás · A–Z",
+    "yoursAbc": "Tus platos · A–Z",
+    "popular": "Populares",
+    "orPopular": "O elige de los populares",
+    "addPopular": "Añadir de los populares",
+    "create": "Crear «{{text}}»",
+    "createHint": "Se abrirá el formulario con esta palabra",
+    "addPopularDishes": "Añadir platos populares",
+    "groupSwitch": "Grupo «{{group}}», cambiar"
+  }
+}

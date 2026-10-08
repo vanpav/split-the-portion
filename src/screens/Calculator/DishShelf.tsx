@@ -8,10 +8,12 @@ import { MoreMenu } from '@/components/MoreMenu'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { dishCategory, dishTitle, recentDishes, shelfOrder, type Id } from '@/domain'
+import { dishCategory, recentDishes, shelfOrder, type Id } from '@/domain'
 import { KEYBOARD_PROXY_ID } from '@/lib/domIds'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/store'
+import { t } from '@/i18n'
+import { dishTitle } from '@/i18n/format'
 
 /** ⌘ on a Mac (and an iPad with a keyboard), Ctrl elsewhere: how the search shortcut is shown. */
 const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl '
@@ -112,7 +114,7 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
             <Button variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" asChild>
               <Link
                 to={DISHES_PATH}
-                aria-label="Найти блюдо"
+                aria-label={t('common.findDish')}
                 aria-keyshortcuts="Meta+K Control+K /"
                 // An iPhone opens the keyboard only for a field focused in the tap itself: the invisible one
                 // takes it now, the dish menu's search field takes it over once the menu is open.
@@ -123,14 +125,14 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" align="start">
-            Найти блюдо
+            {t('common.findDish')}
             <Kbd>{MOD}K</Kbd>
             <Kbd>/</Kbd>
           </TooltipContent>
         </Tooltip>
         <nav
           ref={shelfRef}
-          aria-label="Блюда"
+          aria-label={t('common.dishes')}
           // Scrolls sideways under the thumb; the scrollbar would only take height. The edges fade, so a chip
           // running under them reads as «more this way», not as a cut; the padding keeps the ends clear of it.
           className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1 pr-6 pl-3 [mask-image:linear-gradient(to_right,transparent,#000_0.75rem,#000_calc(100%-1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -168,8 +170,8 @@ export function DishShelf({ currentId, onChipTap, hidden, className }: DishShelf
         </nav>
         <MoreMenu
           items={[
-            ...(currentDish ? [{ label: `Изменить «${dishTitle(currentDish)}»`, to: dishEditPath(currentDish.id), icon: PencilIcon }] : []),
-            { label: 'Добавить блюдо', to: newDishPath(), icon: PlusIcon },
+            ...(currentDish ? [{ label: t('calculator.editDish', { name: dishTitle(currentDish) }), to: dishEditPath(currentDish.id), icon: PencilIcon }] : []),
+            { label: t('dishes.menu.add'), to: newDishPath(), icon: PlusIcon },
           ]}
         />
       </div>

@@ -9,8 +9,8 @@ import type { AccountGroup, Invite } from '@/account/types'
 import { joinPath } from '@/app/paths'
 import { CopyButton } from '@/components/CopyButton'
 import { Button } from '@/components/ui/button'
-
-const until = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' })
+import { t } from '@/i18n'
+import { shortDate } from '@/i18n/format'
 
 /**
  * «Пригласить»: the group's code and a link with it, to send in a messenger (docs/UX.md
@@ -34,10 +34,10 @@ export function InviteCard({ group }: { group: AccountGroup }) {
   const share = () =>
     void navigator
       .share({
-        title: 'Порции',
+        title: t('common.appName'),
         text: customName(group.name)
-          ? `Вступай в группу «${customName(group.name)}» в «Порциях»: код ${formatInviteCode(invite!.code)}`
-          : `Давай вести блюда вместе в «Порциях»: код ${formatInviteCode(invite!.code)}`,
+          ? t('settings.invite.shareNamed', { group: customName(group.name), code: formatInviteCode(invite!.code) })
+          : t('settings.invite.share', { code: formatInviteCode(invite!.code) }),
         url: link,
       })
       .catch(() => undefined)
@@ -52,8 +52,8 @@ export function InviteCard({ group }: { group: AccountGroup }) {
       >
         <UserPlusIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-medium">Пригласить</span>
-          <span className="text-sm text-muted-foreground">Код или ссылка для мессенджера</span>
+          <span className="font-medium">{t('settings.invite.title')}</span>
+          <span className="text-sm text-muted-foreground">{t('settings.invite.hint')}</span>
         </span>
       </button>
     )
@@ -61,19 +61,19 @@ export function InviteCard({ group }: { group: AccountGroup }) {
 
   return (
     <div className="flex flex-col gap-3 bg-muted/40 px-4 py-4">
-      <p className="text-sm text-muted-foreground">Код приглашения</p>
+      <p className="text-sm text-muted-foreground">{t('settings.invite.code')}</p>
       <div className="flex items-center gap-2">
         <span className="flex-1 text-3xl font-medium tracking-widest tabular-nums">{formatInviteCode(invite.code)}</span>
-        <CopyButton label="Скопировать ссылку-приглашение" getText={() => link} />
+        <CopyButton label={t('settings.invite.copyLink')} getText={() => link} />
         {'share' in navigator && (
-          <Button variant="ghost" size="icon" aria-label="Поделиться приглашением" onClick={share}>
+          <Button variant="ghost" size="icon" aria-label={t('settings.invite.shareAction')} onClick={share}>
             <Share2Icon />
           </Button>
         )}
       </div>
       <p className="text-sm break-all text-muted-foreground">{link}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="flex-1 text-sm text-muted-foreground">Действует до {until.format(new Date(invite.expiresAt))}</span>
+        <span className="flex-1 text-sm text-muted-foreground">{t('settings.invite.until', { date: shortDate(invite.expiresAt) })}</span>
         {group.role === 'owner' && (
           <Button
             variant="ghost"
@@ -82,11 +82,11 @@ export function InviteCard({ group }: { group: AccountGroup }) {
               void run(async () => {
                 await groupsApi.revoke(group.id, invite.code)
                 setInvite(null)
-                toast('Код отозван')
+                toast(t('settings.invite.revoked'))
               })
             }
           >
-            Отозвать
+            {t('settings.invite.revoke')}
           </Button>
         )}
       </div>

@@ -36,6 +36,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 - `src/domain` is pure TypeScript: no React, DOM, `localStorage`, `Date.now()`, `Math.random()`.
 - New or changed domain function = test in `src/domain/__tests__`. SPEC §11 reference examples live in `examples.test.ts`; don't change them without changing the spec.
 - Compute at full precision, round only on output (`formatGrams`, `formatK`).
+- No UI language in `src/domain`: formatters take a `locale` argument, words are put in by the UI.
 
 ### Data
 - Store and storage (IndexedDB) hold user input only. Derived values (k, shares, remainders, reconciliation) are never persisted.
@@ -69,7 +70,7 @@ Before calling a task done: `pnpm lint && pnpm test && pnpm build`.
 - If you think you must hand-write something (router, hook, utility, UI primitive), **ask the user first** with options and a recommendation. Never silently roll your own.
 - Exception: `src/domain` calculation logic is ours and tested.
 - New dependencies only after agreement, recorded in ARCHITECTURE §2. Open dependency questions: ARCHITECTURE §8.
-- UI is in Russian; identifiers and code comments in English.
+- UI languages: English (default), Russian, Spanish (ARCHITECTURE §11). No string literals in components: every UI text is a key in `src/i18n/locales/ru/*.json`, read with `t()` from `@/i18n`; plurals via i18next `count`, never hand-rolled. Components take formatters from `@/i18n/format` (current locale), not from `@/domain`. Identifiers and code comments in English.
 
 ### Git
 - The project has its own `git init` in this folder (it sits inside a foreign repo `~/Projects`; commit nothing there).

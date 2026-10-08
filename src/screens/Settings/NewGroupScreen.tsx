@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { createGroup, switchGroup } from '@/sync/session'
+import { t } from '@/i18n'
 
 /**
  * `#/groups/new` — «Создать группу» from Settings → «Группа» (docs/UX.md §3а): the name is typed
@@ -41,27 +42,27 @@ export function NewGroupScreen() {
 
   return (
     <>
-      <ScreenHeader title="Новая группа" back backTo={settingsPath('group')} backLabel="Группа" />
+      <ScreenHeader title={t('settings.groups.newTitle')} back backTo={settingsPath('group')} backLabel={t('common.group')} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
         <form id={formId} noValidate onSubmit={(e) => void submit(e)}>
           <Field>
-            <FieldLabel htmlFor={inputId}>Название</FieldLabel>
+            <FieldLabel htmlFor={inputId}>{t('common.title')}</FieldLabel>
             <Input
               id={inputId}
               autoFocus
               autoComplete="off"
               enterKeyHint="done"
               maxLength={MAX_GROUP_NAME}
-              placeholder="Семья"
+              placeholder={t('settings.groups.newPlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <FieldDescription>Блюда и тара в новой группе свои. Позвать людей можно после.</FieldDescription>
+            <FieldDescription>{t('settings.groups.newHint')}</FieldDescription>
           </Field>
         </form>
         <BottomBar>
           <Button type="submit" form={formId} size="lg" className="flex-1 lg:flex-none" disabled={busy || !name.trim()}>
-            Создать
+            {t('settings.groups.createAction')}
           </Button>
         </BottomBar>
       </main>

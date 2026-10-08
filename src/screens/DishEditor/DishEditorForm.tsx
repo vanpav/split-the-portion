@@ -13,13 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   appendToPhrase,
-  CATEGORY_LABELS,
   DEFAULT_PHRASE_LANGUAGE,
   detectCategory,
   DISH_CATEGORIES,
   dishKind,
   dishSource,
-  dishTitle,
   excludedOverrides,
   hasPhraseErrors,
   ingredientsToPhrase,
@@ -47,12 +45,10 @@ import type { EditorOutlet } from './editorOutlet'
 import { PhraseField } from './PhraseField'
 import { PhraseList } from './PhraseList'
 import { TareChips } from './TareChips'
+import { currentLanguage, t } from '@/i18n'
+import { categoryLabel, dishTitle } from '@/i18n/format'
 
-const SPEECH_ERROR_TEXT: Record<SpeechError, string> = {
-  notAllowed: 'Нет доступа к микрофону — разреши его в настройках браузера',
-  network: 'Нет сети — голос сейчас недоступен',
-  nothingHeard: 'Ничего не слышно — попробуй ещё раз',
-}
+const speechErrorText = (error: SpeechError) => t(`editor.speech.${error}`)
 
 /** The select's value for «По названию» (null in the dish). */
 const AUTO_CATEGORY = 'auto'
@@ -141,7 +137,7 @@ export function DishEditorForm() {
     toast(message, {
       duration: 5000,
       action: {
-        label: 'Отменить',
+        label: t('common.undo'),
         onClick: () => {
           onUndo?.()
           replaceText(before, 'end')
@@ -179,14 +175,14 @@ export function DishEditorForm() {
       const spoken = spokenToPhrase(spokenText)
       const products = spoken.text.trim() !== ''
       if (!products && spoken.skipped.length === 0) {
-        toast(SPEECH_ERROR_TEXT.nothingHeard)
+        toast(speechErrorText('nothingHeard'))
         return
       }
       // Said goes straight into the field; «Сказали» under it shows what was heard.
       if (products) replaceText(appendToPhrase(text, spoken.text), 'end')
       setSaid({ text: spokenText, skipped: spoken.skipped })
     },
-    onError: (error) => toast(SPEECH_ERROR_TEXT[error]),
+    onError: (error) => toast(speechErrorText(error)),
   })
 
   // «Из простого блюда» and «Новая тара» are screens over the form (docs/UX.md §3а): the form stays
@@ -198,7 +194,7 @@ export function DishEditorForm() {
       setSaid(null)
     },
     onTare: (tare) => setTareId(tare.id),
-    backLabel: 'Блюдо',
+    backLabel: t('common.dish'),
   } satisfies EditorOutlet)
   const covered = outlet !== null
   const returnAnimation = useReturnAnimation(covered)
@@ -223,7 +219,7 @@ export function DishEditorForm() {
     if (!item) return
     const before = text
     replaceText(removePhraseItem(text, index, { excluded: overrides }), item.start)
-    undoable(`Убрано: ${item.name || 'Без названия'}`, before)
+    undoable(t('editor.removed', { name: item.name || t('common.untitled') }), before)
   }
   // Dictated with the phone keyboard's mic: brought to «продукт вес» on leaving the field.
   const leave = () => {
@@ -232,7 +228,7 @@ export function DishEditorForm() {
     if (next === text) return
     const before = text
     setText(next)
-    undoable('Приведено к виду «ингредиент вес»', before, () => (keptAsTyped.current = before))
+    undoable(t('editor.normalized'), before, () => (keptAsTyped.current = before))
   }
   const paste = async () => {
     try {
@@ -251,10 +247,10 @@ export function DishEditorForm() {
   const firstError = items.flatMap((i) => i.issues).find((issue) => issue.level === 'error')
   const blocked =
     hasPhraseErrors(items) && firstError
-      ? `Проверь разбор: ${phraseIssueText(firstError)}`
+      ? t('editor.checkParse', { issue: phraseIssueText(firstError) })
       : items.some((i) => i.name && !i.excluded)
         ? null
-        : 'Введи ингредиент'
+        : t('editor.enterIngredient')
   // The name the dish gets when none is typed.
   const titlePlaceholder = dishTitle({
     name: '',
@@ -274,8 +270,8 @@ export function DishEditorForm() {
 
   const menu: MoreMenuItem[] = existing
     ? [
-        ...(existing.kind === 'simple' ? [{ label: 'Сделать составным', to: newDishPath(existing.id), icon: SoupIcon }] : []),
-        { label: 'Удалить блюдо', icon: Trash2Icon, destructive: true, onSelect: () => setDeleting(true) },
+        ...(existing.kind === 'simple' ? [{ label: t('editor.makeComposite'), to: newDishPath(existing.id), icon: SoupIcon }] : []),
+        { label: t('editor.deleteDish'), icon: Trash2Icon, destructive: true, onSelect: () => setDeleting(true) },
       ]
     : []
   // Screens over the form keep its query: `from` is part of its address.
@@ -285,10 +281,10 @@ export function DishEditorForm() {
     <>
       <div hidden={covered} className={cn('flex flex-1 flex-col', returnAnimation)}>
         <ScreenHeader
-          title={isNew ? 'Добавить блюдо' : 'Изменить блюдо'}
+          title={t(isNew ? 'editor.addTitle' : 'editor.editTitle')}
           back
           backTo={backTo}
-          backLabel={existing ? 'Калькулятор' : 'Блюда'}
+          backLabel={t(existing ? 'common.calculator' : 'common.dishes')}
           action={<MoreMenu items={menu} />}
         />
         <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
@@ -296,9 +292,9 @@ export function DishEditorForm() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between px-1">
                 <label htmlFor="dish-name" className="text-sm font-medium">
-                  Название
+                  {t('editor.name')}
                 </label>
-                <span className="text-sm text-muted-foreground">можно не писать</span>
+                <span className="text-sm text-muted-foreground">{t('editor.nameOptional')}</span>
               </div>
               <Input
                 id="dish-name"
@@ -317,31 +313,31 @@ export function DishEditorForm() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="dish-category" className="px-1 text-sm font-medium">
-                Категория
+                {t('editor.category')}
               </label>
               <Select value={category ?? AUTO_CATEGORY} onValueChange={(v) => setCategory(v === AUTO_CATEGORY ? null : (v as DishCategory))}>
                 <SelectTrigger id="dish-category" className="w-full">
                   <span className="flex min-w-0 flex-1 justify-start truncate">
-                    <SelectValue>{CATEGORY_LABELS[category ?? detected]}</SelectValue>
+                    <SelectValue>{categoryLabel(category ?? detected)}</SelectValue>
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{category ? 'выбрано вручную' : 'по названию'}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{t(category ? 'editor.categoryManual' : 'editor.categoryAuto')}</span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={AUTO_CATEGORY}>
                     <span>
-                      По названию <span className="text-muted-foreground">· {CATEGORY_LABELS[detected]}</span>
+                      {t('editor.categoryAutoItem')} <span className="text-muted-foreground">· {categoryLabel(detected)}</span>
                     </span>
                   </SelectItem>
                   <SelectSeparator />
                   {DISH_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
-                      {CATEGORY_LABELS[c]}
+                      {categoryLabel(c)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {!category && detected === 'other' && somethingTyped && (
-                <p className="px-1 text-sm text-muted-foreground">По названию не угадать — выбери вручную</p>
+                <p className="px-1 text-sm text-muted-foreground">{t('editor.categoryUnknown')}</p>
               )}
             </div>
           </div>
@@ -360,7 +356,8 @@ export function DishEditorForm() {
               fromDishTo={{ pathname: FROM_SIMPLE_DISH, search }}
               onFromDish={() => (refocus.current = 'phrase')}
               voice={
-                speech.supported
+                // The phrase speaks Russian only for now: in another UI language the mic would hear the wrong one.
+                speech.supported && currentLanguage() === DEFAULT_PHRASE_LANGUAGE.locale
                   ? {
                       listening: speech.listening,
                       transcript: speech.transcript,
@@ -386,7 +383,7 @@ export function DishEditorForm() {
 
           <section className="flex flex-col gap-1.5">
             <h2 id="dish-tare-title" className="px-1 text-sm font-medium">
-              В чём взвешиваете
+              {t('editor.tareTitle')}
             </h2>
             <TareChips
               tares={tares}
@@ -402,7 +399,7 @@ export function DishEditorForm() {
             <div className="flex flex-1 flex-col gap-2">
               {blocked && <p className="text-sm text-muted-foreground">{blocked}</p>}
               <Button size="lg" className="w-full lg:w-auto lg:self-start" disabled={blocked !== null} onClick={save}>
-                {isNew ? 'Создать' : 'Сохранить'}
+                {t(isNew ? 'editor.create' : 'editor.save')}
               </Button>
             </div>
           </BottomBar>

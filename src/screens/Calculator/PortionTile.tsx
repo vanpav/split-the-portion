@@ -2,11 +2,13 @@ import { flushSync } from 'react-dom'
 import type { KeyboardEvent } from 'react'
 import { CopyButton } from '@/components/CopyButton'
 import { lidFill } from '@/components/lids'
-import { formatGrams, portionRawGrams, rawAmountsCopyText, type Cooking, type CookingResult, type PortionResult } from '@/domain'
+import { portionRawGrams, rawAmountsCopyLines, type Cooking, type CookingResult, type PortionResult } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DigitsInput } from './DigitsInput'
-import { rawWord } from './messages'
+import { portionName, rawWord } from './messages'
 import { PortionRecipe } from './PortionRecipe'
+import { t } from '@/i18n'
+import { copyText, formatGrams } from '@/i18n/format'
 
 interface PortionTileProps {
   cooking: Cooking
@@ -56,14 +58,14 @@ interface PortionTileProps {
  * so «−» beside «Доли» takes one away; ⧉ copies this one for the tracker when it differs from the rest.
  */
 export function PortionTile({ cooking, result, place, lids, computed, dry, grams, copyable, recipe, chosen = false, onChoose, compact = false, className }: PortionTileProps) {
-  const name = `Порция ${place + 1}`
+  const name = portionName(place)
   const baseRaw = computed.share !== null ? portionRawGrams(result, computed.raw) : null
   const viewGrams = dry ? baseRaw : computed.cookedGrams
   const shownNumber = viewGrams !== null ? formatGrams(viewGrams) : null
   // Under the amount, the other view: raw under cooked, cooked under dry.
   const subline = dry
-    ? computed.cookedGrams !== null && `${formatGrams(computed.cookedGrams)} г готового`
-    : baseRaw !== null && `${formatGrams(baseRaw)} г ${rawWord(cooking.kind)}`
+    ? computed.cookedGrams !== null && t('calculator.cookedGrams', { grams: formatGrams(computed.cookedGrams) })
+    : baseRaw !== null && t('calculator.rawGrams', { grams: formatGrams(baseRaw), raw: rawWord(cooking.kind) })
 
   // The chosen one's lid wears a ring: 2 px of ground, then 2 px of ink.
   const ring = chosen && 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
@@ -74,7 +76,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         <button
           type="button"
           aria-pressed={chosen}
-          aria-label={`${name}: ${shownNumber} г`}
+          aria-label={t('calculator.portionGrams', { name, grams: shownNumber })}
           onClick={() => {
             if (!chosen) return onChoose?.()
             // Tapped again: the own-portion field. The field is on the screen before the focus moves into it, in
@@ -142,13 +144,13 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         </span>
         {/* No «своя ×» here: three to a row there is room for one button. The dashed outline says it, as on the
             bar, and «своя: 5 — 120 г» above the grid; erasing the number gives the portion back to the shares. */}
-        {grams.own && <span className="sr-only">своя</span>}
+        {grams.own && <span className="sr-only">{t('calculator.own', { count: 1 })}</span>}
         {copyable ? (
           <CopyButton
             className="ml-auto text-muted-foreground"
-            label={`Скопировать для трекера: ${name}`}
+            label={t('calculator.copyFor', { name })}
             disabled={computed.share === null}
-            getText={() => rawAmountsCopyText(cooking, computed.raw) || null}
+            getText={() => copyText(rawAmountsCopyLines(cooking, computed.raw)) || null}
           />
         ) : (
           // The same height without the button: the amounts line up across the row.
@@ -159,7 +161,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
         <span className="flex max-w-full items-baseline text-2xl leading-tight font-medium whitespace-nowrap tabular-nums">
           <DigitsInput
             id={grams.id}
-            aria-label={`${name}: своя порция, ${dry ? `граммы ${rawWord(cooking.kind)}` : 'граммы'}`}
+            aria-label={dry ? t('calculator.ownPortionRawGrams', { name, raw: rawWord(cooking.kind) }) : t('calculator.ownPortionGrams', { name })}
             enterKeyHint="done"
             lids={lids}
             // Until something is typed: today's number, faded — the field keeps its width.
@@ -171,7 +173,7 @@ export function PortionTile({ cooking, result, place, lids, computed, dry, grams
             onKeyDown={grams.onKeyDown}
           />
           <span aria-hidden className="ml-0.5 text-sm font-normal text-muted-foreground">
-            г
+            {t('common.gramsUnit')}
           </span>
         </span>
         {subline && <span className="truncate text-xs text-muted-foreground tabular-nums">{subline}</span>}

@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils'
 import { useAccountStore } from '@/store/account'
 import { useSyncStore } from '@/store/sync'
 import { AppVersion } from './AppVersion'
-import { CLUSTER_TITLES, SETTINGS_SECTIONS, type SettingsCluster, type SettingsSectionId } from './sections'
+import { clusterTitle, SETTINGS_SECTIONS, type SettingsCluster, type SettingsSectionId } from './sections'
+import { t } from '@/i18n'
 
 interface SettingsMenuProps {
   /** The subsection open by its address. */
@@ -30,9 +31,9 @@ export function SettingsMenu({ current, shown, className }: SettingsMenuProps) {
   const sections = SETTINGS_SECTIONS.filter((s) => s.id !== 'group' || (signedIn && inGroup))
 
   return (
-    <nav aria-label="Подразделы настроек" className={cn('flex flex-col gap-5', className)}>
+    <nav aria-label={t('settings.subsections')} className={cn('flex flex-col gap-5', className)}>
       {CLUSTERS.map((cluster) => {
-        const title = CLUSTER_TITLES[cluster]
+        const title = clusterTitle(cluster)
         return (
           <div key={cluster} className="flex flex-col gap-1">
             {title && <h2 className="px-3 pb-1 text-sm font-medium text-muted-foreground">{title}</h2>}

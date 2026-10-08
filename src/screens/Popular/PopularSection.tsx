@@ -1,5 +1,7 @@
 import { PopularRow } from './PopularRow'
-import { CATEGORY_LABELS, type DishCategory, type PresetDish } from '@/domain'
+import { type DishCategory, type PresetDish } from '@/domain'
+import { t } from '@/i18n'
+import { categoryLabel } from '@/i18n/format'
 
 interface PopularSectionProps {
   /** The heading is the category's name; null — no heading. */
@@ -23,11 +25,11 @@ export function PopularSection({ category, presets, query, picked, taken, grams,
   const free = presets.filter((p) => !taken.has(p.name))
   const allPicked = free.length > 0 && free.every((p) => picked.has(p.name))
   return (
-    <section aria-label={category ? CATEGORY_LABELS[category] : undefined}>
+    <section aria-label={category ? categoryLabel(category) : undefined}>
       {category && (
         <div className="flex items-center justify-between gap-3 px-3 text-xs text-muted-foreground">
           <h2 className="flex min-w-0 items-baseline gap-2 pt-3 pb-1 font-medium">
-            <span className="truncate">{CATEGORY_LABELS[category]}</span>
+            <span className="truncate">{categoryLabel(category)}</span>
             <span className="tabular-nums">{presets.length}</span>
           </h2>
           {free.length > 0 && (
@@ -36,7 +38,7 @@ export function PopularSection({ category, presets, query, picked, taken, grams,
               onClick={() => onToggleAll(free, !allPicked)}
               className="-mr-2 -mb-1 flex h-11 items-center rounded-lg px-2 text-sm font-medium text-primary outline-none hover:bg-primary/10 focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
-              {allPicked ? 'Снять все' : 'Отметить все'}
+              {t(allPicked ? 'dishes.popular.unpickAll' : 'dishes.popular.pickAll')}
             </button>
           )}
         </div>

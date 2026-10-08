@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyKey, typedGrams, type KeypadKey } from '../keypad'
+import { applyKey, keypadText, typedGrams, type KeypadKey } from '../keypad'
 
 const type = (keys: KeypadKey[], start = '') => keys.reduce((text, key) => applyKey(text, key), start)
 
@@ -52,5 +52,14 @@ describe('typedGrams', () => {
     expect(typedGrams('12,55')).toBe('12,5')
     expect(typedGrams('07')).toBe('7')
     expect(typedGrams(',5')).toBe('0,5')
+  })
+})
+
+describe('keypadText', () => {
+  it('a stored value as typed text: a comma whatever the language, up to 1 decimal', () => {
+    expect(keypadText(12.5)).toBe('12,5')
+    expect(keypadText(130)).toBe('130')
+    expect(keypadText(1.26)).toBe('1,3')
+    expect(keypadText(null)).toBe('')
   })
 })

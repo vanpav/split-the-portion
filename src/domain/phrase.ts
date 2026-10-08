@@ -264,7 +264,7 @@ export function ingredientsToPhrase(ingredients: readonly Pick<Ingredient, 'name
     .filter((i) => i.name.trim())
     .map((i, n) => {
       const name = n === 0 ? capitalize(i.name.trim(), language) : lowerFirst(i.name.trim(), language)
-      return i.rawGrams === null ? name : `${name} ${formatInput(i.rawGrams)}`
+      return i.rawGrams === null ? name : `${name} ${formatInput(i.rawGrams, 'ru-RU')}`
     })
     .join(', ')
 }

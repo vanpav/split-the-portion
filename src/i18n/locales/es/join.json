@@ -1,0 +1,21 @@
+{
+  "byCode": {
+    "title": "Unirse con código",
+    "invalid": "8 letras y números, por ejemplo K7MR-Q2XD",
+    "code": "Código",
+    "hint": "El código te lo envía quien te invita al grupo.",
+    "check": "Comprobar"
+  },
+  "title": "Unirse al grupo",
+  "loading": "Comprobando el código…",
+  "gone": "Código no encontrado o caducado. Pide uno nuevo.",
+  "offline": "Sin conexión — podrás unirte cuando vuelva.",
+  "invitedBy": "Invitación de {{name}}",
+  "invites": "{{name}} te invita",
+  "shared": "Los platos, recipientes y mesas serán compartidos",
+  "already": "Ya estás en este grupo — abrirlo",
+  "join": "Unirse",
+  "signInToJoin": "Entra para unirte",
+  "installed": "¿Tienes la app en la pantalla de inicio? Ábrela: Ajustes → Grupo → Unirse con código.",
+  "groupBack": "Grupo"
+}

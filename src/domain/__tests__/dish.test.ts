@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, ingredientsCount, recipeInOneColumn, dishSummary, dishTitle, lineupName, liveTareId, matchingCompany, rawTileLines, recentDishes, shareWeights, shelfOrder, startDish } from '../dish'
-import { formatGrams } from '../numbers'
+import { asSimple, defaultShareWeight, dishErrors, dishKind, dishSource, recipeInOneColumn, dishTitle, lineupName, liveTareId, matchingCompany, rawTile, recentDishes, shareWeights, shelfOrder, startDish } from '../dish'
 import type { Dish } from '../types'
 import { cooked, ingredient, share } from './fixtures'
 
@@ -19,22 +18,10 @@ const dish = (parts: Partial<Dish>): Dish => ({
 })
 
 describe('dishTitle', () => {
-  it('name, else counted ingredients, else a placeholder', () => {
+  it('name, else counted ingredients, else empty (the UI puts its placeholder)', () => {
     expect(dishTitle(dish({ name: ' Плов ' }))).toBe('Плов')
     expect(dishTitle(dish({ ingredients: [ingredient('a', 1, false, 'Рис'), ingredient('b', 1, true, 'Соль')] }))).toBe('Рис')
-    expect(dishTitle(dish({}))).toBe('Без названия')
-  })
-})
-
-describe('dishSummary', () => {
-  it('the weight of the one counted product, else what the dish is made of', () => {
-    expect(dishSummary([{ name: 'Булгур', rawGrams: 150 }, { name: 'Вода', rawGrams: 300, excluded: true }])).toBe('150 г')
-    expect(dishSummary([{ name: 'Шампиньоны', rawGrams: null }])).toBe('')
-    expect(
-      dishSummary([ingredient('a', 600, false, 'Курица'), ingredient('b', 400, false, ' Картофель '), ingredient('c', 2000, true, 'Вода')]),
-    ).toBe('Курица, Картофель')
-    // Shown like every gram on screen: whole, rounded half up.
-    expect(dishSummary([{ name: 'Гречка', rawGrams: 1500.5 }])).toBe(`${formatGrams(1501)} г`)
+    expect(dishTitle(dish({}))).toBe('')
   })
 })
 
@@ -54,7 +41,7 @@ describe('asSimple', () => {
   })
 })
 
-describe('rawTileLines', () => {
+describe('rawTile', () => {
   const soup = [
     ingredient('a', 600, false, 'Курица'),
     ingredient('b', 400, false, 'Картофель'),
@@ -64,32 +51,21 @@ describe('rawTileLines', () => {
   ]
 
   it('counted weights summed; how many count, then what is not counted', () => {
-    expect(rawTileLines(soup)).toEqual({ total: 1080, lines: ['3 ингредиента,', 'не в счёт: Вода, Соль'] })
+    expect(rawTile(soup)).toEqual({ total: 1080, count: 3, unweighed: [], uncounted: ['Вода', 'Соль'] })
   })
 
   it('counted ingredients without a weight are named instead of what is not counted; nothing weighed — no total', () => {
-    expect(rawTileLines([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
+    expect(rawTile([ingredient('a', 300, false, 'Фарш'), ingredient('b', null, false, 'Шампиньоны'), ingredient('c', null, true, 'Специи')])).toEqual({
       total: 300,
-      lines: ['2 ингредиента,', 'без веса: Шампиньоны'],
+      count: 2,
+      unweighed: ['Шампиньоны'],
+      uncounted: [],
     })
-    expect(rawTileLines([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, lines: ['1 ингредиент,', 'без веса: Фарш'] })
+    expect(rawTile([ingredient('a', null, false, 'Фарш')])).toEqual({ total: null, count: 1, unweighed: ['Фарш'], uncounted: [] })
   })
 
-  it('nameless rows are left out; nothing to note — one line', () => {
-    expect(rawTileLines([ingredient('a', 200, false, 'Рис'), ingredient('b', 50, false, ' ')])).toEqual({ total: 200, lines: ['1 ингредиент'] })
-  })
-})
-
-describe('ingredientsCount', () => {
-  it('Russian plural for 1, 2, 5, 11, 21, 22', () => {
-    expect([1, 2, 5, 11, 21, 22].map(ingredientsCount)).toEqual([
-      '1 ингредиент',
-      '2 ингредиента',
-      '5 ингредиентов',
-      '11 ингредиентов',
-      '21 ингредиент',
-      '22 ингредиента',
-    ])
+  it('nameless rows are left out; nothing to note — no names', () => {
+    expect(rawTile([ingredient('a', 200, false, 'Рис'), ingredient('b', 50, false, ' ')])).toEqual({ total: 200, count: 1, unweighed: [], uncounted: [] })
   })
 })
 
@@ -218,10 +194,11 @@ describe('lineup', () => {
     expect(matchingCompany([m('Ваня', 55), m('Ксюша', 45)], [us, withMom])).toBeNull()
   })
 
-  it('lineupName joins names', () => {
-    expect(lineupName([m('Ваня', 1), m('Ксюша', 1), m('Тёща', 1)])).toBe('Ваня, Ксюша и Тёща')
-    expect(lineupName([m('Ваня', 1)])).toBe('Ваня')
-    expect(lineupName([m(' ', 1)])).toBe('Компания')
+  it('lineupName joins names the way the locale does', () => {
+    expect(lineupName([m('Ваня', 1), m('Ксюша', 1), m('Тёща', 1)], 'ru-RU')).toBe('Ваня, Ксюша и Тёща')
+    expect(lineupName([m('Vanya', 1), m('Ksyusha', 1), m('Mom', 1)], 'en-US')).toBe('Vanya, Ksyusha, and Mom')
+    expect(lineupName([m('Ваня', 1)], 'ru-RU')).toBe('Ваня')
+    expect(lineupName([m(' ', 1)], 'ru-RU')).toBe('')
   })
 })
 

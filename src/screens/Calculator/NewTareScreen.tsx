@@ -7,9 +7,11 @@ import { ScreenHeader } from '@/components/ScreenHeader'
 import { TareForm } from '@/components/TareForm'
 import { Button } from '@/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from '@/components/ui/item'
-import { formatGrams, type Id, type Tare } from '@/domain'
+import { type Id, type Tare } from '@/domain'
 import { cn } from '@/lib/utils'
 import type { TareOutlet } from './calculatorOutlet'
+import { t } from '@/i18n'
+import { gramsText } from '@/i18n/format'
 
 /**
  * `…/tare/new` — «Добавить тару» from the calculator's tare list (`#/d/:id/tare/new`, docs/UX.md П4, §3а)
@@ -39,13 +41,13 @@ export function NewTareScreen() {
 
   return (
     <>
-      <ScreenHeader title="Новая тара" back backTo={backTo} backLabel={backLabel} />
+      <ScreenHeader title={t('calculator.newTare.title')} back backTo={backTo} backLabel={backLabel} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
-        <p className="px-1 text-sm text-muted-foreground">Вес пустой посуды — вычтем его сами.</p>
+        <p className="px-1 text-sm text-muted-foreground">{t('calculator.newTare.lead')}</p>
         {added.length > 0 && (
           <section className="flex flex-col gap-1">
             <h2 id={addedId} className="px-1 text-sm font-medium text-muted-foreground">
-              Добавлено
+              {t('calculator.newTare.added')}
             </h2>
             <ItemGroup role="group" aria-labelledby={addedId} className="gap-0">
               {added.map((tare) => {
@@ -57,7 +59,7 @@ export function NewTareScreen() {
                       <ItemContent>
                         <ItemTitle>{tare.name}</ItemTitle>
                       </ItemContent>
-                      <ItemActions className="text-muted-foreground tabular-nums">{formatGrams(tare.grams)} г</ItemActions>
+                      <ItemActions className="text-muted-foreground tabular-nums">{gramsText(tare.grams)}</ItemActions>
                     </button>
                   </Item>
                 )
@@ -68,7 +70,7 @@ export function NewTareScreen() {
         <TareForm autoFocus onCreated={created} />
         <BottomBar>
           <Button size="lg" variant="outline" className="flex-1 lg:flex-none" onClick={back}>
-            Готово
+            {t('common.done')}
           </Button>
         </BottomBar>
       </main>

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAccountStore } from '@/store/account'
 import { refreshGroups } from '@/sync/session'
+import { t } from '@/i18n'
 
 /**
  * «Выйти из группы» — for someone who joined it. The owner (whose «Личная» it is) cannot leave;
@@ -47,21 +48,20 @@ export function LeaveGroupButton({ group }: { group: AccountGroup }) {
           className="flex min-h-14 w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left text-destructive outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:bg-muted/60"
         >
           <LogOutIcon aria-hidden className="size-5 shrink-0" />
-          <span className="font-medium">Выйти из группы</span>
+          <span className="font-medium">{t('settings.groups.leave')}</span>
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Выйти из группы «{groupLabel(group, myId)}»?</AlertDialogTitle>
+          <AlertDialogTitle>{t('settings.groups.leaveTitle', { group: groupLabel(group, myId) })}</AlertDialogTitle>
           <AlertDialogDescription>
-            Её блюда уйдут с этого устройства, у остальных участников всё останется. Вернуться можно по новому
-            приглашению.
+            {t('settings.groups.leaveText')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Остаться</AlertDialogCancel>
+          <AlertDialogCancel>{t('settings.account.stay')}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={() => void leave()}>
-            Выйти
+            {t('common.signOut')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

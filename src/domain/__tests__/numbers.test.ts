@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatGrams, formatInput, formatK, formatPercent, formatTyped, parseGrams, roundHalfUp } from '../numbers'
+import { decimalSeparator, formatGrams, formatInput, formatK, formatPercent, formatTyped, parseGrams, roundHalfUp } from '../numbers'
 
 const NBSP = ' '
 
@@ -42,48 +42,67 @@ describe('roundHalfUp', () => {
 
 describe('formatting', () => {
   it('grams: whole, ru-RU grouping, "< 1" for tiny positive amounts', () => {
-    expect(formatGrams(89.2857)).toBe('89')
-    expect(formatGrams(89.5)).toBe('90')
-    expect(formatGrams(3160)).toBe(`3${NBSP}160`)
-    expect(formatGrams(0.3)).toBe('< 1')
-    expect(formatGrams(0)).toBe('0')
-    expect(formatGrams(-0.2)).toBe('0')
+    expect(formatGrams(89.2857, 'ru-RU')).toBe('89')
+    expect(formatGrams(89.5, 'ru-RU')).toBe('90')
+    expect(formatGrams(3160, 'ru-RU')).toBe(`3${NBSP}160`)
+    expect(formatGrams(0.3, 'ru-RU')).toBe('< 1')
+    expect(formatGrams(0, 'ru-RU')).toBe('0')
+    expect(formatGrams(-0.2, 'ru-RU')).toBe('0')
   })
 
   it('k: up to 2 decimals with a comma', () => {
-    expect(formatK(2.8)).toBe('2,8')
-    expect(formatK(2.58333)).toBe('2,58')
-    expect(formatK(3)).toBe('3')
+    expect(formatK(2.8, 'ru-RU')).toBe('2,8')
+    expect(formatK(2.58333, 'ru-RU')).toBe('2,58')
+    expect(formatK(3, 'ru-RU')).toBe('3')
   })
 
   it('percent: one decimal', () => {
-    expect(formatPercent(0.125)).toBe('12,5')
-    expect(formatPercent(1 / 3)).toBe('33,3')
+    expect(formatPercent(0.125, 'ru-RU')).toBe('12,5')
+    expect(formatPercent(1 / 3, 'ru-RU')).toBe('33,3')
   })
 })
 
 describe('formatInput', () => {
   it('round-trips through parseGrams', () => {
-    expect(formatInput(null)).toBe('')
-    expect(formatInput(1240.5)).toBe('1240,5')
-    expect(formatInput(336.00000001)).toBe('336')
-    expect(formatInput(89.2857)).toBe('89,3')
-    expect(parseGrams(formatInput(1240.5))).toEqual({ ok: true, value: 1240.5 })
+    expect(formatInput(null, 'ru-RU')).toBe('')
+    expect(formatInput(1240.5, 'ru-RU')).toBe('1240,5')
+    expect(formatInput(336.00000001, 'ru-RU')).toBe('336')
+    expect(formatInput(89.2857, 'ru-RU')).toBe('89,3')
+    expect(parseGrams(formatInput(1240.5, 'ru-RU'))).toEqual({ ok: true, value: 1240.5 })
   })
 })
 
 describe('formatTyped', () => {
   it('the whole part grouped like formatGrams, the comma and fraction as typed', () => {
-    expect(formatTyped('3160')).toBe(formatGrams(3160))
-    expect(formatTyped('3160')).not.toBe('3160')
-    expect(formatTyped('80')).toBe('80')
-    expect(formatTyped('1500,')).toBe(`${formatGrams(1500)},`)
-    expect(formatTyped('12500,5')).toBe(`${formatGrams(12500)},5`)
-    expect(formatTyped('0,5')).toBe('0,5')
+    expect(formatTyped('3160', 'ru-RU')).toBe(formatGrams(3160, 'ru-RU'))
+    expect(formatTyped('3160', 'ru-RU')).not.toBe('3160')
+    expect(formatTyped('80', 'ru-RU')).toBe('80')
+    expect(formatTyped('1500,', 'ru-RU')).toBe(`${formatGrams(1500, 'ru-RU')},`)
+    expect(formatTyped('12500,5', 'ru-RU')).toBe(`${formatGrams(12500, 'ru-RU')},5`)
+    expect(formatTyped('0,5', 'ru-RU')).toBe('0,5')
   })
 
   it('nothing typed or not a number — as it is', () => {
-    expect(formatTyped('')).toBe('')
-    expect(formatTyped(',5')).toBe(',5')
+    expect(formatTyped('', 'ru-RU')).toBe('')
+    expect(formatTyped(',5', 'ru-RU')).toBe(',5')
+  })
+})
+
+describe('other locales', () => {
+  it('the separator and grouping follow the locale', () => {
+    expect(decimalSeparator('ru-RU')).toBe(',')
+    expect(decimalSeparator('es-ES')).toBe(',')
+    expect(decimalSeparator('en-US')).toBe('.')
+    expect(formatGrams(3160, 'en-US')).toBe('3,160')
+    expect(formatK(2.8, 'en-US')).toBe('2.8')
+    expect(formatPercent(0.125, 'en-US')).toBe('12.5')
+    expect(formatK(2.8, 'es-ES')).toBe('2,8')
+  })
+
+  it('typed and editable text use the locale separator; parsing takes either', () => {
+    expect(formatTyped('1500,5', 'en-US')).toBe('1,500.5')
+    expect(formatInput(12.5, 'en-US')).toBe('12.5')
+    expect(formatInput(12.5, 'es-ES')).toBe('12,5')
+    expect(parseGrams('12.5')).toEqual({ ok: true, value: 12.5 })
   })
 })

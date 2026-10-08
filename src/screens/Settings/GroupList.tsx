@@ -4,6 +4,7 @@ import { customName, groupLabel, peopleLabel } from '@/account/groupLabel'
 import type { AccountGroup } from '@/account/types'
 import { groupPath } from '@/app/paths'
 import { PeopleStack } from '@/components/PeopleStack'
+import { t } from '@/i18n'
 
 interface GroupListProps {
   groups: AccountGroup[]
@@ -38,7 +39,7 @@ export function GroupList({ groups, openId, myId }: GroupListProps) {
               {/* With one group, «open» tells nothing. */}
               {isOpen && groups.length > 1 && (
                 <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-sm font-medium text-secondary-foreground">
-                  Открыта
+                  {t('settings.groupScreen.openBadge')}
                 </span>
               )}
               <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />

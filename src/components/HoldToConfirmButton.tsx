@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface HoldToConfirmButtonProps {
   onConfirm: () => void
@@ -56,7 +57,7 @@ export function HoldToConfirmButton({ onConfirm, label, busyLabel, busy = false,
   }
   const stop = () => setEndAt(null)
 
-  const text = busy ? busyLabel : holding ? `Держи ещё ${left} с` : label
+  const text = busy ? busyLabel : holding ? t('common.holdLeft', { count: left }) : label
   // Busy: the fill stays full until the action is over.
   const filled = holding || busy
 
@@ -64,7 +65,7 @@ export function HoldToConfirmButton({ onConfirm, label, busyLabel, busy = false,
     <button
       type="button"
       disabled={busy}
-      aria-description={`Удерживай ${seconds} секунд`}
+      aria-description={t('common.holdSeconds', { count: seconds })}
       onPointerDown={(e) => e.button === 0 && start()}
       onPointerUp={stop}
       onPointerLeave={stop}

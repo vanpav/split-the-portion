@@ -1,9 +1,11 @@
 import { PlusIcon } from 'lucide-react'
 import { CommandItem } from '@/components/ui/command'
-import { formatGrams, type DishCategory, type DishRow } from '@/domain'
+import { type DishCategory, type DishRow } from '@/domain'
 import { cn } from '@/lib/utils'
 import { DishCategoryIcon } from '@/components/DishCategoryIcon'
 import { Highlight } from './Highlight'
+import { t } from '@/i18n'
+import { formatGrams } from '@/i18n/format'
 
 interface DishSearchRowProps {
   /** Unique in the list: cmdk keeps the selection by it. */
@@ -38,7 +40,7 @@ export function DishSearchRow({ value, row, query, category, mark, onSelect }: D
         )}
       </span>
       {row.weight != null && (
-        <span className="shrink-0 text-sm text-muted-foreground tabular-nums">{formatGrams(row.weight)} г</span>
+        <span className="shrink-0 text-sm text-muted-foreground tabular-nums">{t('common.grams', { value: formatGrams(row.weight) })}</span>
       )}
       {mark && (
         <span

@@ -1,3 +1,5 @@
+import { roundHalfUp } from './numbers'
+
 /** Keys of the calculator's number input (docs/SPEC.md §3б). */
 export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ',' | 'back' | 'clear'
 
@@ -37,4 +39,13 @@ export function typedGrams(input: string): string {
     else if (char === ',' || char === '.') text = applyKey(text, ',')
   }
   return text
+}
+
+/**
+ * A stored value as keypad text: up to 1 decimal, a comma whatever the UI language (the typed text's
+ * own form; `formatTyped` shows it with the locale's separator). null → ''.
+ */
+export function keypadText(value: number | null): string {
+  if (value === null) return ''
+  return String(roundHalfUp(value, 1)).replace('.', ',')
 }

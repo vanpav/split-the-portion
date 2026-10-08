@@ -114,8 +114,8 @@ describe('isValidSplitN', () => {
 })
 
 describe('names', () => {
-  it('unnamed ingredient gets a label; base raw is looked up by id', () => {
-    expect(ingredientDisplayName(ingredient('x', 10, false, '  '))).toBe('Без названия')
+  it('unnamed ingredient has an empty name (the UI labels it); base raw is looked up by id', () => {
+    expect(ingredientDisplayName(ingredient('x', 10, false, '  '))).toBe('')
     expect(ingredientNames(soup()).get('chicken')).toBe('Курица')
     const result = computeCooking(buckwheat([raw('anya', 'buckwheat', 80)]))
     expect(baseRawGrams(result, result.phases[0].remainder.raw)).toBeCloseTo(120, 9)

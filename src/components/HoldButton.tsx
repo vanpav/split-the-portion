@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 interface HoldButtonProps {
   onConfirm: () => void
@@ -48,7 +49,7 @@ export function HoldButton({ onConfirm, label, className, children }: HoldButton
       variant="ghost"
       size="icon-sm"
       aria-label={label}
-      aria-description={'Удерживай'}
+      aria-description={t('common.hold')}
       onPointerDown={(e) => e.button === 0 && start()}
       onPointerUp={stop}
       onPointerLeave={stop}
@@ -89,7 +90,7 @@ export function HoldButton({ onConfirm, label, className, children }: HoldButton
       }
     </Button>
       </TooltipTrigger>
-      <TooltipContent>Удерживай, чтобы убрать</TooltipContent>
+      <TooltipContent>{t('common.holdToRemove')}</TooltipContent>
     </Tooltip>
   )
 }

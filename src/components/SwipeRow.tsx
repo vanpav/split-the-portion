@@ -4,6 +4,7 @@ import { useImperativeHandle, useLayoutEffect, useRef, useState, type ReactNode,
 import { Button } from '@/components/ui/button'
 import { rubberBand, settleDuration, settleSwipe, type SwipeSettle } from '@/domain'
 import { cn } from '@/lib/utils'
+import { t } from '@/i18n'
 
 /** Dragged less than this and let go slowly, the row slides back. */
 const OPEN_AT_PX = 48
@@ -286,7 +287,7 @@ export function SwipeRow({ onRemove, onCopy, as: Tag = 'div', className, itemId,
         >
           <span ref={copyIconRef} className={actionLabel} style={{ width: ACTION_PX }}>
             <CopyIcon />
-            Копировать
+            {t('common.copy')}
           </span>
         </Button>
       )}
@@ -300,7 +301,7 @@ export function SwipeRow({ onRemove, onCopy, as: Tag = 'div', className, itemId,
         >
           <span ref={removeIconRef} className={actionLabel} style={{ width: ACTION_PX }}>
             <Trash2Icon />
-            Убрать
+            {t('common.remove')}
           </span>
         </Button>
       )}

@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /**
  * Hints for new people (docs/UX.md §3б, §3в): the welcome screen and the calculator tour. Pure: what to
  * show is decided here, the screens only render it. What was shown and skipped is a setting of this
@@ -94,31 +95,29 @@ export function tourSteps({ composite, people }: { composite: boolean; people: b
   return [
     {
       target: 'tiles',
-      title: 'Два веса',
-      text: composite
-        ? '<b>Сырой</b> — все ингредиенты блюда. <b>Готовый</b> — вес после готовки: его и вводи каждый раз. Ингредиенты блюдо запомнит.'
-        : '<b>Сухой</b> — вес продукта до готовки. <b>Готовый</b> — сколько вышло после готовки: его и вводи каждый раз. Сухой вес блюдо запомнит.',
+      title: t('onboarding.tour.weightsTitle'),
+      text: t(composite ? 'onboarding.tour.weightsComposite' : 'onboarding.tour.weightsSimple'),
     },
     {
       target: 'tare',
-      title: 'В чём взвешиваете?',
-      text: 'Если в кастрюле — выбери её здесь. Вес пустой посуды вычтем сами.',
+      title: t('onboarding.tour.tareTitle'),
+      text: t('onboarding.tour.tareText'),
     },
     people
       ? {
           target: 'bar',
-          title: 'Кто ест',
-          text: 'Тяни границу на полосе — доли запомнятся у этого блюда. Ещё человек — <b>+ Имя</b> внизу.',
+          title: t('onboarding.tour.whoTitle'),
+          text: t('onboarding.tour.barText'),
         }
       : {
           target: 'who',
-          title: 'Кто ест',
-          text: 'Впиши имя и подтверди — так каждого. Готовое разделим поровну, доли потом можно поменять.',
+          title: t('onboarding.tour.whoTitle'),
+          text: t('onboarding.tour.whoText'),
         },
     {
       target: 'shelf',
-      title: 'Другие блюда',
-      text: 'Нажми на название — откроется это блюдо. Поиск слева находит твои блюда и добавляет популярные с обычным весом.',
+      title: t('onboarding.tour.shelfTitle'),
+      text: t('onboarding.tour.shelfText'),
     },
   ]
 }

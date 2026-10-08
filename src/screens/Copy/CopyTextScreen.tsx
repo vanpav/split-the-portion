@@ -4,6 +4,7 @@ import { BottomBar } from '@/components/BottomBar'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { t } from '@/i18n'
 
 const textOf = (state: unknown) =>
   typeof state === 'object' && state !== null && 'copyText' in state && typeof state.copyText === 'string'
@@ -23,21 +24,21 @@ export function CopyTextScreen() {
 
   return (
     <>
-      <ScreenHeader title="Скопируй вручную" back backTo={from} />
+      <ScreenHeader title={t('common.copyManually.title')} back backTo={from} />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4">
-        <p className="px-1 text-sm text-muted-foreground">Браузер не дал скопировать. Текст уже выделен.</p>
+        <p className="px-1 text-sm text-muted-foreground">{t('common.copyManually.text')}</p>
         <Textarea
           readOnly
           // Selected as it opens, and again on every tap.
           ref={(el) => el?.select()}
-          aria-label="Текст для копирования"
+          aria-label={t('common.copyManually.label')}
           rows={Math.min(12, text.split('\n').length + 1)}
           value={text}
           onFocus={(e) => e.currentTarget.select()}
         />
         <BottomBar>
           <Button size="lg" className="flex-1 lg:flex-none" onClick={back}>
-            Готово
+            {t('common.done')}
           </Button>
         </BottomBar>
       </main>

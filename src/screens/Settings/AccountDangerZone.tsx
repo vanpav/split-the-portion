@@ -16,33 +16,23 @@ import {
 import { restartHints } from '@/onboarding/hints'
 import { usePrefsStore } from '@/store/prefs'
 import { deleteAccount, resetAccount } from '@/sync/session'
+import { t } from '@/i18n'
 
 type Kind = 'reset' | 'delete'
 
-const SHARED = 'Из общих групп ты выйдешь, у остальных участников всё останется.'
-const BACKUP = 'Вернуть ничего не получится. Если нужна копия блюд, скачай её сначала: Настройки → Копия данных.'
+/** The texts of each action, read when shown: in the UI language now. */
+const texts = (kind: Kind) => ({
+  title: t(`settings.danger.${kind}.title`),
+  hint: t(`settings.danger.${kind}.hint`),
+  question: t(`settings.danger.${kind}.question`),
+  text: t(`settings.danger.${kind}.text`, { shared: t('settings.danger.shared') }),
+  hold: t(`settings.danger.${kind}.hold`),
+  busy: t(`settings.danger.${kind}.busy`),
+})
 
 const ACTIONS = {
-  reset: {
-    Icon: RotateCcwIcon,
-    title: 'Сбросить аккаунт',
-    hint: 'Данные и профиль удалятся, вход останется',
-    question: 'Сбросить аккаунт?',
-    text: `Группы, где ты один, удалятся вместе с блюдами, тарой и компаниями, а с ними профиль и фото. ${SHARED} Войти можно будет как раньше: паролем или по passkey. Приложение начнётся сначала, как в первый раз.`,
-    hold: 'Удерживай, чтобы сбросить',
-    busy: 'Сбрасываем…',
-    run: resetAccount,
-  },
-  delete: {
-    Icon: Trash2Icon,
-    title: 'Удалить аккаунт',
-    hint: 'Насовсем, вместе с данными и входом',
-    question: 'Удалить аккаунт?',
-    text: `Удалятся группы, где ты один, с блюдами, тарой и компаниями, профиль, фото, пароль и passkey. ${SHARED}`,
-    hold: 'Удерживай, чтобы удалить',
-    busy: 'Удаляем…',
-    run: deleteAccount,
-  },
+  reset: { Icon: RotateCcwIcon, run: resetAccount },
+  delete: { Icon: Trash2Icon, run: deleteAccount },
 } as const satisfies Record<Kind, unknown>
 
 /**
@@ -56,7 +46,7 @@ export function AccountDangerZone() {
   const [shown, setShown] = useState<Kind>('reset')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const action = ACTIONS[shown]
+  const action = { ...ACTIONS[shown], ...texts(shown) }
 
   const ask = (kind: Kind) => {
     setShown(kind)
@@ -76,7 +66,7 @@ export function AccountDangerZone() {
         navigate('/', { replace: true })
       }
       // Signed out, the screen looks just like after «Выйти»: say what happened.
-      else toast('Аккаунт удалён')
+      else toast(t('settings.danger.deleted'))
     } catch (e) {
       setError(groupErrorText(e))
     } finally {
@@ -91,7 +81,8 @@ export function AccountDangerZone() {
     <>
       <div className="divide-y overflow-hidden rounded-xl border bg-card">
         {(Object.keys(ACTIONS) as Kind[]).map((kind) => {
-          const { Icon, title, hint } = ACTIONS[kind]
+          const { Icon } = ACTIONS[kind]
+          const { title, hint } = texts(kind)
           return (
             <button key={kind} type="button" className={row} onClick={() => ask(kind)}>
               <Icon aria-hidden className="mt-0.5 size-5 shrink-0 self-start" />
@@ -109,7 +100,7 @@ export function AccountDangerZone() {
           <AlertDialogHeader>
             <AlertDialogTitle>{action.question}</AlertDialogTitle>
             <AlertDialogDescription>{action.text}</AlertDialogDescription>
-            <AlertDialogDescription>{BACKUP}</AlertDialogDescription>
+            <AlertDialogDescription>{t('settings.danger.backup')}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
             <HoldToConfirmButton label={action.hold} busyLabel={action.busy} busy={busy} onConfirm={() => void run()} />
@@ -120,7 +111,7 @@ export function AccountDangerZone() {
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Отмена</AlertDialogCancel>
+            <AlertDialogCancel disabled={busy}>{t('common.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
